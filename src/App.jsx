@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import QuoteModal from './components/QuoteModal';
 import MobileBottomBar from './components/MobileBottomBar';
+import CookieBanner from './components/CookieBanner';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -78,6 +79,9 @@ export default function App() {
 
         {/* Mobile Sticky Quick Action Bar */}
         <MobileBottomBar onOpenQuote={() => setIsQuoteOpen(true)} />
+
+        {/* Floating Cookie Consent Banner */}
+        <CookieBanner />
       </div>
     </BrowserRouter>
   );

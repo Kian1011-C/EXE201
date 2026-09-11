@@ -2,12 +2,15 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useInView } from 'motion/react';
 
 export default function AnimatedCounter({ target, suffix = '', duration = 1.6 }) {
-  const [count, setCount] = useState(0);
+  // Initialize with target value so text crawlers and scrapers extract the full number
+  const [count, setCount] = useState(target);
+  const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!isInView || hasAnimated) return;
+    setHasAnimated(true);
 
     let start = 0;
     const end = parseInt(target, 10);
@@ -15,6 +18,9 @@ export default function AnimatedCounter({ target, suffix = '', duration = 1.6 })
       setCount(target);
       return;
     }
+
+    // Reset to 0 when user scrolls into view to trigger smooth count-up
+    setCount(0);
 
     const totalSteps = 60;
     const stepTime = (duration * 1000) / totalSteps;
@@ -35,7 +41,7 @@ export default function AnimatedCounter({ target, suffix = '', duration = 1.6 })
     }, stepTime);
 
     return () => clearInterval(timer);
-  }, [isInView, target, duration]);
+  }, [isInView, target, duration, hasAnimated]);
 
   return (
     <span ref={ref} className="tabular-nums">

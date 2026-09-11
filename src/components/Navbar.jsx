@@ -92,45 +92,45 @@ export default function Navbar({ onOpenQuote }) {
           </Link>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center space-x-7 text-sm font-semibold">
+          <nav className="hidden lg:flex items-center space-x-7 text-sm">
             <Link 
-              className={`hover:text-primary transition-colors duration-200 ${location.pathname === '/about' ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant'}`} 
+              className={`transition-all duration-200 ${location.pathname === '/about' ? 'text-primary font-bold border-b-2 border-primary pb-1.5' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
               to="/about"
             >
               About
             </Link>
             <Link 
-              className={`hover:text-primary transition-colors duration-200 ${location.pathname.startsWith('/insurance-services') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant'}`} 
+              className={`transition-all duration-200 ${location.pathname.startsWith('/insurance-services') ? 'text-primary font-bold border-b-2 border-primary pb-1.5' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
               to="/insurance-services"
             >
               Insurance
             </Link>
             <Link 
-              className="text-on-surface-variant hover:text-primary transition-colors duration-200" 
+              className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" 
               to="/insurance-services"
             >
               I Am...
             </Link>
             <Link 
-              className={`hover:text-primary transition-colors duration-200 ${location.pathname === '/careers' ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant'}`} 
+              className={`transition-all duration-200 ${location.pathname === '/careers' ? 'text-primary font-bold border-b-2 border-primary pb-1.5' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
               to="/careers"
             >
               Careers
             </Link>
             <Link 
-              className="text-on-surface-variant hover:text-primary transition-colors duration-200" 
+              className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" 
               to="/careers"
             >
               Events
             </Link>
             <Link 
-              className="text-on-surface-variant hover:text-primary transition-colors duration-200" 
+              className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" 
               to="/contact"
             >
               Support
             </Link>
             <Link 
-              className={`hover:text-primary transition-colors duration-200 ${location.pathname === '/contact' ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant'}`} 
+              className={`transition-all duration-200 ${location.pathname === '/contact' ? 'text-primary font-bold border-b-2 border-primary pb-1.5' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
               to="/contact"
             >
               Contact
