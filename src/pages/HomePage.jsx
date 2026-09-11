@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'motion/react';
 import CarrierLogosStrip from '../components/CarrierLogos';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 export default function HomePage({ onOpenQuote }) {
   const [planType, setPlanType] = useState('medicare');
@@ -16,53 +18,82 @@ export default function HomePage({ onOpenQuote }) {
   return (
     <div className="w-full bg-background text-on-background">
       
-      {/* Hero Section with Quote Form & Visual Accent (Exact Stitch AI Layout) */}
+      {/* Hero Section with Quote Form & Visual Accent */}
       <section className="relative bg-gradient-to-b from-surface to-surface-container-low overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24 border-b border-stroke-subtle">
         {/* Ambient decorative glow */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-cyan-ice/40 blur-3xl pointer-events-none"></div>
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-cyan-ice/40 blur-3xl pointer-events-none animate-pulse-glow"></div>
         <div className="absolute bottom-0 left-10 w-72 h-72 rounded-full bg-primary/5 blur-2xl pointer-events-none"></div>
         
         <div className="max-w-7xl mx-auto px-4 lg:px-8 relative">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             
             {/* Left Content Column */}
-            <div className="lg:col-span-7 space-y-6 text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-ice text-primary text-xs font-bold tracking-wide shadow-xs">
+            <motion.div 
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="lg:col-span-7 space-y-6 text-left"
+            >
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-ice text-primary text-xs font-bold tracking-wide shadow-xs animate-float">
                 <span className="material-symbols-outlined text-[18px]">verified_user</span>
                 <span>SAVE THE MOST WITH THE BEST RATE</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-on-surface tracking-tight leading-[1.15]">
+              <motion.h1 
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-on-surface tracking-tight leading-[1.15]"
+              >
                 Safeguarding Your <br className="hidden sm:inline" />
                 <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-container to-secondary">
                   Future With Insurance
                 </span>
-              </h1>
+              </motion.h1>
 
-              <p className="text-base sm:text-lg text-on-surface-variant max-w-xl leading-relaxed">
+              <motion.p 
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-base sm:text-lg text-on-surface-variant max-w-xl leading-relaxed"
+              >
                 Navigate healthcare, Medicare, and tailored life policies with licensed independent Texas specialists. Guaranteed quick response, clear answers, and zero confusion.
-              </p>
+              </motion.p>
 
-              <div className="flex flex-wrap items-center gap-4 pt-2">
-                <button
+              <motion.div 
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="flex flex-wrap items-center gap-4 pt-2"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={onOpenQuote}
                   className="px-6 py-3.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer text-sm"
                 >
                   <span>Get A Quote</span>
                   <span className="material-symbols-outlined text-[18px]">verified</span>
-                </button>
+                </motion.button>
 
-                <Link
-                  to="/contact"
-                  className="px-6 py-3.5 rounded-lg bg-surface-container-lowest border border-stroke-subtle hover:border-primary text-on-surface hover:text-primary font-bold shadow-xs transition-all duration-200 flex items-center gap-2 text-sm"
-                >
-                  <span>Contact Us</span>
-                  <span className="material-symbols-outlined text-[18px]">headset_mic</span>
-                </Link>
-              </div>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Link
+                    to="/contact"
+                    className="px-6 py-3.5 rounded-lg bg-surface-container-lowest border border-stroke-subtle hover:border-primary text-on-surface hover:text-primary font-bold shadow-xs transition-all duration-200 flex items-center gap-2 text-sm"
+                  >
+                    <span>Contact Us</span>
+                    <span className="material-symbols-outlined text-[18px]">headset_mic</span>
+                  </Link>
+                </motion.div>
+              </motion.div>
 
               {/* Trust Badge Row */}
-              <div className="pt-4 flex flex-wrap items-center gap-6 text-on-surface-variant text-sm">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="pt-4 flex flex-wrap items-center gap-6 text-on-surface-variant text-sm"
+              >
                 <div className="flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-success-emerald text-[20px]">check_circle</span>
                   <span>Licensed in 50 States</span>
@@ -75,12 +106,18 @@ export default function HomePage({ onOpenQuote }) {
                   <span className="material-symbols-outlined text-success-emerald text-[20px]">check_circle</span>
                   <span>No Fee For Consultation</span>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             {/* Right Column: Interactive Quick Quote Widget */}
-            <div className="lg:col-span-5 relative" id="quote-calculator">
-              <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl border border-stroke-subtle shadow-xl relative z-10">
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="lg:col-span-5 relative" 
+              id="quote-calculator"
+            >
+              <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl border border-stroke-subtle shadow-xl relative z-10 transition-shadow duration-300 hover:shadow-2xl">
                 <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-5">
                   <div>
                     <h2 className="text-xl font-bold text-on-surface">Fast Rate Comparison</h2>
@@ -103,7 +140,7 @@ export default function HomePage({ onOpenQuote }) {
                         onClick={() => setPlanType('medicare')}
                         className={`rounded-lg p-2.5 text-center transition-all flex flex-col items-center cursor-pointer border ${
                           planType === 'medicare'
-                            ? 'border-primary bg-cyan-ice/30 text-primary font-bold'
+                            ? 'border-primary bg-cyan-ice/40 text-primary font-bold shadow-xs scale-[1.02]'
                             : 'border-stroke-subtle hover:border-primary/50 bg-surface text-on-surface-variant'
                         }`}
                       >
@@ -116,7 +153,7 @@ export default function HomePage({ onOpenQuote }) {
                         onClick={() => setPlanType('aca')}
                         className={`rounded-lg p-2.5 text-center transition-all flex flex-col items-center cursor-pointer border ${
                           planType === 'aca'
-                            ? 'border-primary bg-cyan-ice/30 text-primary font-bold'
+                            ? 'border-primary bg-cyan-ice/40 text-primary font-bold shadow-xs scale-[1.02]'
                             : 'border-stroke-subtle hover:border-primary/50 bg-surface text-on-surface-variant'
                         }`}
                       >
@@ -129,7 +166,7 @@ export default function HomePage({ onOpenQuote }) {
                         onClick={() => setPlanType('life')}
                         className={`rounded-lg p-2.5 text-center transition-all flex flex-col items-center cursor-pointer border ${
                           planType === 'life'
-                            ? 'border-primary bg-cyan-ice/30 text-primary font-bold'
+                            ? 'border-primary bg-cyan-ice/40 text-primary font-bold shadow-xs scale-[1.02]'
                             : 'border-stroke-subtle hover:border-primary/50 bg-surface text-on-surface-variant'
                         }`}
                       >
@@ -153,7 +190,7 @@ export default function HomePage({ onOpenQuote }) {
                           placeholder="77450"
                           value={zipcode}
                           onChange={(e) => setZipcode(e.target.value)}
-                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                           required
                         />
                         <span className="material-symbols-outlined absolute left-2.5 top-3 text-[18px] text-outline">
@@ -175,7 +212,7 @@ export default function HomePage({ onOpenQuote }) {
                           placeholder="65"
                           value={age}
                           onChange={(e) => setAge(e.target.value)}
-                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                           required
                         />
                         <span className="material-symbols-outlined absolute left-2.5 top-3 text-[18px] text-outline">
@@ -197,7 +234,7 @@ export default function HomePage({ onOpenQuote }) {
                         placeholder="(833) 000-0000"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                        className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       />
                       <span className="material-symbols-outlined absolute left-2.5 top-3 text-[18px] text-outline">
                         phone
@@ -205,13 +242,15 @@ export default function HomePage({ onOpenQuote }) {
                     </div>
                   </div>
 
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     type="submit"
                     className="w-full py-3.5 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm tracking-wide transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>Get Free Quote Now</span>
                     <span className="material-symbols-outlined text-[18px]">bolt</span>
-                  </button>
+                  </motion.button>
 
                   <p className="text-[11px] leading-relaxed text-center text-outline">
                     By clicking, you agree to receive information from licensed insurance agent representatives. No spam guaranteed.
@@ -219,7 +258,7 @@ export default function HomePage({ onOpenQuote }) {
                 </form>
               </div>
               <div className="absolute -bottom-4 -right-4 w-full h-full bg-cyan-ice/30 rounded-2xl -z-0 hidden sm:block"></div>
-            </div>
+            </motion.div>
 
           </div>
         </div>
@@ -229,22 +268,46 @@ export default function HomePage({ onOpenQuote }) {
       <section className="bg-trust-navy-deep text-on-primary py-8 border-y border-cyan-ice/15">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-white/10">
-            <div className="p-3">
-              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">10k+</div>
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="p-3 cursor-default"
+            >
+              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">
+                <AnimatedCounter target="10" suffix="k+" />
+              </div>
               <div className="text-xs uppercase tracking-wider text-surface-variant font-medium mt-1">Satisfied Clients</div>
-            </div>
-            <div className="p-3">
-              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">50k+</div>
+            </motion.div>
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="p-3 cursor-default"
+            >
+              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">
+                <AnimatedCounter target="50" suffix="k+" />
+              </div>
               <div className="text-xs uppercase tracking-wider text-surface-variant font-medium mt-1">Case Support</div>
-            </div>
-            <div className="p-3">
-              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">120+</div>
+            </motion.div>
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="p-3 cursor-default"
+            >
+              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">
+                <AnimatedCounter target="120" suffix="+" />
+              </div>
               <div className="text-xs uppercase tracking-wider text-surface-variant font-medium mt-1">Certified Agents</div>
-            </div>
-            <div className="p-3">
-              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">50</div>
+            </motion.div>
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="p-3 cursor-default"
+            >
+              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">
+                <AnimatedCounter target="50" suffix="" />
+              </div>
               <div className="text-xs uppercase tracking-wider text-surface-variant font-medium mt-1">States Covered</div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -254,7 +317,13 @@ export default function HomePage({ onOpenQuote }) {
 
       {/* Core Insurance Offerings Section */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 lg:px-8" id="services">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col md:flex-row md:items-end justify-between mb-12"
+        >
           <div className="max-w-2xl">
             <span className="text-primary text-xs font-bold tracking-wider uppercase mb-2 block">
               Our Specialized Services
@@ -266,24 +335,31 @@ export default function HomePage({ onOpenQuote }) {
           <div className="mt-4 md:mt-0">
             <Link
               to="/insurance-services"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-primary text-primary hover:bg-cyan-ice/20 text-sm font-bold transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-primary text-primary hover:bg-cyan-ice/20 text-sm font-bold transition-all duration-200 hover:-translate-y-0.5"
             >
               <span>View All Coverage Types</span>
               <span className="material-symbols-outlined text-[18px]">open_in_new</span>
             </Link>
           </div>
-        </div>
+        </motion.div>
 
         {/* Bento-style 3 Main Offerings */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Card 1: ACA / Health */}
-          <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col group hover:-translate-y-1">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            whileHover={{ y: -6 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col group"
+          >
             <div className="h-52 overflow-hidden relative">
               <img 
                 src="/images/service-aca.jpg" 
                 alt="Affordable Care Act healthcare consultation" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
               />
               <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-xs">
                 <span className="material-symbols-outlined text-[16px]">health_and_safety</span>
@@ -321,10 +397,17 @@ export default function HomePage({ onOpenQuote }) {
                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
               </Link>
             </div>
-          </div>
+          </motion.div>
 
           {/* Card 2: Medicare Solutions (Featured) */}
-          <div className="bg-surface-container-lowest rounded-2xl border-2 border-primary overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group hover:-translate-y-1 relative">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            whileHover={{ y: -6 }}
+            className="bg-surface-container-lowest rounded-2xl border-2 border-primary overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group relative"
+          >
             <div className="absolute top-3 right-3 z-10 bg-primary text-on-primary text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
               Top Rated Guidance
             </div>
@@ -333,7 +416,7 @@ export default function HomePage({ onOpenQuote }) {
               <img 
                 src="/images/service-medicare.jpg" 
                 alt="Medicare guidance specialist with senior client" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
               />
               <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-xs">
                 <span className="material-symbols-outlined text-[16px]">elderly</span>
@@ -371,15 +454,22 @@ export default function HomePage({ onOpenQuote }) {
                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
               </Link>
             </div>
-          </div>
+          </motion.div>
 
           {/* Card 3: Life Insurance */}
-          <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col group hover:-translate-y-1">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            whileHover={{ y: -6 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col group"
+          >
             <div className="h-52 overflow-hidden relative">
               <img 
                 src="/images/service-life.jpg" 
                 alt="Multigenerational family protected by Life Insurance" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
               />
               <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-xs">
                 <span className="material-symbols-outlined text-[16px]">shield</span>
@@ -417,7 +507,7 @@ export default function HomePage({ onOpenQuote }) {
                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
               </Link>
             </div>
-          </div>
+          </motion.div>
 
         </div>
       </section>
@@ -430,12 +520,18 @@ export default function HomePage({ onOpenQuote }) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             
             {/* Visual / Agent Feature Image */}
-            <div className="lg:col-span-5">
-              <div className="relative rounded-2xl overflow-hidden border-2 border-cyan-ice/20 shadow-2xl">
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-5"
+            >
+              <div className="relative rounded-2xl overflow-hidden border-2 border-cyan-ice/20 shadow-2xl group">
                 <img 
                   src="/images/advisor-counselor.jpg" 
                   alt="Insurance counselor greeting client in Houston office" 
-                  className="w-full h-[420px] object-cover"
+                  className="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
                 <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-trust-navy-deep/90 via-trust-navy-deep/60 to-transparent p-6">
                   <div className="text-cyan-ice text-xs font-bold uppercase tracking-wider mb-1">
@@ -446,10 +542,16 @@ export default function HomePage({ onOpenQuote }) {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Value Copy & Quick Direct Action Cards */}
-            <div className="lg:col-span-7 space-y-6">
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-7 space-y-6"
+            >
               <span className="inline-block px-3 py-1 rounded-md bg-cyan-ice/20 text-cyan-ice text-xs font-bold uppercase tracking-wider border border-cyan-ice/30">
                 Insuring Katy and All of Texas
               </span>
@@ -468,8 +570,10 @@ export default function HomePage({ onOpenQuote }) {
 
               {/* 3 Responsive Action Tiles */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4" id="contact-hub">
-                <a 
-                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-xs transition-all duration-200 text-center flex flex-col items-center group" 
+                <motion.a 
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-xs transition-all duration-200 text-center flex flex-col items-center group cursor-pointer" 
                   href="tel:8336336868"
                 >
                   <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
@@ -478,10 +582,12 @@ export default function HomePage({ onOpenQuote }) {
                   <div className="text-base font-bold text-white">Call Us</div>
                   <div className="text-sm text-cyan-ice font-bold mt-1">(833) 633-6868</div>
                   <span className="text-[11px] text-surface-variant mt-0.5">24/7 Phone Support</span>
-                </a>
+                </motion.a>
 
-                <a 
-                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-xs transition-all duration-200 text-center flex flex-col items-center group" 
+                <motion.a 
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-xs transition-all duration-200 text-center flex flex-col items-center group cursor-pointer" 
                   href="mailto:info@thebestrateins.com"
                 >
                   <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
@@ -490,22 +596,24 @@ export default function HomePage({ onOpenQuote }) {
                   <div className="text-base font-bold text-white">Email Us</div>
                   <div className="text-sm text-cyan-ice font-bold mt-1">Prompt Response</div>
                   <span className="text-[11px] text-surface-variant mt-0.5">Direct Agent Inbox</span>
-                </a>
+                </motion.a>
 
-                <Link 
-                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-xs transition-all duration-200 text-center flex flex-col items-center group" 
-                  to="/locations"
-                >
-                  <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <span className="material-symbols-outlined text-[24px]">pin_drop</span>
-                  </div>
-                  <div className="text-base font-bold text-white">Visit Us</div>
-                  <div className="text-sm text-cyan-ice font-bold mt-1">3 Texas Hubs</div>
-                  <span className="text-[11px] text-surface-variant mt-0.5">Katy, Houston, Garland</span>
-                </Link>
+                <motion.div whileHover={{ y: -5, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Link 
+                    className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-xs transition-all duration-200 text-center flex flex-col items-center group block cursor-pointer" 
+                    to="/locations"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <span className="material-symbols-outlined text-[24px]">pin_drop</span>
+                    </div>
+                    <div className="text-base font-bold text-white">Visit Us</div>
+                    <div className="text-sm text-cyan-ice font-bold mt-1">3 Texas Hubs</div>
+                    <span className="text-[11px] text-surface-variant mt-0.5">Katy, Houston, Garland</span>
+                  </Link>
+                </motion.div>
               </div>
 
-            </div>
+            </motion.div>
 
           </div>
         </div>
@@ -513,7 +621,13 @@ export default function HomePage({ onOpenQuote }) {
 
       {/* Join Our Agency & Big Family Section */}
       <section className="py-16 lg:py-24 bg-surface max-w-7xl mx-auto px-4 lg:px-8" id="careers">
-        <div className="text-center max-w-3xl mx-auto mb-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-3xl mx-auto mb-12"
+        >
           <span className="text-primary text-xs font-bold uppercase tracking-wider mb-2 block">
             Join Our Agency
           </span>
@@ -523,14 +637,20 @@ export default function HomePage({ onOpenQuote }) {
           <p className="text-base text-on-surface-variant mt-4 leading-relaxed">
             At The Best Rate Insurance, we’re more than just an agency — we’re a family. Through our Insurance Agent Bootcamp and ongoing community events, we’re shaping the next generation of insurance professionals. Whether you’re brand new or experienced, we actively recruit and support agents across all levels.
           </p>
-        </div>
+        </motion.div>
 
         {/* Agency Culture Banner Image */}
-        <div className="relative rounded-2xl overflow-hidden shadow-lg mb-12 border border-stroke-subtle">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.6 }}
+          className="relative rounded-2xl overflow-hidden shadow-lg mb-12 border border-stroke-subtle group"
+        >
           <img 
             src="/images/team-retreat.jpg" 
             alt="The Best Rate Insurance large agency family retreat and team members" 
-            className="w-full h-80 sm:h-96 object-cover"
+            className="w-full h-80 sm:h-96 object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-trust-navy-deep/80 via-transparent to-transparent flex items-end p-6 sm:p-10">
             <div className="text-white max-w-xl">
@@ -540,12 +660,19 @@ export default function HomePage({ onOpenQuote }) {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* 3 CTA Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          <div className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left">
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            whileHover={{ y: -6 }}
+            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
+          >
             <div>
               <div className="w-12 h-12 rounded-xl bg-cyan-ice text-primary flex items-center justify-center mb-4">
                 <span className="material-symbols-outlined text-[26px]">badge</span>
@@ -561,9 +688,16 @@ export default function HomePage({ onOpenQuote }) {
             >
               Apply Now
             </Link>
-          </div>
+          </motion.div>
 
-          <div className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left">
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            whileHover={{ y: -6 }}
+            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
+          >
             <div>
               <div className="w-12 h-12 rounded-xl bg-cyan-ice text-primary flex items-center justify-center mb-4">
                 <span className="material-symbols-outlined text-[26px]">person_search</span>
@@ -579,9 +713,16 @@ export default function HomePage({ onOpenQuote }) {
             >
               Find An Agent
             </Link>
-          </div>
+          </motion.div>
 
-          <div className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left">
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            whileHover={{ y: -6 }}
+            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
+          >
             <div>
               <div className="w-12 h-12 rounded-xl bg-cyan-ice text-primary flex items-center justify-center mb-4">
                 <span className="material-symbols-outlined text-[26px]">support_agent</span>
@@ -597,7 +738,7 @@ export default function HomePage({ onOpenQuote }) {
             >
               Get In Touch
             </button>
-          </div>
+          </motion.div>
 
         </div>
       </section>
@@ -605,12 +746,18 @@ export default function HomePage({ onOpenQuote }) {
       {/* Recent Blog Insight Section */}
       <section className="py-16 bg-surface-container-low border-t border-stroke-subtle" id="blog">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs grid grid-cols-1 lg:grid-cols-12 items-center">
-            <div className="lg:col-span-5 h-64 lg:h-full min-h-[300px] relative">
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 grid grid-cols-1 lg:grid-cols-12 items-center group"
+          >
+            <div className="lg:col-span-5 h-64 lg:h-full min-h-[300px] relative overflow-hidden">
               <img 
                 src="/images/family-blog.jpg" 
                 alt="Family calculating coverage security together" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
               />
             </div>
             <div className="lg:col-span-7 p-6 sm:p-10 space-y-4">
@@ -629,20 +776,26 @@ export default function HomePage({ onOpenQuote }) {
               <div className="pt-2">
                 <button
                   onClick={onOpenQuote}
-                  className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:text-primary-container cursor-pointer"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:text-primary-container cursor-pointer transition-colors group-hover:translate-x-1"
                 >
                   <span>Request Free Policy Calculation</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Local Texas Offices & Nationwide Reach */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 lg:px-8" id="locations">
-        <div className="text-center max-w-2xl mx-auto mb-14">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-2xl mx-auto mb-14"
+        >
           <span className="text-primary text-xs font-bold uppercase tracking-wider mb-2 block">
             Our Physical Branches
           </span>
@@ -652,13 +805,20 @@ export default function HomePage({ onOpenQuote }) {
           <p className="text-xs sm:text-sm text-on-surface-variant mt-2">
             Drop by our local offices or consult virtually from any state.
           </p>
-        </div>
+        </motion.div>
 
         {/* 3 Physical Office Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           
           {/* Katy Office */}
-          <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            whileHover={{ y: -6 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+          >
             <div>
               <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-4">
                 <h3 className="text-base font-bold text-on-surface font-serif">Katy Office (HQ)</h3>
@@ -694,10 +854,17 @@ export default function HomePage({ onOpenQuote }) {
                 View On Google Maps →
               </a>
             </div>
-          </div>
+          </motion.div>
 
           {/* Houston Office */}
-          <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            whileHover={{ y: -6 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+          >
             <div>
               <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-4">
                 <h3 className="text-base font-bold text-on-surface font-serif">Houston Office</h3>
@@ -733,10 +900,17 @@ export default function HomePage({ onOpenQuote }) {
                 View On Google Maps →
               </a>
             </div>
-          </div>
+          </motion.div>
 
           {/* Garland Office */}
-          <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            whileHover={{ y: -6 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+          >
             <div>
               <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-4">
                 <h3 className="text-base font-bold text-on-surface font-serif">Garland Office</h3>
@@ -772,12 +946,18 @@ export default function HomePage({ onOpenQuote }) {
                 View On Google Maps →
               </a>
             </div>
-          </div>
+          </motion.div>
 
         </div>
 
         {/* Regional Coverage Callout Box */}
-        <div className="bg-primary/5 rounded-2xl border border-primary/20 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5 }}
+          className="bg-primary/5 rounded-2xl border border-primary/20 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6"
+        >
           <div className="space-y-2">
             <h3 className="text-xl font-bold text-primary font-serif">
               Proudly Serving All of Texas &amp; 50 States
@@ -788,11 +968,11 @@ export default function HomePage({ onOpenQuote }) {
           </div>
           <button 
             onClick={onOpenQuote}
-            className="shrink-0 px-6 py-3 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-bold transition-all shadow cursor-pointer"
+            className="shrink-0 px-6 py-3 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-bold transition-all shadow cursor-pointer hover:shadow-md hover:-translate-y-0.5"
           >
             Speak With An Agent
           </button>
-        </div>
+        </motion.div>
       </section>
 
     </div>

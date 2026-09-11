@@ -110,36 +110,52 @@ export function AmeritasLogo({ className = "h-8" }) {
 }
 
 export default function CarrierLogosStrip() {
+  const carriers = [
+    { component: <UhcLogo />, key: 'uhc' },
+    { component: <BcbsLogo />, key: 'bcbs' },
+    { component: <AetnaLogo />, key: 'aetna' },
+    { component: <HumanaLogo />, key: 'humana' },
+    { component: <MutualOfOmahaLogo />, key: 'omaha' },
+    { component: <CignaLogo />, key: 'cigna' },
+    { component: <AmeritasLogo />, key: 'ameritas' },
+  ];
+
   return (
-    <div className="w-full bg-white border-y border-gray-200 py-6 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-5">
+    <div className="w-full bg-white border-y border-gray-200 py-6 overflow-hidden relative">
+      <div className="max-w-7xl mx-auto px-4 mb-4 text-center">
+        <div className="inline-flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-success-emerald animate-ping"></span>
           <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
             Top Rated Insurance Carriers We Represent &amp; Compare For You
           </span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
-          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors shadow-xs">
-            <UhcLogo />
-          </div>
-          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors shadow-xs">
-            <BcbsLogo />
-          </div>
-          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors shadow-xs">
-            <AetnaLogo />
-          </div>
-          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors shadow-xs">
-            <HumanaLogo />
-          </div>
-          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors shadow-xs">
-            <MutualOfOmahaLogo />
-          </div>
-          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors shadow-xs">
-            <CignaLogo />
-          </div>
-          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors shadow-xs">
-            <AmeritasLogo />
-          </div>
+      </div>
+
+      {/* Marquee Container with edge fade masks */}
+      <div className="relative w-full overflow-hidden">
+        {/* Left and right fade gradient overlays */}
+        <div className="absolute inset-y-0 left-0 w-12 sm:w-24 bg-gradient-to-r from-white via-white/80 to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute inset-y-0 right-0 w-12 sm:w-24 bg-gradient-to-l from-white via-white/80 to-transparent z-10 pointer-events-none"></div>
+
+        <div className="animate-marquee flex items-center gap-4 sm:gap-6 py-2">
+          {/* First set */}
+          {carriers.map((item) => (
+            <div
+              key={`carrier-1-${item.key}`}
+              className="p-3 bg-gray-50/80 rounded-xl border border-gray-200 hover:border-primary/40 hover:bg-white hover:-translate-y-1 hover:shadow-md transition-all duration-300 shrink-0 cursor-default"
+            >
+              {item.component}
+            </div>
+          ))}
+          {/* Duplicate set for seamless infinite loop */}
+          {carriers.map((item) => (
+            <div
+              key={`carrier-2-${item.key}`}
+              className="p-3 bg-gray-50/80 rounded-xl border border-gray-200 hover:border-primary/40 hover:bg-white hover:-translate-y-1 hover:shadow-md transition-all duration-300 shrink-0 cursor-default"
+            >
+              {item.component}
+            </div>
+          ))}
         </div>
       </div>
     </div>

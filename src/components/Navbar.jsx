@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function Navbar({ onOpenQuote }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -82,10 +83,10 @@ export default function Navbar({ onOpenQuote }) {
         <div className="max-w-7xl mx-auto px-4 lg:px-8 flex justify-between items-center h-20">
           
           {/* Official Brand Logo */}
-          <Link className="flex items-center gap-3" to="/">
+          <Link className="flex items-center gap-3 group" to="/">
             <img 
               alt="The Best Rate Insurance Logo" 
-              className="h-12 w-auto object-contain" 
+              className="h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105" 
               src="/images/logo.png" 
             />
           </Link>
@@ -139,27 +140,29 @@ export default function Navbar({ onOpenQuote }) {
           {/* Trailing Action Cluster */}
           <div className="hidden sm:flex items-center space-x-3">
             <Link 
-              className="hidden md:inline-flex items-center justify-center px-4 py-2.5 rounded-lg border border-primary text-primary hover:bg-surface-container-low transition-colors duration-150 font-bold text-sm" 
+              className="hidden md:inline-flex items-center justify-center px-4 py-2.5 rounded-lg border border-primary text-primary hover:bg-surface-container-low transition-all duration-150 font-bold text-sm hover:-translate-y-0.5" 
               to="/contact"
             >
               Contact Us
             </Link>
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={onOpenQuote}
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container shadow-xs hover:shadow transition-all duration-200 font-bold text-sm group cursor-pointer"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container shadow-xs hover:shadow-md transition-all duration-200 font-bold text-sm group cursor-pointer"
             >
               <span>Get A Quote</span>
-              <span className="material-symbols-outlined ml-1.5 text-[18px] group-hover:translate-x-0.5 transition-transform">
+              <span className="material-symbols-outlined ml-1.5 text-[18px] group-hover:translate-x-1 transition-transform">
                 arrow_forward
               </span>
-            </button>
+            </motion.button>
           </div>
 
           {/* Mobile Menu Toggle Button */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle Navigation Menu" 
-            className="lg:hidden p-2 rounded-lg text-on-surface-variant hover:bg-surface-container cursor-pointer"
+            className="lg:hidden p-2 rounded-lg text-on-surface-variant hover:bg-surface-container cursor-pointer transition-colors"
           >
             <span className="material-symbols-outlined text-[28px]">
               {mobileMenuOpen ? 'close' : 'menu'}
@@ -168,47 +171,55 @@ export default function Navbar({ onOpenQuote }) {
 
         </div>
 
-        {/* Mobile Dropdown */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-t border-stroke-subtle px-4 py-6 space-y-4 shadow-xl">
-            <nav className="flex flex-col space-y-3 font-semibold text-sm">
-              <Link to="/about" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
-                About Us
-              </Link>
-              <Link to="/insurance-services" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
-                Insurance Products (Medicare, ACA, Life)
-              </Link>
-              <Link to="/careers" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
-                Careers &amp; Bootcamp
-              </Link>
-              <Link to="/locations" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
-                Office Locations (Katy, Houston, Garland)
-              </Link>
-              <Link to="/contact" className="py-2 text-on-surface hover:text-primary">
-                Contact Us
-              </Link>
-            </nav>
+        {/* Animated Mobile Dropdown */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="lg:hidden bg-white border-t border-stroke-subtle px-4 py-6 space-y-4 shadow-xl overflow-hidden"
+            >
+              <nav className="flex flex-col space-y-3 font-semibold text-sm">
+                <Link to="/about" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
+                  About Us
+                </Link>
+                <Link to="/insurance-services" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
+                  Insurance Products (Medicare, ACA, Life)
+                </Link>
+                <Link to="/careers" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
+                  Careers &amp; Bootcamp
+                </Link>
+                <Link to="/locations" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
+                  Office Locations (Katy, Houston, Garland)
+                </Link>
+                <Link to="/contact" className="py-2 text-on-surface hover:text-primary">
+                  Contact Us
+                </Link>
+              </nav>
 
-            <div className="pt-2 space-y-2">
-              <button 
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenQuote();
-                }}
-                className="w-full py-3 rounded-lg bg-primary text-on-primary font-bold text-center flex items-center justify-center gap-2"
-              >
-                <span>Get Free Quote Now</span>
-                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-              </button>
-              <a 
-                href="tel:8336336868"
-                className="w-full py-2.5 rounded-lg border border-primary text-primary font-bold text-center block text-sm"
-              >
-                Call: (833) 633-6868
-              </a>
-            </div>
-          </div>
-        )}
+              <div className="pt-2 space-y-2">
+                <button 
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenQuote();
+                  }}
+                  className="w-full py-3 rounded-lg bg-primary text-on-primary font-bold text-center flex items-center justify-center gap-2"
+                >
+                  <span>Get Free Quote Now</span>
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+                <a 
+                  href="tel:8336336868"
+                  className="w-full py-2.5 rounded-lg border border-primary text-primary font-bold text-center block text-sm"
+                >
+                  Call: (833) 633-6868
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
     </>
   );
