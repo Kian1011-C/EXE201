@@ -82,10 +82,10 @@ export default function AboutPage({ onOpenQuote }) {
       </section>
 
       {/* Core Values */}
-      <section className="py-16 bg-gray-50 border-y border-gray-100">
+      <section className="py-16 bg-gray-50 border-y border-gray-200">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl font-black text-[#0f2942]">Our Core Pillars</h2>
+            <h2 className="text-3xl font-extrabold text-[#0a2239] font-serif">Our Core Pillars</h2>
             <p className="text-sm text-gray-600 mt-2">
               Every consultation, quote, and claim review is guided by our four founding values.
             </p>
@@ -93,14 +93,14 @@ export default function AboutPage({ onOpenQuote }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {coreValues.map((val, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-11 h-11 rounded-xl bg-slate-100 text-[#0f2942] border border-slate-200 flex items-center justify-center font-bold mb-4">
-                  {idx === 0 && <Scale className="w-5 h-5 text-amber-600" />}
-                  {idx === 1 && <SlidersHorizontal className="w-5 h-5 text-blue-800" />}
+              <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 shadow-xs hover:border-[#0a2239] transition-all">
+                <div className="w-10 h-10 rounded-lg bg-gray-100 text-[#0a2239] flex items-center justify-center font-bold mb-4">
+                  {idx === 0 && <ShieldCheck className="w-5 h-5 text-[#d97706]" />}
+                  {idx === 1 && <Award className="w-5 h-5 text-[#0a2239]" />}
                   {idx === 2 && <Users className="w-5 h-5 text-emerald-700" />}
-                  {idx === 3 && <Clock className="w-5 h-5 text-slate-700" />}
+                  {idx === 3 && <Clock className="w-5 h-5 text-blue-700" />}
                 </div>
-                <h3 className="font-bold text-gray-900 text-base mb-2">{val.title}</h3>
+                <h3 className="font-bold text-gray-900 text-base font-serif mb-1.5">{val.title}</h3>
                 <p className="text-xs text-gray-600 leading-relaxed">{val.desc}</p>
               </div>
             ))}

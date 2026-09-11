@@ -92,6 +92,35 @@ export const services = [
       },
     ],
   },
+  {
+    id: 'group-benefits',
+    title: 'Group Benefits',
+    shortDesc: 'Comprehensive employer group health, life, dental, and disability packages tailored for small businesses.',
+    icon: 'Building2',
+    slug: '/insurance-services/group-benefits',
+    bannerImg: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=80',
+    highlight: 'Tax-Advantaged Small Business Coverage',
+    subtypes: [
+      {
+        id: 'group-health',
+        name: 'Small Business Group Health',
+        desc: 'Custom medical plans for 2 to 50+ employees with tax incentives and competitive deductibles.',
+        features: ['Major carrier networks (BCBS, UHC, Aetna)', 'Pre-tax premium deductions for employers', 'Flexible HMO & PPO deductible tiers', 'Attract & retain top tier talent'],
+      },
+      {
+        id: 'group-life',
+        name: 'Group Life & AD&D',
+        desc: 'Provide financial security for your employees and their families with low-cost group term life insurance.',
+        features: ['Guaranteed issue coverage with no medical exams', 'Accidental Death & Dismemberment benefits', 'Voluntary supplemental coverage options', 'Simple payroll deduction integration'],
+      },
+      {
+        id: 'group-dental-vision',
+        name: 'Group Dental, Vision & Hearing',
+        desc: 'Comprehensive supplemental care keeping your workforce healthy and productive year-round.',
+        features: ['Nationwide networks including Ameritas & MetLife', 'Preventive dental cleaning covered 100%', 'Annual eye exams & hardware allowance', 'Flexible employer or voluntary contribution'],
+      },
+    ],
+  },
 ];
 
 export const targetProfiles = [

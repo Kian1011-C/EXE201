@@ -47,6 +47,7 @@ export default function App() {
             <Route path="/insurance-services/medicare" element={<MedicarePage onOpenQuote={() => setIsQuoteOpen(true)} />} />
             <Route path="/insurance-services/health-insurance" element={<HealthPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
             <Route path="/insurance-services/life-insurance" element={<LifePage onOpenQuote={() => setIsQuoteOpen(true)} />} />
+            <Route path="/insurance-services/group-benefits" element={<ServicesPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
             
             {/* Locations */}
             <Route path="/locations" element={<LocationsPage onOpenQuote={() => setIsQuoteOpen(true)} />} />

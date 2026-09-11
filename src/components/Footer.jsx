@@ -111,12 +111,17 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-slate-900 flex items-center justify-center font-black">
-                <Shield className="w-6 h-6 text-slate-950" />
+              <div className="relative w-11 h-11 bg-[#0a2239] rounded-lg p-1 flex items-center justify-center border-2 border-[#d97706] shadow-sm shrink-0">
+                <svg viewBox="0 0 44 48" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22 2L4 8V22C4 34.5 11.5 44 22 47C32.5 44 40 34.5 40 22V8L22 2Z" fill="#0a2239" stroke="#d97706" strokeWidth="2.5" />
+                  <path d="M22 7L8 12V22C8 31.5 14 39.5 22 42C30 39.5 36 31.5 36 22V12L22 7Z" fill="#113354" />
+                  <path d="M22 13L24.5 19.5H31L26 23.5L28 30L22 26L16 30L18 23.5L13 19.5H19.5L22 13Z" fill="#d97706" />
+                  <circle cx="22" cy="35" r="2.5" fill="#f59e0b" />
+                </svg>
               </div>
               <div>
-                <div className="text-xl font-black text-white tracking-tight">THE BEST RATE INSURANCE</div>
-                <div className="text-xs text-amber-400 font-medium tracking-wider">INDEPENDENT INSURANCE AGENCY</div>
+                <div className="text-xl font-black text-white tracking-tight font-serif">THE BEST RATE INSURANCE</div>
+                <div className="text-xs text-[#d97706] font-medium tracking-wider">INDEPENDENT INSURANCE AGENCY</div>
               </div>
             </div>
 
@@ -125,13 +130,22 @@ export default function Footer() {
               The Best Rate Insurance provides Medicare, Affordable Care Act (ACA), and Life Insurance solutions for families and businesses across Texas and beyond.
             </p>
 
-            {/* Social Icons */}
-            <div className="flex items-center gap-3 pt-2">
+            {/* Social Icons matching original site */}
+            <div className="flex items-center gap-2.5 pt-2">
+              <a 
+                href="https://maps.google.com/?cid=15721998512988683818" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-[#d97706] text-white flex items-center justify-center transition-colors"
+                title="Google Maps"
+              >
+                <MapPin className="w-4 h-4" />
+              </a>
               <a 
                 href="https://www.facebook.com/thebestrateinsurance" 
                 target="_blank" 
                 rel="noreferrer" 
-                className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-[#1877F2] text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-[#1877F2] text-white flex items-center justify-center transition-colors"
                 aria-label="Facebook"
               >
                 <FacebookIcon className="w-4 h-4" />
@@ -140,7 +154,7 @@ export default function Footer() {
                 href="https://www.instagram.com/healthinsurancetips/" 
                 target="_blank" 
                 rel="noreferrer" 
-                className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-[#E4405F] text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-[#E4405F] text-white flex items-center justify-center transition-colors"
                 aria-label="Instagram"
               >
                 <InstagramIcon className="w-4 h-4" />
@@ -149,7 +163,7 @@ export default function Footer() {
                 href="https://www.linkedin.com/company/the-best-rate-insurance/" 
                 target="_blank" 
                 rel="noreferrer" 
-                className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-[#0A66C2] text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-[#0A66C2] text-white flex items-center justify-center transition-colors"
                 aria-label="LinkedIn"
               >
                 <LinkedinIcon className="w-4 h-4" />
@@ -158,7 +172,7 @@ export default function Footer() {
                 href="https://www.yelp.com/biz/the-best-rate-insurance-houston-4" 
                 target="_blank" 
                 rel="noreferrer" 
-                className="px-2.5 h-9 rounded-lg bg-slate-800 hover:bg-[#FF1A1A] text-white font-bold text-xs flex items-center justify-center transition-colors"
+                className="px-2.5 h-8 rounded-lg bg-slate-800 hover:bg-[#FF1A1A] text-white font-bold text-xs flex items-center justify-center transition-colors"
                 aria-label="Yelp"
               >
                 Yelp
