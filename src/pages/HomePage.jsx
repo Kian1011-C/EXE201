@@ -281,7 +281,7 @@ export default function HomePage({ onOpenQuote }) {
           <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col group hover:-translate-y-1">
             <div className="h-52 overflow-hidden relative">
               <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuLSUUDEUNEjbyseGqXNTquyyWapfgtDSBDx3Yq6NN-P5vHk2hfYjR1LCxMLQfG7ZuZY7eJJP4XcJW3D9QquqYEKvQUZoMOykqi56LpLmU0fPpQ1DuVshsuhBuACDrKQmAaM5HECRk87x3iu2m82J20fQoPKERocP1uNZKdk8kjaOD1QfznpSzGTEnrXMTMA_oAXy9s1KZXldR6HPZKxJv5dHSaMO4MIHOnkwEm03lJ_Xj8p_9DdiHcw" 
+                src="/images/service-aca.jpg" 
                 alt="Affordable Care Act healthcare consultation" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -331,7 +331,7 @@ export default function HomePage({ onOpenQuote }) {
             
             <div className="h-52 overflow-hidden relative">
               <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXHCEsM6zEK2530ug5ygFemqK8-NQ0Y_uvCZTi3-LaJCL0lvmieRNHp3zrko0gWEcXAWdwFtkrdanm3As2vewtb2YlUvV2GEoyHXDpbIBPPRvkTr8_nbukJVuz9fDBqF5z1MAa7ZeuMRtQwULEXtceSqKKxTqIWhZOYDIEst0qUG1j8NVs6-37S42YV9SXEB0U3awtxMTivaoaNL72hZUe1GHOgddzLQ72gezJ7iOvAU5XaGpqduoe7A" 
+                src="/images/service-medicare.jpg" 
                 alt="Medicare guidance specialist with senior client" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -377,7 +377,7 @@ export default function HomePage({ onOpenQuote }) {
           <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col group hover:-translate-y-1">
             <div className="h-52 overflow-hidden relative">
               <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpl8qkyPH0ksmjgwUP3_3OwRp6z9CGZzXssJEpRZa0CkxFG_Eg6hyREt_q7p3YqioFTnBetZhO6SETIIYOBYTD3Xe4LczeU8-KAIKFESYMHNyYWYn4_DSFHN7rHKb-qmrfXdyDLIWTKfAJyjcODmQokQn1VrWWHPnsUeQWK_EddGV67CWU30GGQBqgEpnxiZbH1bharFFPKSOHpQSAyBPcvCl9SoQ2Cuyd4JqcJ6oZzFSjunZeE-yijQ" 
+                src="/images/service-life.jpg" 
                 alt="Multigenerational family protected by Life Insurance" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -433,7 +433,7 @@ export default function HomePage({ onOpenQuote }) {
             <div className="lg:col-span-5">
               <div className="relative rounded-2xl overflow-hidden border-2 border-cyan-ice/20 shadow-2xl">
                 <img 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuUJ98d-JXQtfLTvftgRXFx8Vnim_ynHNGKbdO9uRl-yaXthWayWOyFVmZHs3lCen70AE92Ku0jAIiGMmOzVmuYEpS5_zRbJr08xcQoWHcaboRmQFt_na9Eb8mudKqORniVRun0g2krKCcRd68rwpeLcNmAWkCMjMnsPXyXnHgX3uzk_kWaoNF1XvDO7zU195ZidHIThI8mCEJxY33zVfKOw8E67AfQLDP4VAF1GkYBQVdo2ZrADC5dQ" 
+                  src="/images/advisor-counselor.jpg" 
                   alt="Insurance counselor greeting client in Houston office" 
                   className="w-full h-[420px] object-cover"
                 />
@@ -528,7 +528,7 @@ export default function HomePage({ onOpenQuote }) {
         {/* Agency Culture Banner Image */}
         <div className="relative rounded-2xl overflow-hidden shadow-lg mb-12 border border-stroke-subtle">
           <img 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQQHsBNmWxrJQgeEb4TY33em8HAQ1ElOxRaMY-6RZijHXZe6uVGqYnp_sSdC16v6WLmikR7yuMZdZ8V-cXAMT_jdvzjQ3F9bWJOAR7KMKA1eWuHVNa_rvQTmiBjPqTZO_ARfMRfB9rzA80TwzmN_7p28X4oW3B1iL6zDeDQiknw4LixvyRsBTpZ2HccEytJBFYn0R89DUOhtmRs-jo8nXttsk81YzyK-HVeqd2-YLOcKy7yB_HPzP74A" 
+            src="/images/team-retreat.jpg" 
             alt="The Best Rate Insurance large agency family retreat and team members" 
             className="w-full h-80 sm:h-96 object-cover"
           />
@@ -608,7 +608,7 @@ export default function HomePage({ onOpenQuote }) {
           <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs grid grid-cols-1 lg:grid-cols-12 items-center">
             <div className="lg:col-span-5 h-64 lg:h-full min-h-[300px] relative">
               <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAftT5G-6Mpt_6-RX_Jqodh0nTKjbswNn3BLIAViB8McPvXy4K0WR_kwBkLdsveTHtvY1XKNuPbU73zemtuOpg9MKchhzgL_BJ7pcWMFrahmIzhHqXZONxzwQN9ZmzcZDoGv9MCOLMDci6vDzhHM7qGLHBZsYjxi2DuYEHFgQlE9E80lIJrkglQfIybay3DOoCxZwxlrS7z7Qj5dYwPTVkro_sf7zwlcu27NNn_I4Pu2KDNs8hRt-3iuQ" 
+                src="/images/family-blog.jpg" 
                 alt="Family calculating coverage security together" 
                 className="w-full h-full object-cover"
               />

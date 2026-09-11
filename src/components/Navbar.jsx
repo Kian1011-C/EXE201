@@ -81,12 +81,12 @@ export default function Navbar({ onOpenQuote }) {
       <header className="sticky top-0 z-40 bg-surface-container-lowest border-b border-stroke-subtle shadow-xs transition-all duration-200">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 flex justify-between items-center h-20">
           
-          {/* Official Brand Logo from Stitch */}
+          {/* Official Brand Logo */}
           <Link className="flex items-center gap-3" to="/">
             <img 
               alt="The Best Rate Insurance Logo" 
               className="h-12 w-auto object-contain" 
-              src="https://lh3.googleusercontent.com/aida/AEtjO1W6VpQQ3a4c5zDAkwlv5JwSpgJVyA7W4CMQUf9StKQASYf5NjOgRnZ4B5MTLC9PTWjen5Ga6zpQdJczos0CaoPnDZgsGXoheN4FTrIN_ydz6D9zGoxQFfgGQfdgmvSxHC6xOTGFO_u5txCxmNAkN-qVT8ppW8yZpNezEuV3yplroPY42kEvPTludRLhWedaDxyQwxOQGYPL2im91gu0rfL8fs4CXvI6jblaZ00Nqorh_NVYAnD47_mfROJJ" 
+              src="/images/logo.png" 
             />
           </Link>
 
