@@ -143,7 +143,7 @@ export default function QuoteModal({ isOpen, onClose }) {
                     placeholder="e.g. David Nguyen"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942]"
                   />
                 </div>
 
@@ -157,7 +157,7 @@ export default function QuoteModal({ isOpen, onClose }) {
                     placeholder="(832) 000-0000"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942]"
                   />
                 </div>
               </div>
@@ -173,7 +173,7 @@ export default function QuoteModal({ isOpen, onClose }) {
                     placeholder="example@gmail.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942]"
                   />
                 </div>
 
@@ -188,7 +188,7 @@ export default function QuoteModal({ isOpen, onClose }) {
                     placeholder="77450"
                     value={formData.zipCode}
                     onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942]"
                   />
                 </div>
               </div>
@@ -201,7 +201,7 @@ export default function QuoteModal({ isOpen, onClose }) {
                   <select
                     value={formData.ageRange}
                     onChange={(e) => setFormData({ ...formData, ageRange: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942] bg-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942] bg-white"
                   >
                     <option value="18-34">18 - 34 years old</option>
                     <option value="35-50">35 - 50 years old</option>
@@ -217,7 +217,7 @@ export default function QuoteModal({ isOpen, onClose }) {
                   <select
                     value={formData.preferredLanguage}
                     onChange={(e) => setFormData({ ...formData, preferredLanguage: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942] bg-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0f2942] bg-white"
                   >
                     <option value="Both">English & Tiếng Việt</option>
                     <option value="Vietnamese">Tiếng Việt</option>
@@ -229,7 +229,7 @@ export default function QuoteModal({ isOpen, onClose }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 px-6 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
+                className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 px-6 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 btn-shimmer active:scale-[0.98]"
               >
                 {loading ? (
                   <span>Checking Available Plans...</span>

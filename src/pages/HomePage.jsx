@@ -70,7 +70,7 @@ export default function HomePage({ onOpenQuote }) {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={onOpenQuote}
-                  className="px-6 py-3.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer text-sm"
+                  className="px-6 py-3.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer text-sm btn-shimmer"
                 >
                   <span>Get A Quote</span>
                   <span className="material-symbols-outlined text-[18px]">verified</span>
@@ -190,7 +190,7 @@ export default function HomePage({ onOpenQuote }) {
                           placeholder="77450"
                           value={zipcode}
                           onChange={(e) => setZipcode(e.target.value)}
-                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                           required
                         />
                         <span className="material-symbols-outlined absolute left-2.5 top-3 text-[18px] text-outline">
@@ -212,7 +212,7 @@ export default function HomePage({ onOpenQuote }) {
                           placeholder="65"
                           value={age}
                           onChange={(e) => setAge(e.target.value)}
-                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                           required
                         />
                         <span className="material-symbols-outlined absolute left-2.5 top-3 text-[18px] text-outline">
@@ -234,7 +234,7 @@ export default function HomePage({ onOpenQuote }) {
                         placeholder="(833) 000-0000"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       />
                       <span className="material-symbols-outlined absolute left-2.5 top-3 text-[18px] text-outline">
                         phone
@@ -246,7 +246,7 @@ export default function HomePage({ onOpenQuote }) {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm tracking-wide transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm tracking-wide transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer btn-shimmer"
                   >
                     <span>Get Free Quote Now</span>
                     <span className="material-symbols-outlined text-[18px]">bolt</span>
@@ -533,12 +533,15 @@ export default function HomePage({ onOpenQuote }) {
                   alt="Insurance counselor greeting client in Houston office" 
                   className="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
-                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-trust-navy-deep/90 via-trust-navy-deep/60 to-transparent p-6">
-                  <div className="text-cyan-ice text-xs font-bold uppercase tracking-wider mb-1">
-                    Guaranteed Service Standard
-                  </div>
-                  <div className="text-surface-container-lowest text-lg font-bold">
-                    Guaranteed Response Within 3–5 Business Days
+                <div className="absolute bottom-4 inset-x-4 z-10">
+                  <div className="bg-trust-navy-deep/85 backdrop-blur-md border border-cyan-ice/30 p-4 rounded-2xl shadow-xl animate-float-slow">
+                    <div className="flex items-center gap-2 text-cyan-ice text-xs font-bold uppercase tracking-wider mb-1">
+                      <span className="w-2 h-2 rounded-full bg-success-emerald animate-ping"></span>
+                      <span>Guaranteed Service Standard</span>
+                    </div>
+                    <div className="text-surface-container-lowest text-base sm:text-lg font-bold">
+                      Guaranteed Response Within 3–5 Business Days
+                    </div>
                   </div>
                 </div>
               </div>

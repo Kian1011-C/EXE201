@@ -149,7 +149,7 @@ export default function Navbar({ onOpenQuote }) {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={onOpenQuote}
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container shadow-xs hover:shadow-md transition-all duration-200 font-bold text-sm group cursor-pointer"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container shadow-xs hover:shadow-md transition-all duration-200 font-bold text-sm group cursor-pointer btn-shimmer"
             >
               <span>Get A Quote</span>
               <span className="material-symbols-outlined ml-1.5 text-[18px] group-hover:translate-x-1 transition-transform">
@@ -205,7 +205,7 @@ export default function Navbar({ onOpenQuote }) {
                     setMobileMenuOpen(false);
                     onOpenQuote();
                   }}
-                  className="w-full py-3 rounded-lg bg-primary text-on-primary font-bold text-center flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-lg bg-primary text-on-primary font-bold text-center flex items-center justify-center gap-2 btn-shimmer"
                 >
                   <span>Get Free Quote Now</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>

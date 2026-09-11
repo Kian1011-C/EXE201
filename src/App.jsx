@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import QuoteModal from './components/QuoteModal';
+import MobileBottomBar from './components/MobileBottomBar';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -36,7 +37,7 @@ export default function App() {
       <div className="min-h-screen flex flex-col bg-white text-gray-800 font-sans selection:bg-amber-500 selection:text-slate-950">
         <Navbar onOpenQuote={() => setIsQuoteOpen(true)} />
         
-        <main className="flex-grow">
+        <main className="flex-grow pb-16 sm:pb-0">
           <Routes>
             <Route path="/" element={<HomePage onOpenQuote={() => setIsQuoteOpen(true)} />} />
             <Route path="/about" element={<AboutPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
@@ -74,6 +75,9 @@ export default function App() {
           isOpen={isQuoteOpen} 
           onClose={() => setIsQuoteOpen(false)} 
         />
+
+        {/* Mobile Sticky Quick Action Bar */}
+        <MobileBottomBar onOpenQuote={() => setIsQuoteOpen(true)} />
       </div>
     </BrowserRouter>
   );
