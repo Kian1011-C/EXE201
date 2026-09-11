@@ -64,8 +64,8 @@ export default function MedicarePage({ onOpenQuote }) {
                 className="bg-gray-50 rounded-3xl p-6 md:p-8 border border-gray-200 hover:border-[#0f2942] transition-all flex flex-col justify-between shadow-sm hover:shadow-lg"
               >
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
-                    <ShieldCheck className="w-7 h-7" />
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 text-[#0f2942] border border-slate-200 flex items-center justify-center font-bold">
+                    <ShieldCheck className="w-6 h-6" />
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>

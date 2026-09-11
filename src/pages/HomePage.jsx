@@ -2,11 +2,21 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Shield, CheckCircle2, ArrowRight, Phone, HeartPulse, ShieldCheck, 
-  BadgeDollarSign, Star, Users, Award, Clock, MapPin, Zap, ChevronRight,
-  HelpCircle, Building2, UserCheck
+  Umbrella, Star, Users, Award, Clock, MapPin, ChevronRight,
+  Building2, Scale, SlidersHorizontal, BadgeCheck, FileText
 } from 'lucide-react';
 import { services, targetProfiles, reviews } from '../data/servicesData';
 import { locations } from '../data/locationsData';
+
+const carrierPartners = [
+  { name: 'UnitedHealthcare', subtitle: 'Medicare & Group' },
+  { name: 'Blue Cross Blue Shield of Texas', subtitle: 'Statewide PPO/HMO' },
+  { name: 'Aetna', subtitle: 'CVS Health Company' },
+  { name: 'Humana', subtitle: 'Medicare Advantage' },
+  { name: 'Mutual of Omaha', subtitle: 'Life & Supplements' },
+  { name: 'Cigna Healthcare', subtitle: 'Global Health Network' },
+  { name: 'Ameritas', subtitle: 'Dental, Vision & Hearing' },
+];
 
 export default function HomePage({ onOpenQuote }) {
   const [quickZip, setQuickZip] = useState('');
@@ -166,17 +176,17 @@ export default function HomePage({ onOpenQuote }) {
       <section className="bg-slate-900 text-white py-6 px-4 border-b border-slate-800">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-around gap-6 text-xs md:text-sm">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
-              <Zap className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-slate-800 text-amber-400 border border-slate-700 flex items-center justify-center font-bold">
+              <SlidersHorizontal className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-white">Modern Quoting Technology</div>
+              <div className="font-bold text-white">Comparative Rater System</div>
               <div className="text-gray-400 text-xs">Real-time multi-carrier rates</div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-slate-800 text-emerald-400 border border-slate-700 flex items-center justify-center font-bold">
               <Clock className="w-5 h-5" />
             </div>
             <div>
@@ -186,12 +196,32 @@ export default function HomePage({ onOpenQuote }) {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
-              <ShieldCheck className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-slate-800 text-blue-400 border border-slate-700 flex items-center justify-center font-bold">
+              <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-white">Licensed Independent Agency</div>
+              <div className="font-bold text-white">Licensed Texas Agency</div>
               <div className="text-gray-400 text-xs">Unbiased objective plan reviews</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Insurance Carriers We Represent Bar */}
+      <section className="bg-white border-b border-gray-200 py-6 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-400 shrink-0 text-center md:text-left">
+              Top Carriers We Compare For You:
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
+              {carrierPartners.map((carrier, i) => (
+                <div key={i} className="bg-gray-50 border border-gray-200 px-3.5 py-1.5 rounded-lg flex items-center gap-2 hover:border-[#0f2942] transition-colors">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span className="font-bold text-gray-800">{carrier.name}</span>
+                  <span className="text-[10px] text-gray-400 hidden sm:inline">({carrier.subtitle})</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -290,17 +320,17 @@ export default function HomePage({ onOpenQuote }) {
 
               <div className="space-y-3 pt-2">
                 <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-gray-50 border border-gray-100">
-                  <Award className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <Scale className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div>
                     <h4 className="font-bold text-sm text-gray-900">We Work For You, Not The Carrier</h4>
-                    <p className="text-xs text-gray-500 mt-0.5">We represent your best financial interest and handle claims support when you need it most.</p>
+                    <p className="text-xs text-gray-500 mt-0.5">As an independent fiduciary broker, our loyalty is to your family's budget and coverage needs.</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-gray-50 border border-gray-100">
-                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <Building2 className="w-5 h-5 text-blue-900 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-bold text-sm text-gray-900">Access to Multiple Top Carriers</h4>
+                    <h4 className="font-bold text-sm text-gray-900">Direct Access to 30+ Carriers</h4>
                     <p className="text-xs text-gray-500 mt-0.5">UnitedHealthcare, Aetna, Humana, BCBS, Mutual of Omaha, Ameritas and more.</p>
                   </div>
                 </div>

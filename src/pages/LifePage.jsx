@@ -1,5 +1,5 @@
 import React from 'react';
-import { BadgeDollarSign, CheckCircle2, Shield, TrendingUp, Heart, Home, ArrowRight } from 'lucide-react';
+import { Umbrella, CheckCircle2, Shield, TrendingUp, Heart, Home, ArrowRight } from 'lucide-react';
 import { services } from '../data/servicesData';
 
 export default function LifePage({ onOpenQuote }) {
@@ -11,7 +11,7 @@ export default function LifePage({ onOpenQuote }) {
       <section className="bg-gradient-to-br from-[#2b1e11] via-[#452e18] to-[#5a3c1e] text-white py-16 px-4 md:px-8">
         <div className="max-w-5xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
-            <BadgeDollarSign className="w-4 h-4" />
+            <Umbrella className="w-4 h-4" />
             <span>Legacy Planning & Wealth Preservation</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight">
@@ -50,8 +50,8 @@ export default function LifePage({ onOpenQuote }) {
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
-                      {plan.id === 'individual-life' && <Shield className="w-6 h-6" />}
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 text-[#0f2942] border border-slate-200 flex items-center justify-center font-bold">
+                      {plan.id === 'individual-life' && <Umbrella className="w-6 h-6" />}
                       {plan.id === 'final-expense' && <Heart className="w-6 h-6" />}
                       {plan.id === 'fixed-annuities' && <TrendingUp className="w-6 h-6" />}
                       {plan.id === 'mortgage-protection' && <Home className="w-6 h-6" />}

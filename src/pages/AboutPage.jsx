@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, CheckCircle2, Award, Users, ArrowRight, Heart, Zap, Clock } from 'lucide-react';
+import { Shield, CheckCircle2, Award, Users, ArrowRight, Scale, SlidersHorizontal, Clock, Building2 } from 'lucide-react';
 import { leadership, coreValues } from '../data/teamData';
 
 export default function AboutPage({ onOpenQuote }) {
@@ -93,12 +93,12 @@ export default function AboutPage({ onOpenQuote }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {coreValues.map((val, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-11 h-11 rounded-xl bg-blue-50 text-[#0f2942] flex items-center justify-center font-bold mb-4">
-                  {idx === 0 && <Award className="w-6 h-6 text-amber-500" />}
-                  {idx === 1 && <Zap className="w-6 h-6 text-blue-600" />}
-                  {idx === 2 && <Heart className="w-6 h-6 text-rose-500" />}
-                  {idx === 3 && <Clock className="w-6 h-6 text-emerald-600" />}
+              <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-11 h-11 rounded-xl bg-slate-100 text-[#0f2942] border border-slate-200 flex items-center justify-center font-bold mb-4">
+                  {idx === 0 && <Scale className="w-5 h-5 text-amber-600" />}
+                  {idx === 1 && <SlidersHorizontal className="w-5 h-5 text-blue-800" />}
+                  {idx === 2 && <Users className="w-5 h-5 text-emerald-700" />}
+                  {idx === 3 && <Clock className="w-5 h-5 text-slate-700" />}
                 </div>
                 <h3 className="font-bold text-gray-900 text-base mb-2">{val.title}</h3>
                 <p className="text-xs text-gray-600 leading-relaxed">{val.desc}</p>

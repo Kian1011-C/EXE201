@@ -2,9 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Phone, Mail, MapPin, ChevronDown, Menu, X, Shield, 
-  HeartPulse, ShieldCheck, BadgeDollarSign, Users, Briefcase, 
-  Sparkles, Clock, Check
+  HeartPulse, ShieldCheck, Umbrella, Users, Briefcase, 
+  Layers, Clock, Check, FileText, Landmark
 } from 'lucide-react';
+
+function BrandLogo() {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative w-11 h-11 bg-[#0f2942] rounded-lg p-1.5 flex items-center justify-center border-2 border-amber-500 shadow-sm shrink-0">
+        <svg viewBox="0 0 40 46" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 2L4 7.5V20.5C4 31.8 10.8 41.5 20 44C29.2 41.5 36 31.8 36 20.5V7.5L20 2Z" fill="#0f2942" stroke="#f59e0b" strokeWidth="2.5" />
+          <path d="M20 7L8 11.2V20.5C8 29.5 13.2 37.4 20 39.5C26.8 37.4 32 29.5 32 20.5V11.2L20 7Z" fill="#14395e" />
+          <polygon points="20,12 22.4,18 28.5,18.5 23.8,22.5 25.3,28.5 20,25 14.7,28.5 16.2,22.5 11.5,18.5 17.6,18" fill="#f59e0b" />
+        </svg>
+      </div>
+      <div>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-xl md:text-2xl font-black text-[#0f2942] tracking-tight">THE BEST RATE</span>
+          <span className="text-[10px] font-extrabold text-amber-700 tracking-widest uppercase border border-amber-500/40 px-1 rounded">INSURANCE</span>
+        </div>
+        <p className="text-[11px] text-gray-600 font-semibold tracking-wide">
+          Independent Agency • Katy &amp; Texas
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function Navbar({ onOpenQuote }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -66,19 +89,8 @@ export default function Navbar({ onOpenQuote }) {
       <div className={`transition-all duration-300 ${isScrolled ? 'py-2.5' : 'py-3.5'} px-4 md:px-8 border-b border-gray-100 bg-white/95 backdrop-blur-md`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#0f2942] to-[#1e5288] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-              <Shield className="w-6 h-6 text-amber-400 fill-amber-400/20" />
-            </div>
-            <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl md:text-2xl font-black text-[#0f2942] tracking-tight">THE BEST RATE</span>
-                <span className="text-xs font-bold text-amber-600 tracking-widest uppercase">INSURANCE</span>
-              </div>
-              <p className="text-[11px] text-gray-500 font-medium tracking-wide">
-                Insuring Katy & Texas Since 2015
-              </p>
-            </div>
+          <Link to="/" className="group">
+            <BrandLogo />
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -123,41 +135,41 @@ export default function Navbar({ onOpenQuote }) {
               {activeDropdown === 'services' && (
                 <div className="absolute top-full -left-20 w-[520px] bg-white rounded-xl shadow-xl border border-gray-100 p-4 grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-150">
                   <Link to="/insurance-services/medicare" className="p-3 rounded-lg hover:bg-blue-50 transition-colors flex gap-3 items-start group/item">
-                    <div className="p-2 rounded-lg bg-blue-100 text-blue-800">
+                    <div className="p-2 rounded-lg bg-slate-100 text-[#0f2942] border border-slate-200">
                       <ShieldCheck className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm text-gray-900 group-hover/item:text-blue-700">Medicare Solutions</div>
+                      <div className="font-semibold text-sm text-gray-900 group-hover/item:text-[#0f2942]">Medicare Solutions</div>
                       <div className="text-xs text-gray-500 mt-0.5">Part C Advantage, Part D, Medigap supplements</div>
                     </div>
                   </Link>
 
                   <Link to="/insurance-services/health-insurance" className="p-3 rounded-lg hover:bg-blue-50 transition-colors flex gap-3 items-start group/item">
-                    <div className="p-2 rounded-lg bg-emerald-100 text-emerald-800">
+                    <div className="p-2 rounded-lg bg-slate-100 text-[#0f2942] border border-slate-200">
                       <HeartPulse className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm text-gray-900 group-hover/item:text-emerald-700">Health Insurance (ACA)</div>
+                      <div className="font-semibold text-sm text-gray-900 group-hover/item:text-[#0f2942]">Health Insurance (ACA)</div>
                       <div className="text-xs text-gray-500 mt-0.5">Obamacare marketplace & family healthcare</div>
                     </div>
                   </Link>
 
                   <Link to="/insurance-services/life-insurance" className="p-3 rounded-lg hover:bg-blue-50 transition-colors flex gap-3 items-start group/item">
-                    <div className="p-2 rounded-lg bg-amber-100 text-amber-800">
-                      <BadgeDollarSign className="w-5 h-5" />
+                    <div className="p-2 rounded-lg bg-slate-100 text-[#0f2942] border border-slate-200">
+                      <Umbrella className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm text-gray-900 group-hover/item:text-amber-700">Life & Wealth Protection</div>
+                      <div className="font-semibold text-sm text-gray-900 group-hover/item:text-[#0f2942]">Life & Wealth Protection</div>
                       <div className="text-xs text-gray-500 mt-0.5">Term Life, IUL, Final Expense, Annuities</div>
                     </div>
                   </Link>
 
-                  <Link to="/insurance-services" className="p-3 rounded-lg hover:bg-purple-50 transition-colors flex gap-3 items-start group/item">
-                    <div className="p-2 rounded-lg bg-purple-100 text-purple-800">
-                      <Sparkles className="w-5 h-5" />
+                  <Link to="/insurance-services" className="p-3 rounded-lg hover:bg-blue-50 transition-colors flex gap-3 items-start group/item">
+                    <div className="p-2 rounded-lg bg-slate-100 text-[#0f2942] border border-slate-200">
+                      <Layers className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm text-gray-900 group-hover/item:text-purple-700">View All Services</div>
+                      <div className="font-semibold text-sm text-gray-900 group-hover/item:text-[#0f2942]">View All Products</div>
                       <div className="text-xs text-gray-500 mt-0.5">Disability, Long-Term Care, Group Benefits</div>
                     </div>
                   </Link>
@@ -251,35 +263,39 @@ export default function Navbar({ onOpenQuote }) {
               Trang Chủ (Home)
             </Link>
             
-            <div className="border-t border-gray-100 pt-2">
-              <div className="px-3 py-1 text-xs font-bold text-gray-400 uppercase">Bảo Hiểm (Insurance)</div>
-              <Link to="/insurance-services/medicare" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 font-medium">
-                🛡️ Medicare (Part C, D, Medigap)
+            <div className="border-t border-gray-100 pt-3">
+              <div className="px-3 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider">Bảo Hiểm (Insurance Products)</div>
+              <Link to="/insurance-services/medicare" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 font-medium text-sm">
+                <ShieldCheck className="w-4 h-4 text-[#0f2942]" />
+                <span>Medicare (Part C, D, Medigap)</span>
               </Link>
-              <Link to="/insurance-services/health-insurance" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 font-medium">
-                ❤️ Health Insurance (ACA / Obamacare)
+              <Link to="/insurance-services/health-insurance" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 font-medium text-sm">
+                <HeartPulse className="w-4 h-4 text-[#0f2942]" />
+                <span>Health Insurance (ACA / Obamacare)</span>
               </Link>
-              <Link to="/insurance-services/life-insurance" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 font-medium">
-                💵 Life Insurance & Fixed Annuities
+              <Link to="/insurance-services/life-insurance" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-50 font-medium text-sm">
+                <Umbrella className="w-4 h-4 text-[#0f2942]" />
+                <span>Life Insurance &amp; Fixed Annuities</span>
               </Link>
-              <Link to="/insurance-services" className="block px-3 py-2 rounded-lg text-blue-600 hover:bg-blue-50 font-medium text-sm">
-                → Xem Tất Cả Dịch Vụ
+              <Link to="/insurance-services" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-blue-700 hover:bg-blue-50 font-semibold text-xs">
+                <Layers className="w-4 h-4" />
+                <span>Xem Tất Cả Dịch Vụ Bảo Hiểm →</span>
               </Link>
             </div>
 
-            <div className="border-t border-gray-100 pt-2">
-              <div className="px-3 py-1 text-xs font-bold text-gray-400 uppercase">Công Ty (Company)</div>
-              <Link to="/about" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
+            <div className="border-t border-gray-100 pt-3">
+              <div className="px-3 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider">Thông Tin (Company)</div>
+              <Link to="/about" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium">
                 Về Chúng Tôi (About Us)
               </Link>
-              <Link to="/careers" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
-                Tuyển Dụng & Insurance Bootcamp
+              <Link to="/careers" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium">
+                Tuyển Dụng &amp; Insurance Bootcamp
               </Link>
-              <Link to="/locations" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
+              <Link to="/locations" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium">
                 Văn Phòng (Katy, Houston, Garland)
               </Link>
-              <Link to="/contact" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
-                Liên Hệ (Contact)
+              <Link to="/contact" className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium">
+                Liên Hệ &amp; Hỗ Trợ (Contact)
               </Link>
             </div>
           </div>

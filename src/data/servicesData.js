@@ -61,7 +61,7 @@ export const services = [
     id: 'life-insurance',
     title: 'Life Insurance & Wealth Protection',
     shortDesc: 'Safeguard your family’s financial future, leave a legacy, and secure retirement accumulation.',
-    icon: 'BadgeDollarSign',
+    icon: 'Umbrella',
     slug: '/insurance-services/life-insurance',
     bannerImg: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=1200&q=80',
     highlight: 'Living Benefits & Cash Value Accumulation',

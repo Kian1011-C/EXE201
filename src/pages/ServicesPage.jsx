@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, HeartPulse, BadgeDollarSign, ArrowRight, CheckCircle2, ChevronRight, User, Users, HeartHandshake, Briefcase } from 'lucide-react';
+import { ShieldCheck, HeartPulse, Umbrella, ArrowRight, CheckCircle2, ChevronRight, User, Users, HeartHandshake, Briefcase } from 'lucide-react';
 import { services, targetProfiles } from '../data/servicesData';
 
 export default function ServicesPage({ onOpenQuote }) {
@@ -126,7 +126,7 @@ export default function ServicesPage({ onOpenQuote }) {
             {targetProfiles.map((p, idx) => (
               <div key={idx} className="bg-gray-50 rounded-2xl p-6 border border-gray-200 flex flex-col justify-between hover:border-[#0f2942] transition-colors">
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#0f2942] flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 text-[#0f2942] border border-slate-200 flex items-center justify-center font-bold">
                     {idx === 0 && <User className="w-5 h-5" />}
                     {idx === 1 && <Users className="w-5 h-5" />}
                     {idx === 2 && <HeartHandshake className="w-5 h-5" />}
