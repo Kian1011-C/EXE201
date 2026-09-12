@@ -109,7 +109,7 @@ export default function Navbar({ onOpenQuote }) {
               className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" 
               to="/insurance-services"
             >
-              I Am...
+              Partners
             </Link>
             <Link 
               className={`transition-all duration-200 ${location.pathname === '/careers' ? 'text-primary font-bold border-b-2 border-primary pb-1.5' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
@@ -119,15 +119,9 @@ export default function Navbar({ onOpenQuote }) {
             </Link>
             <Link 
               className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" 
-              to="/careers"
-            >
-              Events
-            </Link>
-            <Link 
-              className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" 
               to="/contact"
             >
-              Support
+              Resources
             </Link>
             <Link 
               className={`transition-all duration-200 ${location.pathname === '/contact' ? 'text-primary font-bold border-b-2 border-primary pb-1.5' : 'text-on-surface-variant font-medium hover:text-primary'}`} 

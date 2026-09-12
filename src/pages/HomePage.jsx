@@ -19,7 +19,7 @@ export default function HomePage({ onOpenQuote }) {
     <div className="w-full bg-background text-on-background">
       
       {/* Hero Section with Quote Form & Visual Accent */}
-      <section className="relative bg-gradient-to-b from-surface to-surface-container-low overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24 border-b border-stroke-subtle">
+      <section className="relative bg-gradient-to-b from-surface via-surface to-surface-container-low overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24 border-b border-stroke-subtle">
         {/* Ambient decorative glow */}
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-cyan-ice/40 blur-3xl pointer-events-none animate-pulse-glow"></div>
         <div className="absolute bottom-0 left-10 w-72 h-72 rounded-full bg-primary/5 blur-2xl pointer-events-none"></div>
@@ -34,8 +34,8 @@ export default function HomePage({ onOpenQuote }) {
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               className="lg:col-span-7 space-y-6 text-left"
             >
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-ice text-primary text-xs font-bold tracking-wide shadow-xs animate-float">
-                <span className="material-symbols-outlined text-[18px]">verified_user</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-ice text-primary text-label-md font-label-md font-bold tracking-wide shadow-sm border border-cyan-ice/60 animate-float">
+                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
                 <span>SAVE THE MOST WITH THE BEST RATE</span>
               </div>
 
@@ -43,7 +43,7 @@ export default function HomePage({ onOpenQuote }) {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-on-surface tracking-tight leading-[1.15]"
+                className="text-headline-lg lg:text-display-xl font-extrabold text-on-surface tracking-tight leading-tight"
               >
                 Safeguarding Your <br className="hidden sm:inline" />
                 <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-container to-secondary">
@@ -55,7 +55,7 @@ export default function HomePage({ onOpenQuote }) {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-base sm:text-lg text-on-surface-variant max-w-xl leading-relaxed"
+                className="text-body-lg font-body-lg text-on-surface-variant max-w-xl"
               >
                 Navigate healthcare, Medicare, and tailored life policies with licensed independent Texas specialists. Guaranteed quick response, clear answers, and zero confusion.
               </motion.p>
@@ -70,7 +70,7 @@ export default function HomePage({ onOpenQuote }) {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={onOpenQuote}
-                  className="px-6 py-3.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer text-sm btn-shimmer"
+                  className="btn-shimmer px-6 py-3.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer"
                 >
                   <span>Get A Quote</span>
                   <span className="material-symbols-outlined text-[18px]">verified</span>
@@ -79,7 +79,7 @@ export default function HomePage({ onOpenQuote }) {
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                   <Link
                     to="/contact"
-                    className="px-6 py-3.5 rounded-lg bg-surface-container-lowest border border-stroke-subtle hover:border-primary text-on-surface hover:text-primary font-bold shadow-xs transition-all duration-200 flex items-center gap-2 text-sm"
+                    className="px-6 py-3.5 rounded-lg bg-surface-container-lowest border border-stroke-subtle hover:border-primary text-on-surface hover:text-primary font-label-lg text-label-lg font-bold shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2 hover:-translate-y-0.5"
                   >
                     <span>Contact Us</span>
                     <span className="material-symbols-outlined text-[18px]">headset_mic</span>
@@ -92,18 +92,18 @@ export default function HomePage({ onOpenQuote }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="pt-4 flex flex-wrap items-center gap-6 text-on-surface-variant text-sm"
+                className="pt-4 flex flex-wrap items-center gap-6 text-on-surface-variant text-body-sm font-body-sm"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-success-emerald text-[20px]">check_circle</span>
+                  <span className="material-symbols-outlined text-success-emerald text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   <span>Licensed in 50 States</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-success-emerald text-[20px]">check_circle</span>
+                  <span className="material-symbols-outlined text-success-emerald text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   <span>Response in 3-5 Days Guaranteed</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-success-emerald text-[20px]">check_circle</span>
+                  <span className="material-symbols-outlined text-success-emerald text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   <span>No Fee For Consultation</span>
                 </div>
               </motion.div>
@@ -325,17 +325,17 @@ export default function HomePage({ onOpenQuote }) {
           className="flex flex-col md:flex-row md:items-end justify-between mb-12"
         >
           <div className="max-w-2xl">
-            <span className="text-primary text-xs font-bold tracking-wider uppercase mb-2 block">
+            <span className="text-primary font-label-lg text-label-lg font-bold tracking-wider uppercase mb-2 block">
               Our Specialized Services
             </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-on-surface tracking-tight">
+            <h2 className="text-headline-md lg:text-headline-lg font-extrabold text-on-surface tracking-tight">
               The Best Rate Insurance specializes in Medicare, Affordable Care Act, and Life Insurance.
             </h2>
           </div>
           <div className="mt-4 md:mt-0">
             <Link
               to="/insurance-services"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-primary text-primary hover:bg-cyan-ice/20 text-sm font-bold transition-all duration-200 hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-primary text-primary hover:bg-cyan-ice/20 font-label-lg text-label-lg font-bold transition-all duration-200 hover:-translate-y-0.5"
             >
               <span>View All Coverage Types</span>
               <span className="material-symbols-outlined text-[18px]">open_in_new</span>
@@ -352,16 +352,16 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            whileHover={{ y: -6 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col group"
+            whileHover={{ y: -4 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
           >
-            <div className="h-52 overflow-hidden relative">
+            <div className="h-48 overflow-hidden relative">
               <img 
                 src="/images/service-aca.jpg" 
                 alt="Affordable Care Act healthcare consultation" 
-                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
               />
-              <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-xs">
+              <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-sm">
                 <span className="material-symbols-outlined text-[16px]">health_and_safety</span>
                 <span>ACA / Marketplace</span>
               </div>
@@ -369,11 +369,11 @@ export default function HomePage({ onOpenQuote }) {
 
             <div className="p-6 flex-grow flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold text-on-surface mb-2">Affordable Care Act (ACA)</h3>
-                <p className="text-xs text-on-surface-variant leading-relaxed mb-4">
+                <h3 className="text-headline-sm font-headline-sm text-on-surface font-bold mb-2">Affordable Care Act (ACA)</h3>
+                <p className="text-body-sm font-body-sm text-on-surface-variant mb-4">
                   Individual &amp; family healthcare coverage with comprehensive preventive care, prescription medication access, and maximum subsidy eligibility support.
                 </p>
-                <ul className="space-y-2 mb-6 text-xs text-on-surface">
+                <ul className="space-y-2 mb-6 text-body-sm font-body-sm text-on-surface">
                   <li className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary text-[18px]">check</span>
                     <span>Individual &amp; Family Health Plans</span>
@@ -391,10 +391,10 @@ export default function HomePage({ onOpenQuote }) {
 
               <Link
                 to="/insurance-services/health-insurance"
-                className="w-full py-2.5 px-4 rounded-lg bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
+                className="btn-shimmer w-full py-2.5 px-4 rounded-lg bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5"
               >
                 <span>Explore ACA Plans</span>
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
               </Link>
             </div>
           </motion.div>
@@ -405,20 +405,20 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            whileHover={{ y: -6 }}
-            className="bg-surface-container-lowest rounded-2xl border-2 border-primary overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group relative"
+            whileHover={{ y: -4 }}
+            className="bg-surface-container-lowest rounded-2xl border-2 border-primary overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col group relative"
           >
-            <div className="absolute top-3 right-3 z-10 bg-primary text-on-primary text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+            <div className="absolute top-3 right-3 z-10 bg-primary text-on-primary text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
               Top Rated Guidance
             </div>
             
-            <div className="h-52 overflow-hidden relative">
+            <div className="h-48 overflow-hidden relative">
               <img 
                 src="/images/service-medicare.jpg" 
                 alt="Medicare guidance specialist with senior client" 
-                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
               />
-              <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-xs">
+              <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-sm">
                 <span className="material-symbols-outlined text-[16px]">elderly</span>
                 <span>Senior Healthcare</span>
               </div>
@@ -426,11 +426,11 @@ export default function HomePage({ onOpenQuote }) {
 
             <div className="p-6 flex-grow flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold text-on-surface mb-2">Medicare Guidance</h3>
-                <p className="text-xs text-on-surface-variant leading-relaxed mb-4">
+                <h3 className="text-headline-sm font-headline-sm text-on-surface font-bold mb-2">Medicare Guidance</h3>
+                <p className="text-body-sm font-body-sm text-on-surface-variant mb-4">
                   Personalized plan matching to ensure your doctors, dental, vision, and medications are fully covered with lowest out-of-pocket expenses.
                 </p>
-                <ul className="space-y-2 mb-6 text-xs text-on-surface">
+                <ul className="space-y-2 mb-6 text-body-sm font-body-sm text-on-surface">
                   <li className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary text-[18px]">check</span>
                     <span>Medicare Part C (Advantage Plans)</span>
@@ -448,10 +448,10 @@ export default function HomePage({ onOpenQuote }) {
 
               <Link
                 to="/insurance-services/medicare"
-                className="w-full py-2.5 px-4 rounded-lg bg-primary text-on-primary hover:bg-primary-container text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                className="btn-shimmer w-full py-2.5 px-4 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5 shadow-sm"
               >
                 <span>Compare Medicare Options</span>
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
               </Link>
             </div>
           </motion.div>
@@ -462,16 +462,16 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            whileHover={{ y: -6 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col group"
+            whileHover={{ y: -4 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
           >
-            <div className="h-52 overflow-hidden relative">
+            <div className="h-48 overflow-hidden relative">
               <img 
                 src="/images/service-life.jpg" 
                 alt="Multigenerational family protected by Life Insurance" 
-                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
               />
-              <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-xs">
+              <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-sm">
                 <span className="material-symbols-outlined text-[16px]">shield</span>
                 <span>Family Protection</span>
               </div>
@@ -479,11 +479,11 @@ export default function HomePage({ onOpenQuote }) {
 
             <div className="p-6 flex-grow flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold text-on-surface mb-2">Life &amp; Asset Protection</h3>
-                <p className="text-xs text-on-surface-variant leading-relaxed mb-4">
+                <h3 className="text-headline-sm font-headline-sm text-on-surface font-bold mb-2">Life &amp; Asset Protection</h3>
+                <p className="text-body-sm font-body-sm text-on-surface-variant mb-4">
                   Safeguard what matters most with life policies and annuity vehicles tailored for every life milestone, mortgage, and final expense need.
                 </p>
-                <ul className="space-y-2 mb-6 text-xs text-on-surface">
+                <ul className="space-y-2 mb-6 text-body-sm font-body-sm text-on-surface">
                   <li className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary text-[18px]">check</span>
                     <span>Individual Term &amp; Whole Life</span>
@@ -501,10 +501,10 @@ export default function HomePage({ onOpenQuote }) {
 
               <Link
                 to="/insurance-services/life-insurance"
-                className="w-full py-2.5 px-4 rounded-lg bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary text-xs font-bold text-center transition-colors flex items-center justify-center gap-1.5"
+                className="btn-shimmer w-full py-2.5 px-4 rounded-lg bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5"
               >
                 <span>View Life Policies</span>
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
               </Link>
             </div>
           </motion.div>
@@ -533,16 +533,9 @@ export default function HomePage({ onOpenQuote }) {
                   alt="Insurance counselor greeting client in Houston office" 
                   className="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
-                <div className="absolute bottom-4 inset-x-4 z-10">
-                  <div className="bg-trust-navy-deep/85 backdrop-blur-md border border-cyan-ice/30 p-4 rounded-2xl shadow-xl animate-float-slow">
-                    <div className="flex items-center gap-2 text-cyan-ice text-xs font-bold uppercase tracking-wider mb-1">
-                      <span className="w-2 h-2 rounded-full bg-success-emerald animate-ping"></span>
-                      <span>Guaranteed Service Standard</span>
-                    </div>
-                    <div className="text-surface-container-lowest text-base sm:text-lg font-bold">
-                      Guaranteed Response Within 3–5 Business Days
-                    </div>
-                  </div>
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-trust-navy-deep/90 via-trust-navy-deep/60 to-transparent p-6">
+                  <div className="text-cyan-ice font-label-md text-label-md font-bold uppercase tracking-wider mb-1">Guaranteed Service Standard</div>
+                  <div className="text-surface-container-lowest font-headline-sm text-headline-sm font-bold">Guaranteed Response Within 3–5 Business Days</div>
                 </div>
               </div>
             </motion.div>
@@ -555,19 +548,19 @@ export default function HomePage({ onOpenQuote }) {
               transition={{ duration: 0.6 }}
               className="lg:col-span-7 space-y-6"
             >
-              <span className="inline-block px-3 py-1 rounded-md bg-cyan-ice/20 text-cyan-ice text-xs font-bold uppercase tracking-wider border border-cyan-ice/30">
+              <span className="inline-block px-3 py-1 rounded-md bg-cyan-ice/20 text-cyan-ice text-label-md font-label-md font-bold uppercase tracking-wider border border-cyan-ice/30">
                 Insuring Katy and All of Texas
               </span>
 
-              <h2 className="text-3xl lg:text-4xl font-extrabold text-surface-container-lowest leading-tight font-serif">
+              <h2 className="text-headline-md lg:text-headline-lg font-extrabold text-surface-container-lowest leading-tight">
                 When You Need a Plan That Will Keep You and Your Family Secure.
               </h2>
 
-              <p className="text-base text-cyan-ice/90 leading-relaxed">
+              <p className="text-body-md font-body-md text-cyan-ice/90 leading-relaxed">
                 Our agents have years of experience helping clients with a variety of different needs and budgets find affordable health insurance with coverage they can depend on.
               </p>
 
-              <p className="text-sm text-surface-variant leading-relaxed">
+              <p className="text-body-md font-body-md text-surface-variant leading-relaxed">
                 Here at <strong className="text-white font-bold">The Best Rate Insurance</strong>, we pride ourselves on using modern technology and resources to provide our clients with a faster turnaround time than our competitors can.
               </p>
 
@@ -576,42 +569,42 @@ export default function HomePage({ onOpenQuote }) {
                 <motion.a 
                   whileHover={{ y: -5, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-xs transition-all duration-200 text-center flex flex-col items-center group cursor-pointer" 
+                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-sm transition-all duration-200 text-center flex flex-col items-center group cursor-pointer" 
                   href="tel:8336336868"
                 >
-                  <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300">
                     <span className="material-symbols-outlined text-[24px]">call</span>
                   </div>
-                  <div className="text-base font-bold text-white">Call Us</div>
-                  <div className="text-sm text-cyan-ice font-bold mt-1">(833) 633-6868</div>
-                  <span className="text-[11px] text-surface-variant mt-0.5">24/7 Phone Support</span>
+                  <div className="text-title-md font-title-md font-bold text-white">Call Us</div>
+                  <div className="text-body-sm font-body-sm text-cyan-ice font-semibold mt-1">(833) 633-6868</div>
+                  <span className="text-xs text-surface-variant mt-0.5">24/7 Phone Support</span>
                 </motion.a>
 
                 <motion.a 
                   whileHover={{ y: -5, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-xs transition-all duration-200 text-center flex flex-col items-center group cursor-pointer" 
+                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-sm transition-all duration-200 text-center flex flex-col items-center group cursor-pointer" 
                   href="mailto:info@thebestrateins.com"
                 >
-                  <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300">
                     <span className="material-symbols-outlined text-[24px]">mail</span>
                   </div>
-                  <div className="text-base font-bold text-white">Email Us</div>
-                  <div className="text-sm text-cyan-ice font-bold mt-1">Prompt Response</div>
-                  <span className="text-[11px] text-surface-variant mt-0.5">Direct Agent Inbox</span>
+                  <div className="text-title-md font-title-md font-bold text-white">Email Us</div>
+                  <div className="text-body-sm font-body-sm text-cyan-ice font-semibold mt-1">Prompt Response</div>
+                  <span className="text-xs text-surface-variant mt-0.5">Direct Agent Inbox</span>
                 </motion.a>
 
                 <motion.div whileHover={{ y: -5, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Link 
-                    className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-xs transition-all duration-200 text-center flex flex-col items-center group block cursor-pointer" 
+                    className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-sm transition-all duration-200 text-center flex flex-col items-center group block cursor-pointer" 
                     to="/locations"
                   >
-                    <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300">
                       <span className="material-symbols-outlined text-[24px]">pin_drop</span>
                     </div>
-                    <div className="text-base font-bold text-white">Visit Us</div>
-                    <div className="text-sm text-cyan-ice font-bold mt-1">3 Texas Hubs</div>
-                    <span className="text-[11px] text-surface-variant mt-0.5">Katy, Houston, Garland</span>
+                    <div className="text-title-md font-title-md font-bold text-white">Visit Us</div>
+                    <div className="text-body-sm font-body-sm text-cyan-ice font-semibold mt-1">3 Texas Hubs</div>
+                    <span className="text-xs text-surface-variant mt-0.5">Katy, Houston, Garland</span>
                   </Link>
                 </motion.div>
               </div>
@@ -631,14 +624,14 @@ export default function HomePage({ onOpenQuote }) {
           transition={{ duration: 0.5 }}
           className="text-center max-w-3xl mx-auto mb-12"
         >
-          <span className="text-primary text-xs font-bold uppercase tracking-wider mb-2 block">
+          <span className="text-primary font-label-lg text-label-lg font-bold uppercase tracking-wider mb-2 block">
             Join Our Agency
           </span>
-          <h2 className="text-3xl lg:text-4xl font-extrabold text-on-surface font-serif">
+          <h2 className="text-headline-md lg:text-headline-lg font-extrabold text-on-surface">
             How Can You Join Our Big Family?
           </h2>
-          <p className="text-base text-on-surface-variant mt-4 leading-relaxed">
-            At The Best Rate Insurance, we’re more than just an agency — we’re a family. Through our Insurance Agent Bootcamp and ongoing community events, we’re shaping the next generation of insurance professionals. Whether you’re brand new or experienced, we actively recruit and support agents across all levels.
+          <p className="text-body-lg font-body-lg text-on-surface-variant mt-4">
+            At The Best Rate Insurance, we're more than just an agency — we're a family. Through our Insurance Agent Bootcamp and ongoing community events, we're shaping the next generation of insurance professionals. Whether you're brand new or experienced, we actively recruit and support agents across all levels.
           </p>
         </motion.div>
 
@@ -657,8 +650,8 @@ export default function HomePage({ onOpenQuote }) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-trust-navy-deep/80 via-transparent to-transparent flex items-end p-6 sm:p-10">
             <div className="text-white max-w-xl">
-              <h3 className="text-xl sm:text-2xl font-bold font-serif">Ready to build a legacy?</h3>
-              <p className="text-xs sm:text-sm text-surface-variant mt-1">
+              <h3 className="text-headline-sm font-headline-sm font-bold">Ready to build a legacy?</h3>
+              <p className="text-body-md font-body-md text-surface-variant mt-1">
                 Receive hands-on support, high-intent lead generation tools, and direct guidance from top leaders in the industry.
               </p>
             </div>
@@ -673,21 +666,21 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            whileHover={{ y: -6 }}
-            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
+            whileHover={{ y: -4 }}
+            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between text-left"
           >
             <div>
               <div className="w-12 h-12 rounded-xl bg-cyan-ice text-primary flex items-center justify-center mb-4">
                 <span className="material-symbols-outlined text-[26px]">badge</span>
               </div>
-              <h3 className="text-lg font-bold text-on-surface mb-2 font-serif">Join Our Agency</h3>
-              <p className="text-xs text-on-surface-variant leading-relaxed mb-6">
-                We’re always looking for motivated individuals to join our fast-growing nationwide sales team.
+              <h3 className="text-title-md font-title-md font-bold text-on-surface mb-2">Join Our Agency</h3>
+              <p className="text-body-sm font-body-sm text-on-surface-variant mb-6">
+                We're always looking for motivated individuals to join our fast-growing nationwide sales team.
               </p>
             </div>
             <Link 
               to="/careers"
-              className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-bold text-center transition-colors block"
+              className="btn-shimmer w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold text-center transition-colors block"
             >
               Apply Now
             </Link>
@@ -698,21 +691,21 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            whileHover={{ y: -6 }}
-            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
+            whileHover={{ y: -4 }}
+            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between text-left"
           >
             <div>
               <div className="w-12 h-12 rounded-xl bg-cyan-ice text-primary flex items-center justify-center mb-4">
                 <span className="material-symbols-outlined text-[26px]">person_search</span>
               </div>
-              <h3 className="text-lg font-bold text-on-surface mb-2 font-serif">Find An Agent</h3>
-              <p className="text-xs text-on-surface-variant leading-relaxed mb-6">
+              <h3 className="text-title-md font-title-md font-bold text-on-surface mb-2">Find An Agent</h3>
+              <p className="text-body-sm font-body-sm text-on-surface-variant mb-6">
                 Connect with an accredited bilingual representative specializing in your exact county and state.
               </p>
             </div>
             <Link 
               to="/about#team"
-              className="w-full py-3 px-4 rounded-lg bg-surface-container-low hover:bg-surface-container text-primary text-xs font-bold text-center transition-colors block"
+              className="w-full py-3 px-4 rounded-lg bg-surface-container-low hover:bg-surface-container text-primary font-label-lg text-label-lg font-bold text-center transition-colors hover:-translate-y-0.5 block"
             >
               Find An Agent
             </Link>
@@ -723,21 +716,21 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, delay: 0.3 }}
-            whileHover={{ y: -6 }}
-            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
+            whileHover={{ y: -4 }}
+            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between text-left"
           >
             <div>
               <div className="w-12 h-12 rounded-xl bg-cyan-ice text-primary flex items-center justify-center mb-4">
                 <span className="material-symbols-outlined text-[26px]">support_agent</span>
               </div>
-              <h3 className="text-lg font-bold text-on-surface mb-2 font-serif">Contact Us Today</h3>
-              <p className="text-xs text-on-surface-variant leading-relaxed mb-6">
+              <h3 className="text-title-md font-title-md font-bold text-on-surface mb-2">Contact Us Today</h3>
+              <p className="text-body-sm font-body-sm text-on-surface-variant mb-6">
                 Let one of our licensed independent experts customize a compliant solution that's right for you.
               </p>
             </div>
             <button 
               onClick={onOpenQuote}
-              className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-bold text-center transition-colors cursor-pointer"
+              className="btn-shimmer w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold text-center transition-colors cursor-pointer"
             >
               Get In Touch
             </button>
@@ -754,7 +747,7 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 grid grid-cols-1 lg:grid-cols-12 items-center group"
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 grid grid-cols-1 lg:grid-cols-12 items-center group"
           >
             <div className="lg:col-span-5 h-64 lg:h-full min-h-[300px] relative overflow-hidden">
               <img 
@@ -765,24 +758,24 @@ export default function HomePage({ onOpenQuote }) {
             </div>
             <div className="lg:col-span-7 p-6 sm:p-10 space-y-4">
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 rounded-full bg-cyan-ice text-primary text-xs font-bold uppercase">
+                <span className="px-3 py-1 rounded-full bg-cyan-ice text-primary text-label-md font-label-md font-bold uppercase">
                   Insurance Blog
                 </span>
                 <span className="text-xs text-outline font-medium">September 7, 2026</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-on-surface font-serif">
+              <h2 className="text-headline-sm lg:text-headline-md font-bold text-on-surface">
                 Life Insurance Awareness Month: How Much Coverage Do You Really Need?
               </h2>
-              <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+              <p className="text-body-md font-body-md text-on-surface-variant">
                 Calculating your family's safety net doesn't have to be guesswork. From calculating mortgage debt and college funds to final expenses, learn how our advisors calculate optimal coverage limits without overpaying premiums.
               </p>
               <div className="pt-2">
                 <button
                   onClick={onOpenQuote}
-                  className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:text-primary-container cursor-pointer transition-colors group-hover:translate-x-1"
+                  className="inline-flex items-center gap-2 font-label-lg text-label-lg font-bold text-primary hover:text-primary-container cursor-pointer transition-colors group/link"
                 >
-                  <span>Request Free Policy Calculation</span>
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  <span>Read Full Article</span>
+                  <span className="material-symbols-outlined text-[18px] group-hover/link:translate-x-1 transition-transform">arrow_forward</span>
                 </button>
               </div>
             </div>
@@ -799,13 +792,13 @@ export default function HomePage({ onOpenQuote }) {
           transition={{ duration: 0.5 }}
           className="text-center max-w-2xl mx-auto mb-14"
         >
-          <span className="text-primary text-xs font-bold uppercase tracking-wider mb-2 block">
+          <span className="text-primary font-label-lg text-label-lg font-bold uppercase tracking-wider mb-2 block">
             Our Physical Branches
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-on-surface font-serif">
+          <h2 className="text-headline-md lg:text-headline-lg font-extrabold text-on-surface">
             Texas Headquartered, Proudly Serving All 50 States
           </h2>
-          <p className="text-xs sm:text-sm text-on-surface-variant mt-2">
+          <p className="text-body-md font-body-md text-on-surface-variant mt-2">
             Drop by our local offices or consult virtually from any state.
           </p>
         </motion.div>
@@ -819,31 +812,31 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            whileHover={{ y: -6 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            whileHover={{ y: -4 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-4">
-                <h3 className="text-base font-bold text-on-surface font-serif">Katy Office (HQ)</h3>
-                <span className="w-8 h-8 rounded-full bg-cyan-ice text-primary flex items-center justify-center">
+                <h3 className="text-title-md font-title-md font-bold text-on-surface">Katy Office</h3>
+                <span className="w-8 h-8 rounded-full bg-cyan-ice text-primary flex items-center justify-center shadow-sm">
                   <span className="material-symbols-outlined text-[18px]">location_on</span>
                 </span>
               </div>
-              <div className="space-y-3 text-xs text-on-surface-variant">
+              <div className="space-y-3 text-body-sm font-body-sm text-on-surface-variant">
                 <p className="font-semibold text-on-surface">The Best Rate Insurance</p>
                 <p>633 East Fernhurst Drive<br />Suite 1502<br />Katy, Texas 77450</p>
                 <div className="pt-2">
-                  <a className="text-primary font-bold hover:underline flex items-center gap-1.5" href="tel:8336336868">
+                  <a className="text-primary font-bold hover:underline flex items-center gap-1.5 transition-colors" href="tel:8336336868">
                     <span className="material-symbols-outlined text-[16px]">call</span>
                     <span>Phone: (833) 633-6868</span>
                   </a>
                 </div>
-                <div className="border-t border-stroke-subtle pt-3 text-[11px] text-on-surface-variant space-y-0.5">
+                <div className="border-t border-stroke-subtle pt-3 text-xs text-on-surface-variant">
                   <p className="font-semibold text-on-surface">Office Hours:</p>
                   <p>Mon-Fri: 9:00am - 6:00pm</p>
                   <p>Sat-Sun: Closed</p>
                   <p className="text-primary font-semibold mt-1">Available by Phone: 24/7</p>
-                  <p className="text-secondary font-medium">Open Weekends: October–December</p>
+                  <p className="text-secondary">Open Weekends: October–December</p>
                 </div>
               </div>
             </div>
@@ -852,7 +845,7 @@ export default function HomePage({ onOpenQuote }) {
                 href="https://maps.google.com/?cid=15721998512988683818" 
                 target="_blank" 
                 rel="noreferrer"
-                className="w-full block text-center py-2 rounded-lg bg-surface-container-low hover:bg-primary hover:text-white text-primary text-xs font-bold transition-colors"
+                className="w-full block text-center py-2 rounded-lg bg-surface-container-low hover:bg-primary hover:text-white text-primary font-label-lg text-label-lg font-bold transition-colors"
               >
                 View On Google Maps →
               </a>
@@ -865,31 +858,31 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            whileHover={{ y: -6 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            whileHover={{ y: -4 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-4">
-                <h3 className="text-base font-bold text-on-surface font-serif">Houston Office</h3>
-                <span className="w-8 h-8 rounded-full bg-cyan-ice text-primary flex items-center justify-center">
+                <h3 className="text-title-md font-title-md font-bold text-on-surface">Houston Office</h3>
+                <span className="w-8 h-8 rounded-full bg-cyan-ice text-primary flex items-center justify-center shadow-sm">
                   <span className="material-symbols-outlined text-[18px]">location_on</span>
                 </span>
               </div>
-              <div className="space-y-3 text-xs text-on-surface-variant">
+              <div className="space-y-3 text-body-sm font-body-sm text-on-surface-variant">
                 <p className="font-semibold text-on-surface">The Best Rate Insurance</p>
                 <p>8001 S Kirkwood Rd<br />Houston, Texas 77072</p>
                 <div className="pt-2">
-                  <a className="text-primary font-bold hover:underline flex items-center gap-1.5" href="tel:8336336868">
+                  <a className="text-primary font-bold hover:underline flex items-center gap-1.5 transition-colors" href="tel:8336336868">
                     <span className="material-symbols-outlined text-[16px]">call</span>
                     <span>Phone: (833) 633-6868</span>
                   </a>
                 </div>
-                <div className="border-t border-stroke-subtle pt-3 text-[11px] text-on-surface-variant space-y-0.5">
+                <div className="border-t border-stroke-subtle pt-3 text-xs text-on-surface-variant">
                   <p className="font-semibold text-on-surface">Office Hours:</p>
                   <p>Mon-Fri: 9:00am - 5:00pm</p>
                   <p>Sat-Sun: Closed</p>
                   <p className="text-primary font-semibold mt-1">Available by Phone: 24/7</p>
-                  <p className="text-secondary font-medium">Open Weekends: October–December</p>
+                  <p className="text-secondary">Open Weekends: October–December</p>
                 </div>
               </div>
             </div>
@@ -898,7 +891,7 @@ export default function HomePage({ onOpenQuote }) {
                 href="https://maps.google.com/?q=8001%20S%20Kirkwood%20Rd%20Houston%20TX%2077072" 
                 target="_blank" 
                 rel="noreferrer"
-                className="w-full block text-center py-2 rounded-lg bg-surface-container-low hover:bg-primary hover:text-white text-primary text-xs font-bold transition-colors"
+                className="w-full block text-center py-2 rounded-lg bg-surface-container-low hover:bg-primary hover:text-white text-primary font-label-lg text-label-lg font-bold transition-colors"
               >
                 View On Google Maps →
               </a>
@@ -911,31 +904,31 @@ export default function HomePage({ onOpenQuote }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, delay: 0.3 }}
-            whileHover={{ y: -6 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            whileHover={{ y: -4 }}
+            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-4">
-                <h3 className="text-base font-bold text-on-surface font-serif">Garland Office</h3>
-                <span className="w-8 h-8 rounded-full bg-cyan-ice text-primary flex items-center justify-center">
+                <h3 className="text-title-md font-title-md font-bold text-on-surface">Garland Office</h3>
+                <span className="w-8 h-8 rounded-full bg-cyan-ice text-primary flex items-center justify-center shadow-sm">
                   <span className="material-symbols-outlined text-[18px]">location_on</span>
                 </span>
               </div>
-              <div className="space-y-3 text-xs text-on-surface-variant">
+              <div className="space-y-3 text-body-sm font-body-sm text-on-surface-variant">
                 <p className="font-semibold text-on-surface">The Best Rate Insurance</p>
                 <p>2408 W Walnut St<br />Garland, Texas 75042</p>
                 <div className="pt-2">
-                  <a className="text-primary font-bold hover:underline flex items-center gap-1.5" href="tel:5642346868">
+                  <a className="text-primary font-bold hover:underline flex items-center gap-1.5 transition-colors" href="tel:5642346868">
                     <span className="material-symbols-outlined text-[16px]">call</span>
                     <span>Phone: (564) 234-6868</span>
                   </a>
                 </div>
-                <div className="border-t border-stroke-subtle pt-3 text-[11px] text-on-surface-variant space-y-0.5">
+                <div className="border-t border-stroke-subtle pt-3 text-xs text-on-surface-variant">
                   <p className="font-semibold text-on-surface">Office Hours:</p>
                   <p>Mon-Fri: 9:00am - 5:00pm</p>
                   <p>Sat-Sun: Closed</p>
                   <p className="text-primary font-semibold mt-1">Available by Phone: 24/7</p>
-                  <p className="text-secondary font-medium">Open Weekends: October–December</p>
+                  <p className="text-secondary">Open Weekends: October–December</p>
                 </div>
               </div>
             </div>
@@ -944,7 +937,7 @@ export default function HomePage({ onOpenQuote }) {
                 href="https://maps.google.com/?q=2408%20W%20Walnut%20St%20Garland%20TX%2075042" 
                 target="_blank" 
                 rel="noreferrer"
-                className="w-full block text-center py-2 rounded-lg bg-surface-container-low hover:bg-primary hover:text-white text-primary text-xs font-bold transition-colors"
+                className="w-full block text-center py-2 rounded-lg bg-surface-container-low hover:bg-primary hover:text-white text-primary font-label-lg text-label-lg font-bold transition-colors"
               >
                 View On Google Maps →
               </a>
@@ -962,16 +955,16 @@ export default function HomePage({ onOpenQuote }) {
           className="bg-primary/5 rounded-2xl border border-primary/20 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6"
         >
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-primary font-serif">
+            <h3 className="text-headline-sm font-headline-sm font-bold text-primary">
               Proudly Serving All of Texas &amp; 50 States
             </h3>
-            <p className="text-xs sm:text-sm text-on-surface-variant max-w-2xl leading-relaxed">
+            <p className="text-body-md font-body-md text-on-surface-variant max-w-2xl">
               The Best Rate Insurance provides Medicare, Affordable Care Act, and Life Insurance to all of Texas, including Katy, Sugar Land, Richmond, and Cypress, plus nationwide network coverage.
             </p>
           </div>
           <button 
             onClick={onOpenQuote}
-            className="shrink-0 px-6 py-3 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-bold transition-all shadow cursor-pointer hover:shadow-md hover:-translate-y-0.5"
+            className="btn-shimmer shrink-0 px-6 py-3 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold transition-all shadow cursor-pointer hover:shadow-md"
           >
             Speak With An Agent
           </button>
@@ -981,3 +974,4 @@ export default function HomePage({ onOpenQuote }) {
     </div>
   );
 }
+

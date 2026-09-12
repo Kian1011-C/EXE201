@@ -11,13 +11,13 @@ export default function Footer() {
           
           {/* Brand / Identity Col */}
           <div className="col-span-2 md:col-span-1 space-y-4">
-            <div className="text-2xl font-extrabold text-surface-container-lowest font-serif">
+            <div className="text-headline-md font-headline-md font-bold text-surface-container-lowest">
               The Best Rate Insurance
             </div>
-            <p className="text-xs text-surface-variant leading-relaxed">
-              Independent insurance brokerage delivering clear health, Medicare, and life coverage solutions for families and individuals across Texas and nationwide.
+            <p className="text-body-sm font-body-sm text-surface-variant leading-relaxed">
+              Independent insurance brokerage delivering clear health, Medicare, and life coverage solutions for families and individuals nationwide.
             </p>
-            <div className="text-sm text-cyan-ice font-bold">
+            <div className="text-body-sm font-body-sm text-cyan-ice font-semibold">
               Toll-Free: (833) 633-6868
             </div>
           </div>
