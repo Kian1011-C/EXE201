@@ -23,25 +23,27 @@ export default function Navbar({ onOpenQuote }) {
     <>
       {/* Top Subtle Announcement / Phone Line */}
       <div className="bg-navy-deep text-ivory/85 text-xs py-2 px-4 lg:px-8 border-b border-white/5 hidden md:block">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-6">
-            <span className="tracking-widest uppercase text-[10px] text-champagne font-semibold">
-              Digital Insurance Lead &amp; Matchmaking Platform
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+          <div className="flex items-center space-x-3 lg:space-x-4 min-w-0">
+            <span className="tracking-widest uppercase text-[10px] text-champagne font-semibold whitespace-nowrap">
+              Licensed Agent Matching Platform
             </span>
-            <span className="text-white/20">|</span>
-            <span className="text-ivory/80 text-[11px]">Connecting Vietnamese Consumers With Licensed Agents</span>
+            <span className="text-white/20 hidden lg:inline">|</span>
+            <span className="text-ivory/80 text-[11px] hidden lg:inline whitespace-nowrap">
+              Connecting Vietnamese Consumers With Verified Agents
+            </span>
           </div>
 
-          <div className="flex items-center space-x-6 text-[11px]">
+          <div className="flex items-center space-x-4 lg:space-x-6 text-[11px] shrink-0">
             <a 
               href="mailto:support@insurmatch.us" 
-              className="text-ivory/90 hover:text-champagne transition-colors flex items-center gap-1.5"
+              className="text-ivory/90 hover:text-champagne transition-colors flex items-center gap-1.5 whitespace-nowrap"
             >
-              <span className="text-champagne">Support:</span>
+              <span className="text-champagne font-medium">Support:</span>
               <span className="font-semibold tracking-wider">support@insurmatch.us</span>
             </a>
             <span className="text-white/20">|</span>
-            <Link to="/login" className="text-ivory/80 hover:text-champagne transition-colors font-medium">
+            <Link to="/login" className="text-ivory/80 hover:text-champagne transition-colors font-medium whitespace-nowrap">
               Agent &amp; Staff Portal
             </Link>
           </div>
