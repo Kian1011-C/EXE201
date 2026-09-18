@@ -85,7 +85,7 @@ export default function App() {
             }
           />
           <Route
-            path="/dashboard/staff"
+            path="/dashboard/staff/*"
             element={
               <ProtectedRoute allowedRoles={['staff']}>
                 <StaffDashboard />

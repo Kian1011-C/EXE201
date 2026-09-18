@@ -1,0 +1,212 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Contact {
+  id                 String   @id
+  no                 Int      @default(autoincrement())
+  code               String   @unique
+  firstName          String
+  middleName         String   @default("")
+  lastName           String
+  fullName           String
+  phone              String   @default("")
+  email              String   @default("")
+  language           String   @default("Vietnamese")
+  howDoYouKnowUs     String   @default("")
+  whoReferClient     String   @default("")
+  teleSaleTeam       String   @default("")
+  contactOwnerName   String   @default("The Best Rate Insurance")
+  contactOwnerAvatar String   @default("TB")
+  contactOwnerBg     String   @default("bg-teal-700 text-white")
+  supportAgent       String   @default("Anya Nguyen (anya42@9)")
+  acaAccountStatus   String   @default("")
+  status             String   @default("Active")
+  lastModifiedBy     String   @default("Miranda Pham")
+  lastModifiedTime   String   @default("09/18/2026, 00:31")
+
+  // Primary Person Info
+  dob                String   @default("")
+  ssn                String   @default("")
+  familyRelationship String   @default("Self")
+  gender             String   @default("Male")
+  immigrationStatus  String   @default("Permanent Resident")
+  alienNumber        String   @default("")
+  certificateNumber  String   @default("")
+  dateExpired        String   @default("")
+  household          String   @default("")
+
+  // Contact Address Fields
+  enrolledAddress    String   @default("")
+  mailingAddress     String   @default("")
+  state              String   @default("")
+  streetAddress      String   @default("")
+  city               String   @default("")
+  postalCode         String   @default("")
+  county             String   @default("")
+  career             String   @default("")
+
+  // ACA Account Details
+  theBestRateEmail   String   @default("")
+  acaAccount         String   @default("")
+  acaPass            String   @default("")
+  acaStatusSpecial   String   @default("")
+  acaAccountSpecial  String   @default("")
+  acaPassSpecial     String   @default("")
+  enrollCallRep      String   @default("")
+
+  // Relationships
+  deals              Deal[]
+  documents          CustomerDocument[]
+  tickets            Ticket[]
+  activities         Activity[]
+  notes              Note[]
+  tasks              Task[]
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Deal {
+  id                  String   @id
+  code                String   @unique
+  title               String
+  shortTitle          String   @default("")
+  contactId           String
+  contact             Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  pipeline            String   @default("Obamacare 2026")
+  stage               String   @default("Ready to Enroll (Obamacare 2026)")
+  carrier             String   @default("BCBS")
+  amount              String   @default("_ _ _ _ _ _ _ _ _ _")
+  closeDate           String   @default("_ _ _ _ _ _ _ _ _ _")
+  sellingState        String   @default("North Carolina (NC)")
+  dealOwnerName       String   @default("Khanh Nguyen")
+  dealOwnerAvatar     String   @default("KN")
+  dealOwnerBg         String   @default("bg-blue-600 text-white")
+  lastModifiedBy      String   @default("Anya Nguyen")
+  lastModifiedTime    String   @default("09/17/2026, 09:12")
+
+  // Admin Only Fields
+  enrolledNpn         String   @default("Anh Que Pham 20011862")
+  brokerEffectiveDate String   @default("2026-09-09")
+  terminationDate     String   @default("2027-12-31")
+  primaryMemberId     String   @default("MID-98234710")
+  saleSupportStatus   String   @default("Completed")
+  numberMember        Int      @default(1)
+  closedLostReason    String   @default("---")
+
+  // Relationships
+  tickets             Ticket[]
+  activities          Activity[]
+  notes               Note[]
+  tasks               Task[]
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model CustomerDocument {
+  id               String         @id
+  contactId        String
+  contact          Contact        @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  name             String
+  initials         String         @default("ND")
+  contactOwner     String         @default("Khanh Nguyen (khanhnguyen31@7)")
+  lastModifiedBy   String         @default("Anya Nguyen")
+  lastModifiedTime String         @default("09/11/2026, 17:44")
+
+  files            DocumentFile[]
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model DocumentFile {
+  id         String           @id @default(cuid())
+  documentId String
+  document   CustomerDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  category   String           // consentFormMkp, consentFormText, identity, insuranceRecord, otherDocument, paymentInformation, tax
+  name       String
+  fullName   String
+  size       String
+  type       String           // pdf, image, document
+  url        String           @default("")
+
+  createdAt  DateTime         @default(now())
+}
+
+model Ticket {
+  id           String   @id
+  contactId    String
+  contact      Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  dealId       String?
+  deal         Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  title        String
+  pipeline     String   @default("ACA account")
+  status       String   @default("Uploaded - Waiting for Verification")
+  stage        String   @default("Waiting on verification")
+  ticketOwner  String   @default("Khanh Nguyen")
+  serviceAgent String   @default("Anya Nguyen")
+  dueDate      String   @default("09/22/2026")
+  closeDate    String   @default("----------")
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Activity {
+  id          String   @id
+  contactId   String?
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  dealId      String?
+  deal        Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  type        String   @default("Activity")
+  actor       String   @default("Anya Nguyen (anya42@9)")
+  time        String   @default("09/17/2026, 09:12")
+  summary     String
+  ticketTitle String   @default("")
+  dealTitle   String   @default("")
+  linkText    String   @default("")
+
+  createdAt   DateTime @default(now())
+}
+
+model Note {
+  id          String   @id
+  contactId   String?
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  dealId      String?
+  deal        Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  text        String
+  author      String   @default("Anya Nguyen")
+  time        String   @default("10:30 AM")
+  date        String   @default("Sep 18, 2026")
+  attachments String   @default("[]")
+
+  createdAt   DateTime @default(now())
+}
+
+model Task {
+  id          String   @id
+  contactId   String?
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  dealId      String?
+  deal        Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  title       String
+  assignedTo  String   @default("Anya Nguyen")
+  status      String   @default("Pending")
+  dueDate     String   @default("09/18/2026")
+  dueTime     String   @default("8:00 AM")
+  remind      String   @default("No remind")
+  priority    String   @default("Medium")
+  taskType    String   @default("")
+  content     String   @default("")
+  attachments String   @default("[]")
+
+  createdAt   DateTime @default(now())
+}

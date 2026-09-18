@@ -1,106 +1,228 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
-import DashboardLayout from './DashboardLayout';
-
-const STATS = [
-  { label: 'New Requests Today', value: '—', icon: 'mark_email_unread', color: 'text-primary', bg: 'bg-primary/10' },
-  { label: 'Pending Assignment', value: '—', icon: 'pending_actions', color: 'text-amber-600', bg: 'bg-amber-50' },
-  { label: 'Assigned This Week', value: '—', icon: 'task_alt', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-];
-
-const QUEUE = [
-  { name: 'Demo Lead A', type: 'Medicare', phone: '(832) 000-0001', status: 'New' },
-  { name: 'Demo Lead B', type: 'ACA / Health', phone: '(832) 000-0002', status: 'New' },
-  { name: 'Demo Lead C', type: 'Life Insurance', phone: '(832) 000-0003', status: 'Contacted' },
-];
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import StaffCrmLayout from './staff/StaffCrmLayout';
+import StaffContactsList from './staff/StaffContactsList';
+import StaffContactDetail from './staff/StaffContactDetail';
+import StaffDealDetail from './staff/StaffDealDetail';
+import StaffDealsList from './staff/StaffDealsList';
+import StaffCustomerDocumentDetail from './staff/StaffCustomerDocumentDetail';
+import StaffCrmDashboard from './staff/StaffCrmDashboard';
+import {
+  MOCK_CONTACTS,
+  CONTACT_DETAIL_DATA,
+  DEAL_DETAIL_DATA,
+  CUSTOMER_DOCUMENT_DATA,
+} from '../../data/mockCrmData';
 
 export default function StaffDashboard() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Current view: 'dashboard' | 'list' | 'contact-detail' | 'deals-list' | 'deal-detail' | 'customer-document-detail'
+  const [currentTab, setCurrentTab] = useState('contacts');
+  const [currentView, setCurrentView] = useState('list');
+  const [selectedContact, setSelectedContact] = useState(CONTACT_DETAIL_DATA);
+  const [selectedDeal, setSelectedDeal] = useState(DEAL_DETAIL_DATA);
+  const [selectedDocument, setSelectedDocument] = useState(CUSTOMER_DOCUMENT_DATA);
+
+  // Sync state with URL path if applicable
+  useEffect(() => {
+    const path = location.pathname;
+    if (
+      path.endsWith('/dashboard/staff/dashboard') ||
+      path.endsWith('/dashboard/staff/dashboard/')
+    ) {
+      setCurrentTab('dashboard');
+      setCurrentView('dashboard');
+    } else if (path.includes('/dashboard/staff/documents/')) {
+      setCurrentTab('contacts');
+      setCurrentView('customer-document-detail');
+    } else if (path.includes('/dashboard/staff/deals/')) {
+      setCurrentTab('deals');
+      setCurrentView('deal-detail');
+    } else if (
+      path.endsWith('/dashboard/staff/deals') ||
+      path.endsWith('/dashboard/staff/deals/')
+    ) {
+      setCurrentTab('deals');
+      setCurrentView('deals-list');
+    } else if (path.includes('/dashboard/staff/contacts/')) {
+      const parts = path.split('/dashboard/staff/contacts/');
+      const contactId = parts[1];
+      const found = MOCK_CONTACTS.find((c) => c.id === contactId);
+      if (found) {
+        setSelectedContact({ ...CONTACT_DETAIL_DATA, ...found });
+      }
+      setCurrentTab('contacts');
+      setCurrentView('contact-detail');
+    } else {
+      setCurrentTab('contacts');
+      setCurrentView('list');
+    }
+  }, [location.pathname]);
+
+  // Handlers for smooth navigation
+  function handleSelectContact(contact) {
+    const p = contact.primary || {};
+    let firstName = contact.firstName || p.firstName;
+    let middleName = contact.middleName || p.middleName || '';
+    let lastName = contact.lastName || p.lastName;
+
+    if (!firstName && !lastName && contact.fullName) {
+      const parts = contact.fullName.trim().split(/\s+/);
+      if (parts.length === 1) {
+        firstName = parts[0];
+        lastName = '';
+      } else if (parts.length === 2) {
+        firstName = parts[0];
+        lastName = parts[1];
+      } else {
+        firstName = parts.slice(0, -1).join(' ');
+        lastName = parts[parts.length - 1];
+      }
+    }
+
+    const mergedContact = {
+      ...CONTACT_DETAIL_DATA,
+      ...contact,
+      firstName: firstName || 'Nhat Huu Tuan',
+      middleName: middleName || '',
+      lastName: lastName || 'Dang',
+      fullName: contact.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || 'Nhat Huu Tuan Dang',
+      primary: {
+        ...(CONTACT_DETAIL_DATA.primary || {}),
+        ...(contact.primary || {}),
+        firstName: firstName || 'Nhat Huu Tuan',
+        middleName: middleName || '',
+        lastName: lastName || 'Dang',
+      },
+      sourceOfLead: {
+        ...(CONTACT_DETAIL_DATA.sourceOfLead || {}),
+        ...(contact.sourceOfLead || {}),
+        howDoYouKnowUs: contact.howDoYouKnowUs || (contact.sourceOfLead?.howDoYouKnowUs || '---'),
+        whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
+        contactOwner: contact.contactOwner?.name || contact.contactOwner || CONTACT_DETAIL_DATA.sourceOfLead.contactOwner,
+        supportAgent: contact.supportAgent || CONTACT_DETAIL_DATA.sourceOfLead.supportAgent,
+      },
+      initials: (contact.fullName || 'ND')
+        .split(' ')
+        .filter(Boolean)
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase(),
+    };
+
+    setSelectedContact(mergedContact);
+    setCurrentView('contact-detail');
+    navigate(`/dashboard/staff/contacts/${contact.id}`, { replace: false });
+  }
+
+  function handleSelectDeal(deal) {
+    setSelectedDeal({
+      ...DEAL_DETAIL_DATA,
+      ...(deal || {}),
+    });
+    setCurrentView('deal-detail');
+    navigate(`/dashboard/staff/deals/${deal?.id || 'D26005033'}`, { replace: false });
+  }
+
+  function handleSelectCustomerDocument(doc) {
+    setSelectedDocument({
+      ...CUSTOMER_DOCUMENT_DATA,
+      ...(doc || {}),
+    });
+    setCurrentView('customer-document-detail');
+    navigate(`/dashboard/staff/documents/${doc?.id || 'DOC-01'}`, { replace: false });
+  }
+
+  function handleSelectTab(tab) {
+    setCurrentTab(tab);
+    if (tab === 'dashboard') {
+      setCurrentView('dashboard');
+      navigate('/dashboard/staff/dashboard', { replace: false });
+    } else if (tab === 'deals') {
+      setCurrentView('deals-list');
+      navigate('/dashboard/staff/deals', { replace: false });
+    } else if (tab === 'contacts') {
+      setCurrentView('list');
+      navigate('/dashboard/staff', { replace: false });
+    }
+  }
+
+  function handleBackToContacts() {
+    setCurrentTab('contacts');
+    setCurrentView('list');
+    navigate('/dashboard/staff', { replace: false });
+  }
+
+  function handleBackToContactDetail() {
+    setCurrentView('contact-detail');
+    navigate(`/dashboard/staff/contacts/${selectedContact?.id || 'CT26002600'}`, { replace: false });
+  }
+
+  function handleBackFromDeal() {
+    if (currentTab === 'deals') {
+      setCurrentView('deals-list');
+      navigate('/dashboard/staff/deals', { replace: false });
+    } else {
+      handleBackToContactDetail();
+    }
+  }
+
   return (
-    <DashboardLayout>
-      <div className="mb-8">
-        <h2 className="text-headline-sm font-headline-sm font-bold text-on-surface">Staff Dashboard 👔</h2>
-        <p className="text-body-md font-body-md text-on-surface-variant mt-1">
-          Review incoming match inquiries and route them to verified partner agents.
-        </p>
-      </div>
+    <StaffCrmLayout
+      currentTab={currentTab}
+      onSelectTab={handleSelectTab}
+    >
+      {currentView === 'dashboard' && (
+        <StaffCrmDashboard
+          onSelectTab={handleSelectTab}
+          onSelectDeal={handleSelectDeal}
+          onSelectContact={handleSelectContact}
+        />
+      )}
 
-      {/* API Notice */}
-      <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
-        <span className="material-symbols-outlined text-[22px] text-amber-500 shrink-0 mt-0.5">info</span>
-        <div className="text-body-sm font-body-sm">
-          <strong className="font-bold">Placeholder Data</strong> — Connect{' '}
-          <code className="bg-amber-100 px-1.5 py-0.5 rounded text-xs font-mono">GET /api/staff/quotes</code>{' '}
-          and{' '}
-          <code className="bg-amber-100 px-1.5 py-0.5 rounded text-xs font-mono">POST /api/staff/assign</code>{' '}
-          to populate this dashboard.
-        </div>
-      </div>
+      {currentView === 'list' && (
+        <StaffContactsList onSelectContact={handleSelectContact} />
+      )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {STATS.map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-5 shadow-sm"
-          >
-            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-3`}>
-              <span className={`material-symbols-outlined text-[22px] ${stat.color}`}>{stat.icon}</span>
-            </div>
-            <div className="text-headline-sm font-headline-sm font-bold text-on-surface">{stat.value}</div>
-            <div className="text-body-sm font-body-sm text-on-surface-variant">{stat.label}</div>
-          </motion.div>
-        ))}
-      </div>
+      {currentView === 'deals-list' && (
+        <StaffDealsList
+          onSelectDeal={handleSelectDeal}
+          onSelectContact={handleSelectContact}
+        />
+      )}
 
-      {/* Request Queue */}
-      <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stroke-subtle">
-          <h3 className="text-title-md font-title-md font-bold text-on-surface">Match Inquiry Queue</h3>
-          <Link to="/dashboard/staff/quotes" className="text-primary text-body-sm font-body-sm font-bold hover:underline">Full list</Link>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-body-sm font-body-sm">
-            <thead className="bg-surface-container text-on-surface-variant text-xs uppercase tracking-wider">
-              <tr>
-                <th className="px-6 py-3 text-left">Name</th>
-                <th className="px-6 py-3 text-left">Type</th>
-                <th className="px-6 py-3 text-left">Phone</th>
-                <th className="px-6 py-3 text-left">Status</th>
-                <th className="px-6 py-3 text-left">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stroke-subtle">
-              {QUEUE.map((lead) => (
-                <tr key={lead.name} className="hover:bg-surface-container/50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-on-surface">{lead.name}</td>
-                  <td className="px-6 py-4 text-on-surface-variant">{lead.type}</td>
-                  <td className="px-6 py-4 text-on-surface-variant">{lead.phone}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${lead.status === 'New' ? 'bg-primary/10 text-primary' : 'bg-amber-100 text-amber-700'}`}>
-                      {lead.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      className="text-xs font-bold text-primary hover:underline cursor-pointer"
-                      title="Connect POST /api/staff/assign"
-                    >
-                      Assign →
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="px-6 py-4 text-center text-body-sm font-body-sm text-outline italic border-t border-stroke-subtle">
-            Real queue populates from <code className="bg-surface-container px-1.5 py-0.5 rounded text-xs font-mono">GET /api/staff/quotes</code>
-          </div>
-        </div>
-      </div>
-    </DashboardLayout>
+      {currentView === 'contact-detail' && (
+        <StaffContactDetail
+          contact={selectedContact}
+          onBack={handleBackToContacts}
+          onSelectDeal={handleSelectDeal}
+          onSelectCustomerDocument={handleSelectCustomerDocument}
+        />
+      )}
+
+      {currentView === 'deal-detail' && (
+        <StaffDealDetail
+          deal={selectedDeal}
+          onBack={handleBackFromDeal}
+          onSelectContact={() => handleSelectContact(selectedContact)}
+          onSelectCustomerDocument={handleSelectCustomerDocument}
+          onUpdateDeal={(updated) => {
+            setSelectedDeal((prev) => ({ ...prev, ...updated }));
+          }}
+        />
+      )}
+
+      {currentView === 'customer-document-detail' && (
+        <StaffCustomerDocumentDetail
+          documentData={selectedDocument}
+          onBack={handleBackToContactDetail}
+          onSelectContact={() => handleSelectContact(selectedContact)}
+          onSelectDeal={() => handleSelectDeal(selectedDeal)}
+        />
+      )}
+    </StaffCrmLayout>
   );
 }
