@@ -26,7 +26,7 @@ export default function LifePage({ onOpenQuote }) {
               onClick={onOpenQuote}
               className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg cursor-pointer text-sm"
             >
-              Get A Custom Life Insurance Illustration
+              Match With A Licensed Life Agent
             </button>
           </div>
         </div>
@@ -38,7 +38,7 @@ export default function LifePage({ onOpenQuote }) {
           <div className="text-center max-w-2xl mx-auto mb-14">
             <h2 className="text-3xl font-black text-[#0f2942]">Custom Solutions For Every Budget</h2>
             <p className="text-sm text-gray-500 mt-2">
-              From \$25/month term life to multimillion-dollar wealth transfer strategies, our independent agents tailor every policy to your exact financial objectives.
+              From affordable term life to living benefits and retirement annuities, verified independent agents match policies to your exact financial objectives.
             </p>
           </div>
 
@@ -80,7 +80,7 @@ export default function LifePage({ onOpenQuote }) {
                     onClick={onOpenQuote}
                     className="w-full bg-[#0f2942] hover:bg-[#183d60] text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-colors cursor-pointer"
                   >
-                    Request Quote for {plan.name.split('(')[0]}
+                    Match For {plan.name.split('(')[0]}
                   </button>
                 </div>
               </div>
@@ -116,10 +116,19 @@ export default function LifePage({ onOpenQuote }) {
                 onClick={onOpenQuote}
                 className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3.5 px-6 rounded-xl transition-all shadow-md text-sm cursor-pointer"
               >
-                Quote Living Benefits Plan
+                Request Living Benefits Match
               </button>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Compliance Disclaimer */}
+      <section className="py-8 bg-white border-t border-gray-100 text-center text-xs text-gray-400 px-4">
+        <div className="max-w-4xl mx-auto">
+          <p>
+            InsurMatch is a digital lead-generation and matchmaking platform connecting consumers with independent, properly licensed insurance agents. InsurMatch does not sell insurance policies directly, underwrite coverage, or collect premiums.
+          </p>
         </div>
       </section>
     </div>

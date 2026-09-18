@@ -11,9 +11,9 @@ const ROLE_REDIRECT = {
 };
 
 const DEMO_HINTS = [
-  { role: 'Admin', email: 'admin@thebestrateins.com', password: 'Admin@123', label: 'System Admin' },
-  { role: 'Staff', email: 'staff@thebestrateins.com', password: 'Staff@123', label: 'Operations' },
-  { role: 'Agent', email: 'agent@thebestrateins.com', password: 'Agent@123', label: 'Licensed Advisor' },
+  { role: 'Admin', email: 'admin@insurmatch.us', password: 'Admin@123', label: 'System Admin' },
+  { role: 'Staff', email: 'staff@insurmatch.us', password: 'Staff@123', label: 'Operations' },
+  { role: 'Agent', email: 'agent@insurmatch.us', password: 'Agent@123', label: 'Licensed Agent Partner' },
 ];
 
 export default function LoginPage() {

@@ -86,7 +86,7 @@ export default function QuotePage() {
                   Your Match is Underway
                 </h2>
                 <p className="text-sm text-charcoal/75 max-w-lg mx-auto leading-relaxed">
-                  Thank you, <strong>{formData.name}</strong>. Our Texas independent advisory team is evaluating available plans for zip code <strong>{formData.zipCode}</strong> across 30+ top carriers.
+                  Thank you, <strong>{formData.name}</strong>. Our intelligent matching engine is connecting your request for zip code <strong>{formData.zipCode}</strong> with a verified independent agent licensed in your state.
                 </p>
               </div>
 
@@ -98,7 +98,7 @@ export default function QuotePage() {
                 <p>Phone confirmation: <strong>{formData.phone}</strong></p>
                 <p>Email delivery: <strong>{formData.email}</strong></p>
                 <p className="text-charcoal/60 pt-1 border-t border-stroke-subtle">
-                  Want to speak with an advisor right now? Call our Texas team directly at <a href="tel:8336336868" className="font-bold text-navy-deep underline">(833) 633-6868</a>.
+                  Need assistance with your match request? Reach our support team at <a href="mailto:support@insurmatch.us" className="font-bold text-navy-deep underline">support@insurmatch.us</a>.
                 </p>
               </div>
 
@@ -163,22 +163,22 @@ export default function QuotePage() {
                     })}
                   </div>
 
-                  {/* Texas Zip Code */}
+                  {/* Texas & Partner States Zip Code */}
                   <div className="space-y-1.5 pt-2">
                     <label className="block text-xs font-bold uppercase tracking-wider text-navy-deep">
-                      Your Texas Zip Code *
+                      Your Zip Code &amp; State *
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. 77450 (Katy) or 77072 (Houston)"
+                      placeholder="e.g. 77450 (Katy, TX) or 77072 (Houston, TX)"
                       maxLength={5}
                       value={formData.zipCode}
                       onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
                       className="w-full px-4 py-3 rounded-lg border border-stroke-subtle bg-ivory text-sm focus:outline-none focus:border-navy-deep"
                     />
                     <p className="text-[11px] text-charcoal/60">
-                      Doctor networks and subsidy amounts are calculated by county and zip code.
+                      Independent agent licensing and plan availability are determined by state and zip code.
                     </p>
                   </div>
 
@@ -200,10 +200,10 @@ export default function QuotePage() {
                   <div className="space-y-2">
                     <span className="text-xs font-bold uppercase tracking-widest text-champagne">02 — NEEDS</span>
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-navy-deep tracking-tight">
-                      Tell us about your healthcare needs.
+                      Tell us about your coverage needs.
                     </h2>
                     <p className="text-xs sm:text-sm text-charcoal/70">
-                      This information allows us to calculate government tax subsidies and ensure network doctor matches.
+                      This information helps match you with licensed agents specializing in appropriate subsidy and carrier options.
                     </p>
                   </div>
 
@@ -255,7 +255,7 @@ export default function QuotePage() {
                       className="w-full px-4 py-3 rounded-lg border border-stroke-subtle bg-ivory text-sm focus:outline-none focus:border-navy-deep"
                     />
                     <p className="text-[11px] text-charcoal/60 mt-1">
-                      We check carrier formularies and doctor networks before presenting matched options.
+                      Your matched licensed agent will review network doctors and plan formularies before presenting options.
                     </p>
                   </div>
 
@@ -289,7 +289,7 @@ export default function QuotePage() {
                       Where should we send your matched options?
                     </h2>
                     <p className="text-xs sm:text-sm text-charcoal/70">
-                      An independent Texas advisor will prepare your rate summary with zero broker fees.
+                      A verified independent agent licensed in your state will review your needs with 100% free matching and zero broker fees.
                     </p>
                   </div>
 
@@ -370,7 +370,7 @@ export default function QuotePage() {
                       className="bg-navy-deep hover:bg-navy-midnight text-ivory font-bold px-8 py-3.5 rounded-lg transition-colors flex items-center gap-2 text-xs tracking-wider uppercase cursor-pointer disabled:opacity-60"
                     >
                       {isSubmitting ? (
-                        <span>Analyzing 30+ Carriers...</span>
+                        <span>Matching Licensed Agents...</span>
                       ) : (
                         <>
                           <span>Submit Match Request</span>
@@ -388,7 +388,7 @@ export default function QuotePage() {
         {/* Confidentiality Note */}
         <div className="flex items-center justify-center gap-2 text-xs text-charcoal/60 mt-6">
           <Shield className="w-4 h-4 text-emerald-600" />
-          <span>Your data is 100% confidential. No spam callers • Direct Texas advisor review.</span>
+          <span>Your data is 100% confidential. No robo-callers • Verified licensed independent agent match.</span>
         </div>
 
       </div>

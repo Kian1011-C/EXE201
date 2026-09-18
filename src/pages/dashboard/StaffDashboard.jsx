@@ -21,7 +21,7 @@ export default function StaffDashboard() {
       <div className="mb-8">
         <h2 className="text-headline-sm font-headline-sm font-bold text-on-surface">Staff Dashboard 👔</h2>
         <p className="text-body-md font-body-md text-on-surface-variant mt-1">
-          Review incoming quote requests and assign them to agents.
+          Review incoming match inquiries and route them to verified partner agents.
         </p>
       </div>
 
@@ -59,7 +59,7 @@ export default function StaffDashboard() {
       {/* Request Queue */}
       <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-stroke-subtle">
-          <h3 className="text-title-md font-title-md font-bold text-on-surface">Quote Request Queue</h3>
+          <h3 className="text-title-md font-title-md font-bold text-on-surface">Match Inquiry Queue</h3>
           <Link to="/dashboard/staff/quotes" className="text-primary text-body-sm font-body-sm font-bold hover:underline">Full list</Link>
         </div>
         <div className="overflow-x-auto">

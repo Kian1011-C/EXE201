@@ -5,9 +5,9 @@ import DashboardLayout from './DashboardLayout';
 import { useAuth } from '../../auth/AuthContext';
 
 const STATS = [
-  { label: 'My Active Leads', value: '—', icon: 'contacts', color: 'text-primary', bg: 'bg-primary/10' },
+  { label: 'My Matched Leads', value: '—', icon: 'contacts', color: 'text-primary', bg: 'bg-primary/10' },
   { label: 'Contacted Today', value: '—', icon: 'call_made', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  { label: 'Closed This Month', value: '—', icon: 'check_circle', color: 'text-amber-600', bg: 'bg-amber-50' },
+  { label: 'Completed Consultations', value: '—', icon: 'check_circle', color: 'text-amber-600', bg: 'bg-amber-50' },
 ];
 
 const MY_LEADS = [
@@ -38,7 +38,7 @@ export default function AgentDashboard() {
           Good day, {user?.name?.split(' ')[0]} 🧑‍💼
         </h2>
         <p className="text-body-md font-body-md text-on-surface-variant mt-1">
-          Here are the leads assigned to you. Follow up promptly to maximize conversions.
+          Here are consumer requests matched to your licensed profile. Connect promptly to guide your clients.
         </p>
       </div>
 
@@ -74,7 +74,7 @@ export default function AgentDashboard() {
       {/* My Leads Table */}
       <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-stroke-subtle">
-          <h3 className="text-title-md font-title-md font-bold text-on-surface">My Assigned Leads</h3>
+          <h3 className="text-title-md font-title-md font-bold text-on-surface">My Matched Consumer Leads</h3>
           <Link to="/dashboard/agent/leads" className="text-primary text-body-sm font-body-sm font-bold hover:underline">Full list</Link>
         </div>
         <div className="overflow-x-auto">

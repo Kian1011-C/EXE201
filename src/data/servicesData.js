@@ -144,9 +144,9 @@ export const targetProfiles = [
   },
   {
     title: 'Independent Agents & Agencies',
-    desc: 'Join our national family, access top commission contracts, top-tier CRM tools, and hands-on Insurance Bootcamp mentorship.',
+    desc: 'Join our verified agent partner network, access high-intent prospective client matches in your licensed states, and grow your practice.',
     icon: 'Briefcase',
-    recommended: ['Insurance Agent Bootcamp', 'Mentorship Program', 'Agency Licensing & Contracts'],
+    recommended: ['Agent Partner Network', 'Verified Lead Matches', 'State Licensing Support'],
   },
 ];
 
@@ -156,27 +156,27 @@ export const reviews = [
     location: 'Houston, TX',
     rating: 5,
     source: 'Google Review',
-    text: 'The Best Rate Insurance team helped my parents navigate Medicare Part C and Part D with so much patience and care. They explained everything in Vietnamese and English clearly. Highly recommend their Houston Kirkwood office!',
+    text: 'InsurMatch connected my parents with a patient, bilingual licensed agent who explained Medicare Part C and Part D clearly in Vietnamese and English. It made a complicated decision simple and reassuring!',
   },
   {
     author: 'David H. Nguyen',
     location: 'Katy, TX',
     rating: 5,
     source: 'Yelp Review',
-    text: 'I was looking for an ACA plan for my family when I became self-employed. They compared 5 different companies and found us a plan with huge tax credits and top doctors in Katy. Response time was within 24 hours!',
+    text: 'I needed an ACA health plan for my family after becoming self-employed. InsurMatch paired me with an agent who verified our doctor network and helped us qualify for substantial federal subsidies. Fast, professional match!',
   },
   {
     author: 'Sarah Jenkins',
     location: 'Dallas / Garland, TX',
     rating: 5,
     source: 'Google Review',
-    text: 'Professional, courteous, and truly independent. They did not push one insurer, but showed me the real difference between term life and an IUL. Five stars service from start to finish.',
+    text: 'Great platform! I was matched with an independent agent who took the time to show me the real differences between term life and an IUL. Zero high-pressure sales.',
   },
   {
     author: 'Michael Tran',
     location: 'Sugar Land, TX',
     rating: 5,
     source: 'Facebook Review',
-    text: 'Joining their Insurance Bootcamp as a new agent changed my career. Top leaders like Anh Que Pham and Phuc Trinh provide daily coaching and real leads. A true family atmosphere.',
+    text: 'Joining the InsurMatch Agent Partner Network has been fantastic for my practice. I receive high-intent prospective clients in Texas who genuinely need Vietnamese-speaking guidance.',
   },
 ];

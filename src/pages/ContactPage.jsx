@@ -34,7 +34,7 @@ export default function ContactPage() {
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-ice text-primary text-xs font-bold tracking-wide shadow-xs animate-float"
           >
             <Shield className="w-4 h-4 text-primary" />
-            <span>WE ARE HERE TO HELP • TEXAS LICENSED SPECIALISTS</span>
+            <span>WE ARE HERE TO HELP • DIGITAL MATCHING PLATFORM</span>
           </motion.div>
 
           <motion.h1
@@ -43,7 +43,7 @@ export default function ContactPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-on-surface tracking-tight leading-[1.15]"
           >
-            Contact <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-container to-secondary">The Best Rate Insurance</span>
+            Contact <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-container to-secondary">InsurMatch</span>
           </motion.h1>
 
           <motion.p
@@ -52,7 +52,7 @@ export default function ContactPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-base sm:text-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed"
           >
-            Have questions about Medicare enrollment, Marketplace subsidies, or custom life protection? Connect directly with our Texas advisors for prompt answers and zero sales pressure.
+            Have questions about how InsurMatch connects you with verified independent agents, or need assistance with your match request? Reach out to our support team for prompt assistance.
           </motion.p>
         </div>
       </section>
@@ -76,7 +76,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-on-surface">Send A Secure Message</h2>
-                    <p className="text-xs text-on-surface-variant mt-0.5">Guaranteed advisor response within 24 to 48 business hours.</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">Guaranteed support response within 24 to 48 business hours.</p>
                   </div>
                 </div>
 
@@ -87,7 +87,7 @@ export default function ContactPage() {
                     </div>
                     <h3 className="text-2xl font-bold text-on-surface">Message Received!</h3>
                     <p className="text-sm text-on-surface-variant max-w-md mx-auto leading-relaxed">
-                      Thank you for contacting The Best Rate Insurance. An agent licensed in Texas will review your question and follow up promptly.
+                      Thank you for contacting InsurMatch. Our support team will review your inquiry and follow up promptly.
                     </p>
                     <button
                       onClick={() => setSubmitted(false)}
@@ -144,12 +144,12 @@ export default function ContactPage() {
                           onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                           className="w-full h-11 px-3.5 rounded-xl border border-stroke-subtle bg-surface-container-lowest text-on-surface text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                         >
-                          <option value="general">General Coverage Inquiry</option>
+                          <option value="general">General Match Inquiry</option>
                           <option value="medicare">Medicare Advantage / Supplement (Medigap)</option>
                           <option value="health">ACA Marketplace / Subsidies</option>
                           <option value="life">Life Insurance &amp; Annuities</option>
-                          <option value="claim">Claim &amp; Policy Assistance</option>
-                          <option value="billing">Billing &amp; Premium Questions</option>
+                          <option value="agent">Licensed Agent Partnership (Join Network)</option>
+                          <option value="support">Technical &amp; Account Support</option>
                         </select>
                       </div>
                     </div>
@@ -195,47 +195,47 @@ export default function ContactPage() {
               <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border border-stroke-subtle shadow-md space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b border-stroke-subtle">
                   <div>
-                    <h3 className="text-xl font-bold text-on-surface">Direct Assistance</h3>
-                    <p className="text-xs text-on-surface-variant">Instant connections to licensed specialists</p>
+                    <h3 className="text-xl font-bold text-on-surface">Platform Assistance</h3>
+                    <p className="text-xs text-on-surface-variant">Connecting consumers and verified agent partners</p>
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
                     <span className="w-2 h-2 rounded-full bg-success-emerald animate-pulse"></span>
-                    24/7 Available
+                    24/7 Matching
                   </span>
                 </div>
                 
                 <div className="space-y-5 text-sm">
-                  {/* Phone */}
+                  {/* General Support Email */}
                   <a 
-                    href="tel:8336336868"
-                    className="flex items-start gap-4 p-3.5 rounded-2xl bg-surface-container-low hover:bg-cyan-ice/30 transition-colors group"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-cyan-ice text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <Phone className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-on-surface-variant">Toll-Free Phone:</div>
-                      <div className="text-lg font-extrabold text-primary group-hover:underline">
-                        (833) 633-6868
-                      </div>
-                      <span className="text-[11px] text-outline">English &amp; Tiếng Việt Bilingual Support</span>
-                    </div>
-                  </a>
-
-                  {/* Email */}
-                  <a 
-                    href="mailto:info@thebestrateins.com"
+                    href="mailto:support@insurmatch.us"
                     className="flex items-start gap-4 p-3.5 rounded-2xl bg-surface-container-low hover:bg-cyan-ice/30 transition-colors group"
                   >
                     <div className="w-10 h-10 rounded-xl bg-cyan-ice text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                       <Mail className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-on-surface-variant">Email Inbox:</div>
-                      <div className="text-sm font-bold text-on-surface group-hover:text-primary">
-                        info@thebestrateins.com
+                      <div className="text-xs font-semibold text-on-surface-variant">Consumer Support:</div>
+                      <div className="text-lg font-extrabold text-primary group-hover:underline">
+                        support@insurmatch.us
                       </div>
-                      <span className="text-[11px] text-outline">Guaranteed 24-48h response</span>
+                      <span className="text-[11px] text-outline">Bilingual English &amp; Tiếng Việt Matching Support</span>
+                    </div>
+                  </a>
+
+                  {/* Agent Network Email */}
+                  <a 
+                    href="mailto:agents@insurmatch.us"
+                    className="flex items-start gap-4 p-3.5 rounded-2xl bg-surface-container-low hover:bg-cyan-ice/30 transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-cyan-ice text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Shield className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-on-surface-variant">Agent Network Inquiries:</div>
+                      <div className="text-sm font-bold text-on-surface group-hover:text-primary">
+                        agents@insurmatch.us
+                      </div>
+                      <span className="text-[11px] text-outline">Licensed Agent Verification &amp; Onboarding</span>
                     </div>
                   </a>
 
@@ -246,9 +246,9 @@ export default function ContactPage() {
                     </div>
                     <div className="text-xs space-y-1">
                       <div className="font-semibold text-on-surface-variant">Operating Schedule:</div>
-                      <div className="text-on-surface font-semibold">Mon – Fri: 9:00am – 6:00pm</div>
-                      <div className="text-primary font-medium text-[11px]">Phone Support: 24/7 Always Open</div>
-                      <div className="text-secondary font-medium text-[11px]">Open Weekends: Oct – Dec (AEP Season)</div>
+                      <div className="text-on-surface font-semibold">Mon – Fri: 9:00am – 6:00pm CST</div>
+                      <div className="text-primary font-medium text-[11px]">Matchmaking Engine: 24/7 Always Active</div>
+                      <div className="text-secondary font-medium text-[11px]">Expanded AEP Support: Oct – Dec</div>
                     </div>
                   </div>
                 </div>
@@ -259,9 +259,9 @@ export default function ContactPage() {
                 <div className="flex items-center justify-between pb-3 border-b border-stroke-subtle">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-primary" />
-                    <h4 className="font-bold text-on-surface text-base">Our 3 Texas Offices:</h4>
+                    <h4 className="font-bold text-on-surface text-base">Regional Partner Network Hubs:</h4>
                   </div>
-                  <span className="text-xs text-outline font-medium">In-Person &amp; Virtual</span>
+                  <span className="text-xs text-outline font-medium">Verified Local Agent Hubs</span>
                 </div>
 
                 <div className="space-y-3.5 text-xs text-on-surface-variant">
@@ -275,13 +275,13 @@ export default function ContactPage() {
                           rel="noreferrer"
                           className="text-primary font-semibold text-[11px] hover:underline flex items-center gap-0.5"
                         >
-                          <span>Maps</span>
+                          <span>Coverage</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
                       <div className="mt-1 text-on-surface-variant">{loc.address}, {loc.city}</div>
                       <div className="text-primary font-bold mt-1">
-                        <a href={`tel:${loc.phone.replace(/\D/g, '')}`}>{loc.phone}</a>
+                        <a href={loc.phone.includes('@') ? `mailto:${loc.phone}` : `tel:${loc.phone.replace(/\D/g, '')}`}>{loc.phone}</a>
                       </div>
                     </div>
                   ))}

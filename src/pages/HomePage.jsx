@@ -28,18 +28,18 @@ export default function HomePage({ onOpenQuote }) {
               {/* Eyebrow */}
               <div className="inline-flex items-center gap-2.5 text-[11px] font-bold tracking-widest uppercase text-slate-muted">
                 <span className="w-1.5 h-1.5 rounded-full bg-champagne" />
-                <span>INSURMATCH / INSURANCE, MATCHED TO YOU</span>
+                <span>INSURMATCH / DIGITAL LEAD &amp; AGENT MATCHING PLATFORM</span>
               </div>
 
               {/* Headline */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-navy-deep tracking-tight leading-[1.08]">
-                Find coverage <br />
-                that <span className="font-serif italic font-normal text-navy-midnight">fits your life.</span>
+                Find the right <br />
+                insurance agent <span className="font-serif italic font-normal text-navy-midnight">for your needs.</span>
               </h1>
 
               {/* Subhead */}
               <p className="text-base sm:text-lg text-charcoal/75 max-w-xl leading-relaxed">
-                Compare your options, understand your coverage, and find a plan that makes sense for you. Independent guidance with zero broker fees.
+                InsurMatch connects Vietnamese customers across the United States with verified independent insurance agents licensed in their state. Tell us what coverage you need, and we match you with an agent who understands your language, budget, and requirements.
               </p>
 
               {/* CTAs */}
@@ -48,7 +48,7 @@ export default function HomePage({ onOpenQuote }) {
                   onClick={onOpenQuote}
                   className="px-7 py-3.5 rounded-lg bg-navy-deep text-ivory hover:bg-navy-midnight transition-colors duration-200 font-semibold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-xs group"
                 >
-                  <span>Start Matching</span>
+                  <span>Get Matched</span>
                   <span className="material-symbols-outlined text-[16px] text-champagne group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
@@ -64,11 +64,11 @@ export default function HomePage({ onOpenQuote }) {
 
               {/* Fine Signature Subline */}
               <div className="pt-6 border-t border-stroke-subtle flex items-center gap-6 text-xs text-charcoal/60">
-                <span>3 Physical Texas Hubs</span>
+                <span>State-Based Matching</span>
                 <span className="text-champagne font-bold">•</span>
-                <span>30+ Top Carriers</span>
+                <span>Verified Licensed Agents</span>
                 <span className="text-champagne font-bold">•</span>
-                <span>Bilingual: English &amp; Tiếng Việt</span>
+                <span>Bilingual: Tiếng Việt &amp; English</span>
               </div>
             </motion.div>
 
@@ -91,9 +91,9 @@ export default function HomePage({ onOpenQuote }) {
 
                 {/* Single understated overlay (Prompt #7) */}
                 <div className="absolute bottom-6 left-6 right-6 py-3 px-4 bg-navy-deep/90 backdrop-blur-md rounded-lg border border-white/10 text-ivory flex items-center justify-between text-[11px] font-bold tracking-wider uppercase">
-                  <span className="text-ivory/80">YOUR NEEDS</span>
+                  <span className="text-ivory/80">YOUR REQUIREMENTS</span>
                   <span className="text-champagne font-serif text-sm">→</span>
-                  <span className="text-champagne">YOUR MATCH</span>
+                  <span className="text-champagne">LICENSED AGENT MATCH</span>
                 </div>
               </div>
             </motion.div>
@@ -110,8 +110,8 @@ export default function HomePage({ onOpenQuote }) {
           
           <div className="max-w-3xl mb-16 text-left">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-deep tracking-tight leading-tight">
-              Insurance is personal. <br />
-              <span className="font-serif italic font-normal text-navy-midnight">Your coverage should be too.</span>
+              Insurance can be complicated. <br />
+              <span className="font-serif italic font-normal text-navy-midnight">Finding the right licensed agent shouldn't be.</span>
             </h2>
           </div>
 
@@ -120,37 +120,37 @@ export default function HomePage({ onOpenQuote }) {
             
             <div className="space-y-3 text-left">
               <span className="text-xs font-bold uppercase tracking-widest text-champagne block">
-                01 — UNDERSTAND
+                01 — LANGUAGE &amp; TRUST
               </span>
               <h3 className="text-xl font-bold text-navy-deep tracking-tight">
-                Know what you're choosing.
+                Guidance in your language.
               </h3>
               <p className="text-sm text-charcoal/70 leading-relaxed">
-                We break down deductibles, network restrictions, and drug formulary tiers into clear, plain language so there are no surprises when you need care.
+                Connect with independent agents who speak Vietnamese and understand your specific situation, eliminating language barriers and confusion.
               </p>
             </div>
 
             <div className="space-y-3 text-left">
               <span className="text-xs font-bold uppercase tracking-widest text-champagne block">
-                02 — COMPARE
+                02 — VERIFICATION
               </span>
               <h3 className="text-xl font-bold text-navy-deep tracking-tight">
-                See your options clearly.
+                Properly licensed professionals.
               </h3>
               <p className="text-sm text-charcoal/70 leading-relaxed">
-                As an independent platform, we evaluate 30+ A-rated national and regional insurers to present objective rate comparisons matched to your doctor networks.
+                Every agent in our partner network is independently verified with state insurance departments (such as Texas TDI or California CDI) to ensure compliance.
               </p>
             </div>
 
             <div className="space-y-3 text-left">
               <span className="text-xs font-bold uppercase tracking-widest text-champagne block">
-                03 — MATCH
+                03 — RIGHT-FIT MATCH
               </span>
               <h3 className="text-xl font-bold text-navy-deep tracking-tight">
-                Find coverage aligned with your needs.
+                Matched to your specific needs.
               </h3>
               <p className="text-sm text-charcoal/70 leading-relaxed">
-                Whether transitioning into Medicare, optimizing marketplace health credits, or securing life protection, we pair you with the exact right policy.
+                We route your request to agents who specialize in the exact category you need — Medicare, ACA Health, or Life protection. Free for customers, with zero spam.
               </p>
             </div>
 
@@ -165,7 +165,7 @@ export default function HomePage({ onOpenQuote }) {
       <section className="py-7 bg-sand/30 border-b border-stroke-subtle">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <p className="text-center text-[10px] font-bold text-slate-muted uppercase tracking-widest mb-3">
-            COMPARING 30+ TOP-RATED INSURANCE CARRIERS ACROSS TEXAS &amp; NATIONWIDE
+            ACCESS TO TOP-RATED INSURANCE CARRIERS THROUGH INDEPENDENT LICENSED AGENTS
           </p>
           <CarrierLogosStrip />
         </div>
@@ -179,11 +179,11 @@ export default function HomePage({ onOpenQuote }) {
           
           <div className="max-w-2xl mb-16 text-left">
             <span className="text-[11px] font-bold tracking-widest uppercase text-slate-muted block mb-2">
-              THE INSURMATCH PROCESS
+              THE MATCHMAKING WORKFLOW
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
-              A simpler way <br />
-              <span className="font-serif italic font-normal text-navy-midnight">to find coverage.</span>
+              A smarter way <br />
+              <span className="font-serif italic font-normal text-navy-midnight">to connect with licensed agents.</span>
             </h2>
           </div>
 
@@ -199,10 +199,10 @@ export default function HomePage({ onOpenQuote }) {
                   01
                 </div>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-navy-deep">
-                  TELL US ABOUT YOU
+                  TELL US WHAT YOU NEED
                 </h3>
                 <p className="text-sm text-charcoal/70 leading-relaxed">
-                  Answer a few straightforward questions about your household size, zip code, and doctors.
+                  Select your insurance category (Medicare, ACA Health, Life) and share your location, budget preferences, and language needs.
                 </p>
               </div>
 
@@ -211,10 +211,10 @@ export default function HomePage({ onOpenQuote }) {
                   02
                 </div>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-navy-deep">
-                  EXPLORE YOUR OPTIONS
+                  VERIFY &amp; MATCH
                 </h3>
                 <p className="text-sm text-charcoal/70 leading-relaxed">
-                  Review side-by-side plan comparisons with verified doctor networks, copays, and subsidies.
+                  Our platform validates your request details to intelligently pair you with qualified independent agents licensed in your specific state.
                 </p>
               </div>
 
@@ -223,10 +223,10 @@ export default function HomePage({ onOpenQuote }) {
                   03
                 </div>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-navy-deep">
-                  CHOOSE YOUR MATCH
+                  CONNECT &amp; DECIDE
                 </h3>
                 <p className="text-sm text-charcoal/70 leading-relaxed">
-                  Enroll with confidence, supported by licensed advisors who help with renewals and claims.
+                  A verified licensed agent reaches out with personalized plan options. Review at your own pace with zero obligation and zero pressure.
                 </p>
               </div>
 
@@ -248,16 +248,16 @@ export default function HomePage({ onOpenQuote }) {
             <div className="lg:col-span-6 space-y-6 text-left">
               <div className="flex items-center gap-3">
                 <span className="font-serif text-3xl text-champagne font-bold">01</span>
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-muted">MEDICARE</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-slate-muted">MEDICARE SPECIALISTS</span>
               </div>
 
               <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight leading-tight">
-                Navigate Medicare <br />
-                <span className="font-serif italic font-normal text-navy-midnight">with more clarity.</span>
+                Connect with agents <br />
+                <span className="font-serif italic font-normal text-navy-midnight">specializing in Medicare.</span>
               </h2>
 
               <p className="text-base text-charcoal/75 leading-relaxed">
-                Explore Medicare options and understand the coverage available for your needs. We verify your doctors, hospital networks, and medications across Medicare Advantage (Part C), Medigap, and Part D drug plans.
+                Medicare choices can feel overwhelming. InsurMatch connects seniors and eligible individuals with verified independent agents who evaluate Medicare Advantage (Part C), Medigap, and Part D drug plans tailored to your doctors and prescriptions.
               </p>
 
               <div className="pt-2">
@@ -265,7 +265,7 @@ export default function HomePage({ onOpenQuote }) {
                   to="/insurance-services/medicare"
                   className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy-deep hover:text-champagne transition-colors border-b-2 border-navy-deep hover:border-champagne pb-1"
                 >
-                  <span>Explore Medicare</span>
+                  <span>Find A Medicare Agent</span>
                   <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </Link>
               </div>
@@ -302,16 +302,16 @@ export default function HomePage({ onOpenQuote }) {
               <div className="lg:col-span-6 space-y-6 text-left order-1 lg:order-2">
                 <div className="flex items-center gap-3">
                   <span className="font-serif text-3xl text-champagne font-bold">02</span>
-                  <span className="text-xs font-bold uppercase tracking-widest text-slate-muted">ACA</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-muted">ACA HEALTHCARE</span>
                 </div>
 
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight leading-tight">
-                  Coverage for <br />
-                  <span className="font-serif italic font-normal text-navy-midnight">where life takes you.</span>
+                  Marketplace health plans <br />
+                  <span className="font-serif italic font-normal text-navy-midnight">with expert subsidy guidance.</span>
                 </h2>
 
                 <p className="text-base text-charcoal/75 leading-relaxed">
-                  Explore individual and family coverage options and understand what may fit your situation. We calculate federal advance premium tax credits (subsidies) to significantly reduce monthly premiums.
+                  Find licensed independent agents who help determine your eligibility for federal advance premium tax credits (subsidies) under the ACA and guide you through individual and family health coverage that fits your family's budget.
                 </p>
 
                 <div className="pt-2">
@@ -319,7 +319,7 @@ export default function HomePage({ onOpenQuote }) {
                     to="/insurance-services/health-insurance"
                     className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy-deep hover:text-champagne transition-colors border-b-2 border-navy-deep hover:border-champagne pb-1"
                   >
-                    <span>Explore ACA</span>
+                    <span>Find An ACA Agent</span>
                     <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </Link>
                 </div>
@@ -342,11 +342,11 @@ export default function HomePage({ onOpenQuote }) {
 
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ivory tracking-tight leading-tight">
                   Protect what matters <br />
-                  <span className="font-serif italic font-normal text-champagne">beyond today.</span>
+                  <span className="font-serif italic font-normal text-champagne">with experienced guidance.</span>
                 </h2>
 
                 <p className="text-base text-ivory/75 leading-relaxed">
-                  Explore protection options designed around long-term priorities. From term life with living benefits to permanent cash-value policies and fixed indexed annuities for guarded retirement accumulation.
+                  Match with verified independent agents experienced in personal and family financial protection — from term life with living benefits to permanent cash-value policies and fixed indexed annuities for retirement security.
                 </p>
 
                 <div className="pt-2">
@@ -354,7 +354,7 @@ export default function HomePage({ onOpenQuote }) {
                     to="/insurance-services/life-insurance"
                     className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ivory hover:text-champagne transition-colors border-b-2 border-champagne pb-1"
                   >
-                    <span>Explore Life &amp; Annuities</span>
+                    <span>Find A Life Insurance Agent</span>
                     <span className="material-symbols-outlined text-[16px] text-champagne">arrow_forward</span>
                   </Link>
                 </div>
@@ -387,8 +387,8 @@ export default function HomePage({ onOpenQuote }) {
               THE MATCH SIGNATURE
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-deep tracking-tight">
-              Your needs. Your options. <br />
-              <span className="font-serif italic font-normal text-navy-midnight">One clearer match.</span>
+              Your requirements. Verified agents. <br />
+              <span className="font-serif italic font-normal text-navy-midnight">One trusted connection.</span>
             </h2>
           </div>
 
@@ -398,9 +398,9 @@ export default function HomePage({ onOpenQuote }) {
               
               {/* Converging branch 1 */}
               <div className="space-y-1 text-center md:text-left">
-                <div className="text-xs font-bold uppercase tracking-widest text-slate-muted">01 / INPUT</div>
+                <div className="text-xs font-bold uppercase tracking-widest text-slate-muted">01 / CONSUMER</div>
                 <div className="text-2xl font-black text-navy-deep tracking-tight">YOU</div>
-                <div className="text-xs text-charcoal/60">Stage of life &amp; budget</div>
+                <div className="text-xs text-charcoal/60">State, language &amp; needs</div>
               </div>
 
               {/* Converging SVG lines */}
@@ -414,9 +414,9 @@ export default function HomePage({ onOpenQuote }) {
 
               {/* Converging branch 2 */}
               <div className="space-y-1 text-center md:text-left">
-                <div className="text-xs font-bold uppercase tracking-widest text-slate-muted">02 / NEED</div>
-                <div className="text-2xl font-black text-navy-deep tracking-tight">OPTIONS</div>
-                <div className="text-xs text-charcoal/60">30+ verified carriers</div>
+                <div className="text-xs font-bold uppercase tracking-widest text-slate-muted">02 / NETWORK</div>
+                <div className="text-2xl font-black text-navy-deep tracking-tight">AGENTS</div>
+                <div className="text-xs text-charcoal/60">Verified state licenses</div>
               </div>
 
               {/* Converging Destination */}
@@ -429,7 +429,7 @@ export default function HomePage({ onOpenQuote }) {
             </div>
 
             <div className="mt-8 pt-6 border-t border-stroke-subtle text-xs text-charcoal/60 text-center">
-              A refined algorithm backed by human Texas advisors to eliminate coverage gaps.
+              An intelligent matching engine connecting consumers directly with independent licensed agents — no telemarketing blasts, no spam.
             </div>
           </div>
 
@@ -445,16 +445,16 @@ export default function HomePage({ onOpenQuote }) {
             
             <div className="lg:col-span-6 space-y-6 text-left">
               <span className="text-[11px] font-bold tracking-widest uppercase text-slate-muted block">
-                HUMAN GUIDANCE
+                INDEPENDENT LICENSED PROFESSIONALS
               </span>
 
               <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight leading-tight">
-                Technology can compare. <br />
-                <span className="font-serif italic font-normal text-navy-midnight">People can explain.</span>
+                Technology matches. <br />
+                <span className="font-serif italic font-normal text-navy-midnight">Licensed agents guide.</span>
               </h2>
 
               <p className="text-base text-charcoal/75 leading-relaxed">
-                Insurance can be complicated. When you need help understanding plan nuances, prescription tiers, or claim procedures, our team of licensed advisors is right here.
+                Insurance decisions require human understanding and cultural empathy. When you need clear explanations about coverage limits, doctor networks, or policy terms, our network of verified independent agents provides one-on-one personal guidance in your language.
               </p>
 
               <div className="pt-2">
@@ -462,7 +462,7 @@ export default function HomePage({ onOpenQuote }) {
                   onClick={onOpenQuote}
                   className="px-7 py-3.5 rounded-lg bg-navy-deep text-ivory hover:bg-navy-midnight transition-colors duration-200 font-semibold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-xs group"
                 >
-                  <span>Talk to an Advisor</span>
+                  <span>Get Matched With An Agent</span>
                   <span className="material-symbols-outlined text-[16px] text-champagne group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
@@ -474,7 +474,7 @@ export default function HomePage({ onOpenQuote }) {
               <div className="rounded-xl overflow-hidden border border-stroke-subtle bg-ivory p-2 shadow-xs">
                 <img 
                   src="/images/team-retreat.jpg" 
-                  alt="InsurMatch team of dedicated Texas advisors" 
+                  alt="InsurMatch verified independent insurance advisor meeting with clients" 
                   className="w-full h-80 sm:h-[400px] object-cover rounded-lg"
                 />
               </div>
@@ -492,14 +492,14 @@ export default function HomePage({ onOpenQuote }) {
           
           <div className="max-w-3xl mb-14 text-left">
             <span className="text-[11px] font-bold tracking-widest uppercase text-slate-muted block mb-2">
-              TEXAS ROOTS
+              REGIONAL AGENT NETWORK
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
-              Real people. <br />
-              <span className="font-serif italic font-normal text-navy-midnight">Right here in Texas.</span>
+              Licensed agent partners. <br />
+              <span className="font-serif italic font-normal text-navy-midnight">Active across Texas &amp; beyond.</span>
             </h2>
             <p className="text-sm text-charcoal/70 mt-2">
-              Select a location point on the Texas map or list below to view office addresses, hours, and direct advisor lines.
+              Select a regional coverage hub on the Texas map or list below to view partner agent network presence, consultation hours, and licensing information.
             </p>
           </div>
 
@@ -519,7 +519,7 @@ export default function HomePage({ onOpenQuote }) {
                 <button
                   onClick={() => setActiveLocationId('garland')}
                   className={`absolute top-[38%] left-[62%] -translate-x-1/2 -translate-y-1/2 p-2 group cursor-pointer`}
-                  title="Garland Office (DFW Area)"
+                  title="Garland Hub (DFW Area)"
                 >
                   <span className={`w-3.5 h-3.5 rounded-full block transition-all ${activeLocationId === 'garland' ? 'bg-navy-deep ring-4 ring-champagne scale-125' : 'bg-champagne hover:scale-110'}`} />
                   <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-navy-deep whitespace-nowrap bg-ivory/90 px-1.5 py-0.5 rounded border border-stroke-subtle shadow-xs">
@@ -531,7 +531,7 @@ export default function HomePage({ onOpenQuote }) {
                 <button
                   onClick={() => setActiveLocationId('houston')}
                   className={`absolute top-[68%] left-[75%] -translate-x-1/2 -translate-y-1/2 p-2 group cursor-pointer`}
-                  title="Houston Office"
+                  title="Houston Hub"
                 >
                   <span className={`w-3.5 h-3.5 rounded-full block transition-all ${activeLocationId === 'houston' ? 'bg-navy-deep ring-4 ring-champagne scale-125' : 'bg-champagne hover:scale-110'}`} />
                   <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-navy-deep whitespace-nowrap bg-ivory/90 px-1.5 py-0.5 rounded border border-stroke-subtle shadow-xs">
@@ -543,18 +543,18 @@ export default function HomePage({ onOpenQuote }) {
                 <button
                   onClick={() => setActiveLocationId('katy')}
                   className={`absolute top-[72%] left-[64%] -translate-x-1/2 -translate-y-1/2 p-2 group cursor-pointer`}
-                  title="Katy Headquarters"
+                  title="Katy Regional Hub"
                 >
                   <span className={`w-4 h-4 rounded-full block transition-all ${activeLocationId === 'katy' ? 'bg-navy-deep ring-4 ring-champagne scale-125' : 'bg-navy-deep hover:scale-110'}`} />
                   <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-navy-deep whitespace-nowrap bg-ivory/90 px-1.5 py-0.5 rounded border border-stroke-subtle shadow-xs">
-                    Katy (HQ)
+                    Katy Hub
                   </span>
                 </button>
 
               </div>
 
               <div className="text-[11px] text-slate-muted mt-4">
-                Click map marker or location below to inspect office
+                Click map marker or hub below to inspect partner coverage
               </div>
             </div>
 
@@ -573,7 +573,7 @@ export default function HomePage({ onOpenQuote }) {
                         : 'text-charcoal/60 hover:text-navy-deep'
                     }`}
                   >
-                    {loc.name.split(' ')[0]} {loc.isHQ ? '(HQ)' : ''}
+                    {loc.name.split(' ')[0]} {loc.isHQ ? '(Primary)' : ''}
                   </button>
                 ))}
               </div>
@@ -581,7 +581,7 @@ export default function HomePage({ onOpenQuote }) {
               <div className="space-y-4">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-widest text-champagne">
-                    {selectedLocation.isHQ ? 'Texas Headquarters' : 'Branch Office'}
+                    {selectedLocation.isHQ ? 'Primary Regional Hub' : 'Partner Coverage Hub'}
                   </span>
                   <h3 className="text-2xl font-black text-navy-deep mt-0.5">{selectedLocation.name}</h3>
                   <p className="text-sm text-charcoal/75 mt-1">{selectedLocation.address}, {selectedLocation.city}</p>
@@ -589,13 +589,13 @@ export default function HomePage({ onOpenQuote }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-stroke-subtle text-xs">
                   <div>
-                    <span className="font-bold uppercase tracking-wider text-slate-muted block mb-1">Direct Phone</span>
-                    <a href={`tel:${selectedLocation.phoneRaw}`} className="text-sm font-bold text-navy-deep hover:underline">
-                      {selectedLocation.phone}
+                    <span className="font-bold uppercase tracking-wider text-slate-muted block mb-1">Support &amp; Inquiries</span>
+                    <a href={`mailto:${selectedLocation.email}`} className="text-sm font-bold text-navy-deep hover:underline">
+                      {selectedLocation.email}
                     </a>
                   </div>
                   <div>
-                    <span className="font-bold uppercase tracking-wider text-slate-muted block mb-1">Business Hours</span>
+                    <span className="font-bold uppercase tracking-wider text-slate-muted block mb-1">Consultation Hours</span>
                     <p className="text-charcoal/80">{selectedLocation.hours}</p>
                     <p className="text-champagne font-medium mt-0.5">{selectedLocation.specialHours}</p>
                   </div>
@@ -608,14 +608,14 @@ export default function HomePage({ onOpenQuote }) {
                     rel="noreferrer"
                     className="px-5 py-2.5 rounded-lg bg-navy-deep text-ivory text-xs font-bold tracking-wider uppercase hover:bg-navy-midnight transition-colors inline-flex items-center gap-1.5"
                   >
-                    <span>Google Maps</span>
+                    <span>Coverage Area</span>
                     <span className="material-symbols-outlined text-[15px] text-champagne">directions</span>
                   </a>
                   <button
                     onClick={onOpenQuote}
                     className="px-5 py-2.5 rounded-lg border border-stroke-subtle hover:border-navy-deep text-charcoal text-xs font-bold tracking-wider uppercase transition-colors cursor-pointer"
                   >
-                    Request Consultation
+                    Get Matched
                   </button>
                 </div>
               </div>
@@ -635,16 +635,16 @@ export default function HomePage({ onOpenQuote }) {
           
           <div className="inline-flex items-center gap-2 text-[11px] font-bold tracking-widest uppercase text-champagne">
             <span className="w-1.5 h-1.5 rounded-full bg-champagne" />
-            <span>INSURMATCH / YOUR NEXT STEP</span>
+            <span>INSURMATCH / GET STARTED TODAY</span>
           </div>
 
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-ivory tracking-tight leading-[1.08]">
             Ready to find <br />
-            <span className="font-serif italic font-normal text-champagne">your match?</span>
+            <span className="font-serif italic font-normal text-champagne">your licensed agent?</span>
           </h2>
 
           <p className="text-base sm:text-lg text-ivory/70 max-w-xl mx-auto leading-relaxed">
-            Tell us what matters to you. We'll help you understand your options and connect with coverage tailored to your life.
+            Tell us what you need. Our matchmaking engine pairs you with a verified independent agent licensed in your state who speaks your language and understands your priorities.
           </p>
 
           <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
@@ -652,22 +652,22 @@ export default function HomePage({ onOpenQuote }) {
               onClick={onOpenQuote}
               className="px-8 py-4 rounded-lg bg-champagne text-navy-deep hover:bg-champagne-light transition-colors duration-200 font-bold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-md group"
             >
-              <span>Start Matching</span>
+              <span>Get Matched</span>
               <span className="material-symbols-outlined text-[16px] text-navy-deep group-hover:translate-x-1 transition-transform">
                 arrow_forward
               </span>
             </button>
 
             <Link
-              to="/contact"
+              to="/careers"
               className="px-7 py-4 rounded-lg border border-white/20 text-ivory hover:border-champagne hover:text-champagne transition-colors duration-200 font-semibold text-xs tracking-wider uppercase"
             >
-              Talk to an Advisor
+              Join Agent Network
             </Link>
           </div>
 
           <div className="pt-8 text-xs text-ivory/50">
-            No broker fees • Zero spam guarantee • Direct independent Texas guidance
+            Free for consumers • Zero spam guarantee • Direct independent licensed agent matching
           </div>
 
         </div>

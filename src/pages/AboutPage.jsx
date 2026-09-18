@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, CheckCircle2, Award, Users, ArrowRight, Scale, SlidersHorizontal, Clock, Building2 } from 'lucide-react';
+import { Shield, ShieldCheck, CheckCircle2, Award, Users, ArrowRight, Scale, SlidersHorizontal, Clock, Building2 } from 'lucide-react';
 import { leadership, coreValues } from '../data/teamData';
 
 export default function AboutPage({ onOpenQuote }) {
@@ -10,13 +10,13 @@ export default function AboutPage({ onOpenQuote }) {
       <section className="bg-[#0f2942] text-white py-16 px-4 md:px-8 border-b border-slate-800">
         <div className="max-w-5xl mx-auto text-center space-y-4">
           <span className="text-amber-400 font-bold text-xs uppercase tracking-widest bg-amber-400/10 px-3.5 py-1.5 rounded-full">
-            Our Mission & Legacy
+            Our Mission &amp; Purpose
           </span>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight">
-            About The Best Rate Insurance
+            About InsurMatch
           </h1>
           <p className="text-base text-gray-300 max-w-2xl mx-auto">
-            We are your local independent insurance agency, dedicated to helping individuals, families, and businesses find peace of mind without breaking the bank.
+            We are a digital matchmaking platform dedicated to connecting Vietnamese individuals, families, and business owners in the United States with verified, independent licensed insurance agents.
           </p>
         </div>
       </section>
@@ -28,7 +28,7 @@ export default function AboutPage({ onOpenQuote }) {
             
             <div className="lg:col-span-6 space-y-6">
               <span className="text-[#0f2942] font-bold text-xs uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">
-                The Independent Agent Advantage
+                The InsurMatch Advantage
               </span>
               <h2 className="text-3xl md:text-4xl font-extrabold text-[#0f2942] tracking-tight">
                 Why Having Choices Matters in Insurance
@@ -45,7 +45,7 @@ export default function AboutPage({ onOpenQuote }) {
               <div className="p-5 bg-blue-50/70 border-l-4 border-[#0f2942] rounded-r-2xl space-y-2">
                 <h4 className="font-bold text-[#0f2942] text-sm">With an independent insurance agent, you have choices.</h4>
                 <p className="text-xs text-gray-700 leading-relaxed">
-                  Independent agents are not tied to any single insurance carrier. One of the greatest advantages is that our agents work exclusively to satisfy your needs, acting as your trusted advocate in evaluating claims and market options.
+                  Independent agents are not tied to any single insurance carrier. InsurMatch pairs you with independent licensed agents who work to satisfy your needs, acting as your trusted advocate in evaluating coverage options with 100% free matching.
                 </p>
               </div>
 
@@ -54,7 +54,7 @@ export default function AboutPage({ onOpenQuote }) {
                   onClick={onOpenQuote}
                   className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-3.5 rounded-xl transition-all shadow-md inline-flex items-center gap-2 cursor-pointer text-sm"
                 >
-                  <span>Request A Policy Review</span>
+                  <span>Request An Agent Match</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -71,7 +71,7 @@ export default function AboutPage({ onOpenQuote }) {
                 <div className="absolute bottom-6 left-6 right-6 text-white">
                   <div className="text-xs font-bold text-amber-400 uppercase tracking-wider">Fast Turnaround Promise</div>
                   <p className="text-sm font-semibold text-gray-200 mt-1">
-                    "We pride ourselves on using modern technology and resources to provide our clients with a faster turnaround time than competitors."
+                    "We use intelligent matching technology to connect Vietnamese customers with licensed, culturally attuned agents faster and more reliably."
                   </p>
                 </div>
               </div>
@@ -87,7 +87,7 @@ export default function AboutPage({ onOpenQuote }) {
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-extrabold text-[#0a2239] font-serif">Our Core Pillars</h2>
             <p className="text-sm text-gray-600 mt-2">
-              Every consultation, quote, and claim review is guided by our four founding values.
+              Every customer connection, partner verification, and agent match is guided by our core pillars.
             </p>
           </div>
 
@@ -166,12 +166,12 @@ export default function AboutPage({ onOpenQuote }) {
         <div className="max-w-5xl mx-auto px-4 md:px-8 text-center space-y-6">
           <h2 className="text-2xl md:text-3xl font-black">Licensed Across Multiple States</h2>
           <p className="text-sm text-gray-300 max-w-2xl mx-auto">
-            In addition to our physical Texas locations in Katy, Houston, and Garland, our agents are active and licensed across:
+            Through our verified partner network across Texas regional hubs (Katy, Houston, Garland) and expanding nationwide, our partner agents are active and licensed across:
           </p>
 
           <div className="flex flex-wrap justify-center gap-2 pt-2">
             {[
-              'Texas (HQ)', 'California', 'Florida', 'Georgia', 'Indiana', 
+              'Texas (Primary)', 'California', 'Florida', 'Georgia', 'Indiana', 
               'Illinois', 'Massachusetts', 'Mississippi', 'Missouri', 
               'New Jersey', 'North Carolina', 'Oklahoma', 'Pennsylvania', 
               'South Carolina', 'Utah', 'Virginia', 'Wisconsin'
@@ -187,7 +187,7 @@ export default function AboutPage({ onOpenQuote }) {
               to="/contact"
               className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-3.5 rounded-xl transition-colors inline-block text-sm"
             >
-              Contact Our Local Branch
+              Contact Platform Support
             </Link>
           </div>
         </div>

@@ -60,14 +60,14 @@ export default function QuoteModal({ isOpen, onClose }) {
 
               <div className="flex items-center gap-2 text-champagne text-[11px] font-bold uppercase tracking-widest mb-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-champagne" />
-                <span>INSURMATCH / FIND YOUR MATCH</span>
+                <span>INSURMATCH / REQUEST AN AGENT MATCH</span>
               </div>
 
               <h3 className="text-2xl font-bold tracking-tight text-ivory">
-                Start Your Rate Comparison
+                Request an Agent Match
               </h3>
               <p className="text-xs text-ivory/70 mt-1">
-                Personalized plan comparisons across 30+ top-rated carriers with zero broker fees.
+                Tell us about your coverage needs and we will connect you with a verified licensed agent in your state.
               </p>
             </div>
 
@@ -80,7 +80,7 @@ export default function QuoteModal({ isOpen, onClose }) {
                   </div>
                   <h4 className="text-2xl font-bold text-navy-deep tracking-tight">Your Match Request is Active</h4>
                   <p className="text-xs sm:text-sm text-charcoal/75 max-w-md mx-auto leading-relaxed">
-                    Thank you, <strong>{formData.name || 'Friend'}</strong>. Our licensed Texas advisors are currently matching your request across top carriers for zip code <strong>{formData.zipCode}</strong>.
+                    Thank you, <strong>{formData.name || 'Friend'}</strong>. Our platform is matching your request with a verified independent agent licensed in your state for zip code <strong>{formData.zipCode}</strong>.
                   </p>
 
                   <div className="bg-sand/40 border border-stroke-subtle p-4 rounded-xl text-left text-xs text-charcoal/80 space-y-2">
@@ -89,9 +89,9 @@ export default function QuoteModal({ isOpen, onClose }) {
                       <span>Next Steps:</span>
                     </div>
                     <ul className="list-disc list-inside space-y-1 text-charcoal/70 pl-1">
-                      <li>An advisor will verify in-network doctor options and subsidy eligibility.</li>
-                      <li>We will reach out at <strong>{formData.phone || '(833) 633-6868'}</strong> or email.</li>
-                      <li>Need immediate assistance? Call our Texas headquarters at <a href="tel:8336336868" className="font-bold text-navy-deep underline">(833) 633-6868</a>.</li>
+                      <li>A matched independent agent will review your requirements and plan options.</li>
+                      <li>The agent will reach out at <strong>{formData.phone || 'your phone number'}</strong> or email.</li>
+                      <li>Have questions about your match? Contact support at <a href="mailto:support@insurmatch.us" className="font-bold text-navy-deep underline">support@insurmatch.us</a>.</li>
                     </ul>
                   </div>
 
@@ -182,7 +182,7 @@ export default function QuoteModal({ isOpen, onClose }) {
 
                     <div>
                       <label className="block text-xs font-semibold text-charcoal mb-1">
-                        Texas Zip Code *
+                        State &amp; Zip Code *
                       </label>
                       <input
                         type="text"
@@ -235,18 +235,18 @@ export default function QuoteModal({ isOpen, onClose }) {
                     className="w-full bg-navy-deep hover:bg-navy-midnight text-ivory font-bold py-3.5 px-6 rounded-lg shadow-xs hover:shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer mt-3 disabled:opacity-60 text-xs tracking-wider uppercase"
                   >
                     {loading ? (
-                      <span>Searching Top Carriers...</span>
+                      <span>Matching With Licensed Agents...</span>
                     ) : (
                       <>
-                        <span>Find My Match</span>
+                        <span>Submit Match Request</span>
                         <ArrowRight className="w-4 h-4 text-champagne" />
                       </>
                     )}
                   </button>
 
-                  <div className="flex items-center justify-center gap-2 text-[11px] text-charcoal/60 pt-1">
-                    <Shield className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Your information is strictly confidential. Zero spam guarantee.</span>
+                  <div className="flex items-center justify-center gap-2 text-[11px] text-charcoal/60 pt-1 text-center">
+                    <Shield className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Your information is shared only with your matched licensed agent. Never sold to telemarketers.</span>
                   </div>
                 </form>
               )}

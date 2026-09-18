@@ -19,10 +19,10 @@ export default function ServicesPage({ onOpenQuote }) {
             Full Portfolio
           </span>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight">
-            Comprehensive Insurance Products
+            Insurance Coverage Categories
           </h1>
           <p className="text-base text-gray-300 max-w-2xl mx-auto">
-            As an independent insurance agency, we search across dozens of reputable carriers to build the exact coverage package you and your loved ones need.
+            InsurMatch connects you with verified independent agents licensed in your state who compare plans across top carriers with 100% free matching and zero broker fees.
           </p>
         </div>
       </section>
@@ -31,7 +31,7 @@ export default function ServicesPage({ onOpenQuote }) {
       <section className="bg-white border-b border-gray-200 py-4 px-4 sticky top-16 z-30 shadow-xs">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-2 text-xs md:text-sm">
           {[
-            { id: 'all', label: 'All Insurance Plans' },
+            { id: 'all', label: 'All Insurance Categories' },
             { id: 'medicare', label: 'Medicare Solutions' },
             { id: 'health-insurance', label: 'Health Insurance (ACA)' },
             { id: 'life-insurance', label: 'Life & Wealth Protection' },
@@ -98,7 +98,7 @@ export default function ServicesPage({ onOpenQuote }) {
                         onClick={onOpenQuote}
                         className="w-full bg-white hover:bg-gray-100 text-[#0f2942] border border-gray-200 text-xs font-bold py-2 rounded-xl transition-colors cursor-pointer"
                       >
-                        Request Quote
+                        Request Match
                       </button>
                     </div>
                   </div>
@@ -160,6 +160,15 @@ export default function ServicesPage({ onOpenQuote }) {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Compliance Disclaimer */}
+      <section className="py-8 bg-white border-t border-gray-100 text-center text-xs text-gray-400 px-4">
+        <div className="max-w-4xl mx-auto">
+          <p>
+            InsurMatch is a digital lead-generation and matchmaking platform connecting consumers with independent, properly licensed insurance agents. InsurMatch does not sell insurance policies directly, underwrite coverage, or collect premiums.
+          </p>
         </div>
       </section>
     </div>

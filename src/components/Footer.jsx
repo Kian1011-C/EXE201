@@ -23,17 +23,17 @@ export default function Footer() {
             </div>
             
             <p className="text-sm font-serif italic text-ivory/90 text-lg">
-              Insurance that fits your life.
+              Connecting consumers with licensed insurance professionals.
             </p>
 
             <p className="text-xs text-ivory/65 max-w-sm leading-relaxed">
-              A modern insurance matching platform connecting individuals, seniors, and families across Texas and nationwide with personalized, independent health and life coverage.
+              InsurMatch is an independent lead-generation and matchmaking platform connecting Vietnamese individuals and families across the United States with licensed independent insurance agents.
             </p>
 
             <div className="pt-2 text-xs space-y-1 text-ivory/70">
-              <div>Toll-Free Phone: <a href="tel:8336336868" className="text-champagne hover:underline">(833) 633-6868</a></div>
-              <div>Direct Support: <a href="mailto:info@thebestrateins.com" className="hover:underline">info@thebestrateins.com</a></div>
-              <div className="text-ivory/50 text-[11px] pt-1">Texas Headquarters: 633 E Fernhurst Dr, Suite 1502, Katy, TX 77450</div>
+              <div>Platform Support: <a href="mailto:support@insurmatch.us" className="text-champagne hover:underline">support@insurmatch.us</a></div>
+              <div>Agent Partnerships: <a href="mailto:agents@insurmatch.us" className="hover:underline">agents@insurmatch.us</a></div>
+              <div className="text-ivory/50 text-[11px] pt-1">Digital Platform: Connecting consumers across participating US states</div>
             </div>
           </div>
 
@@ -43,7 +43,7 @@ export default function Footer() {
             {/* Column 1: Insurance */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-widest text-champagne">
-                Insurance
+                Coverage Needs
               </h4>
               <ul className="space-y-2 text-xs text-ivory/70">
                 <li><Link to="/insurance-services/medicare" className="hover:text-ivory transition-colors">Medicare Guidance</Link></li>
@@ -64,11 +64,11 @@ export default function Footer() {
               <ul className="space-y-2 text-xs text-ivory/70">
                 <li><Link to="/about" className="hover:text-ivory transition-colors">About InsurMatch</Link></li>
                 <li><a href="#how-it-works" className="hover:text-ivory transition-colors">How It Works</a></li>
-                <li><Link to="/about#team" className="hover:text-ivory transition-colors">Our Advisory Team</Link></li>
-                <li><Link to="/locations" className="hover:text-ivory transition-colors">Texas Offices</Link></li>
-                <li><Link to="/careers" className="hover:text-ivory transition-colors">Careers &amp; Mentorship</Link></li>
-                <li><Link to="/contact" className="hover:text-ivory transition-colors">Contact Our Advisors</Link></li>
-                <li><Link to="/login" className="hover:text-champagne transition-colors">Staff Portal</Link></li>
+                <li><Link to="/about#team" className="hover:text-ivory transition-colors">Our Leadership Team</Link></li>
+                <li><Link to="/locations" className="hover:text-ivory transition-colors">Regional Partner Hubs</Link></li>
+                <li><Link to="/careers" className="hover:text-ivory transition-colors">Agent Partner Network</Link></li>
+                <li><Link to="/contact" className="hover:text-ivory transition-colors">Contact Support</Link></li>
+                <li><Link to="/login" className="hover:text-champagne transition-colors">Agent &amp; Staff Portal</Link></li>
               </ul>
             </div>
 
@@ -78,11 +78,11 @@ export default function Footer() {
                 Resources
               </h4>
               <ul className="space-y-2 text-xs text-ivory/70">
-                <li><Link to="/get-quote" className="hover:text-ivory transition-colors">Rate Comparison Tool</Link></li>
+                <li><Link to="/get-quote" className="hover:text-ivory transition-colors">Agent Matching Flow</Link></li>
                 <li><a href="#blog" className="hover:text-ivory transition-colors">Insurance Guides</a></li>
-                <li><Link to="/contact" className="hover:text-ivory transition-colors">Client Support</Link></li>
+                <li><Link to="/contact" className="hover:text-ivory transition-colors">Consumer Support</Link></li>
                 <li><Link to="/contact" className="hover:text-ivory transition-colors">Frequently Asked Questions</Link></li>
-                <li><Link to="/locations" className="hover:text-ivory transition-colors">Find Local Office</Link></li>
+                <li><Link to="/locations" className="hover:text-ivory transition-colors">Regional Coverage</Link></li>
               </ul>
             </div>
 
@@ -93,17 +93,17 @@ export default function Footer() {
         {/* Regulatory Disclaimers (Preserving CMS Medicare & ACA Compliance) */}
         <div className="py-8 border-b border-white/10 text-[11px] text-ivory/50 leading-relaxed space-y-2">
           <p>
-            <strong>CMS Medicare Notice:</strong> InsurMatch (The Best Rate Insurance) is not connected with or endorsed by the U.S. government or the federal Medicare program. We do not offer every plan available in your area. Any information we provide is limited to those plans we do offer in your area. Please contact Medicare.gov, 1-800-MEDICARE (1-800-633-4227), or your local State Health Insurance Assistance Program (SHIP) for full coverage options.
+            <strong>Disclaimer:</strong> InsurMatch is a technology and lead-generation platform, not an insurance agency or carrier. InsurMatch does not sell insurance, provide insurance advice, underwrite policies, or collect insurance premiums. All insurance quotes, consultations, and policies are provided solely by independent, properly licensed insurance agents. Not connected with or endorsed by the US government or the federal Medicare program.
           </p>
           <p>
-            <strong>General Disclaimer:</strong> Premium calculations and advance tax credit estimates are subject to carrier underwriting approval and government marketplace verification. Zero broker fees apply to direct consultation and enrollment services.
+            <strong>General Information:</strong> Information submitted by users is matched with verified independent agents licensed in the user's state. Premium calculations and tax credit estimates are subject to carrier underwriting approval and official marketplace verification.
           </p>
         </div>
 
         {/* Bottom Copyright & Legal Links */}
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-ivory/60">
           <div>
-            © {new Date().getFullYear()} INSURMATCH. All rights reserved. Licensed Independent Insurance Brokerage.
+            © {new Date().getFullYear()} INSURMATCH. All rights reserved. Digital Insurance Lead-Generation &amp; Matchmaking Platform.
           </div>
           <div className="flex flex-wrap items-center gap-6">
             <Link to="/privacy" className="hover:text-champagne transition-colors">Privacy Policy</Link>

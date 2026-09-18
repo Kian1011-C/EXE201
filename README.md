@@ -1,6 +1,6 @@
-# The Best Rate Insurance - Web Application Clone
+# InsurMatch — Digital Insurance Lead Generation & Matchmaking Platform
 
-> A modern, responsive web application clone of [The Best Rate Insurance](https://www.thebestrateins.com/), built for EXE201.
+> A modern, responsive web application connecting Vietnamese consumers in the United States with verified independent licensed insurance agents. Built for EXE201.
 
 ![React](https://img.shields.io/badge/React-19.0-blue.svg)
 ![Vite](https://img.shields.io/badge/Vite-6.0-646CFF.svg)
@@ -8,19 +8,17 @@
 
 ## 🌐 Overview
 
-This project is a comprehensive clone of **The Best Rate Insurance**, an independent insurance agency based in Texas (serving Katy, Houston, Garland, and over 15+ states). The website features modern UI, bilingual support (English / Vietnamese), multi-tier navigation, and interactive insurance quote calculators.
+**InsurMatch** is a digital insurance lead-generation and matchmaking platform connecting Vietnamese individuals and families across the United States with verified independent insurance agents who are properly licensed in their state. The platform features bilingual support (English / Vietnamese), intelligent request routing, and portals for consumers, agents, and administrators.
 
 ## 🚀 Features
 
-- **Responsive Navigation & Mega Menu:** Multi-level dropdowns, contact hotline, office hours, and mobile drawer menu.
-- **Service Portfolios:**
-  - **Medicare Solutions:** Medicare Advantage (Part C), Prescription Drug (Part D), Medigap (Supplement Plans).
-  - **Health Insurance (ACA / Obamacare):** Individual & Family healthcare, federal subsidy guidance, Disability, and Long-Term Care (LTC).
-  - **Life Insurance & Annuities:** Term Life, Whole Life / IUL with Living Benefits, Final Expense, and Fixed Index Annuities.
-- **Office Locations Hub:** Details, schedules, and map directions for 3 Texas branches (Katy HQ, Houston Kirkwood, Garland DFW).
-- **Insurance Agent Bootcamp:** Mentorship program details and online agent application form.
-- **Interactive Quoting System:** Multi-step quote request workflow (`/get-quote`) and global instant quote popup modal.
-- **Customer Support Portal:** Secure contact form, claim filing guidance, and policy change inquiries.
+- **Matchmaking Engine:** Multi-step agent matching workflow (`/get-quote`) and global request modal.
+- **Coverage Categories:**
+  - **Medicare Guidance:** Connect with agents specializing in Medicare Advantage (Part C), Prescription Drug (Part D), and Medigap.
+  - **Health Insurance (ACA):** Marketplace individual & family plans with federal subsidy guidance.
+  - **Life & Asset Protection:** Term life, living benefits, and fixed annuities.
+- **Agent Partner Network:** Agent onboarding, lead routing, and wallet/portal management.
+- **Support & Portal:** Secure consumer inquiry routing, administrative oversight, and agent lead management.
 
 ## 🛠️ Tech Stack
 

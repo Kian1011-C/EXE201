@@ -6,7 +6,7 @@
 const DEMO_ACCOUNTS = [
   {
     id: 1,
-    email: 'admin@thebestrateins.com',
+    email: 'admin@insurmatch.us',
     password: 'Admin@123',
     role: 'admin',
     name: 'Super Admin',
@@ -14,18 +14,18 @@ const DEMO_ACCOUNTS = [
   },
   {
     id: 2,
-    email: 'staff@thebestrateins.com',
+    email: 'staff@insurmatch.us',
     password: 'Staff@123',
     role: 'staff',
-    name: 'Staff Member',
+    name: 'Platform Staff',
     avatar: 'SM',
   },
   {
     id: 3,
-    email: 'agent@thebestrateins.com',
+    email: 'agent@insurmatch.us',
     password: 'Agent@123',
     role: 'agent',
-    name: 'Insurance Agent',
+    name: 'Licensed Agent Partner',
     avatar: 'IA',
   },
 ];
@@ -50,7 +50,8 @@ export async function login(email, password) {
   const account = DEMO_ACCOUNTS.find(
     (a) =>
       (a.email.toLowerCase() === normalizedEmail ||
-        a.email.replace('@thebestrateins.com', '@insurmatch.com').toLowerCase() === normalizedEmail) &&
+        a.email.replace('@insurmatch.us', '@thebestrateins.com').toLowerCase() === normalizedEmail ||
+        a.email.replace('@insurmatch.us', '@insurmatch.com').toLowerCase() === normalizedEmail) &&
       a.password === password
   );
 

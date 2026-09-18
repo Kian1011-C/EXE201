@@ -15,10 +15,10 @@ export default function MedicarePage({ onOpenQuote }) {
             <span>Senior Healthcare & Advantage Plans</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight">
-            Medicare Solutions in Texas
+            Medicare Guidance &amp; Licensed Agent Matching
           </h1>
           <p className="text-base text-gray-200 max-w-2xl mx-auto">
-            Navigating Original Medicare, Advantage (Part C), Part D drug coverage, and Medigap Supplements with zero bias.
+            Connect with verified independent agents licensed in your state for Original Medicare, Advantage (Part C), Part D drug coverage, and Medigap Supplements.
           </p>
 
           <div className="pt-2">
@@ -26,7 +26,7 @@ export default function MedicarePage({ onOpenQuote }) {
               onClick={onOpenQuote}
               className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg cursor-pointer text-sm"
             >
-              Check My Medicare Eligibility & Plans
+              Find A Licensed Medicare Agent
             </button>
           </div>
         </div>
@@ -38,12 +38,12 @@ export default function MedicarePage({ onOpenQuote }) {
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-amber-700 shrink-0" />
             <span>
-              <strong>Annual Enrollment Period (AEP):</strong> October 15 – December 7 every year. We are open on weekends!
+              <strong>Annual Enrollment Period (AEP):</strong> October 15 – December 7 every year. Submit your match request anytime!
             </span>
           </div>
-          <a href="tel:8336336868" className="font-bold underline text-amber-950 hover:text-amber-800">
-            Call for Enrollment: (833) 633-6868
-          </a>
+          <button onClick={onOpenQuote} className="font-bold underline text-amber-950 hover:text-amber-800 cursor-pointer">
+            Request Free Agent Match
+          </button>
         </div>
       </section>
 
@@ -53,7 +53,7 @@ export default function MedicarePage({ onOpenQuote }) {
           <div className="text-center max-w-2xl mx-auto mb-14">
             <h2 className="text-3xl font-black text-[#0f2942]">Understand Your Medicare Options</h2>
             <p className="text-sm text-gray-500 mt-2">
-              Original Medicare (Parts A & B) leaves significant copays and 20% coinsurance without an annual spending cap. Here is how our plans protect you:
+              Original Medicare (Parts A &amp; B) leaves significant copays and 20% coinsurance without an annual spending cap. Here is how matched independent plans protect you:
             </p>
           </div>
 
@@ -87,7 +87,7 @@ export default function MedicarePage({ onOpenQuote }) {
                     onClick={onOpenQuote}
                     className="w-full bg-[#0f2942] hover:bg-[#1b436c] text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-colors cursor-pointer"
                   >
-                    Compare {plan.name.split('(')[0]} Rates
+                    Match For {plan.name.split('(')[0]}
                   </button>
                 </div>
               </div>
@@ -143,7 +143,7 @@ export default function MedicarePage({ onOpenQuote }) {
           <div className="mt-8 p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-start gap-3 text-xs text-blue-900">
             <AlertCircle className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold">Not sure which one to choose?</span> Our licensed agents provide complimentary, unbiased comparisons based on your doctors and daily medications.
+              <span className="font-bold">Not sure which one to choose?</span> Verified independent partner agents provide complimentary, unbiased comparisons based on your doctors and daily medications.
             </div>
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function MedicarePage({ onOpenQuote }) {
       <section className="py-8 bg-white border-t border-gray-100 text-center text-xs text-gray-400 px-4">
         <div className="max-w-4xl mx-auto">
           <p>
-            The Best Rate Insurance is not affiliated with or endorsed by the U.S. government or the federal Medicare program. Calling the numbers above will direct you to a licensed insurance agent in Texas.
+            InsurMatch is a digital lead-generation and matchmaking platform, not an insurance carrier or agency, and is not affiliated with or endorsed by the U.S. government or the federal Medicare program. We do not sell insurance directly or collect premiums. Matching services are 100% free for consumers and connect you with independent, state-licensed insurance agents.
           </p>
         </div>
       </section>

@@ -6,7 +6,7 @@ export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('thebestrateins_cookie_consent');
+    const consent = localStorage.getItem('insurmatch_cookie_consent') || localStorage.getItem('thebestrateins_cookie_consent');
     if (!consent) {
       // Show floating popover after 1.5s delay so it doesn't jarringly pop on immediate page load
       const timer = setTimeout(() => {
@@ -17,12 +17,12 @@ export default function CookieBanner() {
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('thebestrateins_cookie_consent', 'accepted');
+    localStorage.setItem('insurmatch_cookie_consent', 'accepted');
     setVisible(false);
   };
 
   const handleDecline = () => {
-    localStorage.setItem('thebestrateins_cookie_consent', 'declined');
+    localStorage.setItem('insurmatch_cookie_consent', 'declined');
     setVisible(false);
   };
 

@@ -18,7 +18,7 @@ export default function HealthPage({ onOpenQuote }) {
             Health & Family Protection Plans
           </h1>
           <p className="text-base text-emerald-100 max-w-2xl mx-auto">
-            Comprehensive individual and family medical coverage with maximum federal tax subsidies. Keep your preferred doctors and afford quality prescriptions.
+            Connect with licensed independent agents to explore individual and family ACA Marketplace coverage with maximum federal tax subsidies. Keep your preferred doctors and afford quality prescriptions.
           </p>
 
           <div className="pt-2">
@@ -26,7 +26,7 @@ export default function HealthPage({ onOpenQuote }) {
               onClick={onOpenQuote}
               className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg cursor-pointer text-sm"
             >
-              Calculate Your Federal Subsidy (ACA)
+              Match With An ACA Health Agent
             </button>
           </div>
         </div>
@@ -38,7 +38,7 @@ export default function HealthPage({ onOpenQuote }) {
           <div className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-emerald-700 shrink-0" />
             <span>
-              <strong>Did You Know?</strong> 4 out of 5 Texas applicants qualify for health insurance plans starting at <strong>\$0 to \$10/month</strong> after federal subsidies!
+              <strong>Did You Know?</strong> Many ACA Marketplace applicants qualify for quality health coverage starting at <strong>\$0 to \$10/month</strong> after federal subsidies!
             </span>
           </div>
           <button onClick={onOpenQuote} className="font-bold underline text-emerald-900 hover:text-emerald-700 cursor-pointer">
@@ -51,9 +51,9 @@ export default function HealthPage({ onOpenQuote }) {
       <section className="py-16 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <h2 className="text-3xl font-black text-[#0f2942]">Healthcare & Financial Shield</h2>
+            <h2 className="text-3xl font-black text-[#0f2942]">Healthcare &amp; Financial Shield</h2>
             <p className="text-sm text-gray-500 mt-2">
-              Beyond doctor visits and hospital stays, we help you guard your monthly income against unexpected disability or prolonged care needs.
+              Connect with verified independent agents who help you evaluate medical coverage, doctor networks, and essential supplemental protections.
             </p>
           </div>
 
@@ -87,7 +87,7 @@ export default function HealthPage({ onOpenQuote }) {
                     onClick={onOpenQuote}
                     className="w-full bg-[#0f2942] hover:bg-[#133c63] text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-colors cursor-pointer"
                   >
-                    Compare {plan.name.split(' ')[0]} Quotes
+                    Match For {plan.name.split(' ')[0]}
                   </button>
                 </div>
               </div>
@@ -101,7 +101,7 @@ export default function HealthPage({ onOpenQuote }) {
         <div className="max-w-5xl mx-auto px-4 md:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-2xl md:text-3xl font-black text-[#0f2942]">When Can You Enroll in Health Insurance?</h2>
-            <p className="text-xs text-gray-500 mt-1">Understanding Open Enrollment vs Special Enrollment in Texas</p>
+            <p className="text-xs text-gray-500 mt-1">Understanding Open Enrollment vs Special Enrollment</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -131,7 +131,7 @@ export default function HealthPage({ onOpenQuote }) {
                 </div>
               </div>
               <p className="text-xs text-gray-600 leading-relaxed">
-                If you experienced a major life event within the last 60 days (loss of employer coverage, marriage, divorce, birth of a baby, or moving to Texas), you can enroll right now!
+                If you experienced a major life event within the last 60 days (loss of employer coverage, marriage, divorce, birth of a baby, or moving to a new coverage area), you can enroll right now!
               </p>
             </div>
           </div>
@@ -144,6 +144,15 @@ export default function HealthPage({ onOpenQuote }) {
               Check If You Qualify For Special Enrollment
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* Compliance Disclaimer */}
+      <section className="py-8 bg-white border-t border-gray-100 text-center text-xs text-gray-400 px-4">
+        <div className="max-w-4xl mx-auto">
+          <p>
+            InsurMatch is a digital lead-generation and matchmaking platform connecting consumers with independent, properly licensed insurance agents. InsurMatch does not sell insurance policies directly, underwrite coverage, or collect premiums.
+          </p>
         </div>
       </section>
     </div>

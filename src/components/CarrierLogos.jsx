@@ -16,7 +16,7 @@ export default function CarrierLogosStrip() {
     <section className="bg-surface-container-lowest py-8 border-b border-stroke-subtle overflow-hidden" id="carrier-network">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 mb-4 text-center">
         <p className="text-xs uppercase tracking-widest font-bold text-outline">
-          Partnered With Nationally Accredited Health &amp; Life Carriers
+          Access To Top-Rated Health &amp; Life Carriers Through Independent Licensed Agents
         </p>
       </div>
 

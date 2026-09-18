@@ -6,14 +6,14 @@ import { useAuth } from '../../auth/AuthContext';
 const NAV_BY_ROLE = {
   admin: [
     { label: 'Overview', icon: 'dashboard', path: '/dashboard/admin' },
-    { label: 'Quote Requests', icon: 'request_quote', path: '/dashboard/admin/quotes' },
+    { label: 'Match Inquiries', icon: 'request_quote', path: '/dashboard/admin/quotes' },
     { label: 'Manage Accounts', icon: 'manage_accounts', path: '/dashboard/admin/accounts' },
     { label: 'Analytics', icon: 'bar_chart', path: '/dashboard/admin/analytics' },
     { label: 'Settings', icon: 'settings', path: '/dashboard/admin/settings' },
   ],
   staff: [
     { label: 'Overview', icon: 'dashboard', path: '/dashboard/staff' },
-    { label: 'Quote Requests', icon: 'request_quote', path: '/dashboard/staff/quotes' },
+    { label: 'Match Inquiries', icon: 'request_quote', path: '/dashboard/staff/quotes' },
     { label: 'Assign to Agent', icon: 'assignment_ind', path: '/dashboard/staff/assign' },
   ],
   agent: [
@@ -51,7 +51,7 @@ export default function DashboardLayout({ children }) {
           <img src="/images/insurmatch-logo.png" alt="InsurMatch" className="w-8 h-8 object-contain rounded-lg shrink-0" />
           <div>
             <div className="text-white font-extrabold text-base leading-tight">Insur<span className="text-cyan-ice">Match</span></div>
-            <div className="text-cyan-ice/70 text-xs">Insurance Portal</div>
+            <div className="text-cyan-ice/70 text-xs">Partner &amp; Admin Portal</div>
           </div>
         </Link>
       </div>
