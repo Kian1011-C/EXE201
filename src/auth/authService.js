@@ -46,8 +46,12 @@ export async function login(email, password) {
   // Simulate network delay
   await new Promise((r) => setTimeout(r, 700));
 
+  const normalizedEmail = email?.trim().toLowerCase();
   const account = DEMO_ACCOUNTS.find(
-    (a) => a.email === email && a.password === password
+    (a) =>
+      (a.email.toLowerCase() === normalizedEmail ||
+        a.email.replace('@thebestrateins.com', '@insurmatch.com').toLowerCase() === normalizedEmail) &&
+      a.password === password
   );
 
   if (!account) {
