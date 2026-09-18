@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+
+// Auth
+import { AuthProvider } from './auth/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Components
 import Navbar from './components/Navbar';
@@ -8,7 +12,7 @@ import QuoteModal from './components/QuoteModal';
 import MobileBottomBar from './components/MobileBottomBar';
 import CookieBanner from './components/CookieBanner';
 
-// Pages
+// Public Pages
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import ServicesPage from './pages/ServicesPage';
@@ -20,7 +24,15 @@ import CareersPage from './pages/CareersPage';
 import ContactPage from './pages/ContactPage';
 import QuotePage from './pages/QuotePage';
 
-// Scroll to top helper on route change
+// Auth Pages
+import LoginPage from './pages/LoginPage';
+
+// Dashboard Pages
+import AdminDashboard from './pages/dashboard/AdminDashboard';
+import StaffDashboard from './pages/dashboard/StaffDashboard';
+import AgentDashboard from './pages/dashboard/AgentDashboard';
+
+// Scroll to top on route change
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -29,60 +41,96 @@ function ScrollToTop() {
   return null;
 }
 
-export default function App() {
+// Layout wrapper for public pages (with Navbar/Footer)
+function PublicLayout({ children }) {
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
 
   return (
+    <div className="min-h-screen flex flex-col bg-white text-gray-800 font-sans selection:bg-amber-500 selection:text-slate-950">
+      <Navbar onOpenQuote={() => setIsQuoteOpen(true)} />
+
+      <main className="flex-grow pb-16 sm:pb-0">
+        {React.Children.map(children, (child) =>
+          React.isValidElement(child)
+            ? React.cloneElement(child, { onOpenQuote: () => setIsQuoteOpen(true) })
+            : child
+        )}
+      </main>
+
+      <Footer />
+
+      <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} />
+      <MobileBottomBar onOpenQuote={() => setIsQuoteOpen(true)} />
+      <CookieBanner />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
     <BrowserRouter>
-      <ScrollToTop />
-      <div className="min-h-screen flex flex-col bg-white text-gray-800 font-sans selection:bg-amber-500 selection:text-slate-950">
-        <Navbar onOpenQuote={() => setIsQuoteOpen(true)} />
-        
-        <main className="flex-grow pb-16 sm:pb-0">
-          <Routes>
-            <Route path="/" element={<HomePage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-            <Route path="/about" element={<AboutPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-            <Route path="/about-us" element={<AboutPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-            
-            {/* Services Routes */}
-            <Route path="/insurance-services" element={<ServicesPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-            <Route path="/insurance-services/medicare" element={<MedicarePage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-            <Route path="/insurance-services/health-insurance" element={<HealthPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-            <Route path="/insurance-services/life-insurance" element={<LifePage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-            <Route path="/insurance-services/group-benefits" element={<ServicesPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-            
-            {/* Locations */}
-            <Route path="/locations" element={<LocationsPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-            <Route path="/locations/:officeId" element={<LocationsPage onOpenQuote={() => setIsQuoteOpen(true)} />} />
+      <AuthProvider>
+        <ScrollToTop />
+        <Routes>
+          {/* ── Auth ─────────────────────────────────────── */}
+          <Route path="/login" element={<LoginPage />} />
 
-            {/* Careers / Bootcamp */}
-            <Route path="/careers" element={<CareersPage />} />
+          {/* ── Dashboards (protected) ───────────────────── */}
+          <Route
+            path="/dashboard/admin"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/staff"
+            element={
+              <ProtectedRoute allowedRoles={['staff']}>
+                <StaffDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/agent"
+            element={
+              <ProtectedRoute allowedRoles={['agent']}>
+                <AgentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          {/* Generic /dashboard → redirect to role-specific */}
+          <Route path="/dashboard" element={<Navigate to="/login" replace />} />
 
-            {/* Contact & Quote */}
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/secure-contact-form" element={<ContactPage />} />
-            <Route path="/get-quote" element={<QuotePage />} />
-            <Route path="/secure-quote-request" element={<QuotePage />} />
-
-            {/* Fallback */}
-            <Route path="*" element={<HomePage onOpenQuote={() => setIsQuoteOpen(true)} />} />
-          </Routes>
-        </main>
-
-        <Footer />
-
-        {/* Global Quote Request Modal */}
-        <QuoteModal 
-          isOpen={isQuoteOpen} 
-          onClose={() => setIsQuoteOpen(false)} 
-        />
-
-        {/* Mobile Sticky Quick Action Bar */}
-        <MobileBottomBar onOpenQuote={() => setIsQuoteOpen(true)} />
-
-        {/* Floating Cookie Consent Banner */}
-        <CookieBanner />
-      </div>
+          {/* ── Public Pages ─────────────────────────────── */}
+          <Route
+            path="/*"
+            element={
+              <PublicLayout>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/about-us" element={<AboutPage />} />
+                  <Route path="/insurance-services" element={<ServicesPage />} />
+                  <Route path="/insurance-services/medicare" element={<MedicarePage />} />
+                  <Route path="/insurance-services/health-insurance" element={<HealthPage />} />
+                  <Route path="/insurance-services/life-insurance" element={<LifePage />} />
+                  <Route path="/insurance-services/group-benefits" element={<ServicesPage />} />
+                  <Route path="/locations" element={<LocationsPage />} />
+                  <Route path="/locations/:officeId" element={<LocationsPage />} />
+                  <Route path="/careers" element={<CareersPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/secure-contact-form" element={<ContactPage />} />
+                  <Route path="/get-quote" element={<QuotePage />} />
+                  <Route path="/secure-quote-request" element={<QuotePage />} />
+                  <Route path="*" element={<HomePage />} />
+                </Routes>
+              </PublicLayout>
+            }
+          />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
