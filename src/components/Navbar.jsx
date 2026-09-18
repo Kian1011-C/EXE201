@@ -4,122 +4,126 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function Navbar({ onOpenQuote }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
-      {/* Top Utility Bar — Grounded Agency Information */}
-      <div className="bg-trust-navy-deep text-white text-xs py-2 px-4 lg:px-8 border-b border-white/10 hidden sm:block">
+      {/* Top Subtle Announcement / Phone Line */}
+      <div className="bg-navy-deep text-ivory/85 text-xs py-2 px-4 lg:px-8 border-b border-white/5 hidden md:block">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-6">
-            <a 
-              className="flex items-center space-x-1.5 text-cyan-ice hover:text-white transition-colors duration-200" 
-              href="tel:8336336868"
-            >
-              <span className="material-symbols-outlined text-[16px]">call</span>
-              <span className="font-bold tracking-wider">(833) 633-6868</span>
-            </a>
-            <span className="text-white/60">|</span>
-            <span className="text-white/80">Mon–Fri: 9:00 AM – 6:00 PM CT</span>
-            <span className="text-white/60">|</span>
-            <span className="text-cyan-ice/90 font-medium">Bilingual: English &amp; Tiếng Việt</span>
+            <span className="tracking-widest uppercase text-[10px] text-champagne font-semibold">
+              Independent Insurance Matching Platform
+            </span>
+            <span className="text-white/20">|</span>
+            <span className="text-ivory/80 text-[11px]">Serving Texas Families &amp; Businesses</span>
           </div>
 
-          <div className="flex items-center space-x-5 text-white/80">
-            <Link to="/locations" className="hover:text-cyan-ice transition-colors flex items-center gap-1">
-              <span className="material-symbols-outlined text-[15px]">location_on</span>
-              <span>Texas Offices: Katy • Houston • Garland</span>
-            </Link>
-            <span className="text-white/40">|</span>
-            <Link to="/login" className="text-cyan-ice hover:text-white transition-colors font-semibold flex items-center gap-1">
-              <span className="material-symbols-outlined text-[15px]">lock</span>
-              <span>Staff Portal</span>
+          <div className="flex items-center space-x-6 text-[11px]">
+            <a 
+              href="tel:8336336868" 
+              className="text-ivory/90 hover:text-champagne transition-colors flex items-center gap-1.5"
+            >
+              <span className="text-champagne">Toll-Free:</span>
+              <span className="font-semibold tracking-wider">(833) 633-6868</span>
+            </a>
+            <span className="text-white/20">|</span>
+            <Link to="/login" className="text-ivory/80 hover:text-champagne transition-colors font-medium">
+              Staff Portal
             </Link>
           </div>
         </div>
       </div>
 
       {/* Main Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-surface-container-lowest border-b border-stroke-subtle shadow-xs transition-all duration-200">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 flex justify-between items-center h-20">
+      <header 
+        className={`sticky top-0 z-40 transition-all duration-300 ${
+          scrolled 
+            ? 'bg-ivory/95 backdrop-blur-md border-b border-sand shadow-xs py-3.5' 
+            : 'bg-ivory border-b border-stroke-subtle py-4 lg:py-5'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 flex justify-between items-center">
           
-          {/* Official Brand Logo & Agency Name */}
+          {/* LEFT: INSURMATCH Brand */}
           <Link className="flex items-center gap-3 group" to="/">
             <img 
-              alt="InsurMatch - The Best Rate Insurance" 
-              className="h-11 w-11 object-contain rounded-xl shadow-xs transition-transform duration-200 group-hover:scale-[1.02]" 
+              alt="InsurMatch" 
+              className="h-9 w-9 object-contain rounded-lg transition-transform duration-200 group-hover:scale-105" 
               src="/images/insurmatch-logo.png" 
             />
             <div className="flex flex-col">
-              <div className="text-xl sm:text-2xl font-black tracking-tight text-primary leading-none">
-                Insur<span className="text-secondary">Match</span>
-              </div>
-              <span className="text-[11px] font-semibold text-on-surface-variant tracking-wider uppercase mt-1">
-                The Best Rate Insurance Agency
+              <span className="text-xl lg:text-2xl font-black tracking-tight text-navy-deep leading-none">
+                INSUR<span className="text-slate-muted font-normal">MATCH</span>
+              </span>
+              <span className="text-[10px] tracking-widest text-slate-muted uppercase mt-0.5 font-medium">
+                Insurance That Fits Your Life
               </span>
             </div>
           </Link>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center space-x-7 text-sm">
+          {/* CENTER: Clean Editorial Navigation Links */}
+          <nav className="hidden lg:flex items-center space-x-8 text-[13px] font-medium tracking-wide text-charcoal/80">
             <Link 
-              className={`transition-all duration-200 ${location.pathname.startsWith('/insurance-services') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
+              className={`hover:text-navy-deep transition-colors ${location.pathname.startsWith('/insurance-services') ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
               to="/insurance-services"
             >
               Insurance
             </Link>
+            <a 
+              className="hover:text-navy-deep transition-colors" 
+              href="#how-it-works"
+            >
+              How It Works
+            </a>
             <Link 
-              className={`transition-all duration-200 ${location.pathname === '/about' ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
+              className={`hover:text-navy-deep transition-colors ${location.pathname === '/get-quote' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
+              to="/get-quote"
+            >
+              Compare
+            </Link>
+            <Link 
+              className={`hover:text-navy-deep transition-colors ${location.pathname === '/about' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
               to="/about"
             >
-              About Us
+              About
             </Link>
             <Link 
-              className="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200" 
-              to="/about#team"
-            >
-              Our Team
-            </Link>
-            <Link 
-              className={`transition-all duration-200 ${location.pathname === '/locations' ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
-              to="/locations"
-            >
-              Texas Offices
-            </Link>
-            <Link 
-              className={`transition-all duration-200 ${location.pathname === '/careers' ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
-              to="/careers"
-            >
-              Careers
-            </Link>
-            <Link 
-              className={`transition-all duration-200 ${location.pathname === '/contact' ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant font-medium hover:text-primary'}`} 
+              className={`hover:text-navy-deep transition-colors ${location.pathname === '/contact' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
               to="/contact"
             >
-              Contact
+              Resources
             </Link>
           </nav>
 
-          {/* Trailing Action Cluster */}
-          <div className="hidden sm:flex items-center space-x-3">
-            <a 
-              className="hidden xl:inline-flex items-center gap-1.5 text-on-surface-variant hover:text-primary font-semibold text-sm mr-2 transition-colors"
-              href="tel:8336336868"
+          {/* RIGHT: Sign In & Primary CTA */}
+          <div className="hidden sm:flex items-center space-x-5">
+            <Link 
+              to="/login"
+              className="text-xs font-semibold text-charcoal/80 hover:text-navy-deep transition-colors"
             >
-              <span className="material-symbols-outlined text-[18px] text-primary">call</span>
-              <span>(833) 633-6868</span>
-            </a>
+              Sign In
+            </Link>
 
             <button 
               onClick={onOpenQuote}
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-on-primary hover:bg-primary-container shadow-xs hover:shadow-sm transition-all duration-200 font-bold text-sm group cursor-pointer"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-navy-deep text-ivory hover:bg-navy-midnight shadow-xs hover:shadow-sm transition-all duration-200 font-semibold text-xs tracking-wide group cursor-pointer border border-navy-deep"
             >
-              <span>Get A Quote</span>
-              <span className="material-symbols-outlined ml-1.5 text-[18px] group-hover:translate-x-0.5 transition-transform">
+              <span>Start Matching</span>
+              <span className="material-symbols-outlined ml-1.5 text-[16px] text-champagne group-hover:translate-x-1 transition-transform">
                 arrow_forward
               </span>
             </button>
@@ -129,66 +133,63 @@ export default function Navbar({ onOpenQuote }) {
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle Navigation Menu" 
-            className="lg:hidden p-2 rounded-lg text-on-surface-variant hover:bg-surface-container cursor-pointer transition-colors"
+            className="lg:hidden p-2 rounded-lg text-charcoal hover:bg-sand/60 cursor-pointer transition-colors"
           >
-            <span className="material-symbols-outlined text-[28px]">
+            <span className="material-symbols-outlined text-[26px]">
               {mobileMenuOpen ? 'close' : 'menu'}
             </span>
           </button>
 
         </div>
 
-        {/* Animated Mobile Dropdown */}
+        {/* Mobile Dropdown Menu */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div 
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="lg:hidden bg-white border-t border-stroke-subtle px-4 py-6 space-y-4 shadow-xl overflow-hidden"
+              transition={{ duration: 0.2 }}
+              className="lg:hidden bg-ivory border-t border-stroke-subtle px-6 py-6 space-y-4 shadow-xl overflow-hidden"
             >
-              <nav className="flex flex-col space-y-3 font-semibold text-sm">
-                <Link to="/insurance-services" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
+              <nav className="flex flex-col space-y-3 font-medium text-sm text-charcoal">
+                <Link to="/insurance-services" className="py-2 border-b border-sand hover:text-navy-deep">
                   Insurance Options (Medicare, ACA, Life)
                 </Link>
-                <Link to="/about" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
-                  About Us
+                <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
+                  How It Works
+                </a>
+                <Link to="/get-quote" className="py-2 border-b border-sand hover:text-navy-deep">
+                  Compare Rates
                 </Link>
-                <Link to="/about#team" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
-                  Meet Our Team
+                <Link to="/about" className="py-2 border-b border-sand hover:text-navy-deep">
+                  About InsurMatch
                 </Link>
-                <Link to="/locations" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
-                  Texas Offices (Katy, Houston, Garland)
+                <Link to="/contact" className="py-2 border-b border-sand hover:text-navy-deep">
+                  Resources &amp; Support
                 </Link>
-                <Link to="/careers" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
-                  Careers &amp; Agent Mentorship
-                </Link>
-                <Link to="/contact" className="py-2 border-b border-gray-100 text-on-surface hover:text-primary">
-                  Contact Us
-                </Link>
-                <Link to="/login" className="py-2 text-primary hover:underline flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[18px]">lock</span>
-                  <span>Staff / Agent Portal</span>
+                <Link to="/login" className="py-2 text-navy-deep font-semibold flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[17px] text-champagne">lock</span>
+                  <span>Staff / Advisor Portal</span>
                 </Link>
               </nav>
 
-              <div className="pt-2 space-y-2">
+              <div className="pt-2 space-y-2.5">
                 <button 
                   onClick={() => {
                     setMobileMenuOpen(false);
                     onOpenQuote();
                   }}
-                  className="w-full py-3 rounded-xl bg-primary text-on-primary font-bold text-center flex items-center justify-center gap-2 hover:bg-primary-container transition-colors cursor-pointer"
+                  className="w-full py-3 rounded-lg bg-navy-deep text-ivory font-semibold text-xs tracking-wide text-center flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Request A Free Quote</span>
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  <span>Start Matching</span>
+                  <span className="material-symbols-outlined text-[16px] text-champagne">arrow_forward</span>
                 </button>
                 <a 
                   href="tel:8336336868"
-                  className="w-full py-2.5 rounded-xl border border-primary text-primary font-bold text-center block text-sm hover:bg-surface-container-low transition-colors"
+                  className="w-full py-2.5 rounded-lg border border-stroke-subtle text-charcoal font-medium text-center block text-xs"
                 >
-                  Call Toll-Free: (833) 633-6868
+                  Call Advisor: (833) 633-6868
                 </a>
               </div>
             </motion.div>

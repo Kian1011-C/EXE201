@@ -10,15 +10,15 @@ export default function MobileBottomBar({ onOpenQuote }) {
       >
         <span className="w-2 h-2 rounded-full bg-success-emerald shrink-0"></span>
         <span className="material-symbols-outlined text-[17px]">call</span>
-        <span className="truncate">Gọi: (833) 633-6868</span>
+        <span className="truncate">Call: (833) 633-6868</span>
       </a>
 
       <button 
         onClick={onOpenQuote}
-        className="flex-1 py-2.5 px-3 rounded-xl bg-primary text-on-primary hover:bg-primary-container font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors text-center cursor-pointer"
+        className="flex-1 py-2.5 px-3 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors text-center cursor-pointer"
       >
-        <span className="material-symbols-outlined text-[17px]">bolt</span>
-        <span className="truncate">Báo Giá Miễn Phí</span>
+        <span className="material-symbols-outlined text-[17px] text-champagne">arrow_forward</span>
+        <span className="truncate">Start Matching</span>
       </button>
     </div>
   );

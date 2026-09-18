@@ -62,14 +62,14 @@ export default function QuoteModal({ isOpen, onClose }) {
             <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2 text-cyan-ice text-xs font-bold uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 text-champagne text-xs font-bold uppercase tracking-wider mb-1">
             <Shield className="w-4 h-4" />
-            <span>Fast & Free • No Obligation</span>
+            <span>InsurMatch • Free Comparison</span>
           </div>
 
-          <h3 className="text-2xl font-bold tracking-tight">Compare Insurance Quotes</h3>
+          <h3 className="text-2xl font-bold tracking-tight">Find Your Insurance Match</h3>
           <p className="text-xs text-gray-300 mt-1">
-            Get personalized rate comparisons from top carriers in Texas within 24-48 business hours.
+            Personalized rate comparisons from 30+ top carriers in Texas with zero broker fees.
           </p>
         </div>
 
@@ -235,7 +235,7 @@ export default function QuoteModal({ isOpen, onClose }) {
                   <span>Checking Available Plans...</span>
                 ) : (
                   <>
-                    <span>Get Instant Quote Comparison</span>
+                    <span>Find My Insurance Match</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
