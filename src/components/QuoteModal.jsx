@@ -62,7 +62,7 @@ export default function QuoteModal({ isOpen, onClose }) {
             <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 text-cyan-ice text-xs font-bold uppercase tracking-wider mb-1">
             <Shield className="w-4 h-4" />
             <span>Fast & Free • No Obligation</span>
           </div>
@@ -229,7 +229,7 @@ export default function QuoteModal({ isOpen, onClose }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 px-6 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 btn-shimmer active:scale-[0.98]"
+                className="w-full bg-primary hover:bg-primary-container text-white font-bold py-3.5 px-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer mt-3 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <span>Checking Available Plans...</span>

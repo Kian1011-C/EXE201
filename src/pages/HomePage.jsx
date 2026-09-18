@@ -66,25 +66,21 @@ export default function HomePage({ onOpenQuote }) {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="flex flex-wrap items-center gap-4 pt-2"
               >
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                <button
                   onClick={onOpenQuote}
-                  className="btn-shimmer px-6 py-3.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2 cursor-pointer"
                 >
                   <span>Get A Quote</span>
                   <span className="material-symbols-outlined text-[18px]">verified</span>
-                </motion.button>
+                </button>
 
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Link
-                    to="/contact"
-                    className="px-6 py-3.5 rounded-lg bg-surface-container-lowest border border-stroke-subtle hover:border-primary text-on-surface hover:text-primary font-label-lg text-label-lg font-bold shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2 hover:-translate-y-0.5"
-                  >
-                    <span>Contact Us</span>
-                    <span className="material-symbols-outlined text-[18px]">headset_mic</span>
-                  </Link>
-                </motion.div>
+                <Link
+                  to="/contact"
+                  className="px-6 py-3.5 rounded-xl bg-surface-container-lowest border border-stroke-subtle hover:border-primary text-on-surface hover:text-primary font-label-lg text-label-lg font-bold shadow-xs hover:shadow-sm transition-all duration-200 flex items-center gap-2"
+                >
+                  <span>Contact Us</span>
+                  <span className="material-symbols-outlined text-[18px]">headset_mic</span>
+                </Link>
               </motion.div>
 
               {/* Trust Badge Row */}
@@ -242,15 +238,13 @@ export default function HomePage({ onOpenQuote }) {
                     </div>
                   </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     type="submit"
-                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-bold text-sm tracking-wide transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer btn-shimmer"
+                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-bold text-sm tracking-wide transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>Get Free Quote Now</span>
                     <span className="material-symbols-outlined text-[18px]">bolt</span>
-                  </motion.button>
+                  </button>
 
                   <p className="text-[11px] leading-relaxed text-center text-outline">
                     By clicking, you agree to receive information from licensed insurance agent representatives. No spam guaranteed.
@@ -391,7 +385,7 @@ export default function HomePage({ onOpenQuote }) {
 
               <Link
                 to="/insurance-services/health-insurance"
-                className="btn-shimmer w-full py-2.5 px-4 rounded-lg bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 px-4 rounded-xl bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5"
               >
                 <span>Explore ACA Plans</span>
                 <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
@@ -448,7 +442,7 @@ export default function HomePage({ onOpenQuote }) {
 
               <Link
                 to="/insurance-services/medicare"
-                className="btn-shimmer w-full py-2.5 px-4 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                className="w-full py-2.5 px-4 rounded-xl bg-primary text-on-primary hover:bg-primary-container font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5 shadow-sm"
               >
                 <span>Compare Medicare Options</span>
                 <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
@@ -501,7 +495,7 @@ export default function HomePage({ onOpenQuote }) {
 
               <Link
                 to="/insurance-services/life-insurance"
-                className="btn-shimmer w-full py-2.5 px-4 rounded-lg bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 px-4 rounded-xl bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5"
               >
                 <span>View Life Policies</span>
                 <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
@@ -680,7 +674,7 @@ export default function HomePage({ onOpenQuote }) {
             </div>
             <Link 
               to="/careers"
-              className="btn-shimmer w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold text-center transition-colors block"
+              className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold text-center transition-colors block shadow-xs hover:shadow-sm"
             >
               Apply Now
             </Link>
@@ -705,7 +699,7 @@ export default function HomePage({ onOpenQuote }) {
             </div>
             <Link 
               to="/about#team"
-              className="w-full py-3 px-4 rounded-lg bg-surface-container-low hover:bg-surface-container text-primary font-label-lg text-label-lg font-bold text-center transition-colors hover:-translate-y-0.5 block"
+              className="w-full py-3 px-4 rounded-xl bg-surface-container-low hover:bg-surface-container text-primary font-label-lg text-label-lg font-bold text-center transition-colors block"
             >
               Find An Agent
             </Link>
@@ -730,7 +724,7 @@ export default function HomePage({ onOpenQuote }) {
             </div>
             <button 
               onClick={onOpenQuote}
-              className="btn-shimmer w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold text-center transition-colors cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold text-center transition-colors cursor-pointer shadow-xs hover:shadow-sm"
             >
               Get In Touch
             </button>
@@ -964,7 +958,7 @@ export default function HomePage({ onOpenQuote }) {
           </div>
           <button 
             onClick={onOpenQuote}
-            className="btn-shimmer shrink-0 px-6 py-3 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold transition-all shadow cursor-pointer hover:shadow-md"
+            className="shrink-0 px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer"
           >
             Speak With An Agent
           </button>

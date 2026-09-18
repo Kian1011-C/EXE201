@@ -142,17 +142,15 @@ export default function Navbar({ onOpenQuote }) {
             >
               Contact Us
             </Link>
-            <motion.button 
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+            <button 
               onClick={onOpenQuote}
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container shadow-xs hover:shadow-md transition-all duration-200 font-bold text-sm group cursor-pointer btn-shimmer"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-on-primary hover:bg-primary-container shadow-xs hover:shadow-sm transition-all duration-200 font-bold text-sm group cursor-pointer"
             >
               <span>Get A Quote</span>
-              <span className="material-symbols-outlined ml-1.5 text-[18px] group-hover:translate-x-1 transition-transform">
+              <span className="material-symbols-outlined ml-1.5 text-[18px] group-hover:translate-x-0.5 transition-transform">
                 arrow_forward
               </span>
-            </motion.button>
+            </button>
           </div>
 
           {/* Mobile Menu Toggle Button */}
@@ -202,7 +200,7 @@ export default function Navbar({ onOpenQuote }) {
                     setMobileMenuOpen(false);
                     onOpenQuote();
                   }}
-                  className="w-full py-3 rounded-lg bg-primary text-on-primary font-bold text-center flex items-center justify-center gap-2 btn-shimmer"
+                  className="w-full py-3 rounded-xl bg-primary text-on-primary font-bold text-center flex items-center justify-center gap-2 hover:bg-primary-container transition-colors"
                 >
                   <span>Get Free Quote Now</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>

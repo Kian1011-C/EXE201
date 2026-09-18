@@ -166,16 +166,14 @@ export default function ContactPage() {
                       />
                     </div>
 
-                    {/* Brand Cohesive Primary Blue Button with Shimmer */}
-                    <motion.button
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.98 }}
+                    {/* Brand Cohesive Primary Blue Button */}
+                    <button
                       type="submit"
-                      className="w-full bg-primary hover:bg-primary-container text-on-primary font-bold py-3.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer btn-shimmer text-sm tracking-wide"
+                      className="w-full bg-primary hover:bg-primary-container text-on-primary font-bold py-3.5 px-6 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer text-sm tracking-wide"
                     >
                       <Send className="w-4 h-4" />
                       <span>Submit Secure Message</span>
-                    </motion.button>
+                    </button>
 
                     <div className="flex items-center justify-center gap-2 text-xs text-outline pt-2">
                       <Shield className="w-4 h-4 text-success-emerald" />

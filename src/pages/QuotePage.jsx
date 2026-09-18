@@ -157,7 +157,7 @@ export default function QuotePage() {
                   <div className="pt-2 flex justify-end">
                     <button
                       type="submit"
-                      className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all flex items-center gap-2 text-sm shadow-md cursor-pointer"
+                      className="bg-primary hover:bg-primary-container text-white font-bold px-6 py-3 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2 text-sm cursor-pointer"
                     >
                       <span>Continue to Step 2</span>
                       <ArrowRight className="w-4 h-4" />
@@ -230,7 +230,7 @@ export default function QuotePage() {
                     </button>
                     <button
                       type="submit"
-                      className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all flex items-center gap-2 text-sm shadow-md cursor-pointer"
+                      className="bg-primary hover:bg-primary-container text-white font-bold px-6 py-3 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2 text-sm cursor-pointer"
                     >
                       <span>Continue to Final Step</span>
                       <ArrowRight className="w-4 h-4" />
@@ -316,10 +316,10 @@ export default function QuotePage() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-8 py-3.5 rounded-xl transition-all flex items-center gap-2 text-sm shadow-lg cursor-pointer"
+                      className="bg-primary hover:bg-primary-container text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2 text-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? (
-                        <span>Processing Quote Request...</span>
+                         <span>Processing Quote Request...</span>
                       ) : (
                         <>
                           <span>Submit Quote Request</span>
