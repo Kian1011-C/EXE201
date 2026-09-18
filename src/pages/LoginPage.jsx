@@ -67,9 +67,9 @@ export default function LoginPage() {
 
           {/* Header */}
           <div className="bg-trust-navy-deep px-8 py-7 text-center">
-            <Link to="/" className="inline-flex items-center gap-2 mb-4 group">
-              <span className="material-symbols-outlined text-cyan-ice text-[28px]">shield_with_heart</span>
-              <span className="text-white font-bold text-lg tracking-tight">The Best Rate Insurance</span>
+            <Link to="/" className="inline-flex items-center gap-2.5 mb-4 group">
+              <img src="/images/insurmatch-logo.png" alt="InsurMatch" className="w-9 h-9 object-contain rounded-xl shadow-xs" />
+              <span className="text-white font-extrabold text-2xl tracking-tight">Insur<span className="text-cyan-ice">Match</span></span>
             </Link>
             <h1 className="text-headline-sm font-headline-sm font-bold text-white">Staff Portal</h1>
             <p className="text-body-sm font-body-sm text-cyan-ice/80 mt-1">Sign in to manage your dashboard</p>

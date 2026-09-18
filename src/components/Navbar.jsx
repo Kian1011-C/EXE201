@@ -83,12 +83,15 @@ export default function Navbar({ onOpenQuote }) {
         <div className="max-w-7xl mx-auto px-4 lg:px-8 flex justify-between items-center h-20">
           
           {/* Official Brand Logo */}
-          <Link className="flex items-center gap-3 group" to="/">
+          <Link className="flex items-center gap-2.5 group" to="/">
             <img 
-              alt="The Best Rate Insurance Logo" 
-              className="h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105" 
-              src="/images/logo.png" 
+              alt="InsurMatch Logo" 
+              className="h-11 w-11 object-contain transition-transform duration-200 group-hover:scale-105 rounded-xl shadow-xs" 
+              src="/images/insurmatch-logo.png" 
             />
+            <span className="text-2xl font-extrabold tracking-tight text-primary">
+              Insur<span className="text-secondary">Match</span>
+            </span>
           </Link>
 
           {/* Desktop Nav Links */}

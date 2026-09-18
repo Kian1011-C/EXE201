@@ -47,10 +47,10 @@ export default function DashboardLayout({ children }) {
     <aside className="w-64 shrink-0 bg-trust-navy-deep text-white flex flex-col h-full">
       {/* Brand */}
       <div className="px-6 py-5 border-b border-white/10">
-        <Link to="/" className="flex items-center gap-2 group">
-          <span className="material-symbols-outlined text-cyan-ice text-[26px]">shield_with_heart</span>
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <img src="/images/insurmatch-logo.png" alt="InsurMatch" className="w-8 h-8 object-contain rounded-lg shrink-0" />
           <div>
-            <div className="text-white font-bold text-sm leading-tight">The Best Rate</div>
+            <div className="text-white font-extrabold text-base leading-tight">Insur<span className="text-cyan-ice">Match</span></div>
             <div className="text-cyan-ice/70 text-xs">Insurance Portal</div>
           </div>
         </Link>

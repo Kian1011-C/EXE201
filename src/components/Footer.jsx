@@ -11,11 +11,18 @@ export default function Footer() {
           
           {/* Brand / Identity Col */}
           <div className="col-span-2 md:col-span-1 space-y-4">
-            <div className="text-headline-md font-headline-md font-bold text-surface-container-lowest">
-              The Best Rate Insurance
+            <div className="flex items-center gap-2.5">
+              <img 
+                alt="InsurMatch Logo" 
+                className="h-10 w-10 object-contain rounded-xl shadow-xs" 
+                src="/images/insurmatch-logo.png" 
+              />
+              <span className="text-headline-md font-headline-md font-bold text-surface-container-lowest">
+                Insur<span className="text-cyan-ice">Match</span>
+              </span>
             </div>
             <p className="text-body-sm font-body-sm text-surface-variant leading-relaxed">
-              Independent insurance brokerage delivering clear health, Medicare, and life coverage solutions for families and individuals nationwide.
+              InsurMatch — Intelligent insurance matching platform delivering clear health, Medicare, and life coverage solutions for families and individuals nationwide.
             </p>
             <div className="text-body-sm font-body-sm text-cyan-ice font-semibold">
               Toll-Free: (833) 633-6868
