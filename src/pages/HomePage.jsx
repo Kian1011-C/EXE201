@@ -1,971 +1,602 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import CarrierLogosStrip from '../components/CarrierLogos';
-import AnimatedCounter from '../components/AnimatedCounter';
+import { leadership } from '../data/teamData';
+import { locations } from '../data/locationsData';
 
 export default function HomePage({ onOpenQuote }) {
-  const [planType, setPlanType] = useState('medicare');
-  const [zipcode, setZipcode] = useState('');
-  const [age, setAge] = useState('');
-  const [phone, setPhone] = useState('');
-
-  const handleQuickQuote = (e) => {
-    e.preventDefault();
-    onOpenQuote();
-  };
-
   return (
-    <div className="w-full bg-background text-on-background">
+    <div className="w-full bg-surface text-on-surface">
       
-      {/* Hero Section with Quote Form & Visual Accent */}
-      <section className="relative bg-gradient-to-b from-surface via-surface to-surface-container-low overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24 border-b border-stroke-subtle">
-        {/* Ambient decorative glow */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-cyan-ice/40 blur-3xl pointer-events-none animate-pulse-glow"></div>
-        <div className="absolute bottom-0 left-10 w-72 h-72 rounded-full bg-primary/5 blur-2xl pointer-events-none"></div>
-        
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+      {/* ─────────────────────────────────────────────────────────────
+          1. HERO SECTION — Grounded, Established Texas Agency Presence
+         ───────────────────────────────────────────────────────────── */}
+      <section className="relative bg-surface-container-lowest border-b border-stroke-subtle pt-10 pb-16 lg:pt-16 lg:pb-24">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             {/* Left Content Column */}
             <motion.div 
-              initial={{ opacity: 0, y: 25 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.4 }}
               className="lg:col-span-7 space-y-6 text-left"
             >
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-ice text-primary text-label-md font-label-md font-bold tracking-wide shadow-sm border border-cyan-ice/60 animate-float">
-                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
-                <span>SAVE THE MOST WITH THE BEST RATE</span>
+              {/* Eyebrow badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-cyan-ice/40 text-primary text-xs font-bold tracking-wide border border-primary/20">
+                <span className="material-symbols-outlined text-[16px]">location_on</span>
+                <span>Independent Texas Insurance Agency • Katy • Houston • Garland</span>
               </div>
 
-              <motion.h1 
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-headline-lg lg:text-display-xl font-extrabold text-on-surface tracking-tight leading-tight"
-              >
-                Safeguarding Your <br className="hidden sm:inline" />
-                <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-container to-secondary">
-                  Future With Insurance
-                </span>
-              </motion.h1>
+              {/* Editorial Headline */}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight leading-[1.15]">
+                Insurance Guidance <br className="hidden sm:inline" />
+                <span className="text-primary">You Can Trust.</span>
+              </h1>
 
-              <motion.p 
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-body-lg font-body-lg text-on-surface-variant max-w-xl"
-              >
-                Navigate healthcare, Medicare, and tailored life policies with licensed independent Texas specialists. Guaranteed quick response, clear answers, and zero confusion.
-              </motion.p>
+              {/* Subhead with realistic, human language */}
+              <p className="text-base sm:text-lg text-on-surface-variant max-w-xl leading-relaxed">
+                Helping Texas families, seniors, and business owners navigate Medicare, Health (ACA), and Life insurance. We compare rates across 30+ top-rated carriers to find coverage that fits your budget — with zero broker fees.
+              </p>
 
-              <motion.div 
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="flex flex-wrap items-center gap-4 pt-2"
-              >
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-4 pt-2">
                 <button
                   onClick={onOpenQuote}
-                  className="px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-bold shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2 cursor-pointer text-sm"
                 >
-                  <span>Get A Quote</span>
-                  <span className="material-symbols-outlined text-[18px]">verified</span>
+                  <span>Talk With an Advisor</span>
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </button>
 
                 <Link
-                  to="/contact"
-                  className="px-6 py-3.5 rounded-xl bg-surface-container-lowest border border-stroke-subtle hover:border-primary text-on-surface hover:text-primary font-label-lg text-label-lg font-bold shadow-xs hover:shadow-sm transition-all duration-200 flex items-center gap-2"
+                  to="/locations"
+                  className="px-6 py-3.5 rounded-xl bg-surface-container-lowest border border-stroke-subtle hover:border-primary text-on-surface hover:text-primary font-bold shadow-xs hover:shadow-sm transition-all duration-200 flex items-center gap-2 text-sm"
                 >
-                  <span>Contact Us</span>
-                  <span className="material-symbols-outlined text-[18px]">headset_mic</span>
+                  <span className="material-symbols-outlined text-[18px] text-primary">store</span>
+                  <span>Visit a Texas Office</span>
                 </Link>
-              </motion.div>
+              </div>
 
-              {/* Trust Badge Row */}
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="pt-4 flex flex-wrap items-center gap-6 text-on-surface-variant text-body-sm font-body-sm"
-              >
-                <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-success-emerald text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                  <span>Licensed in 50 States</span>
+              {/* Factual Agency Guarantees */}
+              <div className="pt-4 border-t border-stroke-subtle grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-on-surface-variant">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-[18px]">verified</span>
+                  <span><strong>Independent Brokerage</strong> — We work for you</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-success-emerald text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                  <span>Response in 3-5 Days Guaranteed</span>
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-[18px]">translate</span>
+                  <span><strong>Bilingual Advisors</strong> — English &amp; Tiếng Việt</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-success-emerald text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                  <span>No Fee For Consultation</span>
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-[18px]">payments</span>
+                  <span><strong>Zero Broker Fees</strong> — Free plan comparisons</span>
                 </div>
-              </motion.div>
-            </motion.div>
-
-            {/* Right Column: Interactive Quick Quote Widget */}
-            <motion.div 
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="lg:col-span-5 relative" 
-              id="quote-calculator"
-            >
-              <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl border border-stroke-subtle shadow-xl relative z-10 transition-shadow duration-300 hover:shadow-2xl">
-                <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-5">
-                  <div>
-                    <h2 className="text-xl font-bold text-on-surface">Fast Rate Comparison</h2>
-                    <p className="text-xs text-on-surface-variant">Check your eligibility &amp; savings in 2 minutes</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-cyan-ice flex items-center justify-center text-primary">
-                    <span className="material-symbols-outlined text-[22px]">calculate</span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-[18px]">pin_drop</span>
+                  <span><strong>3 Physical Offices</strong> — Katy, Houston, Garland</span>
                 </div>
-
-                <form className="space-y-4" onSubmit={handleQuickQuote}>
-                  {/* Insurance Category Choice */}
-                  <div>
-                    <label className="block text-xs font-semibold text-on-surface mb-1.5">
-                      Select Insurance Program
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPlanType('medicare')}
-                        className={`rounded-lg p-2.5 text-center transition-all flex flex-col items-center cursor-pointer border ${
-                          planType === 'medicare'
-                            ? 'border-primary bg-cyan-ice/40 text-primary font-bold shadow-xs scale-[1.02]'
-                            : 'border-stroke-subtle hover:border-primary/50 bg-surface text-on-surface-variant'
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-[20px]">medical_services</span>
-                        <span className="text-xs mt-1">Medicare</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setPlanType('aca')}
-                        className={`rounded-lg p-2.5 text-center transition-all flex flex-col items-center cursor-pointer border ${
-                          planType === 'aca'
-                            ? 'border-primary bg-cyan-ice/40 text-primary font-bold shadow-xs scale-[1.02]'
-                            : 'border-stroke-subtle hover:border-primary/50 bg-surface text-on-surface-variant'
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-[20px]">health_and_safety</span>
-                        <span className="text-xs mt-1">ACA / Health</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setPlanType('life')}
-                        className={`rounded-lg p-2.5 text-center transition-all flex flex-col items-center cursor-pointer border ${
-                          planType === 'life'
-                            ? 'border-primary bg-cyan-ice/40 text-primary font-bold shadow-xs scale-[1.02]'
-                            : 'border-stroke-subtle hover:border-primary/50 bg-surface text-on-surface-variant'
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-[20px]">family_restroom</span>
-                        <span className="text-xs mt-1">Life Plans</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Form Row: ZIP & Age */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-on-surface mb-1" htmlFor="zipcode">
-                        ZIP Code
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="zipcode"
-                          type="text"
-                          maxLength={5}
-                          placeholder="77450"
-                          value={zipcode}
-                          onChange={(e) => setZipcode(e.target.value)}
-                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                          required
-                        />
-                        <span className="material-symbols-outlined absolute left-2.5 top-3 text-[18px] text-outline">
-                          location_on
-                        </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-on-surface mb-1" htmlFor="age">
-                        Applicant Age
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="age"
-                          type="number"
-                          min="0"
-                          max="100"
-                          placeholder="65"
-                          value={age}
-                          onChange={(e) => setAge(e.target.value)}
-                          className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                          required
-                        />
-                        <span className="material-symbols-outlined absolute left-2.5 top-3 text-[18px] text-outline">
-                          cake
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Contact phone */}
-                  <div>
-                    <label className="block text-xs font-semibold text-on-surface mb-1" htmlFor="phone">
-                      Phone Number for Verification
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="phone"
-                        type="tel"
-                        placeholder="(833) 000-0000"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="w-full h-11 px-3 pl-9 rounded-lg border border-stroke-subtle bg-surface-container-lowest text-on-surface text-base sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                      />
-                      <span className="material-symbols-outlined absolute left-2.5 top-3 text-[18px] text-outline">
-                        phone
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-bold text-sm tracking-wide transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <span>Get Free Quote Now</span>
-                    <span className="material-symbols-outlined text-[18px]">bolt</span>
-                  </button>
-
-                  <p className="text-[11px] leading-relaxed text-center text-outline">
-                    By clicking, you agree to receive information from licensed insurance agent representatives. No spam guaranteed.
-                  </p>
-                </form>
               </div>
-              <div className="absolute -bottom-4 -right-4 w-full h-full bg-cyan-ice/30 rounded-2xl -z-0 hidden sm:block"></div>
             </motion.div>
 
-          </div>
-        </div>
-      </section>
-
-      {/* Key Metrics / Trust Bar */}
-      <section className="bg-trust-navy-deep text-on-primary py-8 border-y border-cyan-ice/15">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-white/10">
+            {/* Right Visual Column — Authentic Advisor Photography & Agency Card */}
             <motion.div 
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className="p-3 cursor-default"
-            >
-              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">
-                <AnimatedCounter target="10" suffix="k+" />
-              </div>
-              <div className="text-xs uppercase tracking-wider text-surface-variant font-medium mt-1">Satisfied Clients</div>
-            </motion.div>
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className="p-3 cursor-default"
-            >
-              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">
-                <AnimatedCounter target="50" suffix="k+" />
-              </div>
-              <div className="text-xs uppercase tracking-wider text-surface-variant font-medium mt-1">Case Support</div>
-            </motion.div>
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className="p-3 cursor-default"
-            >
-              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">
-                <AnimatedCounter target="120" suffix="+" />
-              </div>
-              <div className="text-xs uppercase tracking-wider text-surface-variant font-medium mt-1">Certified Agents</div>
-            </motion.div>
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className="p-3 cursor-default"
-            >
-              <div className="text-3xl lg:text-4xl font-extrabold text-cyan-ice">
-                <AnimatedCounter target="50" suffix="" />
-              </div>
-              <div className="text-xs uppercase tracking-wider text-surface-variant font-medium mt-1">States Covered</div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Carrier Logos Strip (Representing 30+ top carriers) */}
-      <CarrierLogosStrip />
-
-      {/* Core Insurance Offerings Section */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 lg:px-8" id="services">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col md:flex-row md:items-end justify-between mb-12"
-        >
-          <div className="max-w-2xl">
-            <span className="text-primary font-label-lg text-label-lg font-bold tracking-wider uppercase mb-2 block">
-              Our Specialized Services
-            </span>
-            <h2 className="text-headline-md lg:text-headline-lg font-extrabold text-on-surface tracking-tight">
-              The Best Rate Insurance specializes in Medicare, Affordable Care Act, and Life Insurance.
-            </h2>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <Link
-              to="/insurance-services"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-primary text-primary hover:bg-cyan-ice/20 font-label-lg text-label-lg font-bold transition-all duration-200 hover:-translate-y-0.5"
-            >
-              <span>View All Coverage Types</span>
-              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-            </Link>
-          </div>
-        </motion.div>
-
-        {/* Bento-style 3 Main Offerings */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
-          {/* Card 1: ACA / Health */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            whileHover={{ y: -4 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
-          >
-            <div className="h-48 overflow-hidden relative">
-              <img 
-                src="/images/service-aca.jpg" 
-                alt="Affordable Care Act healthcare consultation" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-              />
-              <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-sm">
-                <span className="material-symbols-outlined text-[16px]">health_and_safety</span>
-                <span>ACA / Marketplace</span>
-              </div>
-            </div>
-
-            <div className="p-6 flex-grow flex flex-col justify-between">
-              <div>
-                <h3 className="text-headline-sm font-headline-sm text-on-surface font-bold mb-2">Affordable Care Act (ACA)</h3>
-                <p className="text-body-sm font-body-sm text-on-surface-variant mb-4">
-                  Individual &amp; family healthcare coverage with comprehensive preventive care, prescription medication access, and maximum subsidy eligibility support.
-                </p>
-                <ul className="space-y-2 mb-6 text-body-sm font-body-sm text-on-surface">
-                  <li className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">check</span>
-                    <span>Individual &amp; Family Health Plans</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">check</span>
-                    <span>Premium Tax Credit Assistance</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">check</span>
-                    <span>Individual Disability &amp; LTC Options</span>
-                  </li>
-                </ul>
-              </div>
-
-              <Link
-                to="/insurance-services/health-insurance"
-                className="w-full py-2.5 px-4 rounded-xl bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5"
-              >
-                <span>Explore ACA Plans</span>
-                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* Card 2: Medicare Solutions (Featured) */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            whileHover={{ y: -4 }}
-            className="bg-surface-container-lowest rounded-2xl border-2 border-primary overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col group relative"
-          >
-            <div className="absolute top-3 right-3 z-10 bg-primary text-on-primary text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
-              Top Rated Guidance
-            </div>
-            
-            <div className="h-48 overflow-hidden relative">
-              <img 
-                src="/images/service-medicare.jpg" 
-                alt="Medicare guidance specialist with senior client" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-              />
-              <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-sm">
-                <span className="material-symbols-outlined text-[16px]">elderly</span>
-                <span>Senior Healthcare</span>
-              </div>
-            </div>
-
-            <div className="p-6 flex-grow flex flex-col justify-between">
-              <div>
-                <h3 className="text-headline-sm font-headline-sm text-on-surface font-bold mb-2">Medicare Guidance</h3>
-                <p className="text-body-sm font-body-sm text-on-surface-variant mb-4">
-                  Personalized plan matching to ensure your doctors, dental, vision, and medications are fully covered with lowest out-of-pocket expenses.
-                </p>
-                <ul className="space-y-2 mb-6 text-body-sm font-body-sm text-on-surface">
-                  <li className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">check</span>
-                    <span>Medicare Part C (Advantage Plans)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">check</span>
-                    <span>Medicare Part D (Prescription Drug)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">check</span>
-                    <span>Medigap Supplemental Insurance</span>
-                  </li>
-                </ul>
-              </div>
-
-              <Link
-                to="/insurance-services/medicare"
-                className="w-full py-2.5 px-4 rounded-xl bg-primary text-on-primary hover:bg-primary-container font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                <span>Compare Medicare Options</span>
-                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* Card 3: Life Insurance */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            whileHover={{ y: -4 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
-          >
-            <div className="h-48 overflow-hidden relative">
-              <img 
-                src="/images/service-life.jpg" 
-                alt="Multigenerational family protected by Life Insurance" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-              />
-              <div className="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary flex items-center gap-1 shadow-sm">
-                <span className="material-symbols-outlined text-[16px]">shield</span>
-                <span>Family Protection</span>
-              </div>
-            </div>
-
-            <div className="p-6 flex-grow flex flex-col justify-between">
-              <div>
-                <h3 className="text-headline-sm font-headline-sm text-on-surface font-bold mb-2">Life &amp; Asset Protection</h3>
-                <p className="text-body-sm font-body-sm text-on-surface-variant mb-4">
-                  Safeguard what matters most with life policies and annuity vehicles tailored for every life milestone, mortgage, and final expense need.
-                </p>
-                <ul className="space-y-2 mb-6 text-body-sm font-body-sm text-on-surface">
-                  <li className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">check</span>
-                    <span>Individual Term &amp; Whole Life</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">check</span>
-                    <span>Mortgage Protection Insurance</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">check</span>
-                    <span>Final Expense &amp; Fixed Annuities</span>
-                  </li>
-                </ul>
-              </div>
-
-              <Link
-                to="/insurance-services/life-insurance"
-                className="w-full py-2.5 px-4 rounded-xl bg-surface-container-low group-hover:bg-primary group-hover:text-on-primary text-primary font-label-lg text-label-lg font-bold text-center transition-colors flex items-center justify-center gap-1.5"
-              >
-                <span>View Life Policies</span>
-                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
-              </Link>
-            </div>
-          </motion.div>
-
-        </div>
-      </section>
-
-      {/* 'Insuring Katy and All of Texas' Value Proposition Section */}
-      <section className="bg-gradient-to-r from-trust-navy-deep via-primary to-secondary py-16 lg:py-24 text-on-primary relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-            
-            {/* Visual / Agent Feature Image */}
-            <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
               className="lg:col-span-5"
             >
-              <div className="relative rounded-2xl overflow-hidden border-2 border-cyan-ice/20 shadow-2xl group">
-                <img 
-                  src="/images/advisor-counselor.jpg" 
-                  alt="Insurance counselor greeting client in Houston office" 
-                  className="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
-                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-trust-navy-deep/90 via-trust-navy-deep/60 to-transparent p-6">
-                  <div className="text-cyan-ice font-label-md text-label-md font-bold uppercase tracking-wider mb-1">Guaranteed Service Standard</div>
-                  <div className="text-surface-container-lowest font-headline-sm text-headline-sm font-bold">Guaranteed Response Within 3–5 Business Days</div>
+              <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle shadow-sm overflow-hidden">
+                {/* Real-world Photography */}
+                <div className="relative h-64 sm:h-72 overflow-hidden bg-surface-container">
+                  <img 
+                    src="/images/advisor-counselor.jpg" 
+                    alt="Licensed insurance advisor meeting with clients in Texas" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 right-3 bg-surface-container-lowest/95 backdrop-blur-sm px-3 py-1 rounded-md text-xs font-bold text-primary border border-stroke-subtle shadow-xs flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>Texas Licensed Agency</span>
+                  </div>
+                </div>
+
+                {/* Grounded Office Card Details */}
+                <div className="p-6 space-y-4">
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-primary">Headquarters</div>
+                    <h3 className="text-base font-bold text-on-surface mt-0.5">The Best Rate Insurance • Katy Office</h3>
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      633 East Fernhurst Drive, Suite 1502, Katy, TX 77450
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-surface-container-low border border-stroke-subtle flex items-center justify-between">
+                    <div>
+                      <div className="text-[11px] text-on-surface-variant font-medium">Direct Telephone</div>
+                      <a href="tel:8336336868" className="text-sm font-bold text-primary hover:underline">
+                        (833) 633-6868
+                      </a>
+                    </div>
+                    <div className="text-right text-[11px] text-on-surface-variant">
+                      <div>Mon–Fri: 9am – 6pm</div>
+                      <div className="text-emerald-700 font-semibold">24/7 Phone Support</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-1">
+                    <button
+                      onClick={onOpenQuote}
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-xs font-bold transition-colors text-center cursor-pointer"
+                    >
+                      Request Rate Comparison
+                    </button>
+                    <a
+                      href="https://maps.google.com/?cid=15721998512988683818"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="py-2.5 px-4 rounded-xl border border-stroke-subtle hover:border-primary text-on-surface text-xs font-semibold transition-colors flex items-center gap-1"
+                    >
+                      <span>Map</span>
+                      <span className="material-symbols-outlined text-[15px]">directions</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Value Copy & Quick Direct Action Cards */}
-            <motion.div 
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="lg:col-span-7 space-y-6"
-            >
-              <span className="inline-block px-3 py-1 rounded-md bg-cyan-ice/20 text-cyan-ice text-label-md font-label-md font-bold uppercase tracking-wider border border-cyan-ice/30">
-                Insuring Katy and All of Texas
-              </span>
+          </div>
+        </div>
+      </section>
 
-              <h2 className="text-headline-md lg:text-headline-lg font-extrabold text-surface-container-lowest leading-tight">
-                When You Need a Plan That Will Keep You and Your Family Secure.
-              </h2>
+      {/* ─────────────────────────────────────────────────────────────
+          2. FACTUAL CREDENTIALS BAR (Replaces Fake 10k/50k Counters)
+         ───────────────────────────────────────────────────────────── */}
+      <section className="bg-trust-navy-deep text-white py-8 border-y border-white/10">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            
+            <div className="p-3 border-l-2 border-cyan-ice/40 pl-4">
+              <div className="text-xl lg:text-2xl font-black text-cyan-ice">3 Offices</div>
+              <div className="text-xs font-semibold text-white uppercase tracking-wider mt-0.5">Physical Texas Branches</div>
+              <p className="text-[11px] text-white/70 mt-1">Walk-in locations in Katy (HQ), Houston, and Garland</p>
+            </div>
 
-              <p className="text-body-md font-body-md text-cyan-ice/90 leading-relaxed">
-                Our agents have years of experience helping clients with a variety of different needs and budgets find affordable health insurance with coverage they can depend on.
-              </p>
+            <div className="p-3 border-l-2 border-cyan-ice/40 pl-4">
+              <div className="text-xl lg:text-2xl font-black text-cyan-ice">30+ Carriers</div>
+              <div className="text-xs font-semibold text-white uppercase tracking-wider mt-0.5">Independent Brokerage</div>
+              <p className="text-[11px] text-white/70 mt-1">We compare BlueCross, UnitedHealthcare, Aetna, Humana &amp; more</p>
+            </div>
 
-              <p className="text-body-md font-body-md text-surface-variant leading-relaxed">
-                Here at <strong className="text-white font-bold">The Best Rate Insurance</strong>, we pride ourselves on using modern technology and resources to provide our clients with a faster turnaround time than our competitors can.
-              </p>
+            <div className="p-3 border-l-2 border-cyan-ice/40 pl-4">
+              <div className="text-xl lg:text-2xl font-black text-cyan-ice">Bilingual</div>
+              <div className="text-xs font-semibold text-white uppercase tracking-wider mt-0.5">English &amp; Tiếng Việt</div>
+              <p className="text-[11px] text-white/70 mt-1">Dedicated advisors serving multicultural Texas communities</p>
+            </div>
 
-              {/* 3 Responsive Action Tiles */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4" id="contact-hub">
-                <motion.a 
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-sm transition-all duration-200 text-center flex flex-col items-center group cursor-pointer" 
-                  href="tel:8336336868"
-                >
-                  <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300">
-                    <span className="material-symbols-outlined text-[24px]">call</span>
-                  </div>
-                  <div className="text-title-md font-title-md font-bold text-white">Call Us</div>
-                  <div className="text-body-sm font-body-sm text-cyan-ice font-semibold mt-1">(833) 633-6868</div>
-                  <span className="text-xs text-surface-variant mt-0.5">24/7 Phone Support</span>
-                </motion.a>
+            <div className="p-3 border-l-2 border-cyan-ice/40 pl-4">
+              <div className="text-xl lg:text-2xl font-black text-cyan-ice">$0 Broker Fee</div>
+              <div className="text-xs font-semibold text-white uppercase tracking-wider mt-0.5">100% Free Consultation</div>
+              <p className="text-[11px] text-white/70 mt-1">Direct enrollment guidance at no additional cost to you</p>
+            </div>
 
-                <motion.a 
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-sm transition-all duration-200 text-center flex flex-col items-center group cursor-pointer" 
-                  href="mailto:info@thebestrateins.com"
-                >
-                  <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300">
-                    <span className="material-symbols-outlined text-[24px]">mail</span>
-                  </div>
-                  <div className="text-title-md font-title-md font-bold text-white">Email Us</div>
-                  <div className="text-body-sm font-body-sm text-cyan-ice font-semibold mt-1">Prompt Response</div>
-                  <span className="text-xs text-surface-variant mt-0.5">Direct Agent Inbox</span>
-                </motion.a>
+          </div>
+        </div>
+      </section>
 
-                <motion.div whileHover={{ y: -5, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Link 
-                    className="p-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-sm transition-all duration-200 text-center flex flex-col items-center group block cursor-pointer" 
-                    to="/locations"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-cyan-ice text-primary flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300">
-                      <span className="material-symbols-outlined text-[24px]">pin_drop</span>
-                    </div>
-                    <div className="text-title-md font-title-md font-bold text-white">Visit Us</div>
-                    <div className="text-body-sm font-body-sm text-cyan-ice font-semibold mt-1">3 Texas Hubs</div>
-                    <span className="text-xs text-surface-variant mt-0.5">Katy, Houston, Garland</span>
-                  </Link>
-                </motion.div>
+      {/* ─────────────────────────────────────────────────────────────
+          3. CARRIER PARTNERSHIPS MARQUEE
+         ───────────────────────────────────────────────────────────── */}
+      <section className="py-6 bg-surface-container-low border-b border-stroke-subtle">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          <p className="text-center text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3">
+            Top Insurance Carriers We Represent &amp; Compare in Texas
+          </p>
+          <CarrierLogosStrip />
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          4. EDITORIAL SERVICES — Asymmetrical, Human & Practical
+         ───────────────────────────────────────────────────────────── */}
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 lg:px-8" id="services">
+        
+        {/* Section Header */}
+        <div className="max-w-3xl mb-12 text-left">
+          <span className="text-primary text-xs font-bold tracking-wider uppercase block mb-1.5">
+            Core Coverage Areas
+          </span>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-on-surface tracking-tight">
+            Insurance Guidance Tailored to Your Stage of Life.
+          </h2>
+          <p className="text-on-surface-variant text-sm sm:text-base mt-2 leading-relaxed">
+            Unlike captive agents who sell only one company’s policies, our independent advisors evaluate dozens of underwriting guidelines to match your specific medical needs and budget.
+          </p>
+        </div>
+
+        {/* Asymmetric Editorial Layout: Lead Feature + Companion Grid */}
+        <div className="space-y-8">
+          
+          {/* Featured Lead Block: Medicare Guidance (Wide 2-Column Card) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.4 }}
+            className="bg-surface-container-lowest rounded-2xl border-2 border-primary/40 shadow-xs hover:border-primary transition-colors overflow-hidden"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12">
+              <div className="lg:col-span-5 h-64 lg:h-auto relative bg-surface-container">
+                <img 
+                  src="/images/service-medicare.jpg" 
+                  alt="Medicare specialist assisting senior client" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-4 left-4 bg-primary text-on-primary text-[11px] font-bold px-3 py-1 rounded-md uppercase tracking-wider">
+                  Featured Service
+                </div>
               </div>
 
+              <div className="lg:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-6">
+                <div className="space-y-3">
+                  <div className="text-xs font-bold text-primary uppercase tracking-wider">Age 65+ &amp; Disability Coverage</div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-on-surface">
+                    Medicare Guidance: Clear Answers Before You Enroll
+                  </h3>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">
+                    Deciding between Medicare Advantage (Part C), Medicare Supplements (Medigap), and Part D Prescription Drug plans can be overwhelming. We verify your existing doctors, preferred hospital networks, and medications before recommending any plan.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 text-xs text-on-surface">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[17px]">check_circle</span>
+                      <span>Doctor &amp; Hospital In-Network Check</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[17px]">check_circle</span>
+                      <span>Prescription Drug (Part D) Tier Review</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[17px]">check_circle</span>
+                      <span>Dental, Vision &amp; Hearing Benefits</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[17px]">check_circle</span>
+                      <span>Annual Enrollment Review (Oct–Dec)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex flex-wrap items-center gap-4">
+                  <Link
+                    to="/insurance-services/medicare"
+                    className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-bold text-xs transition-colors flex items-center gap-1.5"
+                  >
+                    <span>Explore Medicare Options</span>
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </Link>
+                  <button
+                    onClick={onOpenQuote}
+                    className="px-5 py-2.5 rounded-xl border border-stroke-subtle hover:border-primary text-on-surface text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Request Free Plan Review
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* 2 Companion Services: ACA / Health & Life Protection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            {/* Service 2: ACA Marketplace */}
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle shadow-xs hover:border-primary/50 transition-colors p-6 sm:p-8 flex flex-col justify-between"
+            >
+              <div className="space-y-4">
+                <div className="h-44 rounded-xl overflow-hidden bg-surface-container relative">
+                  <img 
+                    src="/images/service-aca.jpg" 
+                    alt="Doctor checking health of family" 
+                    className="w-full h-full object-cover"
+                  />
+                  <span className="absolute bottom-3 left-3 bg-surface-container-lowest/90 px-2.5 py-1 rounded text-xs font-bold text-primary">
+                    Individuals &amp; Families
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-on-surface">
+                    Affordable Care Act (ACA / Obamacare)
+                  </h3>
+                  <p className="text-xs sm:text-sm text-on-surface-variant mt-1.5 leading-relaxed">
+                    Qualified health plans designed for individuals, self-employed workers, and families. We calculate government tax credits (subsidies) to reduce your monthly premium, sometimes to as low as $0/month.
+                  </p>
+                </div>
+
+                <ul className="space-y-2 text-xs text-on-surface">
+                  <li className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-[16px]">check</span>
+                    <span>Maximized Advance Premium Tax Credits (APTC)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-[16px]">check</span>
+                    <span>Preventive Care &amp; Essential Health Benefits</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-[16px]">check</span>
+                    <span>Special Enrollment Period (SEP) Guidance</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="pt-6 mt-4 border-t border-stroke-subtle">
+                <Link
+                  to="/insurance-services/health-insurance"
+                  className="w-full py-2.5 px-4 rounded-xl bg-surface-container-low hover:bg-primary hover:text-on-primary text-primary font-bold text-xs text-center transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <span>View ACA Plans &amp; Subsidies</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Service 3: Life & Asset Protection */}
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle shadow-xs hover:border-primary/50 transition-colors p-6 sm:p-8 flex flex-col justify-between"
+            >
+              <div className="space-y-4">
+                <div className="h-44 rounded-xl overflow-hidden bg-surface-container relative">
+                  <img 
+                    src="/images/service-life.jpg" 
+                    alt="Multigenerational family protected by Life Insurance" 
+                    className="w-full h-full object-cover"
+                  />
+                  <span className="absolute bottom-3 left-3 bg-surface-container-lowest/90 px-2.5 py-1 rounded text-xs font-bold text-primary">
+                    Financial Legacy
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-on-surface">
+                    Life Insurance &amp; Living Benefits
+                  </h3>
+                  <p className="text-xs sm:text-sm text-on-surface-variant mt-1.5 leading-relaxed">
+                    Protecting your family's future, safeguarding your home mortgage, and structuring tax-advantaged retirement vehicles. We customize term life, whole life, IUL, and fixed indexed annuities.
+                  </p>
+                </div>
+
+                <ul className="space-y-2 text-xs text-on-surface">
+                  <li className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-[16px]">check</span>
+                    <span>Term Life with Living Benefits (Critical/Chronic illness)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-[16px]">check</span>
+                    <span>Mortgage Protection &amp; Final Expense Policies</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-[16px]">check</span>
+                    <span>Fixed Indexed Annuities for Protected Growth</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="pt-6 mt-4 border-t border-stroke-subtle">
+                <Link
+                  to="/insurance-services/life-insurance"
+                  className="w-full py-2.5 px-4 rounded-xl bg-surface-container-low hover:bg-primary hover:text-on-primary text-primary font-bold text-xs text-center transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <span>Compare Life Insurance Options</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </Link>
+              </div>
             </motion.div>
 
           </div>
+
         </div>
       </section>
 
-      {/* Join Our Agency & Big Family Section */}
-      <section className="py-16 lg:py-24 bg-surface max-w-7xl mx-auto px-4 lg:px-8" id="careers">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-3xl mx-auto mb-12"
-        >
-          <span className="text-primary font-label-lg text-label-lg font-bold uppercase tracking-wider mb-2 block">
-            Join Our Agency
-          </span>
-          <h2 className="text-headline-md lg:text-headline-lg font-extrabold text-on-surface">
-            How Can You Join Our Big Family?
-          </h2>
-          <p className="text-body-lg font-body-lg text-on-surface-variant mt-4">
-            At The Best Rate Insurance, we're more than just an agency — we're a family. Through our Insurance Agent Bootcamp and ongoing community events, we're shaping the next generation of insurance professionals. Whether you're brand new or experienced, we actively recruit and support agents across all levels.
-          </p>
-        </motion.div>
-
-        {/* Agency Culture Banner Image */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.97 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6 }}
-          className="relative rounded-2xl overflow-hidden shadow-lg mb-12 border border-stroke-subtle group"
-        >
-          <img 
-            src="/images/team-retreat.jpg" 
-            alt="The Best Rate Insurance large agency family retreat and team members" 
-            className="w-full h-80 sm:h-96 object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-trust-navy-deep/80 via-transparent to-transparent flex items-end p-6 sm:p-10">
-            <div className="text-white max-w-xl">
-              <h3 className="text-headline-sm font-headline-sm font-bold">Ready to build a legacy?</h3>
-              <p className="text-body-md font-body-md text-surface-variant mt-1">
-                Receive hands-on support, high-intent lead generation tools, and direct guidance from top leaders in the industry.
+      {/* ─────────────────────────────────────────────────────────────
+          5. MEET OUR TEAM — Humanizing the Agency Leadership
+         ───────────────────────────────────────────────────────────── */}
+      <section className="py-16 lg:py-24 bg-surface-container-lowest border-y border-stroke-subtle" id="team">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 text-left">
+            <div className="max-w-2xl">
+              <span className="text-primary text-xs font-bold tracking-wider uppercase block mb-1.5">
+                Local Leadership &amp; Founders
+              </span>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-on-surface tracking-tight">
+                Meet the People Behind Your Coverage.
+              </h2>
+              <p className="text-on-surface-variant text-sm sm:text-base mt-2">
+                Real advisors with deep roots in Texas financial planning and community advocacy. No call centers — just dedicated professionals you can meet in person.
               </p>
+            </div>
+
+            <div className="mt-4 md:mt-0">
+              <Link
+                to="/about#team"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"
+              >
+                <span>Read Full Leadership Story</span>
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </Link>
             </div>
           </div>
-        </motion.div>
 
-        {/* 3 CTA Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            whileHover={{ y: -4 }}
-            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between text-left"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-cyan-ice text-primary flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-[26px]">badge</span>
-              </div>
-              <h3 className="text-title-md font-title-md font-bold text-on-surface mb-2">Join Our Agency</h3>
-              <p className="text-body-sm font-body-sm text-on-surface-variant mb-6">
-                We're always looking for motivated individuals to join our fast-growing nationwide sales team.
-              </p>
-            </div>
-            <Link 
-              to="/careers"
-              className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold text-center transition-colors block shadow-xs hover:shadow-sm"
-            >
-              Apply Now
-            </Link>
-          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {leadership.map((member) => (
+              <div 
+                key={member.name}
+                className="bg-surface rounded-2xl border border-stroke-subtle overflow-hidden shadow-xs hover:border-primary/50 transition-colors flex flex-col justify-between"
+              >
+                <div>
+                  <div className="h-56 bg-surface-container overflow-hidden">
+                    <img 
+                      src={member.image} 
+                      alt={member.name} 
+                      className="w-full h-full object-cover object-top"
+                    />
+                  </div>
+                  <div className="p-5 space-y-2">
+                    <div>
+                      <h3 className="text-base font-bold text-on-surface leading-snug">{member.name}</h3>
+                      <div className="text-xs font-semibold text-primary mt-0.5">{member.role}</div>
+                    </div>
+                    <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-3">
+                      {member.bio}
+                    </p>
+                  </div>
+                </div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            whileHover={{ y: -4 }}
-            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between text-left"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-cyan-ice text-primary flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-[26px]">person_search</span>
+                <div className="p-5 pt-0">
+                  <div className="border-t border-stroke-subtle pt-3 text-[11px] text-on-surface-variant">
+                    <span className="font-semibold text-on-surface">Focus: </span>
+                    {member.specialty}
+                  </div>
+                </div>
               </div>
-              <h3 className="text-title-md font-title-md font-bold text-on-surface mb-2">Find An Agent</h3>
-              <p className="text-body-sm font-body-sm text-on-surface-variant mb-6">
-                Connect with an accredited bilingual representative specializing in your exact county and state.
-              </p>
-            </div>
-            <Link 
-              to="/about#team"
-              className="w-full py-3 px-4 rounded-xl bg-surface-container-low hover:bg-surface-container text-primary font-label-lg text-label-lg font-bold text-center transition-colors block"
-            >
-              Find An Agent
-            </Link>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            whileHover={{ y: -4 }}
-            className="bg-surface-container-lowest p-8 rounded-2xl border border-stroke-subtle hover:border-primary/50 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between text-left"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-cyan-ice text-primary flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-[26px]">support_agent</span>
-              </div>
-              <h3 className="text-title-md font-title-md font-bold text-on-surface mb-2">Contact Us Today</h3>
-              <p className="text-body-sm font-body-sm text-on-surface-variant mb-6">
-                Let one of our licensed independent experts customize a compliant solution that's right for you.
-              </p>
-            </div>
-            <button 
-              onClick={onOpenQuote}
-              className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold text-center transition-colors cursor-pointer shadow-xs hover:shadow-sm"
-            >
-              Get In Touch
-            </button>
-          </motion.div>
+            ))}
+          </div>
 
         </div>
       </section>
 
-      {/* Recent Blog Insight Section */}
-      <section className="py-16 bg-surface-container-low border-t border-stroke-subtle" id="blog">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 grid grid-cols-1 lg:grid-cols-12 items-center group"
-          >
-            <div className="lg:col-span-5 h-64 lg:h-full min-h-[300px] relative overflow-hidden">
-              <img 
-                src="/images/family-blog.jpg" 
-                alt="Family calculating coverage security together" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-              />
-            </div>
-            <div className="lg:col-span-7 p-6 sm:p-10 space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 rounded-full bg-cyan-ice text-primary text-label-md font-label-md font-bold uppercase">
-                  Insurance Blog
-                </span>
-                <span className="text-xs text-outline font-medium">September 7, 2026</span>
-              </div>
-              <h2 className="text-headline-sm lg:text-headline-md font-bold text-on-surface">
-                Life Insurance Awareness Month: How Much Coverage Do You Really Need?
-              </h2>
-              <p className="text-body-md font-body-md text-on-surface-variant">
-                Calculating your family's safety net doesn't have to be guesswork. From calculating mortgage debt and college funds to final expenses, learn how our advisors calculate optimal coverage limits without overpaying premiums.
-              </p>
-              <div className="pt-2">
-                <button
-                  onClick={onOpenQuote}
-                  className="inline-flex items-center gap-2 font-label-lg text-label-lg font-bold text-primary hover:text-primary-container cursor-pointer transition-colors group/link"
-                >
-                  <span>Read Full Article</span>
-                  <span className="material-symbols-outlined text-[18px] group-hover/link:translate-x-1 transition-transform">arrow_forward</span>
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Local Texas Offices & Nationwide Reach */}
+      {/* ─────────────────────────────────────────────────────────────
+          6. LOCAL TEXAS PRESENCE — Real Walk-in Offices
+         ───────────────────────────────────────────────────────────── */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 lg:px-8" id="locations">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-2xl mx-auto mb-14"
-        >
-          <span className="text-primary font-label-lg text-label-lg font-bold uppercase tracking-wider mb-2 block">
-            Our Physical Branches
+        
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <span className="text-primary text-xs font-bold tracking-wider uppercase block mb-1.5">
+            Physical Branches
           </span>
-          <h2 className="text-headline-md lg:text-headline-lg font-extrabold text-on-surface">
-            Texas Headquartered, Proudly Serving All 50 States
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-on-surface tracking-tight">
+            Local Guidance. Real Texas Offices.
           </h2>
-          <p className="text-body-md font-body-md text-on-surface-variant mt-2">
-            Drop by our local offices or consult virtually from any state.
+          <p className="text-on-surface-variant text-sm sm:text-base mt-2">
+            Insurance decisions are personal. Drop by one of our walk-in locations across Texas, or schedule an in-person appointment with a local specialist.
           </p>
-        </motion.div>
+        </div>
 
         {/* 3 Physical Office Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          
-          {/* Katy Office */}
-          <motion.div 
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            whileHover={{ y: -4 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-4">
-                <h3 className="text-title-md font-title-md font-bold text-on-surface">Katy Office</h3>
-                <span className="w-8 h-8 rounded-full bg-cyan-ice text-primary flex items-center justify-center shadow-sm">
-                  <span className="material-symbols-outlined text-[18px]">location_on</span>
-                </span>
-              </div>
-              <div className="space-y-3 text-body-sm font-body-sm text-on-surface-variant">
-                <p className="font-semibold text-on-surface">The Best Rate Insurance</p>
-                <p>633 East Fernhurst Drive<br />Suite 1502<br />Katy, Texas 77450</p>
-                <div className="pt-2">
-                  <a className="text-primary font-bold hover:underline flex items-center gap-1.5 transition-colors" href="tel:8336336868">
-                    <span className="material-symbols-outlined text-[16px]">call</span>
-                    <span>Phone: (833) 633-6868</span>
-                  </a>
+          {locations.map((loc) => (
+            <div
+              key={loc.id}
+              className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-xs hover:border-primary/50 transition-colors flex flex-col justify-between"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-stroke-subtle pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-on-surface">{loc.name}</h3>
+                    {loc.isHQ && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-cyan-ice/40 px-2 py-0.5 rounded">
+                        Headquarters
+                      </span>
+                    )}
+                  </div>
+                  <span className="w-8 h-8 rounded-full bg-cyan-ice/40 text-primary flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[18px]">store</span>
+                  </span>
                 </div>
-                <div className="border-t border-stroke-subtle pt-3 text-xs text-on-surface-variant">
-                  <p className="font-semibold text-on-surface">Office Hours:</p>
-                  <p>Mon-Fri: 9:00am - 6:00pm</p>
-                  <p>Sat-Sun: Closed</p>
-                  <p className="text-primary font-semibold mt-1">Available by Phone: 24/7</p>
-                  <p className="text-secondary">Open Weekends: October–December</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-5 pt-3 border-t border-stroke-subtle">
-              <a 
-                href="https://maps.google.com/?cid=15721998512988683818" 
-                target="_blank" 
-                rel="noreferrer"
-                className="w-full block text-center py-2 rounded-lg bg-surface-container-low hover:bg-primary hover:text-white text-primary font-label-lg text-label-lg font-bold transition-colors"
-              >
-                View On Google Maps →
-              </a>
-            </div>
-          </motion.div>
 
-          {/* Houston Office */}
-          <motion.div 
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            whileHover={{ y: -4 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-4">
-                <h3 className="text-title-md font-title-md font-bold text-on-surface">Houston Office</h3>
-                <span className="w-8 h-8 rounded-full bg-cyan-ice text-primary flex items-center justify-center shadow-sm">
-                  <span className="material-symbols-outlined text-[18px]">location_on</span>
-                </span>
-              </div>
-              <div className="space-y-3 text-body-sm font-body-sm text-on-surface-variant">
-                <p className="font-semibold text-on-surface">The Best Rate Insurance</p>
-                <p>8001 S Kirkwood Rd<br />Houston, Texas 77072</p>
-                <div className="pt-2">
-                  <a className="text-primary font-bold hover:underline flex items-center gap-1.5 transition-colors" href="tel:8336336868">
-                    <span className="material-symbols-outlined text-[16px]">call</span>
-                    <span>Phone: (833) 633-6868</span>
-                  </a>
-                </div>
-                <div className="border-t border-stroke-subtle pt-3 text-xs text-on-surface-variant">
-                  <p className="font-semibold text-on-surface">Office Hours:</p>
-                  <p>Mon-Fri: 9:00am - 5:00pm</p>
-                  <p>Sat-Sun: Closed</p>
-                  <p className="text-primary font-semibold mt-1">Available by Phone: 24/7</p>
-                  <p className="text-secondary">Open Weekends: October–December</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-5 pt-3 border-t border-stroke-subtle">
-              <a 
-                href="https://maps.google.com/?q=8001%20S%20Kirkwood%20Rd%20Houston%20TX%2077072" 
-                target="_blank" 
-                rel="noreferrer"
-                className="w-full block text-center py-2 rounded-lg bg-surface-container-low hover:bg-primary hover:text-white text-primary font-label-lg text-label-lg font-bold transition-colors"
-              >
-                View On Google Maps →
-              </a>
-            </div>
-          </motion.div>
+                <div className="space-y-2.5 text-xs text-on-surface-variant">
+                  <div>
+                    <p className="font-semibold text-on-surface">{loc.address}</p>
+                    <p>{loc.city}</p>
+                  </div>
 
-          {/* Garland Office */}
-          <motion.div 
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            whileHover={{ y: -4 }}
-            className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between border-b border-stroke-subtle pb-4 mb-4">
-                <h3 className="text-title-md font-title-md font-bold text-on-surface">Garland Office</h3>
-                <span className="w-8 h-8 rounded-full bg-cyan-ice text-primary flex items-center justify-center shadow-sm">
-                  <span className="material-symbols-outlined text-[18px]">location_on</span>
-                </span>
-              </div>
-              <div className="space-y-3 text-body-sm font-body-sm text-on-surface-variant">
-                <p className="font-semibold text-on-surface">The Best Rate Insurance</p>
-                <p>2408 W Walnut St<br />Garland, Texas 75042</p>
-                <div className="pt-2">
-                  <a className="text-primary font-bold hover:underline flex items-center gap-1.5 transition-colors" href="tel:5642346868">
-                    <span className="material-symbols-outlined text-[16px]">call</span>
-                    <span>Phone: (564) 234-6868</span>
-                  </a>
-                </div>
-                <div className="border-t border-stroke-subtle pt-3 text-xs text-on-surface-variant">
-                  <p className="font-semibold text-on-surface">Office Hours:</p>
-                  <p>Mon-Fri: 9:00am - 5:00pm</p>
-                  <p>Sat-Sun: Closed</p>
-                  <p className="text-primary font-semibold mt-1">Available by Phone: 24/7</p>
-                  <p className="text-secondary">Open Weekends: October–December</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-5 pt-3 border-t border-stroke-subtle">
-              <a 
-                href="https://maps.google.com/?q=2408%20W%20Walnut%20St%20Garland%20TX%2075042" 
-                target="_blank" 
-                rel="noreferrer"
-                className="w-full block text-center py-2 rounded-lg bg-surface-container-low hover:bg-primary hover:text-white text-primary font-label-lg text-label-lg font-bold transition-colors"
-              >
-                View On Google Maps →
-              </a>
-            </div>
-          </motion.div>
+                  <div className="pt-1">
+                    <a href={`tel:${loc.phoneRaw}`} className="text-primary font-bold hover:underline flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px]">call</span>
+                      <span>Phone: {loc.phone}</span>
+                    </a>
+                  </div>
 
+                  <div className="pt-2 border-t border-stroke-subtle space-y-0.5 text-[11px]">
+                    <p className="font-semibold text-on-surface">Office Hours:</p>
+                    <p>{loc.hours}</p>
+                    <p className="text-primary font-medium">{loc.specialHours}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-stroke-subtle">
+                <a
+                  href={loc.mapLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full block text-center py-2.5 rounded-xl bg-surface-container-low hover:bg-primary hover:text-white text-primary text-xs font-bold transition-colors"
+                >
+                  View on Google Maps →
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Regional Coverage Callout Box */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.5 }}
-          className="bg-primary/5 rounded-2xl border border-primary/20 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6"
-        >
-          <div className="space-y-2">
-            <h3 className="text-headline-sm font-headline-sm font-bold text-primary">
-              Proudly Serving All of Texas &amp; 50 States
+        {/* Conversational "Prefer to talk?" Callout Box */}
+        <div className="bg-surface-container-lowest rounded-2xl border border-primary/30 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs">
+          <div className="space-y-1 text-left">
+            <div className="text-xs font-bold text-primary uppercase tracking-wider">Direct Assistance</div>
+            <h3 className="text-lg sm:text-xl font-bold text-on-surface">
+              Prefer to talk? Give our Texas team a call.
             </h3>
-            <p className="text-body-md font-body-md text-on-surface-variant max-w-2xl">
-              The Best Rate Insurance provides Medicare, Affordable Care Act, and Life Insurance to all of Texas, including Katy, Sugar Land, Richmond, and Cypress, plus nationwide network coverage.
+            <p className="text-xs sm:text-sm text-on-surface-variant max-w-2xl">
+              Our licensed advisors are ready to answer your questions by phone. Toll-Free: <a href="tel:8336336868" className="font-bold text-primary hover:underline">(833) 633-6868</a> (Mon–Fri: 9:00 AM – 6:00 PM CT).
             </p>
           </div>
-          <button 
+          <button
             onClick={onOpenQuote}
-            className="shrink-0 px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer"
+            className="shrink-0 px-6 py-3 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-xs font-bold transition-colors cursor-pointer shadow-xs"
           >
-            Speak With An Agent
+            Speak With An Advisor
           </button>
-        </motion.div>
+        </div>
+
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          7. EDUCATIONAL GUIDES & COMMUNITY
+         ───────────────────────────────────────────────────────────── */}
+      <section className="py-14 bg-surface-container-low border-t border-stroke-subtle" id="blog">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-6 sm:p-8">
+            <div className="space-y-2 max-w-2xl text-left">
+              <span className="text-primary text-xs font-bold uppercase tracking-wider">Educational Insurance Guide</span>
+              <h3 className="text-lg sm:text-xl font-bold text-on-surface">
+                Life Insurance Awareness: How Much Coverage Does a Family Really Need?
+              </h3>
+              <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+                Learn the straightforward formula for calculating income replacement, mortgage payoff, and college funding needs before choosing between term and permanent coverage.
+              </p>
+              <div className="text-[11px] text-on-surface-variant pt-1">
+                Published by The Best Rate Advisory Team • 4 min read
+              </div>
+            </div>
+            <button
+              onClick={onOpenQuote}
+              className="shrink-0 px-5 py-2.5 rounded-xl border border-primary text-primary hover:bg-primary hover:text-white text-xs font-bold transition-colors cursor-pointer"
+            >
+              Request Free Policy Review
+            </button>
+          </div>
+        </div>
       </section>
 
     </div>
   );
 }
-
