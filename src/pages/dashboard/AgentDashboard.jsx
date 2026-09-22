@@ -1,27 +1,31 @@
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import DashboardLayout from './DashboardLayout';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 
-// ── Initial Mock Dataset (Representing 200+ Portfolio) ────────
-const INITIAL_CUSTOMERS = [
+// ── Realistic 200+ Client Sample Data for Independent Agent ──
+const INITIAL_AGENT_CUSTOMERS = [
   {
-    id: 'CUST-101',
-    name: 'Nguyễn Văn Nam',
-    lang: 'Tiếng Việt & English',
-    type: 'Medicare Advantage (Part C)',
+    id: 'CT2600101',
+    code: 'AG-77036-01',
+    fullName: 'Nguyễn Văn Nam',
+    firstName: 'Nam',
+    lastName: 'Nguyễn',
+    age: 67,
+    phone: '+1 (832) 555-0192',
+    email: 'nam.nguyen77@gmail.com',
+    language: 'Tiếng Việt',
+    state: 'Texas',
+    city: 'Houston, TX',
+    zip: '77036',
     category: 'Medicare',
+    line: 'Medicare Advantage (Part C)',
     carrier: 'UnitedHealthcare',
     planName: 'AARP Medicare Advantage Choice (PPO)',
     policyNumber: 'UHC-9821430',
     premium: 0,
     aptcSubsidy: 0,
-    phone: '(832) 555-0192',
-    email: 'nam.nguyen@email.com',
-    city: 'Houston, TX',
-    zip: '77036',
-    age: 67,
     status: 'Active',
+    stage: 'Closed Won',
     priority: 'High',
     effectiveDate: '2025-01-01',
     renewalDate: '2026-10-15',
@@ -29,59 +33,69 @@ const INITIAL_CUSTOMERS = [
     needsFollowUp: false,
     appointmentToday: null,
     pendingTask: null,
-    doctor: 'Dr. Thang Tran (Memorial Hermann)',
-    notes: 'Khách hài lòng với quyền lợi nha khoa và tiền chợ $50/tháng. Đã nhắc lịch khám định kỳ.',
+    doctor: 'Dr. Thang Tran (Memorial Hermann Southwest)',
+    notes: 'Khách hàng cao tuổi, thích quyền lợi nha khoa và tiền trợ cấp OTC mua đồ $50/tháng.',
     commissionRate: '$306 / năm (CMS Renewal Cap)',
     commissionAmount: 306,
     commissionStatus: 'Settled',
   },
   {
-    id: 'CUST-102',
-    name: 'Trần Thị Mai',
-    lang: 'Tiếng Việt',
-    type: 'ObamaCare / ACA Silver Plan',
+    id: 'CT2600102',
+    code: 'AG-77449-02',
+    fullName: 'Trần Thị Mai',
+    firstName: 'Mai',
+    lastName: 'Trần',
+    age: 52,
+    phone: '+1 (713) 555-0143',
+    email: 'mai.tran.katy@yahoo.com',
+    language: 'Tiếng Việt',
+    state: 'Texas',
+    city: 'Katy, TX',
+    zip: '77449',
     category: 'ObamaCare',
+    line: 'ObamaCare / ACA Silver CSR Plan',
     carrier: 'BlueCross BlueShield TX',
     planName: 'Blue Advantage Silver HMO 205',
     policyNumber: 'BCBS-771204',
     premium: 420,
     aptcSubsidy: 400,
-    phone: '(713) 555-0143',
-    email: 'mai.tran72@gmail.com',
-    city: 'Katy, TX',
-    zip: '77449',
-    age: 52,
     status: 'In Underwriting',
+    stage: 'Application Submitted',
     priority: 'High',
     effectiveDate: '2026-02-01',
     renewalDate: '2026-11-01',
     isRenewalUpcoming: false,
     needsFollowUp: true,
     appointmentToday: null,
-    pendingTask: 'Bổ sung Proof of Income (W2 / Tax Return 2025) cho Marketplace trước ngày 25',
-    doctor: 'Oak Street Health - Bellaire',
-    notes: 'Thu nhập ước tính $28,000/năm. Đã nộp đơn, đang chờ thẩm định hồ sơ thu nhập.',
+    pendingTask: 'Bổ sung Proof of Income (Tax Return 2025) cho Marketplace trước ngày 25',
+    doctor: 'Oak Street Health - Bellaire Center',
+    notes: 'Thu nhập $28,500/năm. Đang chờ đối chiếu hồ sơ thu nhập với sàn HealthCare.gov.',
     commissionRate: '$30 PMPM (Per Member Per Month)',
     commissionAmount: 360,
     commissionStatus: 'Pending Carrier Review',
   },
   {
-    id: 'CUST-103',
-    name: 'Lê Hoàng Phúc',
-    lang: 'English & Tiếng Việt',
-    type: 'Life Insurance (IUL)',
+    id: 'CT2600103',
+    code: 'AG-75201-03',
+    fullName: 'Lê Hoàng Phúc',
+    firstName: 'Phúc',
+    lastName: 'Lê',
+    age: 41,
+    phone: '+1 (214) 555-0188',
+    email: 'phuc.le.realty@gmail.com',
+    language: 'English & Tiếng Việt',
+    state: 'Texas',
+    city: 'Dallas, TX',
+    zip: '75201',
     category: 'Life',
+    line: 'Indexed Universal Life (IUL)',
     carrier: 'Mutual of Omaha',
-    planName: 'Indexed Universal Life Plus',
+    planName: 'Life Protection Advantage IUL',
     policyNumber: 'MOO-552190',
     premium: 250,
     aptcSubsidy: 0,
-    phone: '(214) 555-0188',
-    email: 'phuc.le.realty@yahoo.com',
-    city: 'Dallas, TX',
-    zip: '75201',
-    age: 41,
     status: 'Application Submitted',
+    stage: 'Proposal Sent',
     priority: 'High',
     effectiveDate: '2026-03-01',
     renewalDate: '2027-03-01',
@@ -90,58 +104,68 @@ const INITIAL_CUSTOMERS = [
     appointmentToday: '10:30 AM (Zoom Consultation)',
     pendingTask: 'Ký điện tử Scope of Health & Living Benefits Rider',
     doctor: 'N/A',
-    notes: 'Mục tiêu tích lũy hưu trí thuế ưu đãi và bảo vệ gia đình $500,000 Face Amount.',
+    notes: 'Mục tiêu tích lũy hưu trí không chịu thuế và bảo hiểm nhân thọ mệnh giá $500,000.',
     commissionRate: '85% FYC (First Year Commission)',
     commissionAmount: 2550,
     commissionStatus: 'Pending Carrier Review',
   },
   {
-    id: 'CUST-104',
-    name: 'Phạm Minh Đức',
-    lang: 'Tiếng Việt',
-    type: 'Medicare Supplement (Plan G)',
+    id: 'CT2600104',
+    code: 'AG-75040-04',
+    fullName: 'Phạm Minh Đức',
+    firstName: 'Đức',
+    lastName: 'Phạm',
+    age: 69,
+    phone: '+1 (972) 555-0129',
+    email: 'duc.pham.garland@gmail.com',
+    language: 'Tiếng Việt',
+    state: 'Texas',
+    city: 'Garland, TX',
+    zip: '75040',
     category: 'Medicare',
+    line: 'Medicare Supplement (Plan G)',
     carrier: 'Humana',
     planName: 'Humana Medigap Standard Plan G',
     policyNumber: 'HUM-441098',
     premium: 145,
     aptcSubsidy: 0,
-    phone: '(972) 555-0129',
-    email: 'duc.pham.us@gmail.com',
-    city: 'Garland, TX',
-    zip: '75040',
-    age: 69,
     status: 'Active',
+    stage: 'Closed Won',
     priority: 'Medium',
     effectiveDate: '2024-06-01',
     renewalDate: '2026-06-01',
     isRenewalUpcoming: true,
     needsFollowUp: false,
-    appointmentToday: '02:00 PM (Phone Call)',
+    appointmentToday: '02:00 PM (Điện thoại tư vấn thuốc)',
     pendingTask: null,
-    doctor: 'Baylor Scott & White Garland',
-    notes: 'Đi bác sĩ thường xuyên, rất chuộng Plan G vì không cần Referral từ bác sĩ gia đình.',
+    doctor: 'Baylor Scott & White Medical Center Garland',
+    notes: 'Đi bác sĩ thường xuyên, rất hài lòng với Plan G vì tự do chọn bác sĩ khắp nước Mỹ.',
     commissionRate: '$306 / năm (CMS Renewal Cap)',
     commissionAmount: 306,
     commissionStatus: 'Settled',
   },
   {
-    id: 'CUST-105',
-    name: 'Võ Thị Kim Chi',
-    lang: 'Tiếng Việt & English',
-    type: 'ObamaCare / ACA Bronze Plan',
+    id: 'CT2600105',
+    code: 'AG-77083-05',
+    fullName: 'Võ Thị Kim Chi',
+    firstName: 'Chi',
+    lastName: 'Võ',
+    age: 38,
+    phone: '+1 (832) 555-0167',
+    email: 'kimchi.vo@icloud.com',
+    language: 'Tiếng Việt & English',
+    state: 'Texas',
+    city: 'Houston, TX',
+    zip: '77083',
     category: 'ObamaCare',
+    line: 'ObamaCare / ACA Bronze Plan',
     carrier: 'Aetna CVS Health',
     planName: 'Aetna Bronze OEP $0 Ded',
     policyNumber: 'AET-339182',
     premium: 320,
     aptcSubsidy: 320,
-    phone: '(832) 555-0167',
-    email: 'kimchi.vo@icloud.com',
-    city: 'Houston, TX',
-    zip: '77083',
-    age: 38,
     status: 'Active',
+    stage: 'Closed Won',
     priority: 'Normal',
     effectiveDate: '2025-01-01',
     renewalDate: '2026-11-01',
@@ -149,59 +173,69 @@ const INITIAL_CUSTOMERS = [
     needsFollowUp: false,
     appointmentToday: null,
     pendingTask: null,
-    doctor: 'Katy Urgent Care & CVS MinuteClinic',
-    notes: 'Chi phí $0/tháng sau trợ cấp APTC. Khách khỏe mạnh, chỉ dùng phòng ngừa cơ bản.',
+    doctor: 'MinuteClinic & HCA Houston Healthcare',
+    notes: 'Chi phí đóng thực tế $0/tháng nhờ trợ cấp chính phủ APTC $320.',
     commissionRate: '$30 PMPM (Per Member Per Month)',
     commissionAmount: 360,
     commissionStatus: 'Settled',
   },
   {
-    id: 'CUST-106',
-    name: 'Đoàn Quốc Bảo',
-    lang: 'Tiếng Việt',
-    type: 'Medicare Advantage (Part C)',
+    id: 'CT2600106',
+    code: 'AG-95112-06',
+    fullName: 'Đoàn Quốc Bảo',
+    firstName: 'Bảo',
+    lastName: 'Đoàn',
+    age: 71,
+    phone: '+1 (408) 555-0111',
+    email: 'bao.doan.sj@sbcglobal.net',
+    language: 'Tiếng Việt',
+    state: 'California',
+    city: 'San Jose, CA',
+    zip: '95112',
     category: 'Medicare',
+    line: 'Medicare Advantage (Part C)',
     carrier: 'Wellcare',
-    planName: 'Wellcare Giveback HMO (Part B Refund)',
+    planName: 'Wellcare Giveback HMO ($100 Part B Refund)',
     policyNumber: 'WEL-889012',
     premium: 0,
     aptcSubsidy: 0,
-    phone: '(408) 555-0111',
-    email: 'bao.doan@sbcglobal.net',
-    city: 'San Jose, CA',
-    zip: '95112',
-    age: 71,
     status: 'Renewal Required',
+    stage: 'Closed Won',
     priority: 'High',
     effectiveDate: '2024-01-01',
     renewalDate: '2026-10-15',
     isRenewalUpcoming: true,
     needsFollowUp: true,
     appointmentToday: null,
-    pendingTask: 'So sánh quyền lợi AEP 2026 vì Wellcare đổi danh mục thuốc tim mạch',
+    pendingTask: 'So sánh quyền lợi AEP 2026 vì Wellcare đổi danh mục thuốc huyết áp',
     doctor: 'Regional Medical Center of San Jose',
-    notes: 'Cần kiểm tra lại thuốc tiểu đường Metformin và thuốc huyết áp có còn trong Tier 1 không.',
+    notes: 'Cần kiểm tra lại thuốc tiểu đường Metformin và thuốc huyết áp Tier 1 trước mùa AEP.',
     commissionRate: '$306 / năm (CMS Renewal Cap)',
     commissionAmount: 306,
     commissionStatus: 'Settled',
   },
   {
-    id: 'CUST-107',
-    name: 'Nguyễn Thị Bích',
-    lang: 'Tiếng Việt',
-    type: 'Final Expense Life Insurance',
+    id: 'CT2600107',
+    code: 'AG-92683-07',
+    fullName: 'Nguyễn Thị Bích',
+    firstName: 'Bích',
+    lastName: 'Nguyễn',
+    age: 63,
+    phone: '+1 (714) 555-0176',
+    email: 'bich.nguyen.oc@gmail.com',
+    language: 'Tiếng Việt',
+    state: 'California',
+    city: 'Westminster, CA',
+    zip: '92683',
     category: 'Life',
+    line: 'Final Expense Life Insurance',
     carrier: 'Ameritas',
     planName: 'Ameritas Golden Care Whole Life',
     policyNumber: 'AME-665123',
     premium: 85,
     aptcSubsidy: 0,
-    phone: '(714) 555-0176',
-    email: 'bich.nguyen.ca@gmail.com',
-    city: 'Westminster, CA',
-    zip: '92683',
-    age: 63,
     status: 'Active',
+    stage: 'Closed Won',
     priority: 'Normal',
     effectiveDate: '2023-08-01',
     renewalDate: '2026-08-01',
@@ -210,37 +244,42 @@ const INITIAL_CUSTOMERS = [
     appointmentToday: null,
     pendingTask: null,
     doctor: 'Fountain Valley Regional Hospital',
-    notes: 'Hợp đồng bảo vệ trọn đời $25,000 chi phí an táng, tự động trừ tiền ngân hàng đều đặn.',
+    notes: 'Hợp đồng bảo vệ trọn đời $25,000 lo chi phí an táng, tự động trừ tài khoản Chase.',
     commissionRate: 'Renewal Service Fee (5%)',
     commissionAmount: 51,
     commissionStatus: 'Settled',
   },
   {
-    id: 'CUST-108',
-    name: 'Hoàng Văn Thảo',
-    lang: 'Tiếng Việt & English',
-    type: 'ObamaCare / ACA Gold Plan',
+    id: 'CT2600108',
+    code: 'AG-78758-08',
+    fullName: 'Hoàng Văn Thảo',
+    firstName: 'Thảo',
+    lastName: 'Hoàng',
+    age: 46,
+    phone: '+1 (512) 555-0134',
+    email: 'thao.hoang.atx@gmail.com',
+    language: 'Tiếng Việt & English',
+    state: 'Texas',
+    city: 'Austin, TX',
+    zip: '78758',
     category: 'ObamaCare',
+    line: 'ObamaCare / ACA Gold Plan',
     carrier: 'Cigna Healthcare',
     planName: 'Cigna Connect Gold 0 Ind',
     policyNumber: 'CIG-991204',
     premium: 580,
     aptcSubsidy: 460,
-    phone: '(512) 555-0134',
-    email: 'thao.hoang.atx@gmail.com',
-    city: 'Austin, TX',
-    zip: '78758',
-    age: 46,
     status: 'New',
+    stage: 'Lead In',
     priority: 'High',
     effectiveDate: '2026-04-01',
     renewalDate: '2026-11-01',
     isRenewalUpcoming: false,
     needsFollowUp: true,
-    appointmentToday: '04:30 PM (Callback scheduled)',
-    pendingTask: 'Gọi lại tư vấn chênh lệch giữa gói Gold và Silver CSR',
+    appointmentToday: '04:30 PM (Cuộc gọi hẹn lại)',
+    pendingTask: 'Gọi lại giải thích mức chênh lệch giữa Gold và Silver CSR',
     doctor: 'Austin Regional Clinic',
-    notes: 'Khách hàng có bệnh nền đường huyết cao, cần mức Deductible thấp để đi khám thường xuyên.',
+    notes: 'Khách hàng có bệnh nền cần Deductible thấp để đi xét nghiệm thường xuyên.',
     commissionRate: '$30 PMPM (Per Member Per Month)',
     commissionAmount: 360,
     commissionStatus: 'Pending Carrier Review',
@@ -269,27 +308,54 @@ const STATUS_OPTIONS = [
 ];
 
 export default function AgentDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  // State
-  const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'priorities', 'customers', 'commission'
+  // Navigation & View state
+  const [currentTab, setCurrentTab] = useState('priorities'); // 'priorities' | 'contacts' | 'deals' | 'commission'
+  const [showCrmMenu, setShowCrmMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const crmMenuRef = useRef(null);
+
+  // Data state
+  const [customers, setCustomers] = useState(INITIAL_AGENT_CUSTOMERS);
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All'); // 'All', 'Medicare', 'ObamaCare', 'Life'
+  const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [priorityFilter, setPriorityFilter] = useState('All'); // 'All', 'FollowUp', 'Appointment', 'Renewal', 'Task'
+  const [priorityFilter, setPriorityFilter] = useState('All');
 
-  // Modals
-  const [selectedCustomer, setSelectedCustomer] = useState(null); // for Customer 360 Profile
-  const [editingContract, setEditingContract] = useState(null); // for Update Contract modal
+  // Modals & Drawers
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [editingContract, setEditingContract] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
-  // ── Calculated Metrics ─────────────────────────────────────
+  // Close menus on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (crmMenuRef.current && !crmMenuRef.current.contains(event.target)) {
+        setShowCrmMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  function handleLogout() {
+    logout();
+    navigate('/login', { replace: true });
+  }
+
+  function showToast(msg) {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 4000);
+  }
+
+  // ── Metrics Calculation ──────────────────────────────────────
   const stats = useMemo(() => {
-    const followUpsCount = customers.filter((c) => c.needsFollowUp).length;
-    const appointmentsCount = customers.filter((c) => c.appointmentToday).length;
-    const renewalsCount = customers.filter((c) => c.isRenewalUpcoming).length;
-    const pendingTasksCount = customers.filter((c) => c.pendingTask).length;
+    const followUps = customers.filter((c) => c.needsFollowUp);
+    const appointments = customers.filter((c) => c.appointmentToday);
+    const renewals = customers.filter((c) => c.isRenewalUpcoming);
+    const tasks = customers.filter((c) => c.pendingTask);
 
     const settledRevenue = customers
       .filter((c) => c.commissionStatus === 'Settled')
@@ -300,52 +366,42 @@ export default function AgentDashboard() {
       .reduce((sum, c) => sum + (c.commissionAmount || 0), 0);
 
     return {
-      followUpsCount,
-      appointmentsCount,
-      renewalsCount,
-      pendingTasksCount,
+      followUpsCount: followUps.length,
+      appointmentsCount: appointments.length,
+      renewalsCount: renewals.length,
+      tasksCount: tasks.length,
       settledRevenue,
       pendingRevenue,
-      totalActivePolicies: 214, // Simulated full portfolio
+      totalActivePolicies: 214, // Simulated total active clients
     };
   }, [customers]);
 
-  // ── Filtered Customers ─────────────────────────────────────
+  // ── Filtered Customers ──────────────────────────────────────
   const filteredCustomers = useMemo(() => {
     return customers.filter((c) => {
-      // Search
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase().trim();
       const matchSearch =
         !q ||
-        c.name.toLowerCase().includes(q) ||
+        c.fullName.toLowerCase().includes(q) ||
         c.phone.toLowerCase().includes(q) ||
-        c.city.toLowerCase().includes(q) ||
+        c.code.toLowerCase().includes(q) ||
         c.carrier.toLowerCase().includes(q) ||
         c.policyNumber.toLowerCase().includes(q);
 
-      // Category
-      const matchCategory = categoryFilter === 'All' || c.category === categoryFilter;
-
-      // Status
+      const matchCat = categoryFilter === 'All' || c.category === categoryFilter;
       const matchStatus = statusFilter === 'All' || c.status === statusFilter;
 
-      // Priority Action Tab
       let matchPriority = true;
       if (priorityFilter === 'FollowUp') matchPriority = c.needsFollowUp;
       if (priorityFilter === 'Appointment') matchPriority = Boolean(c.appointmentToday);
       if (priorityFilter === 'Renewal') matchPriority = c.isRenewalUpcoming;
       if (priorityFilter === 'Task') matchPriority = Boolean(c.pendingTask);
 
-      return matchSearch && matchCategory && matchStatus && matchPriority;
+      return matchSearch && matchCat && matchStatus && matchPriority;
     });
   }, [customers, searchQuery, categoryFilter, statusFilter, priorityFilter]);
 
-  // ── Handlers ───────────────────────────────────────────────
-  function showToast(msg) {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 4000);
-  }
-
+  // ── Save Contract Mutation Handler ──────────────────────────
   function handleSaveContract(e) {
     e.preventDefault();
     if (!editingContract) return;
@@ -353,7 +409,8 @@ export default function AgentDashboard() {
     setCustomers((prev) =>
       prev.map((c) => {
         if (c.id === editingContract.id) {
-          const isNowActive = editingContract.status === 'Approved & Active' || editingContract.status === 'Active';
+          const isNowActive =
+            editingContract.status === 'Approved & Active' || editingContract.status === 'Active';
           return {
             ...c,
             status: editingContract.status,
@@ -370,842 +427,1096 @@ export default function AgentDashboard() {
       })
     );
 
-    showToast(`Hợp đồng của ${editingContract.name} đã được cập nhật thành công!`);
+    showToast(`Đã cập nhật hợp đồng của ${editingContract.fullName}!`);
     setEditingContract(null);
   }
 
   return (
-    <DashboardLayout>
-      {/* ── Toast Notification ─────────────────────────────────── */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-600 text-white shadow-xl text-sm font-medium"
-          >
-            <span className="material-symbols-outlined text-[20px]">check_circle</span>
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── 01: AGENT IDENTITY & HEADER ──────────────────────── */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full bg-[#C8A96B]" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-muted">
-              AgentFlow Workspace • NPN #1984210
-            </span>
-          </div>
-          <h2 className="text-headline-sm font-headline-sm font-bold text-on-surface">
-            Good day, {user?.name?.split(' ')[0] || 'Khánh'} 🧑‍💼
-          </h2>
-          <p className="text-body-md font-body-md text-on-surface-variant mt-1">
-            Independent Agent Workspace • Licensed in Texas (TDI), California (CDI) &amp; Florida
-          </p>
-        </div>
-
-        {/* Workflow Quick Jump Tabs */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-container border border-stroke-subtle shrink-0">
-          <button
-            onClick={() => { setActiveTab('all'); setPriorityFilter('All'); }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === 'all'
-                ? 'bg-primary text-white shadow-xs'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            All Overview
-          </button>
-          <button
-            onClick={() => { setActiveTab('priorities'); setPriorityFilter('All'); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === 'priorities'
-                ? 'bg-primary text-white shadow-xs'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            <span>02 Priorities</span>
-            <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">
-              {stats.followUpsCount + stats.appointmentsCount}
-            </span>
-          </button>
-          <button
-            onClick={() => setActiveTab('customers')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === 'customers'
-                ? 'bg-primary text-white shadow-xs'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            03 Customers (200+)
-          </button>
-          <button
-            onClick={() => setActiveTab('commission')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === 'commission'
-                ? 'bg-primary text-white shadow-xs'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            05 Commission
-          </button>
-        </div>
-      </div>
-
-      {/* ── Operational Status Banner (Like StaffDashboard) ──── */}
-      <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-surface-container border border-stroke-subtle text-on-surface">
-        <span className="material-symbols-outlined text-[22px] text-[#C8A96B] shrink-0 mt-0.5">verified</span>
-        <div className="text-body-sm font-body-sm flex-grow">
-          <strong className="font-bold text-primary">Core Agent Workflow Active:</strong>{' '}
-          <span className="text-on-surface-variant">
-            01 Login → 02 Priorities → 03 Customer Management → 04 Update Contract → 05 Commission.
-            Dữ liệu kết nối tự động cập nhật hoa hồng ngay khi hợp đồng được duyệt.
-          </span>
-        </div>
-        <div className="hidden sm:flex items-center gap-2 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-          CMS &amp; HIPAA Compliant
-        </div>
-      </div>
-
-      {/* ── 02: TODAY'S PRIORITIES (4 Action Stat Cards) ──────── */}
-      {(activeTab === 'all' || activeTab === 'priorities') && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-title-md font-bold text-on-surface flex items-center gap-2">
-              <span className="material-symbols-outlined text-[20px] text-[#C8A96B]">notification_important</span>
-              <span>Today's Priorities — Morning Cockpit</span>
-            </h3>
-            <span className="text-xs text-on-surface-variant">
-              Click vào thẻ để lọc danh sách khách hàng tương ứng
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 1. Follow-up Leads */}
-            <motion.div
-              whileHover={{ y: -2 }}
-              onClick={() => setPriorityFilter(priorityFilter === 'FollowUp' ? 'All' : 'FollowUp')}
-              className={`rounded-2xl border p-5 shadow-sm transition-all cursor-pointer ${
-                priorityFilter === 'FollowUp'
-                  ? 'bg-rose-50 border-rose-300 ring-2 ring-rose-400'
-                  : 'bg-surface-container-lowest border-stroke-subtle hover:border-primary/40'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined text-[22px] text-rose-600">phone_callback</span>
-              </div>
-              <div className="text-headline-sm font-headline-sm font-bold text-on-surface">
-                {stats.followUpsCount}
-              </div>
-              <div className="text-body-sm font-body-sm font-semibold text-rose-800">Customers to Follow-Up</div>
-              <div className="text-xs text-on-surface-variant mt-1">Cần gọi tư vấn &lt; 24h</div>
-            </motion.div>
-
-            {/* 2. Appointments Today */}
-            <motion.div
-              whileHover={{ y: -2 }}
-              onClick={() => setPriorityFilter(priorityFilter === 'Appointment' ? 'All' : 'Appointment')}
-              className={`rounded-2xl border p-5 shadow-sm transition-all cursor-pointer ${
-                priorityFilter === 'Appointment'
-                  ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-400'
-                  : 'bg-surface-container-lowest border-stroke-subtle hover:border-primary/40'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined text-[22px] text-amber-700">calendar_month</span>
-              </div>
-              <div className="text-headline-sm font-headline-sm font-bold text-on-surface">
-                {stats.appointmentsCount}
-              </div>
-              <div className="text-body-sm font-body-sm font-semibold text-amber-900">Today's Appointments</div>
-              <div className="text-xs text-on-surface-variant mt-1">Lịch hẹn Zoom / Điện thoại</div>
-            </motion.div>
-
-            {/* 3. Upcoming Renewals */}
-            <motion.div
-              whileHover={{ y: -2 }}
-              onClick={() => setPriorityFilter(priorityFilter === 'Renewal' ? 'All' : 'Renewal')}
-              className={`rounded-2xl border p-5 shadow-sm transition-all cursor-pointer ${
-                priorityFilter === 'Renewal'
-                  ? 'bg-purple-50 border-purple-300 ring-2 ring-purple-400'
-                  : 'bg-surface-container-lowest border-stroke-subtle hover:border-primary/40'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined text-[22px] text-purple-700">autorenew</span>
-              </div>
-              <div className="text-headline-sm font-headline-sm font-bold text-on-surface">
-                {stats.renewalsCount}
-              </div>
-              <div className="text-body-sm font-body-sm font-semibold text-purple-900">Upcoming Renewals</div>
-              <div className="text-xs text-on-surface-variant mt-1">Mùa AEP / ACA Open Enrollment</div>
-            </motion.div>
-
-            {/* 4. Important Tasks / Underwriting */}
-            <motion.div
-              whileHover={{ y: -2 }}
-              onClick={() => setPriorityFilter(priorityFilter === 'Task' ? 'All' : 'Task')}
-              className={`rounded-2xl border p-5 shadow-sm transition-all cursor-pointer ${
-                priorityFilter === 'Task'
-                  ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-400'
-                  : 'bg-surface-container-lowest border-stroke-subtle hover:border-primary/40'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center mb-3">
-                <span className="material-symbols-outlined text-[22px] text-blue-700">assignment_late</span>
-              </div>
-              <div className="text-headline-sm font-headline-sm font-bold text-on-surface">
-                {stats.pendingTasksCount}
-              </div>
-              <div className="text-body-sm font-body-sm font-semibold text-blue-900">Important Tasks</div>
-              <div className="text-xs text-on-surface-variant mt-1">Bổ sung Proof of Income / Ký đơn</div>
-            </motion.div>
-          </div>
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased selection:bg-cyan-100 selection:text-cyan-950">
+      {/* ── Toast Alert ────────────────────────────────────────── */}
+      {toastMessage && (
+        <div className="fixed top-14 right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-slate-900 text-white shadow-xl text-xs font-medium animate-in fade-in slide-in-from-top-2 duration-200">
+          <span className="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
+          <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* ── 03: CUSTOMER MANAGEMENT TABLE ─────────────────────── */}
-      {(activeTab === 'all' || activeTab === 'customers' || activeTab === 'priorities') && (
-        <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle shadow-sm overflow-hidden mb-8">
-          {/* Table Header & Controls */}
-          <div className="p-6 border-b border-stroke-subtle">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
-              <div>
-                <h3 className="text-title-md font-title-md font-bold text-on-surface flex items-center gap-2">
-                  <span>Customer 360 &amp; Contract Management</span>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-medium">
-                    {filteredCustomers.length} of {stats.totalActivePolicies}+ Clients
-                  </span>
-                </h3>
-                <p className="text-body-sm font-body-sm text-on-surface-variant mt-0.5">
-                  Tra cứu, xem thông tin bảo hiểm chi tiết và cập nhật tiến độ hợp đồng.
-                </p>
-              </div>
-
-              {/* Quick Search */}
-              <div className="relative w-full lg:w-72">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[18px]">
-                  search
-                </span>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Tìm tên, số phone, policy #..."
-                  className="w-full pl-10 pr-4 py-2 rounded-xl border border-stroke-subtle bg-surface text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface text-xs"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
+      {/* ── TOP UTILITY BAR (Exact Staff CRM Header Style) ─────── */}
+      <header className="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 shrink-0">
+        {/* Left: Brand & Portal Mode */}
+        <div className="flex items-center gap-6">
+          <Link to="/dashboard/agent" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-600 to-blue-700 flex items-center justify-center text-white shadow-xs">
+              <span className="material-symbols-outlined text-[19px]">verified_user</span>
             </div>
+            <div className="flex flex-col">
+              <span className="text-[13px] font-bold text-slate-900 leading-tight tracking-tight flex items-center gap-1.5">
+                <span>AgentFlow</span>
+                <span className="text-[10px] px-1.5 py-0.2 bg-blue-50 text-blue-700 rounded font-semibold border border-blue-200/60">
+                  CRM
+                </span>
+              </span>
+              <span className="text-[10px] text-slate-500 font-medium tracking-wide">
+                InsurMatch Independent Partner
+              </span>
+            </div>
+          </Link>
 
-            {/* Filter Pills */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stroke-subtle/50 text-xs">
-              <span className="font-bold text-on-surface-variant mr-1">Dòng sản phẩm:</span>
-              {['All', 'Medicare', 'ObamaCare', 'Life'].map((cat) => (
+          {/* Workflow Mode Tabs (Staff Management Pattern) */}
+          <nav className="hidden md:flex items-center gap-1 ml-2 text-xs">
+            <button
+              onClick={() => { setCurrentTab('priorities'); setPriorityFilter('All'); }}
+              className={`flex items-center gap-1.5 px-3 py-3 border-b-2 font-semibold transition-colors cursor-pointer ${
+                currentTab === 'priorities'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">priority_high</span>
+              <span>Today's Priorities</span>
+              <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center ml-0.5">
+                {stats.followUpsCount + stats.appointmentsCount}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setCurrentTab('contacts')}
+              className={`flex items-center gap-1.5 px-3 py-3 border-b-2 font-semibold transition-colors cursor-pointer ${
+                currentTab === 'contacts'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">contacts</span>
+              <span>Customers (200+)</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentTab('deals')}
+              className={`flex items-center gap-1.5 px-3 py-3 border-b-2 font-semibold transition-colors cursor-pointer ${
+                currentTab === 'deals'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">handshake</span>
+              <span>Contracts &amp; Pipeline</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentTab('commission')}
+              className={`flex items-center gap-1.5 px-3 py-3 border-b-2 font-semibold transition-colors cursor-pointer ${
+                currentTab === 'commission'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">payments</span>
+              <span>Commission</span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Right Tools (Staff Layout) */}
+        <div className="flex items-center gap-3">
+          {/* Quick Create + */}
+          <button
+            onClick={() => {
+              setEditingContract({
+                id: `CT2600${Math.floor(2000 + Math.random() * 900)}`,
+                fullName: 'Khách hàng mới (Quick Add)',
+                carrier: 'UnitedHealthcare',
+                policyNumber: 'NEW-POLICY',
+                premium: 0,
+                aptcSubsidy: 0,
+                status: 'New',
+                notes: '',
+                needsFollowUp: true,
+              });
+            }}
+            title="Create Policy / Lead"
+            className="w-7 h-7 rounded-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition text-sm cursor-pointer shadow-2xs"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+          </button>
+
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              title="Notifications"
+              className="w-7 h-7 rounded-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition cursor-pointer shadow-2xs"
+            >
+              <span className="material-symbols-outlined text-[18px]">notifications</span>
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">
+                {stats.renewalsCount}
+              </span>
+            </button>
+          </div>
+
+          {/* Regulatory & NPN Badge */}
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>NPN #1984210 • TX &amp; CA Verified</span>
+          </div>
+
+          {/* User Profile */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100 transition cursor-pointer"
+            >
+              <div className="w-7 h-7 rounded-full bg-[#104882] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                KN
+              </div>
+              <span className="hidden lg:inline text-xs font-semibold text-slate-700 max-w-[140px] truncate">
+                Khánh Nguyen
+              </span>
+              <span className="material-symbols-outlined text-[14px] text-slate-400">expand_more</span>
+            </button>
+
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-3 py-2 border-b border-slate-100">
+                  <div className="text-xs font-bold text-slate-900">Khánh Nguyen, Licensed Agent</div>
+                  <div className="text-[11px] text-slate-500 font-mono">NPN: #1984210</div>
+                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase">
+                    Role: Independent Agent
+                  </span>
+                </div>
+                <Link
+                  to="/"
+                  className="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                  <span>View InsurMatch Site</span>
+                </Link>
                 <button
-                  key={cat}
-                  onClick={() => setCategoryFilter(cat)}
-                  className={`px-3 py-1 rounded-full font-semibold transition cursor-pointer ${
-                    categoryFilter === cat
-                      ? 'bg-primary text-white shadow-xs'
-                      : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 text-left transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">logout</span>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* ── MAIN BODY WITH SLIM DARK NAVY RAIL ────────────────── */}
+      <div className="flex-grow flex overflow-hidden">
+        {/* Leftmost Slim Dark Navy Rail (Exact Match to Staff Layout) */}
+        <aside className="w-12 bg-[#0C1B33] shrink-0 flex flex-col items-center py-3 gap-2.5 z-30 shadow-md">
+          {/* Top Home / Apps Icon */}
+          <button
+            title="Overview"
+            onClick={() => { setCurrentTab('priorities'); setPriorityFilter('All'); }}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer ${
+              currentTab === 'priorities'
+                ? 'bg-[#00B4D8] text-white shadow-sm ring-2 ring-cyan-300/40'
+                : 'text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[20px]">grid_view</span>
+          </button>
+
+          {/* CRM Flyout Menu Trigger */}
+          <div className="relative" ref={crmMenuRef}>
+            <button
+              title="Agent CRM Menu"
+              onClick={() => setShowCrmMenu(!showCrmMenu)}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer ${
+                currentTab === 'contacts' || currentTab === 'deals' || showCrmMenu
+                  ? 'bg-[#00B4D8] text-white shadow-sm ring-2 ring-cyan-300/40'
+                  : 'text-slate-400 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[20px]">contacts</span>
+            </button>
+
+            {/* Flyout Popover */}
+            {showCrmMenu && (
+              <div className="absolute left-full top-0 ml-2 w-52 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 select-none">
+                  AgentFlow Workflow
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setShowCrmMenu(false); setCurrentTab('priorities'); }}
+                  className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
+                    currentTab === 'priorities' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
-                  {cat === 'All' ? 'Tất cả' : cat}
+                  <span className="material-symbols-outlined text-[17px] text-slate-500">priority_high</span>
+                  <span>02 Today's Priorities</span>
                 </button>
-              ))}
-
-              <div className="hidden sm:block h-4 w-px bg-stroke-subtle mx-2" />
-
-              <span className="font-bold text-on-surface-variant mr-1">Trạng thái:</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-2.5 py-1 rounded-lg border border-stroke-subtle bg-surface text-xs text-on-surface font-medium focus:outline-none focus:border-primary"
-              >
-                <option value="All">Tất cả trạng thái</option>
-                <option value="Active">Approved &amp; Active</option>
-                <option value="In Underwriting">In Underwriting</option>
-                <option value="Application Submitted">Application Submitted</option>
-                <option value="Renewal Required">Renewal Required</option>
-                <option value="New">New Lead</option>
-              </select>
-
-              {priorityFilter !== 'All' && (
                 <button
-                  onClick={() => setPriorityFilter('All')}
-                  className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg hover:bg-rose-100 transition cursor-pointer"
+                  type="button"
+                  onClick={() => { setShowCrmMenu(false); setCurrentTab('contacts'); }}
+                  className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
+                    currentTab === 'contacts' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
                 >
-                  <span>Đang lọc: {priorityFilter}</span>
-                  <span>✕</span>
+                  <span className="material-symbols-outlined text-[17px] text-slate-500">contacts</span>
+                  <span>03 Customer 360 (200+)</span>
                 </button>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => { setShowCrmMenu(false); setCurrentTab('deals'); }}
+                  className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
+                    currentTab === 'deals' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[17px] text-slate-500">handshake</span>
+                  <span>04 Contracts Pipeline</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowCrmMenu(false); setCurrentTab('commission'); }}
+                  className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
+                    currentTab === 'commission' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[17px] text-slate-500">payments</span>
+                  <span>05 Commission Ledger</span>
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Table Data */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-body-sm font-body-sm">
-              <thead className="bg-surface-container text-on-surface-variant text-xs uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-3 text-left">Khách hàng</th>
-                  <th className="px-6 py-3 text-left">Gói bảo hiểm &amp; Hãng</th>
-                  <th className="px-6 py-3 text-left">Liên hệ</th>
-                  <th className="px-6 py-3 text-left">Kỳ hạn / Lịch hẹn</th>
-                  <th className="px-6 py-3 text-left">Trạng thái</th>
-                  <th className="px-6 py-3 text-right">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stroke-subtle">
-                {filteredCustomers.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-on-surface-variant">
-                      <span className="material-symbols-outlined text-[36px] text-outline mb-2">person_search</span>
-                      <p className="font-semibold text-sm">Không tìm thấy khách hàng phù hợp</p>
-                      <button
-                        onClick={() => { setSearchQuery(''); setCategoryFilter('All'); setStatusFilter('All'); setPriorityFilter('All'); }}
-                        className="mt-2 text-xs font-bold text-primary hover:underline cursor-pointer"
-                      >
-                        Xóa tất cả bộ lọc
-                      </button>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredCustomers.map((c) => (
-                    <tr key={c.id} className="hover:bg-surface-container/50 transition-colors">
-                      {/* Name & Language */}
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-on-surface flex items-center gap-2">
-                          <button
-                            onClick={() => setSelectedCustomer(c)}
-                            className="hover:text-primary hover:underline text-left cursor-pointer font-bold"
-                          >
-                            {c.name}
-                          </button>
-                        </div>
-                        <div className="text-xs text-on-surface-variant flex items-center gap-1.5 mt-0.5">
-                          <span className="text-slate-muted">{c.city}</span>
-                          <span>•</span>
-                          <span className="text-[11px] font-mono text-[#C8A96B]">{c.lang}</span>
-                        </div>
-                      </td>
+          {/* Commission Direct Icon */}
+          <button
+            title="Commission &amp; Revenue"
+            onClick={() => setCurrentTab('commission')}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer ${
+              currentTab === 'commission'
+                ? 'bg-[#00B4D8] text-white shadow-sm ring-2 ring-cyan-300/40'
+                : 'text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[20px]">payments</span>
+          </button>
 
-                      {/* Type & Carrier */}
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-on-surface">{c.type}</div>
-                        <div className="text-xs text-on-surface-variant flex items-center gap-1 mt-0.5">
-                          <span className="font-semibold text-primary">{c.carrier}</span>
-                          <span>•</span>
-                          <span className="font-mono text-[11px]">{c.policyNumber}</span>
-                        </div>
-                      </td>
+          <div className="flex-grow" />
 
-                      {/* Phone & Email */}
-                      <td className="px-6 py-4">
-                        <a
-                          href={`tel:${c.phone.replace(/\D/g, '')}`}
-                          className="font-medium text-primary hover:underline flex items-center gap-1"
-                        >
-                          <span className="material-symbols-outlined text-[15px]">call</span>
-                          {c.phone}
-                        </a>
-                        <div className="text-xs text-on-surface-variant truncate max-w-[140px]">{c.email}</div>
-                      </td>
+          {/* Settings */}
+          <button
+            title="Settings &amp; License"
+            className="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">settings</span>
+          </button>
+        </aside>
 
-                      {/* Priorities / Dates */}
-                      <td className="px-6 py-4 text-xs">
-                        {c.appointmentToday && (
-                          <div className="inline-flex items-center gap-1 text-amber-800 bg-amber-50 font-semibold px-2 py-0.5 rounded">
-                            <span className="material-symbols-outlined text-[14px]">schedule</span>
-                            {c.appointmentToday}
-                          </div>
-                        )}
-                        {c.isRenewalUpcoming && (
-                          <div className="inline-flex items-center gap-1 text-purple-800 bg-purple-50 font-semibold px-2 py-0.5 rounded mt-0.5">
-                            <span className="material-symbols-outlined text-[14px]">autorenew</span>
-                            Renewal: {c.renewalDate}
-                          </div>
-                        )}
-                        {c.pendingTask && (
-                          <div className="text-rose-700 truncate max-w-[180px] font-medium mt-0.5" title={c.pendingTask}>
-                            ⚠️ {c.pendingTask}
-                          </div>
-                        )}
-                        {!c.appointmentToday && !c.isRenewalUpcoming && !c.pendingTask && (
-                          <span className="text-slate-muted italic">Đã đồng bộ</span>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-bold inline-block ${
-                            c.status === 'Active' || c.status === 'Approved & Active'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : c.status === 'In Underwriting'
-                              ? 'bg-amber-100 text-amber-800'
-                              : c.status === 'Renewal Required'
-                              ? 'bg-purple-100 text-purple-800'
-                              : c.status === 'Application Submitted'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-primary/10 text-primary'
-                          }`}
-                        >
-                          {c.status}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedCustomer(c)}
-                            className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-primary transition cursor-pointer"
-                            title="03 Xem Customer 360"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">visibility</span>
-                          </button>
-                          <button
-                            onClick={() => setEditingContract(c)}
-                            className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-white text-xs font-bold transition shadow-xs flex items-center gap-1 cursor-pointer"
-                            title="04 Cập nhật hợp đồng"
-                          >
-                            <span>Update</span>
-                            <span className="text-[#C8A96B]">→</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Table Footer */}
-          <div className="px-6 py-3.5 bg-surface-container/30 border-t border-stroke-subtle flex items-center justify-between text-xs text-on-surface-variant">
-            <span>Hiển thị {filteredCustomers.length} khách hàng được chọn lọc trong kỳ</span>
-            <div className="flex items-center gap-1">
-              <span className="text-slate-muted">Dữ liệu bảo mật tuân thủ HIPAA &amp; CMS</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── 05: COMMISSION & REVENUE ANALYTICS ────────────────── */}
-      {(activeTab === 'all' || activeTab === 'commission') && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-title-md font-bold text-on-surface flex items-center gap-2">
-              <span className="material-symbols-outlined text-[22px] text-emerald-600">payments</span>
-              <span>05 — Commission &amp; Revenue Overview</span>
-            </h3>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              Quyết toán trực tiếp từ Carrier / FMO
-            </span>
-          </div>
-
-          {/* Commission Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-body-sm font-body-sm text-on-surface-variant font-medium">Settled MTD (Tháng này)</span>
-                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center material-symbols-outlined text-[18px]">
-                  account_balance
+        {/* ── DYNAMIC PAGE CONTENT (Enterprise Clean Layout) ──── */}
+        <main className="flex-grow overflow-y-auto bg-[#F4F6F9] flex flex-col">
+          {/* Subheader Banner Bar (Matching Staff Dashboard Bar) */}
+          <div className="bg-white border-b border-slate-200 px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">
+                  {currentTab === 'priorities'
+                    ? 'priority_high'
+                    : currentTab === 'contacts'
+                    ? 'contacts'
+                    : currentTab === 'deals'
+                    ? 'handshake'
+                    : 'payments'}
                 </span>
               </div>
-              <div className="text-2xl font-serif font-bold text-emerald-700">
-                ${stats.settledRevenue.toLocaleString()}
-              </div>
-              <div className="text-xs text-on-surface-variant mt-1">Đã chi trả về tài khoản ngân hàng</div>
-            </div>
-
-            <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-body-sm font-body-sm text-on-surface-variant font-medium">Pending Underwriting</span>
-                <span className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center material-symbols-outlined text-[18px]">
-                  hourglass_top
-                </span>
-              </div>
-              <div className="text-2xl font-serif font-bold text-amber-700">
-                ${stats.pendingRevenue.toLocaleString()}
-              </div>
-              <div className="text-xs text-on-surface-variant mt-1">Dự kiến chi trả khi Carrier phát hành HĐ</div>
-            </div>
-
-            <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-body-sm font-body-sm text-on-surface-variant font-medium">YTD Total Commission</span>
-                <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center material-symbols-outlined text-[18px]">
-                  trending_up
-                </span>
-              </div>
-              <div className="text-2xl font-serif font-bold text-primary">
-                ${(stats.settledRevenue + 37750).toLocaleString()}
-              </div>
-              <div className="text-xs text-on-surface-variant mt-1">Lũy kế từ đầu năm 2026</div>
-            </div>
-          </div>
-
-          {/* Contract-Commission Ledger Table */}
-          <div className="bg-surface-container-lowest rounded-2xl border border-stroke-subtle shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-stroke-subtle flex items-center justify-between">
               <div>
-                <h4 className="font-bold text-on-surface text-sm">Contract-Commission Reconciliation Ledger</h4>
-                <p className="text-xs text-on-surface-variant">Bảng kê đối soát hoa hồng chi tiết theo từng hợp đồng</p>
+                <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+                  {currentTab === 'priorities' && "02 — Today's Priorities (Morning Action Cockpit)"}
+                  {currentTab === 'contacts' && "03 — Customer 360 Directory & Portfolio"}
+                  {currentTab === 'deals' && "04 — Insurance Contracts & Underwriting Lifecycle"}
+                  {currentTab === 'commission' && "05 — Commission Performance & Carrier Ledger"}
+                </h1>
+                <p className="text-[11px] text-slate-500">
+                  Agent: Khánh Nguyen • Licensed in TX (TDI) &amp; CA (CDI) • CMS &amp; HIPAA Compliant
+                </p>
               </div>
-              <span className="text-xs font-mono text-[#C8A96B] font-bold">CARRIER DIRECT RECONCILIATION</span>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-body-sm font-body-sm">
-                <thead className="bg-surface-container text-on-surface-variant text-xs uppercase tracking-wider">
-                  <tr>
-                    <th className="px-6 py-3 text-left">Khách hàng</th>
-                    <th className="px-6 py-3 text-left">Hãng bảo hiểm</th>
-                    <th className="px-6 py-3 text-left">Công thức hoa hồng</th>
-                    <th className="px-6 py-3 text-left">Ước tính</th>
-                    <th className="px-6 py-3 text-left">Trạng thái Payout</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stroke-subtle">
-                  {customers.map((c) => (
-                    <tr key={c.id} className="hover:bg-surface-container/50 transition-colors">
-                      <td className="px-6 py-3.5 font-semibold text-on-surface">
-                        {c.name}
-                        <div className="text-xs font-normal text-on-surface-variant font-mono">{c.policyNumber}</div>
-                      </td>
-                      <td className="px-6 py-3.5 text-on-surface-variant font-medium">{c.carrier}</td>
-                      <td className="px-6 py-3.5 text-xs text-slate-muted">{c.commissionRate}</td>
-                      <td className="px-6 py-3.5 font-mono font-bold text-on-surface">
-                        ${c.commissionAmount?.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-3.5">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                            c.commissionStatus === 'Settled'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          {c.commissionStatus}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => showToast('Đang làm mới dữ liệu từ Carrier APIs...')}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs shadow-2xs transition cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[15px] text-slate-500">refresh</span>
+                <span>Refresh</span>
+              </button>
+
+              <span className="text-[11px] text-slate-400 font-mono hidden md:inline">
+                Portfolio: <strong className="text-slate-800">{stats.totalActivePolicies} Active Policies</strong>
+              </span>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* ── 03: CUSTOMER 360 PROFILE MODAL ───────────────────── */}
-      <AnimatePresence>
-        {selectedCustomer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-deep/70 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface rounded-2xl border border-stroke-subtle shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              {/* Modal Header */}
-              <div className="p-6 bg-primary text-white rounded-t-2xl flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 text-xs text-[#C8A96B] font-bold uppercase tracking-wider mb-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#C8A96B]" />
-                    Customer 360 Full Profile
+          {/* ── TAB 1: 02 TODAY'S PRIORITIES (Morning Cockpit) ─── */}
+          {currentTab === 'priorities' && (
+            <div className="p-6 space-y-6 max-w-[1700px] mx-auto w-full">
+              {/* 4 Action KPI Cards (Staff Styled) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 1. Follow-up */}
+                <div
+                  onClick={() => setPriorityFilter(priorityFilter === 'FollowUp' ? 'All' : 'FollowUp')}
+                  className={`bg-white rounded-xl border p-4 shadow-2xs transition cursor-pointer flex flex-col justify-between ${
+                    priorityFilter === 'FollowUp'
+                      ? 'border-rose-400 ring-2 ring-rose-200'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-slate-600">Customers to Follow-up</span>
+                    <span className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center material-symbols-outlined text-[17px]">
+                      phone_callback
+                    </span>
                   </div>
-                  <h3 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-                    {selectedCustomer.name}
-                    <span className="text-xs font-sans px-2.5 py-0.5 rounded-full bg-white/20 text-white font-normal">
+                  <div className="text-2xl font-bold text-slate-900">{stats.followUpsCount}</div>
+                  <div className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    <span>Cần gọi liên hệ lại &lt; 24h</span>
+                  </div>
+                </div>
+
+                {/* 2. Appointments */}
+                <div
+                  onClick={() => setPriorityFilter(priorityFilter === 'Appointment' ? 'All' : 'Appointment')}
+                  className={`bg-white rounded-xl border p-4 shadow-2xs transition cursor-pointer flex flex-col justify-between ${
+                    priorityFilter === 'Appointment'
+                      ? 'border-amber-400 ring-2 ring-amber-200'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-slate-600">Today's Appointments</span>
+                    <span className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center material-symbols-outlined text-[17px]">
+                      calendar_month
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-slate-900">{stats.appointmentsCount}</div>
+                  <div className="text-[11px] text-amber-700 font-medium mt-1 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    <span>Lịch hẹn tư vấn Zoom / Phone</span>
+                  </div>
+                </div>
+
+                {/* 3. Renewals */}
+                <div
+                  onClick={() => setPriorityFilter(priorityFilter === 'Renewal' ? 'All' : 'Renewal')}
+                  className={`bg-white rounded-xl border p-4 shadow-2xs transition cursor-pointer flex flex-col justify-between ${
+                    priorityFilter === 'Renewal'
+                      ? 'border-purple-400 ring-2 ring-purple-200'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-slate-600">Upcoming Renewals</span>
+                    <span className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center material-symbols-outlined text-[17px]">
+                      autorenew
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-slate-900">{stats.renewalsCount}</div>
+                  <div className="text-[11px] text-purple-700 font-medium mt-1 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                    <span>Mùa Medicare AEP &amp; ACA OEP</span>
+                  </div>
+                </div>
+
+                {/* 4. Tasks */}
+                <div
+                  onClick={() => setPriorityFilter(priorityFilter === 'Task' ? 'All' : 'Task')}
+                  className={`bg-white rounded-xl border p-4 shadow-2xs transition cursor-pointer flex flex-col justify-between ${
+                    priorityFilter === 'Task'
+                      ? 'border-blue-400 ring-2 ring-blue-200'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-slate-600">Urgent Tasks</span>
+                    <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center material-symbols-outlined text-[17px]">
+                      assignment_late
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-slate-900">{stats.tasksCount}</div>
+                  <div className="text-[11px] text-blue-700 font-medium mt-1 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                    <span>Bổ sung Proof of Income / Ký đơn</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Priority Work Queue (Staff Card Layout) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Panel 1: Urgent Callbacks */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+                  <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                      <span className="material-symbols-outlined text-[16px] text-rose-500">phone_in_talk</span>
+                      <span>Khách hàng cần liên hệ lại ngay</span>
+                    </div>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                      High Priority
+                    </span>
+                  </div>
+                  <div className="divide-y divide-slate-100 flex-grow">
+                    {customers
+                      .filter((c) => c.needsFollowUp)
+                      .map((c) => (
+                        <div key={c.id} className="p-3.5 hover:bg-slate-50 transition flex items-center justify-between">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-xs text-slate-900">{c.fullName}</span>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-medium">
+                                {c.category}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 truncate max-w-sm mt-0.5">
+                              {c.pendingTask || c.notes}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <a
+                              href={`tel:${c.phone}`}
+                              className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold text-xs flex items-center gap-1 transition"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">call</span>
+                              <span>Call</span>
+                            </a>
+                            <button
+                              onClick={() => setEditingContract(c)}
+                              className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs transition cursor-pointer"
+                            >
+                              Update →
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Panel 2: Today's Appointments Timeline */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+                  <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                      <span className="material-symbols-outlined text-[16px] text-amber-500">schedule</span>
+                      <span>Lịch hẹn tư vấn trong ngày</span>
+                    </div>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      Today's Schedule
+                    </span>
+                  </div>
+                  <div className="divide-y divide-slate-100 flex-grow">
+                    {customers
+                      .filter((c) => c.appointmentToday)
+                      .map((c) => (
+                        <div key={c.id} className="p-3.5 hover:bg-slate-50 transition flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-mono">
+                                {c.appointmentToday}
+                              </span>
+                              <span className="font-semibold text-xs text-slate-900">{c.fullName}</span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 mt-1">
+                              Gói: <strong className="text-slate-700">{c.carrier}</strong> ({c.line})
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setSelectedCustomer(c)}
+                              className="px-2.5 py-1 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium transition cursor-pointer"
+                            >
+                              View Notes
+                            </button>
+                            <button
+                              onClick={() => setEditingContract(c)}
+                              className="px-2.5 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold shadow-xs transition cursor-pointer"
+                            >
+                              Log Call
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Quick Jump to All Contacts */}
+              <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between text-xs">
+                <span className="text-slate-600">
+                  Xem toàn bộ <strong>{customers.length} khách hàng</strong> trong danh mục và quản lý hợp đồng chi tiết.
+                </span>
+                <button
+                  onClick={() => setCurrentTab('contacts')}
+                  className="font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Mở danh bạ Customer 360</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── TAB 2 & 3: CUSTOMER DIRECTORY (Staff Table Layout) ─ */}
+          {(currentTab === 'contacts' || currentTab === 'deals') && (
+            <div className="p-6 space-y-4 max-w-[1700px] mx-auto w-full">
+              {/* Filter Toolbar (Matching Staff Contacts Toolbar) */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {/* Search Input */}
+                  <div className="relative w-64">
+                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">
+                      search
+                    </span>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Tìm tên, điện thoại, policy #..."
+                      className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Category Pill Filters */}
+                  <div className="flex items-center gap-1 border-l border-slate-200 pl-2.5">
+                    {['All', 'Medicare', 'ObamaCare', 'Life'].map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setCategoryFilter(cat)}
+                        className={`px-2.5 py-1 rounded-md font-medium text-xs transition cursor-pointer ${
+                          categoryFilter === cat
+                            ? 'bg-blue-600 text-white shadow-2xs'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        {cat === 'All' ? 'Tất cả dòng' : cat}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Status Dropdown */}
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="All">Tất cả trạng thái</option>
+                    <option value="Active">Approved &amp; Active</option>
+                    <option value="In Underwriting">In Underwriting</option>
+                    <option value="Application Submitted">Application Submitted</option>
+                    <option value="Renewal Required">Renewal Required</option>
+                    <option value="New">New Lead</option>
+                  </select>
+
+                  {priorityFilter !== 'All' && (
+                    <button
+                      onClick={() => setPriorityFilter('All')}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded-md border border-rose-200 cursor-pointer"
+                    >
+                      <span>Lọc: {priorityFilter}</span>
+                      <span>✕</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500 font-medium">
+                    Hiển thị <strong className="text-slate-800">{filteredCustomers.length}</strong> / 214 hợp đồng
+                  </span>
+                </div>
+              </div>
+
+              {/* Main Enterprise Contacts Table */}
+              <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[11px] text-slate-700 whitespace-nowrap">
+                    <thead className="bg-[#F8FAFC] border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="px-3.5 py-2.5 w-10 text-center">No.</th>
+                        <th className="px-3.5 py-2.5">Code</th>
+                        <th className="px-3.5 py-2.5 font-bold text-slate-900">Khách hàng</th>
+                        <th className="px-3.5 py-2.5">Điện thoại</th>
+                        <th className="px-3.5 py-2.5">Email</th>
+                        <th className="px-3.5 py-2.5">Hãng bảo hiểm &amp; Gói</th>
+                        <th className="px-3.5 py-2.5">Địa chỉ</th>
+                        <th className="px-3.5 py-2.5">Phí / APTC</th>
+                        <th className="px-3.5 py-2.5">Trạng thái</th>
+                        <th className="px-3.5 py-2.5">Gia hạn / Lịch</th>
+                        <th className="px-3.5 py-2.5 text-right w-24">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredCustomers.length === 0 ? (
+                        <tr>
+                          <td colSpan={11} className="px-4 py-12 text-center text-slate-500">
+                            <span className="material-symbols-outlined text-[28px] text-slate-300 mb-1">
+                              person_search
+                            </span>
+                            <div className="text-xs font-semibold text-slate-700">Không tìm thấy khách hàng phù hợp</div>
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredCustomers.map((c, index) => (
+                          <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="px-3.5 py-2.5 text-center text-slate-400 font-mono">{index + 1}</td>
+                            <td className="px-3.5 py-2.5 font-mono text-[10px] text-slate-500">{c.code}</td>
+                            <td className="px-3.5 py-2.5">
+                              <button
+                                onClick={() => setSelectedCustomer(c)}
+                                className="font-bold text-blue-600 hover:underline cursor-pointer text-left"
+                              >
+                                {c.fullName}
+                              </button>
+                              <div className="text-[10px] text-slate-400">{c.language}</div>
+                            </td>
+                            <td className="px-3.5 py-2.5 font-mono">
+                              <a href={`tel:${c.phone}`} className="text-slate-700 hover:text-blue-600">
+                                {c.phone}
+                              </a>
+                            </td>
+                            <td className="px-3.5 py-2.5 text-slate-500 truncate max-w-[140px]">{c.email}</td>
+                            <td className="px-3.5 py-2.5">
+                              <div className="font-semibold text-slate-800">{c.carrier}</div>
+                              <div className="text-[10px] text-slate-500 font-mono">{c.policyNumber}</div>
+                            </td>
+                            <td className="px-3.5 py-2.5 text-slate-600">{c.city}</td>
+                            <td className="px-3.5 py-2.5 font-mono">
+                              <strong className="text-slate-900">${c.premium}</strong>
+                              {c.aptcSubsidy > 0 && (
+                                <span className="text-[10px] text-emerald-600 block">(-${c.aptcSubsidy} APTC)</span>
+                              )}
+                            </td>
+                            <td className="px-3.5 py-2.5">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-block border ${
+                                  c.status === 'Active' || c.status === 'Approved & Active'
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    : c.status === 'In Underwriting'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                    : c.status === 'Renewal Required'
+                                    ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                    : c.status === 'Application Submitted'
+                                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                    : 'bg-slate-100 text-slate-700 border-slate-200'
+                                }`}
+                              >
+                                {c.status}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-2.5 text-[10px] font-mono">
+                              {c.appointmentToday ? (
+                                <span className="text-amber-700 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">
+                                  {c.appointmentToday}
+                                </span>
+                              ) : (
+                                <span className="text-slate-500">{c.renewalDate}</span>
+                              )}
+                            </td>
+                            <td className="px-3.5 py-2.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => setSelectedCustomer(c)}
+                                  className="w-6 h-6 rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition cursor-pointer"
+                                  title="Customer 360"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">visibility</span>
+                                </button>
+                                <button
+                                  onClick={() => setEditingContract(c)}
+                                  className="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[10px] transition cursor-pointer"
+                                  title="Update Contract"
+                                >
+                                  Update →
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── TAB 4: 05 COMMISSION DASHBOARD ─────────────────── */}
+          {currentTab === 'commission' && (
+            <div className="p-6 space-y-6 max-w-[1700px] mx-auto w-full">
+              {/* Financial KPI Cards (Staff Styled) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-semibold text-slate-600">Settled Revenue MTD</span>
+                    <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center material-symbols-outlined text-[17px]">
+                      account_balance
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-700">
+                    ${stats.settledRevenue.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-1">Đã chi trả về tài khoản ngân hàng</div>
+                </div>
+
+                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-semibold text-slate-600">Pending Underwriting</span>
+                    <span className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center material-symbols-outlined text-[17px]">
+                      hourglass_top
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-amber-700">
+                    ${stats.pendingRevenue.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-1">Dự kiến chi trả khi Carrier phát hành HĐ</div>
+                </div>
+
+                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-semibold text-slate-600">YTD Total Commission</span>
+                    <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center material-symbols-outlined text-[17px]">
+                      trending_up
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-slate-900">
+                    ${(stats.settledRevenue + 37750).toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-1">Lũy kế từ đầu năm 2026</div>
+                </div>
+              </div>
+
+              {/* Carrier Reconciliation Ledger */}
+              <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                    <span className="material-symbols-outlined text-[16px] text-emerald-600">receipt_long</span>
+                    <span>Carrier Reconciliation Ledger (Bảng kê đối soát hoa hồng)</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-500 font-semibold">
+                    DIRECT CARRIER PAYOUT
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[11px] text-slate-700 whitespace-nowrap">
+                    <thead className="bg-[#F8FAFC] border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="px-3.5 py-2.5">Khách hàng</th>
+                        <th className="px-3.5 py-2.5">Carrier</th>
+                        <th className="px-3.5 py-2.5">Công thức hoa hồng</th>
+                        <th className="px-3.5 py-2.5">Ước tính ($)</th>
+                        <th className="px-3.5 py-2.5">Trạng thái thanh toán</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {customers.map((c) => (
+                        <tr key={c.id} className="hover:bg-slate-50 transition">
+                          <td className="px-3.5 py-2.5">
+                            <span className="font-semibold text-slate-900">{c.fullName}</span>
+                            <div className="text-[10px] text-slate-400 font-mono">{c.policyNumber}</div>
+                          </td>
+                          <td className="px-3.5 py-2.5 font-medium text-slate-800">{c.carrier}</td>
+                          <td className="px-3.5 py-2.5 text-slate-500 font-mono text-[10px]">{c.commissionRate}</td>
+                          <td className="px-3.5 py-2.5 font-mono font-bold text-slate-900">
+                            ${c.commissionAmount?.toLocaleString()}
+                          </td>
+                          <td className="px-3.5 py-2.5">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                c.commissionStatus === 'Settled'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
+                            >
+                              {c.commissionStatus}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* ── CUSTOMER 360 DETAIL SLIDE-OVER DRAWER (Staff Style) ── */}
+      {selectedCustomer && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-2xs animate-in fade-in duration-150">
+          <div className="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
+            {/* Drawer Header */}
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
+                  {selectedCustomer.firstName?.[0] || 'C'}
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                    <span>{selectedCustomer.fullName}</span>
+                    <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-200/80 text-slate-700">
                       Tuổi: {selectedCustomer.age}
                     </span>
                   </h3>
+                  <div className="text-[11px] text-slate-500 font-mono">{selectedCustomer.code}</div>
                 </div>
-                <button
-                  onClick={() => setSelectedCustomer(null)}
-                  className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[22px]">close</span>
-                </button>
+              </div>
+              <button
+                onClick={() => setSelectedCustomer(null)}
+                className="w-7 h-7 rounded-md hover:bg-slate-200 flex items-center justify-center text-slate-500 transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Drawer Body */}
+            <div className="p-6 overflow-y-auto space-y-5 text-xs flex-grow">
+              {/* Demographics */}
+              <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2">
+                <div className="font-bold text-slate-900 text-xs border-b border-slate-200 pb-1.5">
+                  Thông tin liên hệ &amp; Địa chỉ
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-slate-600">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Điện thoại</span>
+                    <a href={`tel:${selectedCustomer.phone}`} className="font-semibold text-blue-600">
+                      {selectedCustomer.phone}
+                    </a>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Email</span>
+                    <span className="font-semibold text-slate-800 truncate block">{selectedCustomer.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Khu vực</span>
+                    <span className="font-semibold text-slate-800">{selectedCustomer.city}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Ngôn ngữ</span>
+                    <span className="font-semibold text-slate-800">{selectedCustomer.language}</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Modal Content */}
-              <div className="p-6 space-y-6">
-                {/* Contact & Location Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-surface-container border border-stroke-subtle text-xs">
+              {/* Policy & Coverage Details */}
+              <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2">
+                <div className="font-bold text-slate-900 text-xs border-b border-slate-200 pb-1.5 flex items-center justify-between">
+                  <span>Hợp đồng bảo hiểm hiện tại</span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    {selectedCustomer.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-slate-600">
                   <div>
-                    <span className="text-slate-muted font-bold uppercase">Điện thoại</span>
-                    <div className="text-sm font-semibold text-primary mt-0.5">{selectedCustomer.phone}</div>
+                    <span className="text-slate-400 block text-[10px]">Hãng bảo hiểm (Carrier)</span>
+                    <strong className="text-slate-900">{selectedCustomer.carrier}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-muted font-bold uppercase">Email</span>
-                    <div className="text-sm font-semibold text-on-surface mt-0.5 truncate">{selectedCustomer.email}</div>
+                    <span className="text-slate-400 block text-[10px]">Số hợp đồng (Policy #)</span>
+                    <strong className="font-mono text-slate-900">{selectedCustomer.policyNumber}</strong>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-slate-400 block text-[10px]">Tên gói chi tiết</span>
+                    <span className="text-slate-800 font-medium">{selectedCustomer.planName}</span>
                   </div>
                   <div>
-                    <span className="text-slate-muted font-bold uppercase">Địa chỉ</span>
-                    <div className="text-sm font-semibold text-on-surface mt-0.5">{selectedCustomer.city} ({selectedCustomer.zip})</div>
+                    <span className="text-slate-400 block text-[10px]">Phí hàng tháng (Premium)</span>
+                    <strong className="text-emerald-700">${selectedCustomer.premium}/tháng</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Trợ cấp APTC</span>
+                    <strong className="text-slate-800">${selectedCustomer.aptcSubsidy}/tháng</strong>
                   </div>
                 </div>
+              </div>
 
-                {/* Insurance Details */}
+              {/* Doctor Network & Medical Notes */}
+              <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2">
+                <div className="font-bold text-slate-900 text-xs border-b border-slate-200 pb-1.5">
+                  Mạng lưới Y tế &amp; Nhật ký tư vấn
+                </div>
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-muted mb-3">
-                    Thông tin Hợp đồng &amp; Gói bảo hiểm
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="p-3 rounded-xl border border-stroke-subtle bg-surface-container-lowest">
-                      <span className="text-xs text-slate-muted block">Hãng bảo hiểm (Carrier)</span>
-                      <strong className="text-primary">{selectedCustomer.carrier}</strong>
-                    </div>
-                    <div className="p-3 rounded-xl border border-stroke-subtle bg-surface-container-lowest">
-                      <span className="text-xs text-slate-muted block">Số hợp đồng (Policy #)</span>
-                      <strong className="font-mono">{selectedCustomer.policyNumber}</strong>
-                    </div>
-                    <div className="p-3 rounded-xl border border-stroke-subtle bg-surface-container-lowest">
-                      <span className="text-xs text-slate-muted block">Gói bảo hiểm chi tiết</span>
-                      <span className="font-medium text-on-surface">{selectedCustomer.planName}</span>
-                    </div>
-                    <div className="p-3 rounded-xl border border-stroke-subtle bg-surface-container-lowest">
-                      <span className="text-xs text-slate-muted block">Phí hàng tháng (Premium)</span>
-                      <span className="font-bold text-emerald-700">
-                        ${selectedCustomer.premium}/tháng
-                        {selectedCustomer.aptcSubsidy > 0 && (
-                          <span className="text-xs text-slate-muted font-normal ml-1">
-                            (Đã trừ APTC ${selectedCustomer.aptcSubsidy})
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
+                  <span className="text-slate-400 block text-[10px]">Bác sĩ / Bệnh viện ưu tiên</span>
+                  <span className="text-slate-800 font-medium">{selectedCustomer.doctor || 'Chưa cập nhật'}</span>
                 </div>
-
-                {/* Medical & Doctor Preferences */}
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-muted mb-2">
-                    Mạng lưới y tế &amp; Ghi chú tư vấn
-                  </h4>
-                  <div className="p-4 rounded-xl border border-stroke-subtle bg-surface-container-lowest space-y-2 text-xs">
-                    <div>
-                      <strong className="text-on-surface">Bác sĩ / Bệnh viện quen thuộc: </strong>
-                      <span className="text-on-surface-variant">{selectedCustomer.doctor || 'Chưa cập nhật'}</span>
-                    </div>
-                    <div>
-                      <strong className="text-on-surface">Ngôn ngữ tư vấn ưu tiên: </strong>
-                      <span className="text-on-surface-variant">{selectedCustomer.lang}</span>
-                    </div>
-                    <div>
-                      <strong className="text-on-surface">Nhật ký tư vấn (Notes): </strong>
-                      <p className="text-on-surface-variant mt-1 italic bg-surface-container p-2.5 rounded-lg border border-stroke-subtle">
-                        "{selectedCustomer.notes}"
-                      </p>
-                    </div>
-                  </div>
+                  <span className="text-slate-400 block text-[10px]">Ghi chú tư vấn (Agent Notes)</span>
+                  <p className="mt-1 p-2 rounded bg-white border border-slate-200 text-slate-700 italic">
+                    "{selectedCustomer.notes}"
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* Modal Footer */}
-              <div className="p-4 px-6 border-t border-stroke-subtle bg-surface-container flex items-center justify-between">
-                <span className="text-xs text-slate-muted">Hồ sơ đã xác minh Scope of Appointment (SOA)</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedCustomer(null)}
-                    className="px-4 py-2 rounded-xl border border-stroke-subtle text-xs font-semibold hover:bg-surface-container-high transition cursor-pointer"
-                  >
-                    Đóng
-                  </button>
-                  <button
-                    onClick={() => {
-                      const c = selectedCustomer;
-                      setSelectedCustomer(null);
-                      setEditingContract(c);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-container transition shadow-xs cursor-pointer flex items-center gap-1"
-                  >
-                    <span>Cập nhật Hợp đồng</span>
-                    <span className="text-[#C8A96B]">→</span>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
+            {/* Drawer Footer */}
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+              <span className="text-[11px] text-slate-400">CMS Scope of Appointment: Confirmed</span>
+              <button
+                onClick={() => {
+                  const c = selectedCustomer;
+                  setSelectedCustomer(null);
+                  setEditingContract(c);
+                }}
+                className="px-3.5 py-1.5 rounded-lg bg-blue-600 text-white font-semibold text-xs hover:bg-blue-700 shadow-xs transition cursor-pointer"
+              >
+                Cập nhật Hợp đồng →
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
-      {/* ── 04: UPDATE CONTRACT MODAL ─────────────────────────── */}
-      <AnimatePresence>
-        {editingContract && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-deep/75 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface rounded-2xl border border-stroke-subtle shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              {/* Header */}
-              <div className="p-6 bg-primary text-white rounded-t-2xl flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 text-xs text-[#C8A96B] font-bold uppercase tracking-wider mb-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#C8A96B]" />
-                    04 — Update Contract Lifecycle
-                  </div>
-                  <h3 className="text-lg font-serif font-bold text-white">
-                    Cập nhật hợp đồng: {editingContract.name}
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setEditingContract(null)}
-                  className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
+      {/* ── 04 UPDATE CONTRACT MODAL (Staff Form Style) ────────── */}
+      {editingContract && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-2xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-blue-600">edit_document</span>
+                <span className="font-bold text-sm text-slate-900">
+                  Cập nhật hợp đồng: {editingContract.fullName}
+                </span>
+              </div>
+              <button
+                onClick={() => setEditingContract(null)}
+                className="w-6 h-6 rounded hover:bg-slate-200 flex items-center justify-center text-slate-500 transition cursor-pointer text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSaveContract} className="p-5 space-y-3.5 text-xs">
+              {/* Status */}
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">
+                  Trạng thái hợp đồng (Contract Status) *
+                </label>
+                <select
+                  value={editingContract.status}
+                  onChange={(e) => setEditingContract({ ...editingContract, status: e.target.value })}
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
                 >
-                  <span className="material-symbols-outlined text-[20px]">close</span>
-                </button>
+                  {STATUS_OPTIONS.map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">
+                  Chuyển sang "Approved &amp; Active" sẽ tự động ghi nhận hoa hồng vào Bước 05.
+                </span>
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleSaveContract} className="p-6 space-y-4">
-                {/* Contract Status */}
+              {/* Carrier & Policy # */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-muted mb-1.5">
-                    Trạng thái hợp đồng (Contract Status) *
-                  </label>
+                  <label className="block text-slate-600 font-semibold mb-1">Hãng bảo hiểm</label>
                   <select
-                    value={editingContract.status}
-                    onChange={(e) => setEditingContract({ ...editingContract, status: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-stroke-subtle bg-surface text-sm text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    value={editingContract.carrier}
+                    onChange={(e) => setEditingContract({ ...editingContract, carrier: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                   >
-                    {STATUS_OPTIONS.map((st) => (
-                      <option key={st} value={st}>
-                        {st}
+                    {CARRIER_OPTIONS.map((carr) => (
+                      <option key={carr} value={carr}>
+                        {carr}
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11px] text-slate-muted mt-1">
-                    Chuyển sang "Approved &amp; Active" sẽ tự động ghi nhận hoa hồng vào Bước 05.
-                  </p>
                 </div>
-
-                {/* Carrier & Policy # */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-muted mb-1.5">
-                      Hãng bảo hiểm (Carrier)
-                    </label>
-                    <select
-                      value={editingContract.carrier}
-                      onChange={(e) => setEditingContract({ ...editingContract, carrier: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-stroke-subtle bg-surface text-sm text-on-surface font-medium focus:outline-none focus:border-primary"
-                    >
-                      {CARRIER_OPTIONS.map((carr) => (
-                        <option key={carr} value={carr}>
-                          {carr}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-muted mb-1.5">
-                      Số hợp đồng (Policy #)
-                    </label>
-                    <input
-                      type="text"
-                      value={editingContract.policyNumber}
-                      onChange={(e) => setEditingContract({ ...editingContract, policyNumber: e.target.value })}
-                      placeholder="vd: UHC-9821430"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-stroke-subtle bg-surface text-sm font-mono text-on-surface focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                </div>
-
-                {/* Premium & Subsidy */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-muted mb-1.5">
-                      Phí hàng tháng ($ Monthly Premium)
-                    </label>
-                    <input
-                      type="number"
-                      value={editingContract.premium}
-                      onChange={(e) => setEditingContract({ ...editingContract, premium: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-stroke-subtle bg-surface text-sm text-on-surface focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-muted mb-1.5">
-                      Trợ cấp APTC ($/tháng)
-                    </label>
-                    <input
-                      type="number"
-                      value={editingContract.aptcSubsidy}
-                      onChange={(e) => setEditingContract({ ...editingContract, aptcSubsidy: e.target.value })}
-                      placeholder="vd: 400"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-stroke-subtle bg-surface text-sm text-on-surface focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                </div>
-
-                {/* Follow-up Status */}
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-container border border-stroke-subtle">
-                  <input
-                    type="checkbox"
-                    id="needsFollowUp"
-                    checked={editingContract.needsFollowUp}
-                    onChange={(e) => setEditingContract({ ...editingContract, needsFollowUp: e.target.checked })}
-                    className="w-4 h-4 rounded text-primary focus:ring-primary"
-                  />
-                  <label htmlFor="needsFollowUp" className="text-xs font-bold text-on-surface cursor-pointer">
-                    Đánh dấu cần Follow-up tiếp theo (hiển thị tại Bước 02 Priorities)
-                  </label>
-                </div>
-
-                {/* Consultation Notes */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-muted mb-1.5">
-                    Ghi chú tương tác / Nhật ký tư vấn (Notes)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={editingContract.notes}
-                    onChange={(e) => setEditingContract({ ...editingContract, notes: e.target.value })}
-                    placeholder="Ghi lại thỏa thuận với khách hàng..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-stroke-subtle bg-surface text-sm text-on-surface focus:outline-none focus:border-primary"
+                  <label className="block text-slate-600 font-semibold mb-1">Số hợp đồng (Policy #)</label>
+                  <input
+                    type="text"
+                    value={editingContract.policyNumber}
+                    onChange={(e) => setEditingContract({ ...editingContract, policyNumber: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500"
                   />
                 </div>
+              </div>
 
-                {/* Form Buttons */}
-                <div className="pt-4 border-t border-stroke-subtle flex items-center justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setEditingContract(null)}
-                    className="px-4 py-2.5 rounded-xl border border-stroke-subtle text-xs font-semibold hover:bg-surface-container transition cursor-pointer"
-                  >
-                    Hủy bỏ
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-white text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[16px] text-[#C8A96B]">save</span>
-                    <span>Lưu thay đổi hợp đồng</span>
-                  </button>
+              {/* Premium & Subsidy */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">Phí hàng tháng ($)</label>
+                  <input
+                    type="number"
+                    value={editingContract.premium}
+                    onChange={(e) => setEditingContract({ ...editingContract, premium: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                  />
                 </div>
-              </form>
-            </motion.div>
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">Trợ cấp APTC ($)</label>
+                  <input
+                    type="number"
+                    value={editingContract.aptcSubsidy}
+                    onChange={(e) => setEditingContract({ ...editingContract, aptcSubsidy: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Checkbox Follow-up */}
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <input
+                  type="checkbox"
+                  id="needsFollowUpAgent"
+                  checked={editingContract.needsFollowUp || false}
+                  onChange={(e) => setEditingContract({ ...editingContract, needsFollowUp: e.target.checked })}
+                  className="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="needsFollowUpAgent" className="text-slate-700 font-medium cursor-pointer">
+                  Đánh dấu cần Follow-up tiếp theo (hiện tại Bước 02 Priorities)
+                </label>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Ghi chú tư vấn (Agent Notes)</label>
+                <textarea
+                  rows={2}
+                  value={editingContract.notes || ''}
+                  onChange={(e) => setEditingContract({ ...editingContract, notes: e.target.value })}
+                  placeholder="Ghi chú nội dung trao đổi với khách..."
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingContract(null)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">save</span>
+                  <span>Lưu hợp đồng</span>
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-      </AnimatePresence>
-    </DashboardLayout>
+        </div>
+      )}
+    </div>
   );
 }
