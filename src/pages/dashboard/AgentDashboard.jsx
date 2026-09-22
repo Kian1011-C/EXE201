@@ -452,14 +452,9 @@ export default function AgentDashboard() {
               className="w-8 h-8 object-contain rounded-lg shrink-0 transition-transform duration-200 group-hover:scale-105"
             />
             <div className="flex flex-col">
-              <div className="flex items-center gap-1.5 leading-tight">
-                <span className="text-[14px] font-black tracking-tight text-slate-900">
-                  INSUR<span className="text-slate-500 font-normal">MATCH</span>
-                </span>
-                <span className="text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-bold border border-blue-200/70 tracking-wide uppercase">
-                  AgentFlow
-                </span>
-              </div>
+              <span className="text-[15px] font-black tracking-tight text-slate-900 leading-tight">
+                INSUR<span className="text-slate-500 font-normal">MATCH</span>
+              </span>
               <span className="text-[10px] text-slate-400 font-medium tracking-wide">
                 Digital Lead &amp; Agent Matching Platform
               </span>
@@ -643,7 +638,7 @@ export default function AgentDashboard() {
             {showCrmMenu && (
               <div className="absolute left-full top-0 ml-2 w-52 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
                 <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 select-none">
-                  AgentFlow Workflow
+                  Agent Workspace
                 </div>
                 <button
                   type="button"
