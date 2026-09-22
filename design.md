@@ -40,7 +40,7 @@
    - [5.1 Portal Sign-In (`LoginPage.jsx`)](#51-portal-sign-in-loginpagejsx)
    - [5.2 Canonical Enterprise Portal Shell (`StaffCrmLayout.jsx` Standard)](#52-canonical-enterprise-portal-shell-staffcrmlayoutjsx-standard)
    - [5.3 Platform Staff Portal — Master Template (`StaffDashboard.jsx`)](#53-platform-staff-portal--master-template-staffdashboardjsx)
-   - [5.4 Licensed Agent Portal — 5-Step AgentFlow (`AgentDashboard.jsx`)](#54-licensed-agent-portal--5-step-agentflow-agentdashboardjsx)
+   - [5.4 Licensed Agent Portal — 5-Step Operating Workflow (`AgentDashboard.jsx`)](#54-licensed-agent-portal--5-step-operating-workflow-agentdashboardjsx)
    - [5.5 System Administrator Portal — Platform Operations (`AdminDashboard.jsx`)](#55-system-administrator-portal--platform-operations-admindashboardjsx)
    - [5.6 Cross-Actor UI Consistency & Inheritance Matrix](#56-cross-actor-ui-consistency--inheritance-matrix)
 6. [Data Structures & Mock Models](#6-data-structures--mock-models)
@@ -516,7 +516,7 @@ body {
 ## 5. AUTHENTICATION & ROLE-BASED PORTALS (STAFF CANONICAL STANDARD)
 
 > **ARCHITECTURAL MANDATE:**  
-> To ensure enterprise-grade consistency, visual coherence, and streamlined user ergonomics, the **Staff Portal Architecture (`StaffDashboard.jsx` & `StaffCrmLayout.jsx`)** is officially designated as the **Canonical UI Benchmark and Master Design Template** for all portal actors across the InsurMatch & AgentFlow ecosystem.  
+> To ensure enterprise-grade consistency, visual coherence, and streamlined user ergonomics, the **Staff Portal Architecture (`StaffDashboard.jsx` & `StaffCrmLayout.jsx`)** is officially designated as the **Canonical UI Benchmark and Master Design Template** for all portal actors across the InsurMatch platform ecosystem.  
 > All other roles—including **Licensed Agents (`AgentDashboard.jsx`)** and **System Administrators (`AdminDashboard.jsx`)**—inherit their navigation shell, card hierarchies, data table behaviors, status pill tokens, and mutation modal patterns directly from the Staff blueprint.
 
 ```
@@ -559,8 +559,8 @@ The Staff CRM Shell defines the golden standard layout for all authenticated por
 
 #### 1. Top Utility Header (`h-12 bg-white border-b border-slate-200`)
 - **Left Cluster:**
-  - Platform Brand Lockup: Gradient shield icon (`from-cyan-500 to-blue-600`) + title `The Best Rate Insurance` / subtitle `InsurMatch Partner Platform`.
-  - Mode Switcher Navigation: Deep links between `Portal` (Home) and `Management` (CRM Active View).
+  - **Official Brand Lockup:** `/images/insurmatch-logo.png` (`w-8 h-8 rounded-lg`) + bold wordmark `INSURMATCH` (`font-black`) + subtitle `Digital Lead & Agent Matching Platform`.
+  - Mode Switcher Navigation: Deep links between `Portal` (Home) and role-specific Management views.
 - **Right Action Cluster:**
   - **Quick Create Button (`+`):** `w-7 h-7 rounded-md border border-slate-200` to quickly initiate an entity creation modal.
   - **Notification Center:** Bell icon with counter badge (`bg-rose-500 text-white rounded-full text-[9px]`).
@@ -616,12 +616,12 @@ The Staff Portal implements the **Three Canonical Screen Archetypes**:
 
 ---
 
-### 5.4 Licensed Agent Portal — 5-Step AgentFlow (`AgentDashboard.jsx`)
+### 5.4 Licensed Agent Portal — 5-Step Operating Workflow (`AgentDashboard.jsx`)
 The Licensed Agent Dashboard directly inherits the Staff UI template and adapts it into the **5-Step Operating Workflow ("From Customer Data to Daily Action")**:
 
 ```
 +---------------------------------------------------------------------------------------+
-|                             AGENTFLOW 5-STEP WORKFLOW                                 |
+|                          AGENT 5-STEP OPERATING WORKFLOW                              |
 +---------------------------------------------------------------------------------------+
 |  01. LOGIN          02. PRIORITIES        03. CUSTOMER 360     04. CONTRACT MUTATION  |
 |  Agent Khánh       Morning Cockpit       Search & Filter      Update Status, Carrier |
@@ -634,7 +634,7 @@ The Licensed Agent Dashboard directly inherits the Staff UI template and adapts 
 +---------------------------------------------------------------------------------------+
 ```
 
-#### Application of Staff Archetypes to AgentFlow:
+#### Application of Staff Archetypes to Agent Workflow:
 1. **01 — Identity & Compliance Banner (Adopted from Staff Header & Banner):**
    - Header displays: `Good day, Khánh 🧑‍💼`, `NPN #1984210 • Licensed in TX (TDI), CA (CDI) & FL`, with a CMS & HIPAA Compliant active badge.
    - Tab Jump Bar: Instant switching between `All Overview`, `02 Priorities`, `03 Customers (200+)`, and `05 Commission`.
@@ -680,7 +680,7 @@ The Administrator Portal applies the Staff UI template to system governance:
 
 ### 5.6 Cross-Actor UI Consistency & Inheritance Matrix
 
-| UI Component / Paradigm | Staff Portal (Canonical Template) | Agent Portal (AgentFlow) | Admin Portal (System Governance) |
+| UI Component / Paradigm | Staff Portal (Canonical Template) | Agent Portal (Licensed Agent) | Admin Portal (System Governance) |
 | :--- | :--- | :--- | :--- |
 | **Navigation Shell** | Slim Rail (`w-12 #0C1B33`) + Header (`h-12`) | Dual-Tier Shell / Integrated Workspace | Slim Rail (`w-12 #0C1B33`) + Header (`h-12`) |
 | **Visual Theme Tokens** | Slate-50 / Ivory, Navy `#0B172A`, Blue `#00B4D8` | Ivory `#F7F5EF`, Navy `#0B172A`, Champagne `#C8A96B` | Slate-50 / Ivory, Navy `#0B172A`, Rose/Slate |
