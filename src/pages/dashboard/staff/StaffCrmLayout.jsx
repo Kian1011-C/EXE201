@@ -59,16 +59,23 @@ export default function StaffCrmLayout({ children, currentTab = 'contacts', onSe
         {/* Left: Brand + Navigation */}
         <div className="flex items-center gap-6">
           {/* Logo */}
-          <Link to="/dashboard/staff" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-xs">
-              <span className="material-symbols-outlined text-[19px]">health_and_safety</span>
-            </div>
+          <Link to="/dashboard/staff" className="flex items-center gap-2.5 group">
+            <img
+              src="/images/insurmatch-logo.png"
+              alt="InsurMatch"
+              className="w-8 h-8 object-contain rounded-lg shrink-0 transition-transform duration-200 group-hover:scale-105"
+            />
             <div className="flex flex-col">
-              <span className="text-[13px] font-bold text-slate-900 leading-tight tracking-tight">
-                The Best Rate Insurance
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium tracking-wide">
-                InsurMatch Partner Platform
+              <div className="flex items-center gap-1.5 leading-tight">
+                <span className="text-[14px] font-black tracking-tight text-slate-900">
+                  INSUR<span className="text-slate-500 font-normal">MATCH</span>
+                </span>
+                <span className="text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-bold border border-blue-200/70 tracking-wide uppercase">
+                  Staff CRM
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-medium tracking-wide">
+                Digital Lead &amp; Agent Matching Platform
               </span>
             </div>
           </Link>

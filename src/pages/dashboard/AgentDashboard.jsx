@@ -445,19 +445,23 @@ export default function AgentDashboard() {
       <header className="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 shrink-0">
         {/* Left: Brand & Portal Mode */}
         <div className="flex items-center gap-6">
-          <Link to="/dashboard/agent" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-600 to-blue-700 flex items-center justify-center text-white shadow-xs">
-              <span className="material-symbols-outlined text-[19px]">verified_user</span>
-            </div>
+          <Link to="/dashboard/agent" className="flex items-center gap-2.5 group">
+            <img
+              src="/images/insurmatch-logo.png"
+              alt="InsurMatch"
+              className="w-8 h-8 object-contain rounded-lg shrink-0 transition-transform duration-200 group-hover:scale-105"
+            />
             <div className="flex flex-col">
-              <span className="text-[13px] font-bold text-slate-900 leading-tight tracking-tight flex items-center gap-1.5">
-                <span>AgentFlow</span>
-                <span className="text-[10px] px-1.5 py-0.2 bg-blue-50 text-blue-700 rounded font-semibold border border-blue-200/60">
-                  CRM
+              <div className="flex items-center gap-1.5 leading-tight">
+                <span className="text-[14px] font-black tracking-tight text-slate-900">
+                  INSUR<span className="text-slate-500 font-normal">MATCH</span>
                 </span>
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium tracking-wide">
-                InsurMatch Independent Partner
+                <span className="text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-bold border border-blue-200/70 tracking-wide uppercase">
+                  AgentFlow
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-medium tracking-wide">
+                Digital Lead &amp; Agent Matching Platform
               </span>
             </div>
           </Link>
