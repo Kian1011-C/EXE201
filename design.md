@@ -36,12 +36,13 @@
    - [4.8 Agent Partner Network & Careers (`CareersPage.jsx`)](#48-agent-partner-network--careers-careerspagejsx)
    - [4.9 Contact & Support Center (`ContactPage.jsx`)](#49-contact--support-center-contactpagejsx)
    - [4.10 Dedicated 4-Step Match Intake Flow (`QuotePage.jsx`)](#410-dedicated-4-step-match-intake-flow-quotepagejsx)
-5. [Authentication & Role-Based Portals](#5-authentication--role-based-portals)
+5. [Authentication & Role-Based Portals (Staff Canonical Standard)](#5-authentication--role-based-portals-staff-canonical-standard)
    - [5.1 Portal Sign-In (`LoginPage.jsx`)](#51-portal-sign-in-loginpagejsx)
-   - [5.2 Shared Portal Layout (`DashboardLayout.jsx`)](#52-shared-portal-layout-dashboardlayoutjsx)
-   - [5.3 Licensed Agent Dashboard (`AgentDashboard.jsx`)](#53-licensed-agent-dashboard-agentdashboardjsx)
-   - [5.4 Platform Staff Dashboard (`StaffDashboard.jsx`)](#54-platform-staff-dashboard-staffdashboardjsx)
-   - [5.5 System Administrator Dashboard (`AdminDashboard.jsx`)](#55-system-administrator-dashboard-admindashboardjsx)
+   - [5.2 Canonical Enterprise Portal Shell (`StaffCrmLayout.jsx` Standard)](#52-canonical-enterprise-portal-shell-staffcrmlayoutjsx-standard)
+   - [5.3 Platform Staff Portal — Master Template (`StaffDashboard.jsx`)](#53-platform-staff-portal--master-template-staffdashboardjsx)
+   - [5.4 Licensed Agent Portal — 5-Step AgentFlow (`AgentDashboard.jsx`)](#54-licensed-agent-portal--5-step-agentflow-agentdashboardjsx)
+   - [5.5 System Administrator Portal — Platform Operations (`AdminDashboard.jsx`)](#55-system-administrator-portal--platform-operations-admindashboardjsx)
+   - [5.6 Cross-Actor UI Consistency & Inheritance Matrix](#56-cross-actor-ui-consistency--inheritance-matrix)
 6. [Data Structures & Mock Models](#6-data-structures--mock-models)
 7. [Regulatory Compliance & Legal Disclaimers](#7-regulatory-compliance--legal-disclaimers)
 8. [Responsive Behavior & Accessibility Matrix](#8-responsive-behavior--accessibility-matrix)
@@ -512,72 +513,183 @@ body {
 
 ---
 
-## 5. AUTHENTICATION & ROLE-BASED PORTALS
+## 5. AUTHENTICATION & ROLE-BASED PORTALS (STAFF CANONICAL STANDARD)
+
+> **ARCHITECTURAL MANDATE:**  
+> To ensure enterprise-grade consistency, visual coherence, and streamlined user ergonomics, the **Staff Portal Architecture (`StaffDashboard.jsx` & `StaffCrmLayout.jsx`)** is officially designated as the **Canonical UI Benchmark and Master Design Template** for all portal actors across the InsurMatch & AgentFlow ecosystem.  
+> All other roles—including **Licensed Agents (`AgentDashboard.jsx`)** and **System Administrators (`AdminDashboard.jsx`)**—inherit their navigation shell, card hierarchies, data table behaviors, status pill tokens, and mutation modal patterns directly from the Staff blueprint.
 
 ```
 +---------------------------------------------------------------------------------------+
-|                              PORTAL ACCESS ARCHITECTURE                               |
+|                       CANONICAL PORTAL INHERITANCE ARCHITECTURE                       |
 +---------------------------------------------------------------------------------------+
-|  /login                         -->  LoginPage.jsx (Demo autofill for 3 roles)        |
-|  /dashboard                     -->  Redirects to /login                              |
-|  /dashboard/agent (Role: agent) -->  AgentDashboard.jsx (Matched leads & clients)     |
-|  /dashboard/staff (Role: staff) -->  StaffDashboard.jsx (Inquiry queue & assign)      |
-|  /dashboard/admin (Role: admin) -->  AdminDashboard.jsx (System metrics & roster)     |
+|                                                                                       |
+|   [ MASTER TEMPLATE ]  ────────────────────────────────────────────────────────────┐  |
+|   Platform Staff Portal (`StaffDashboard.jsx` + `StaffCrmLayout.jsx`)              │  |
+|   • Slim Dark Navy Rail (w-12, #0C1B33) + Top Utility Bar (h-12, bg-white)        │  |
+|   • Archetype A: Operational Cockpit (4 Metric Cards + Action Queue)              │  |
+|   • Archetype B: Enterprise Directory (Faceted Filters + Sortable Table)          │  |
+|   • Archetype C: Entity 360 Detail Workspace (Stepper + Tri-Column Layout)        │  |
+|                                                                                       │  |
+|         │                                                     │                       │  |
+|         ▼ [INHERITED & SPECIALIZED]                           ▼ [INHERITED & ADAPTED] │  |
+|   Licensed Agent Portal (`AgentDashboard.jsx`)          Admin Portal (`Admin...`)     │  |
+|   • 5-Step Workflow: Login ➔ Priorities ➔              • Platform Volume & Health     │  |
+|     Customer 360 ➔ Update Contract ➔ Commission         • Staff & Agent Roster Table   │  |
+|   • NPN & State Licensing Verification                  • Carrier API & Webhooks       │  |
+|   • CMS / HIPAA Compliant Customer Drawer               • System Audit Trail           │  |
 +---------------------------------------------------------------------------------------+
 ```
+
+---
 
 ### 5.1 Portal Sign-In (`LoginPage.jsx`)
-- **Visual Staging:** Deep Navy background with radial grid mesh and glowing ambient blurs.
-- **Card:** Warm Ivory container (`#F7F5EF`) with brand lockup, portal access badge, email/password fields with show/hide password toggle.
-- **Demo Quick Fill Buttons:** Allows evaluators to log in instantly with a single click:
+- **Visual Staging:** Deep Navy background (`#0B172A`) with radial architectural grid mesh and glowing ambient blurs (`#14243A`).
+- **Container Card:** Warm Ivory container (`#F7F5EF`) with brand lockup, portal access badge, email/password fields with show/hide password toggle.
+- **Demo Quick Fill Buttons:** Instant one-click authentication for evaluators:
   - **Admin:** `admin@insurmatch.us` / `Admin@123`
   - **Staff:** `staff@insurmatch.us` / `Staff@123`
   - **Agent:** `agent@insurmatch.us` / `Agent@123`
+- **Session Persistence:** Credentials generate a secure bearer token stored in `localStorage` under `tbri_token` and `tbri_user`, validated on protected routes.
 
 ---
 
-### 5.2 Shared Portal Layout (`DashboardLayout.jsx`)
-- **Persistent Sidebar (Desktop):**
-  - InsurMatch Portal Header
-  - User Profile snippet with role badge (`admin`: rose, `staff`: amber, `agent`: emerald)
-  - Role-specific navigation links with active pill states
-  - Sign Out button calling `logout()`
-- **Mobile Drawer:** Slide-in drawer with backdrop overlay for smaller screens.
-- **Top Header:** Role dashboard title, breadcrumb accent, user avatar badge, and `View Site` quick-link to return to the public interface.
+### 5.2 Canonical Enterprise Portal Shell (`StaffCrmLayout.jsx` Standard)
+The Staff CRM Shell defines the golden standard layout for all authenticated portal spaces:
+
+#### 1. Top Utility Header (`h-12 bg-white border-b border-slate-200`)
+- **Left Cluster:**
+  - Platform Brand Lockup: Gradient shield icon (`from-cyan-500 to-blue-600`) + title `The Best Rate Insurance` / subtitle `InsurMatch Partner Platform`.
+  - Mode Switcher Navigation: Deep links between `Portal` (Home) and `Management` (CRM Active View).
+- **Right Action Cluster:**
+  - **Quick Create Button (`+`):** `w-7 h-7 rounded-md border border-slate-200` to quickly initiate an entity creation modal.
+  - **Notification Center:** Bell icon with counter badge (`bg-rose-500 text-white rounded-full text-[9px]`).
+  - **Database & Docker Live Health Indicator:** Live heartbeat badge indicating PostgreSQL status (`PostgreSQL Online` with pulsing green dot, or `Connecting DB...`).
+  - **Bilingual Language Switcher:** Dropdown toggling between `English` and `Tiếng Việt`.
+  - **User Profile Menu:** Circular avatar badge with initial, email truncate, role pill, and popover for `View Public Site` and `Sign Out`.
+
+#### 2. Left Slim Dark Navy Navigation Rail (`w-12 bg-[#0C1B33]` shrink-0)
+- **Aesthetic:** Ultra-compact, non-distracting vertical rail in midnight blue (`#0C1B33`), preserving 96% of viewport width for tabular data.
+- **Top Launcher:** App switcher trigger icon (`grid_view`).
+- **Interactive Flyout Module Menu:** Clicking the module trigger opens an anchored floating popover (`w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5`) providing direct access to:
+  - `Dashboard` (`grid_view`)
+  - `Contacts / Customers` (`contacts`)
+  - `Deals / Contracts` (`handshake`)
+  - `Customer Documents` (`description`)
+- **Bottom Rail Tools:** Settings gear, documentation, and technical support shortcuts.
 
 ---
 
-### 5.3 Licensed Agent Dashboard (`AgentDashboard.jsx`)
-- **Role:** `agent`
-- **Welcome Banner:** Greeting with agent's first name + placeholder API notice (`GET /api/agent/leads`).
-- **3 Metric KPI Cards:**
-  1. *My Matched Leads* (Total assigned requests)
-  2. *Contacted Today* (Outreach activity)
-  3. *Completed Consultations* (Closed/enrolled clients)
-- **Matched Consumer Leads Table:**
-  - Columns: Client Name, Insurance Type, Clickable Phone Link (`tel:`), Priority Tag (`High`: Rose, `Medium`: Amber, `Low`: Slate), Status Badge (`New`, `Contacted`, `Closed`), Action Button (`Update →`).
+### 5.3 Platform Staff Portal — Master Template (`StaffDashboard.jsx`)
+The Staff Portal implements the **Three Canonical Screen Archetypes**:
+
+#### Archetype A: Operational & Analytical Cockpit (`*CrmDashboard.jsx`)
+1. **Welcome & Context Header:** Displaying user name, current operational role, and sub-label explaining lead intake tasks.
+2. **Operational Notice Banner:** Highlight container (`bg-surface-container border border-stroke-subtle`) communicating backend sync state and regulatory guidelines.
+3. **4-Quadrant KPI Metric Grid:**
+   - Card container: `bg-surface-container-lowest rounded-2xl border border-stroke-subtle p-5 shadow-sm`.
+   - Left tinted icon badge: `w-10 h-10 rounded-xl` with role-tailored color accents.
+   - Numeric typography: `text-headline-sm font-bold text-on-surface`.
+   - Secondary subtitle: `text-body-sm text-on-surface-variant`.
+4. **Visual Analytics & Distribution:** Progress bars and funnel graphs tracking conversion from `Lead In` ➔ `Contact Made` ➔ `Proposal Sent` ➔ `Closed Won`.
+
+#### Archetype B: Enterprise Data Directory & Filtering Hub (`*ContactsList.jsx`, `*DealsList.jsx`)
+1. **Control Toolbar:** Real-time search input with clear trigger (`✕`), multi-select batch actions, export buttons.
+2. **Faceted Filter Strip:** Product line pill buttons, status select dropdowns, priority toggles, and active filter dismiss buttons.
+3. **Enterprise Data Table:**
+   - Clean sticky header: `bg-surface-container text-on-surface-variant text-xs uppercase tracking-wider`.
+   - Hover row highlighting: `hover:bg-surface-container/50 transition-colors`.
+   - Clickable interactive phone links (`tel:`) and email links (`mailto:`).
+   - Standardized status badges:
+     - `Active / Won`: `bg-emerald-100 text-emerald-800 border border-emerald-200`
+     - `In Underwriting / In Progress`: `bg-amber-100 text-amber-800 border border-amber-200`
+     - `Pending Documents`: `bg-purple-100 text-purple-800 border border-purple-200`
+     - `New / Unassigned`: `bg-primary/10 text-primary`
+4. **Footer Metadata:** Records count (`Displaying X of Y records`) and HIPAA/CMS privacy compliance reassurance.
+
+#### Archetype C: Master-Detail 360 Workspace (`*ContactDetail.jsx`, `*DealDetail.jsx`)
+1. **Pipeline Stepper Bar:** Horizontal milestone progress bar illustrating customer lifecycle stages.
+2. **Tri-Column Master-Detail Layout:**
+   - **Left Column (30%):** Customer identity, tags, demographic data, phone, email, household income, assigned owner.
+   - **Center Column (50%):** Tabbed workspace (`Overview`, `Policy / Deals`, `Documents`, `Timeline & Activity Notes`).
+   - **Right Column (20%):** Quick action toolbar (`Log Call`, `Send Email`, `Schedule Meeting`, `Upload Doc`) and underwriting tasks.
 
 ---
 
-### 5.4 Platform Staff Dashboard (`StaffDashboard.jsx`)
-- **Role:** `staff`
-- **Metrics:** New Requests Today, Pending Assignment, Assigned This Week.
-- **Match Inquiry Queue Table:** Incoming consumer submissions awaiting review with an `Assign →` action button to route the lead to an eligible verified agent.
+### 5.4 Licensed Agent Portal — 5-Step AgentFlow (`AgentDashboard.jsx`)
+The Licensed Agent Dashboard directly inherits the Staff UI template and adapts it into the **5-Step Operating Workflow ("From Customer Data to Daily Action")**:
+
+```
++---------------------------------------------------------------------------------------+
+|                             AGENTFLOW 5-STEP WORKFLOW                                 |
++---------------------------------------------------------------------------------------+
+|  01. LOGIN          02. PRIORITIES        03. CUSTOMER 360     04. CONTRACT MUTATION  |
+|  Agent Khánh       Morning Cockpit       Search & Filter      Update Status, Carrier |
+|  NPN #1984210  ──▶ 4 Action Cards    ──▶ 200+ Portfolio   ──▶  Premium & Subsidy      |
+|  TX, CA, FL        (Follow-ups, Appts)   (Medicare/ACA/Life)   Log Call Notes         |
+|                                                                          │            |
+|                                05. COMMISSION DASHBOARD                  │            |
+|                                Settled MTD, Pending Underwriting, ◀──────┘            |
+|                                Contract Reconciliation Ledger                         |
++---------------------------------------------------------------------------------------+
+```
+
+#### Application of Staff Archetypes to AgentFlow:
+1. **01 — Identity & Compliance Banner (Adopted from Staff Header & Banner):**
+   - Header displays: `Good day, Khánh 🧑‍💼`, `NPN #1984210 • Licensed in TX (TDI), CA (CDI) & FL`, with a CMS & HIPAA Compliant active badge.
+   - Tab Jump Bar: Instant switching between `All Overview`, `02 Priorities`, `03 Customers (200+)`, and `05 Commission`.
+2. **02 — Today's Priorities (Staff Archetype A):**
+   - 4 Action Cards styled identically to Staff KPIs:
+     * `Customers to Follow-up (<24h)` (Rose tint)
+     * `Today's Appointments` (Amber tint)
+     * `Upcoming Renewals` (Purple tint)
+     * `Important Tasks & Proof of Income` (Blue tint)
+   - **Interactive Filtering:** Clicking any card filters the table below in real time.
+3. **03 — Customer 360 & Portfolio Management (Staff Archetype B):**
+   - Real-time search across 200+ sample customer records.
+   - Faceted filters for `Medicare (Part C/Supp)`, `ObamaCare / ACA`, and `Life / Annuity`.
+   - Table columns: Client Name & Language, Policy & Carrier, Contact, Due Dates / Appointments, Status Badge, Actions (`View 360 👁️`, `Update →`).
+   - **Customer 360 Modal:** Drawer detailing household size, APTC subsidy, doctor/clinic network, and consultation notes.
+4. **04 — Update Contract Lifecycle (Staff Archetype C Mutation Modal):**
+   - Interactive modal modifying Contract Status (`Application Submitted`, `In Underwriting`, `Approved & Active`, `Pending Documents`, `Renewal Required`).
+   - Carrier dropdown, Policy #, Monthly Premium, APTC Subsidy, and Follow-up flag.
+   - **Automated Workflow Payoff:** Saving an `Approved & Active` status immediately shifts the contract's estimated earnings into `Settled Commission` in Step 05.
+5. **05 — Commission & Revenue Analytics (Staff Reconciliation Ledger Archetype):**
+   - 3 Financial Metric Cards: `Settled MTD`, `Pending Underwriting`, `YTD Total Commission`.
+   - **Contract-Commission Reconciliation Ledger:** Detailed tabular audit trail mapping each customer policy directly to carrier payout formulas (CMS Medicare Renewal $306, ACA $30 PMPM, Life 85% FYC).
 
 ---
 
-### 5.5 System Administrator Dashboard (`AdminDashboard.jsx`)
-- **Role:** `admin`
-- **Platform KPI Overview:**
-  - Total Match Inquiries
-  - Verified Partner Agents
-  - Staff Members
-  - Monthly Match Volume
-- **Quick Action Shortcut Cards:**
-  - *View Match Inquiries* (`/dashboard/admin/quotes`)
-  - *Manage Accounts* (`/dashboard/admin/accounts`)
-  - *Analytics & Volume* (`/dashboard/admin/analytics`)
-- **Recent Platform Inquiries Table:** Global audit trail of recent incoming consumer submissions.
+### 5.5 System Administrator Portal — Platform Operations (`AdminDashboard.jsx`)
+The Administrator Portal applies the Staff UI template to system governance:
+
+1. **Adoption of Staff Navigation Shell:** Full dual-tier navigation (Dark Navy Rail + Utility Header) with system health diagnostics.
+2. **Platform KPI Cockpit (Staff Archetype A):**
+   - *Total Match Inquiries* (`primary/10` tint)
+   - *Verified Partner Agents* (`emerald-50` tint)
+   - *Staff Operations Members* (`amber-50` tint)
+   - *Monthly Match Volume & Conversion* (`rose-50` tint)
+3. **Platform Inquiries & Audit Roster (Staff Archetype B):**
+   - Centralized inquiry queue tracking consumer submissions from `/get-quote`.
+   - Staff and Agent account roster with role-based access management, NPN verification tags, and state licensing compliance audit.
+4. **Integration Center (Staff Archetype C):**
+   - Carrier API configuration (BlueCross, UHC, Humana webhooks).
+   - Docker container & PostgreSQL live monitoring.
+
+---
+
+### 5.6 Cross-Actor UI Consistency & Inheritance Matrix
+
+| UI Component / Paradigm | Staff Portal (Canonical Template) | Agent Portal (AgentFlow) | Admin Portal (System Governance) |
+| :--- | :--- | :--- | :--- |
+| **Navigation Shell** | Slim Rail (`w-12 #0C1B33`) + Header (`h-12`) | Dual-Tier Shell / Integrated Workspace | Slim Rail (`w-12 #0C1B33`) + Header (`h-12`) |
+| **Visual Theme Tokens** | Slate-50 / Ivory, Navy `#0B172A`, Blue `#00B4D8` | Ivory `#F7F5EF`, Navy `#0B172A`, Champagne `#C8A96B` | Slate-50 / Ivory, Navy `#0B172A`, Rose/Slate |
+| **Operational Cockpit** | Inquiries Queue & Assignment Velocity | Today's Priorities (4 Action Columns) | Global Match Volume & Docker Health |
+| **Directory Table** | Lead Inquiries & Deals with Faceted Filters | 200+ Customer Portfolio with Product Filters | Platform Account Roster & Audit Log |
+| **Status Pill Badges** | `New`, `Assigned`, `Closed Won` | `Active`, `In Underwriting`, `Renewal Due` | `Active`, `Pending NPN`, `Suspended` |
+| **Detail 360 View** | Master-Detail 3-Column Pipeline Stepper | Customer 360 Modal with APTC & Doctor Network | Account Accreditation & License Inspector |
+| **Mutation Workflow** | Route & Assign Lead to Verified Agent | Update Contract Status & Carrier Policy # | Role Assignment & API Credentials Update |
+| **Financial Ledger** | Deals Pipeline Value & Won Revenue | Contract-Commission Direct Reconciliation | Gross Match Volume & Carrier Contract Billing |
 
 ---
 
