@@ -3,7 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthContext';
 import { checkBackendHealth } from '../../../services/api';
 
-export default function StaffCrmLayout({ children, currentTab = 'contacts', onSelectTab }) {
+export default function StaffCrmLayout({
+  children,
+  currentTab = 'contacts',
+  onSelectTab,
+  isAgent = false,
+  agentName = 'Khánh Nguyen',
+  agentNpn = '#1984210',
+  showCommission = false,
+}) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -59,7 +67,7 @@ export default function StaffCrmLayout({ children, currentTab = 'contacts', onSe
         {/* Left: Brand + Navigation */}
         <div className="flex items-center gap-6">
           {/* Logo */}
-          <Link to="/dashboard/staff" className="flex items-center gap-2.5 group">
+          <Link to={isAgent ? "/dashboard/agent" : "/dashboard/staff"} className="flex items-center gap-2.5 group">
             <img
               src="/images/insurmatch-logo.png"
               alt="InsurMatch"
@@ -70,12 +78,16 @@ export default function StaffCrmLayout({ children, currentTab = 'contacts', onSe
                 <span className="text-[14px] font-black tracking-tight text-slate-900">
                   INSUR<span className="text-slate-500 font-normal">MATCH</span>
                 </span>
-                <span className="text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-bold border border-blue-200/70 tracking-wide uppercase">
-                  Staff CRM
+                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold border tracking-wide uppercase ${
+                  isAgent
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
+                    : 'bg-blue-50 text-blue-700 border-blue-200/70'
+                }`}>
+                  {isAgent ? 'Licensed Agent' : 'Staff CRM'}
                 </span>
               </div>
               <span className="text-[10px] text-slate-400 font-medium tracking-wide">
-                Digital Lead &amp; Agent Matching Platform
+                {isAgent ? 'Independent Agent Portal • CMS Compliant' : 'Digital Lead & Agent Matching Platform'}
               </span>
             </div>
           </Link>
@@ -139,6 +151,14 @@ export default function StaffCrmLayout({ children, currentTab = 'contacts', onSe
             )}
           </div>
 
+          {/* Agent Regulatory Badge */}
+          {isAgent && (
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>NPN {agentNpn} • TX &amp; CA Verified</span>
+            </div>
+          )}
+
           {/* Language selector */}
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 px-2 py-1 rounded border border-slate-200 bg-white">
             <span className="material-symbols-outlined text-[16px] text-slate-500">language</span>
@@ -152,11 +172,13 @@ export default function StaffCrmLayout({ children, currentTab = 'contacts', onSe
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100 transition cursor-pointer"
             >
-              <div className="w-7 h-7 rounded-full bg-cyan-700 text-white flex items-center justify-center font-bold text-xs">
-                {user?.avatar || 'TB'}
+              <div className={`w-7 h-7 rounded-full text-white flex items-center justify-center font-bold text-xs ${
+                isAgent ? 'bg-[#104882]' : 'bg-cyan-700'
+              }`}>
+                {isAgent ? 'KN' : (user?.avatar || 'TB')}
               </div>
               <span className="hidden lg:inline text-xs font-semibold text-slate-700 max-w-[140px] truncate">
-                {user?.email || 'tiger.truongBG@...'}
+                {isAgent ? agentName : (user?.email || 'tiger.truongBG@...')}
               </span>
               <span className="material-symbols-outlined text-[14px] text-slate-400">expand_more</span>
             </button>
@@ -165,10 +187,16 @@ export default function StaffCrmLayout({ children, currentTab = 'contacts', onSe
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
                 <div className="px-3 py-2 border-b border-slate-100">
-                  <div className="text-xs font-bold text-slate-900">{user?.name || 'Staff User'}</div>
-                  <div className="text-[11px] text-slate-500 truncate">{user?.email || 'tiger.truongBG@...'}</div>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase">
-                    Role: {user?.role || 'staff'}
+                  <div className="text-xs font-bold text-slate-900">
+                    {isAgent ? `${agentName}, Licensed Agent` : (user?.name || 'Staff User')}
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate">
+                    {isAgent ? `NPN: ${agentNpn}` : (user?.email || 'tiger.truongBG@...')}
+                  </div>
+                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    isAgent ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    Role: {isAgent ? 'INDEPENDENT AGENT' : (user?.role || 'staff')}
                   </span>
                 </div>
 
@@ -312,9 +340,43 @@ export default function StaffCrmLayout({ children, currentTab = 'contacts', onSe
                   <span className="material-symbols-outlined text-[17px] text-slate-500">checklist</span>
                   <span>Tasks</span>
                 </button>
+
+                {/* 5. Commission (Image media_1790171960593.png) */}
+                {(showCommission || isAgent) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCrmMenu(false);
+                      onSelectTab && onSelectTab('commission');
+                    }}
+                    className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
+                      currentTab === 'commission'
+                        ? 'bg-blue-50 text-blue-600 font-semibold'
+                        : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[17px] text-slate-500">payments</span>
+                    <span>Commission</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
+
+          {/* Quick Commission Icon on Rail (for Agent) */}
+          {(showCommission || isAgent) && (
+            <button
+              title="Commission Ledger"
+              onClick={() => onSelectTab && onSelectTab('commission')}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer ${
+                currentTab === 'commission'
+                  ? 'bg-[#00B4D8] text-white shadow-sm ring-2 ring-cyan-300/40'
+                  : 'text-slate-400 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[20px]">payments</span>
+            </button>
+          )}
 
           {/* Management / Team Icon */}
           <button
