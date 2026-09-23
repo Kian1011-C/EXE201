@@ -1,8 +1,388 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, useInView } from 'motion/react';
 import CarrierLogosStrip from '../components/CarrierLogos';
 import { locations } from '../data/locationsData';
+
+// ── The Converging Beam Animation Component (Section 6 Match Signature) ──
+function ConvergingBeamGraphic() {
+  const containerRef = useRef(null);
+  const isInView = useInView(containerRef, { once: false, margin: '-40px' });
+
+  // Desktop Bezier Curves (Converging horizontally into center y=88)
+  const pathTopDesktop = "M 0 44 C 95 44, 115 88, 200 88";
+  const pathBottomDesktop = "M 0 132 C 95 132, 115 88, 200 88";
+
+  // Mobile Bezier Curves (Converging vertically into bottom center x=100, y=68)
+  const pathLeftMobile = "M 50 0 C 50 35, 95 42, 100 68";
+  const pathRightMobile = "M 150 0 C 150 35, 105 42, 100 68";
+
+  return (
+    <div 
+      ref={containerRef} 
+      className="py-10 sm:py-12 px-5 sm:px-10 border border-stroke-subtle rounded-2xl bg-sand/20 relative overflow-hidden"
+    >
+      {/* Ambient subtle warm champagne glow background */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(200,169,107,0.1),transparent_70%)] pointer-events-none" />
+
+      {/* ── DESKTOP & TABLET VIEW (md and up) ── */}
+      <div className="hidden md:grid md:grid-cols-12 gap-4 items-center max-w-2xl mx-auto relative z-10">
+        
+        {/* Left Column: 01 YOU & 02 AGENTS */}
+        <div className="md:col-span-4 flex flex-col justify-between gap-5 text-left">
+          {/* 01 / CONSUMER */}
+          <motion.div 
+            initial={{ opacity: 0, x: -16 }}
+            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="p-4 rounded-xl bg-ivory/95 border border-stroke-subtle shadow-xs space-y-1 hover:border-champagne/50 transition-colors"
+          >
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-muted flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-champagne" />
+              <span>01 / CONSUMER</span>
+            </div>
+            <div className="text-xl font-black text-navy-deep tracking-tight">YOU</div>
+            <div className="text-xs text-charcoal/70">State, language &amp; needs</div>
+          </motion.div>
+
+          {/* 02 / NETWORK */}
+          <motion.div 
+            initial={{ opacity: 0, x: -16 }}
+            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="p-4 rounded-xl bg-ivory/95 border border-stroke-subtle shadow-xs space-y-1 hover:border-champagne/50 transition-colors"
+          >
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-muted flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-champagne" />
+              <span>02 / NETWORK</span>
+            </div>
+            <div className="text-xl font-black text-navy-deep tracking-tight">AGENTS</div>
+            <div className="text-xs text-charcoal/70">Verified state licenses</div>
+          </motion.div>
+        </div>
+
+        {/* Center Column: Converging SVG Bezier Beams */}
+        <div className="md:col-span-4 flex items-center justify-center relative px-2">
+          <svg viewBox="0 0 200 176" className="w-full h-44 overflow-visible" fill="none">
+            <defs>
+              {/* Cinematic Golden Glow Filter */}
+              <filter id="desktop-beam-glow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="3.5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+
+              {/* High-intensity Gold Beam Gradient */}
+              <linearGradient id="desktop-gold-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#C8A96B" stopOpacity="0.3" />
+                <stop offset="60%" stopColor="#DFCAA0" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="1" />
+              </linearGradient>
+            </defs>
+
+            {/* 1. Subtle Background Guide Tracks */}
+            <path
+              d={pathTopDesktop}
+              stroke="#C8A96B"
+              strokeOpacity="0.22"
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+            <path
+              d={pathBottomDesktop}
+              stroke="#C8A96B"
+              strokeOpacity="0.22"
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+
+            {/* 2. Animated Drawing Paths (Path Drawing on Scroll) */}
+            <motion.path
+              d={pathTopDesktop}
+              stroke="#C8A96B"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={isInView ? { pathLength: 1, opacity: 0.85 } : { pathLength: 0, opacity: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            />
+            <motion.path
+              d={pathBottomDesktop}
+              stroke="#C8A96B"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={isInView ? { pathLength: 1, opacity: 0.85 } : { pathLength: 0, opacity: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            />
+
+            {/* 3. Traveling Energy Beam Streak (Moving Dash) */}
+            <motion.path
+              d={pathTopDesktop}
+              stroke="url(#desktop-gold-gradient)"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              filter="url(#desktop-beam-glow)"
+              initial={{ strokeDasharray: "30 220", strokeDashoffset: 220, opacity: 0 }}
+              animate={isInView ? {
+                strokeDashoffset: [-30, -250],
+                opacity: [0, 1, 1, 0]
+              } : {}}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.2
+              }}
+            />
+            <motion.path
+              d={pathBottomDesktop}
+              stroke="url(#desktop-gold-gradient)"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              filter="url(#desktop-beam-glow)"
+              initial={{ strokeDasharray: "30 220", strokeDashoffset: 220, opacity: 0 }}
+              animate={isInView ? {
+                strokeDashoffset: [-30, -250],
+                opacity: [0, 1, 1, 0]
+              } : {}}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.2
+              }}
+            />
+
+            {/* 4. Energy Beam Pulse Photons (Moving dots along Bezier lines) */}
+            {isInView && (
+              <>
+                {/* Top Photon */}
+                <g>
+                  <animateMotion
+                    path={pathTopDesktop}
+                    dur="2.4s"
+                    repeatCount="indefinite"
+                    keyPoints="0; 1"
+                    keyTimes="0; 1"
+                    calcMode="spline"
+                    keySplines="0.4 0 0.2 1"
+                  />
+                  <circle r="7" fill="#C8A96B" opacity="0.65" filter="url(#desktop-beam-glow)" />
+                  <circle r="3.5" fill="#FFFFFF" stroke="#C8A96B" strokeWidth="1.5" />
+                </g>
+
+                {/* Bottom Photon */}
+                <g>
+                  <animateMotion
+                    path={pathBottomDesktop}
+                    dur="2.4s"
+                    repeatCount="indefinite"
+                    keyPoints="0; 1"
+                    keyTimes="0; 1"
+                    calcMode="spline"
+                    keySplines="0.4 0 0.2 1"
+                  />
+                  <circle r="7" fill="#C8A96B" opacity="0.65" filter="url(#desktop-beam-glow)" />
+                  <circle r="3.5" fill="#FFFFFF" stroke="#C8A96B" strokeWidth="1.5" />
+                </g>
+              </>
+            )}
+
+            {/* 5. Convergence Focal Point & Impact Ripple */}
+            <circle cx="200" cy="88" r="4.5" fill="#C8A96B" />
+            <motion.circle
+              cx="200"
+              cy="88"
+              r="4.5"
+              stroke="#C8A96B"
+              strokeWidth="1.5"
+              fill="none"
+              filter="url(#desktop-beam-glow)"
+              animate={isInView ? {
+                r: [4.5, 18],
+                opacity: [1, 0]
+              } : {}}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: "easeOut",
+                times: [0.75, 1]
+              }}
+            />
+          </svg>
+        </div>
+
+        {/* Right Column: RESULT: MATCH with Subtle Glow Bloom */}
+        <div className="md:col-span-4 flex items-center justify-center">
+          <motion.div
+            animate={isInView ? {
+              boxShadow: [
+                "0 4px 14px rgba(11, 23, 42, 0.12)",
+                "0 0 36px rgba(200, 169, 107, 0.7), 0 0 70px rgba(200, 169, 107, 0.3)",
+                "0 4px 14px rgba(11, 23, 42, 0.12)"
+              ],
+              borderColor: [
+                "rgba(255, 255, 255, 0.1)",
+                "rgba(200, 169, 107, 0.95)",
+                "rgba(255, 255, 255, 0.1)"
+              ],
+              scale: [1, 1.038, 1]
+            } : {}}
+            transition={{
+              duration: 2.4,
+              repeat: Infinity,
+              times: [0, 0.78, 1],
+              ease: "easeInOut"
+            }}
+            className="w-full p-5 sm:p-6 rounded-2xl bg-navy-deep text-ivory border border-white/10 text-center relative overflow-hidden group shadow-md"
+          >
+            {/* Ambient golden sheen */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-champagne/15 via-transparent to-transparent pointer-events-none" />
+
+            <div className="text-[10px] font-bold uppercase tracking-widest text-champagne flex items-center justify-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-champagne animate-pulse" />
+              <span>RESULT</span>
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-ivory tracking-widest mt-1">
+              MATCH
+            </div>
+            <div className="text-[10px] text-ivory/70 tracking-wider mt-1 font-semibold uppercase">
+              INSURMATCH 1-ON-1
+            </div>
+          </motion.div>
+        </div>
+
+      </div>
+
+      {/* ── MOBILE VIEW (< md) ── */}
+      <div className="md:hidden flex flex-col items-center gap-2 max-w-sm mx-auto relative z-10">
+        
+        {/* Top: 2 Cards Side-by-Side */}
+        <div className="grid grid-cols-2 gap-3 w-full text-left">
+          <div className="p-3 rounded-xl bg-ivory/95 border border-stroke-subtle shadow-xs space-y-0.5">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-muted flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-champagne" />
+              <span>01 / YOU</span>
+            </div>
+            <div className="text-base font-black text-navy-deep">YOU</div>
+            <div className="text-[11px] text-charcoal/60 truncate">State &amp; needs</div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-ivory/95 border border-stroke-subtle shadow-xs space-y-0.5">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-muted flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-champagne" />
+              <span>02 / AGENTS</span>
+            </div>
+            <div className="text-base font-black text-navy-deep">AGENTS</div>
+            <div className="text-[11px] text-charcoal/60 truncate">Verified licenses</div>
+          </div>
+        </div>
+
+        {/* Center: Mobile Converging SVG Bezier Beams */}
+        <div className="w-full flex items-center justify-center py-1">
+          <svg viewBox="0 0 200 70" className="w-full h-16 overflow-visible" fill="none">
+            <defs>
+              <filter id="mobile-beam-glow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="2.5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            {/* Guide tracks */}
+            <path d={pathLeftMobile} stroke="#C8A96B" strokeOpacity="0.22" strokeWidth="2" strokeDasharray="3 3" />
+            <path d={pathRightMobile} stroke="#C8A96B" strokeOpacity="0.22" strokeWidth="2" strokeDasharray="3 3" />
+
+            {/* Animated drawing */}
+            <motion.path
+              d={pathLeftMobile}
+              stroke="#C8A96B"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={isInView ? { pathLength: 1 } : { pathLength: 0 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+            />
+            <motion.path
+              d={pathRightMobile}
+              stroke="#C8A96B"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={isInView ? { pathLength: 1 } : { pathLength: 0 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+            />
+
+            {/* Moving Photons */}
+            {isInView && (
+              <>
+                <g>
+                  <animateMotion path={pathLeftMobile} dur="2.4s" repeatCount="indefinite" />
+                  <circle r="6" fill="#C8A96B" opacity="0.65" filter="url(#mobile-beam-glow)" />
+                  <circle r="3" fill="#FFFFFF" stroke="#C8A96B" strokeWidth="1.5" />
+                </g>
+                <g>
+                  <animateMotion path={pathRightMobile} dur="2.4s" repeatCount="indefinite" />
+                  <circle r="6" fill="#C8A96B" opacity="0.65" filter="url(#mobile-beam-glow)" />
+                  <circle r="3" fill="#FFFFFF" stroke="#C8A96B" strokeWidth="1.5" />
+                </g>
+              </>
+            )}
+
+            {/* Bottom convergence node */}
+            <circle cx="100" cy="68" r="4" fill="#C8A96B" />
+          </svg>
+        </div>
+
+        {/* Bottom: RESULT: MATCH */}
+        <motion.div
+          animate={isInView ? {
+            boxShadow: [
+              "0 4px 14px rgba(11, 23, 42, 0.12)",
+              "0 0 30px rgba(200, 169, 107, 0.65), 0 0 54px rgba(200, 169, 107, 0.22)",
+              "0 4px 14px rgba(11, 23, 42, 0.12)"
+            ],
+            borderColor: [
+              "rgba(255, 255, 255, 0.1)",
+              "rgba(200, 169, 107, 0.9)",
+              "rgba(255, 255, 255, 0.1)"
+            ],
+            scale: [1, 1.03, 1]
+          } : {}}
+          transition={{
+            duration: 2.4,
+            repeat: Infinity,
+            times: [0, 0.78, 1],
+            ease: "easeInOut"
+          }}
+          className="w-full p-4 rounded-xl bg-navy-deep text-ivory border border-white/10 text-center shadow-md relative"
+        >
+          <div className="text-[10px] font-bold uppercase tracking-widest text-champagne flex items-center justify-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-champagne animate-pulse" />
+            <span>RESULT</span>
+          </div>
+          <div className="text-xl font-black text-ivory tracking-widest mt-0.5">
+            MATCH
+          </div>
+          <div className="text-[9px] text-ivory/70 tracking-wider mt-0.5 uppercase font-medium">
+            INSURMATCH 1-ON-1
+          </div>
+        </motion.div>
+
+      </div>
+
+      {/* Explanatory Caption */}
+      <div className="mt-8 pt-6 border-t border-stroke-subtle text-xs text-charcoal/60 text-center relative z-10">
+        An intelligent matching engine connecting consumers directly with independent licensed agents — no telemarketing blasts, no spam.
+      </div>
+    </div>
+  );
+}
 
 export default function HomePage({ onOpenQuote }) {
   const [activeLocationId, setActiveLocationId] = useState('katy');
@@ -392,46 +772,8 @@ export default function HomePage({ onOpenQuote }) {
             </h2>
           </div>
 
-          {/* Converging Typography Graphic (Section 14) */}
-          <div className="py-12 px-6 sm:px-12 border border-stroke-subtle rounded-2xl bg-sand/20 relative">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8 max-w-2xl mx-auto">
-              
-              {/* Converging branch 1 */}
-              <div className="space-y-1 text-center md:text-left">
-                <div className="text-xs font-bold uppercase tracking-widest text-slate-muted">01 / CONSUMER</div>
-                <div className="text-2xl font-black text-navy-deep tracking-tight">YOU</div>
-                <div className="text-xs text-charcoal/60">State, language &amp; needs</div>
-              </div>
-
-              {/* Converging SVG lines */}
-              <div className="hidden md:flex flex-col items-center justify-center w-36 relative">
-                <svg viewBox="0 0 140 60" className="w-full h-12 text-champagne stroke-current fill-none">
-                  <path d="M 0 10 C 60 10, 80 30, 140 30" strokeWidth="1.5" />
-                  <path d="M 0 50 C 60 50, 80 30, 140 30" strokeWidth="1.5" />
-                  <circle cx="140" cy="30" r="3" className="fill-champagne" />
-                </svg>
-              </div>
-
-              {/* Converging branch 2 */}
-              <div className="space-y-1 text-center md:text-left">
-                <div className="text-xs font-bold uppercase tracking-widest text-slate-muted">02 / NETWORK</div>
-                <div className="text-2xl font-black text-navy-deep tracking-tight">AGENTS</div>
-                <div className="text-xs text-charcoal/60">Verified state licenses</div>
-              </div>
-
-              {/* Converging Destination */}
-              <div className="p-4 px-6 rounded-xl bg-navy-deep text-ivory shadow-sm text-center">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-champagne">RESULT</div>
-                <div className="text-2xl font-black text-ivory tracking-widest mt-0.5">MATCH</div>
-                <div className="text-[10px] text-ivory/60 mt-0.5">INSURMATCH</div>
-              </div>
-
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-stroke-subtle text-xs text-charcoal/60 text-center">
-              An intelligent matching engine connecting consumers directly with independent licensed agents — no telemarketing blasts, no spam.
-            </div>
-          </div>
+          {/* Converging Typography Graphic — The Converging Beam Animation (Section 14) */}
+          <ConvergingBeamGraphic />
 
         </div>
       </section>

@@ -401,12 +401,17 @@ body {
    - Text Left (03 in Champagne, headline, Living Benefits & Annuities explanation).
    - Image Right (`/images/service-life.jpg` in midnight card).
 
-#### Section 6: Signature "MATCH" Converging Graphic
-- Converging branches visual diagram:
-  - Branch 1: `01 / CONSUMER — YOU (State, language & needs)`
-  - Branch 2: `02 / NETWORK — AGENTS (Verified state licenses)`
-  - Center: SVG converging bezier curves into `RESULT: MATCH (INSURMATCH)` badge.
-  - Subline: Explains intelligent matching without telemarketing blasts.
+#### Section 6: Signature "MATCH" — "The Converging Beam" Animation
+- **Visual Staging & Layout:**
+  - Responsive 3-cluster layout connecting Input Sources with the Destination Hub:
+    - **Left Column:** `01 / CONSUMER — YOU` (State, language & needs) and `02 / NETWORK — AGENTS` (Verified state licenses) in distinct elevated ivory cards.
+    - **Center Column:** Interactive SVG Bezier canvas (`viewBox="0 0 200 176"` on desktop, `200 70` on mobile).
+    - **Right Column:** Destination badge `RESULT: MATCH (INSURMATCH 1-ON-1)`.
+- **Dynamic Animation Sequence ("The Converging Beam"):**
+  1. *Scroll-Triggered Path Drawing:* When scrolled into the viewport (`useInView`), two elegant cubic Bezier curves (`M 0 44 C 95 44, 115 88, 200 88` and `M 0 132 C 95 132, 115 88, 200 88`) smoothly draw themselves in Champagne Gold (`#C8A96B`) using Framer Motion `pathLength: 0` $\to$ `1` over 1.2s.
+  2. *Energy Beam Streak & Photons:* A radiant gradient beam pulse and two illuminated champagne photons (core white `#FFFFFF` + halo `#C8A96B`) glide along the bezier curves via hardware-accelerated SVG `<animateMotion>` with spline easing.
+  3. *Impact Ripple:* As the two photons merge at `(200, 88)`, an expanding circular shockwave ripple rings outward.
+  4. *Subtle Glow Bloom on MATCH:* Synchronized right at the arrival moment (`t = 0.78` of the 2.4s cycle), the `RESULT: MATCH` block expands gently (`scale: 1.038`) and blooms with an ambient golden glow (`box-shadow: 0 0 36px rgba(200, 169, 107, 0.7), 0 0 70px rgba(200, 169, 107, 0.3)`), visually communicating the precision 1-on-1 matchmaking algorithm without spam.
 
 #### Section 7: Human Guidance Spotlight
 - Headline: `Technology matches. Licensed agents guide.`
