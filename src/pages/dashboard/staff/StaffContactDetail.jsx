@@ -1482,7 +1482,7 @@ export default function StaffContactDetail({
 
             {/* Content Body */}
             {rightDealsOpen && (() => {
-              const dealItem = contact?.associatedDeals?.[0] || {
+              const dealItem = contact?.deals?.[0] || contact?.associatedDeals?.[0] || {
                 id: 'D26005033',
                 title: 'Non-CMS - Nhat H Dang - OB 10/2026 (NC)',
                 shortTitle: 'Non-CMS - Nhat H Dang - OB...',

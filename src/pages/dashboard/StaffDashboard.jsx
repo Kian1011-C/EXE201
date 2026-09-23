@@ -9,10 +9,17 @@ import StaffCustomerDocumentDetail from './staff/StaffCustomerDocumentDetail';
 import StaffCrmDashboard from './staff/StaffCrmDashboard';
 import {
   MOCK_CONTACTS,
+  SAMPLE_CONTACTS,
   CONTACT_DETAIL_DATA,
   DEAL_DETAIL_DATA,
   CUSTOMER_DOCUMENT_DATA,
 } from '../../data/mockCrmData';
+import {
+  getContact,
+  getDeal,
+  getDocument,
+  updateDeal as apiUpdateDeal,
+} from '../../services/api';
 
 export default function StaffDashboard() {
   const location = useLocation();
@@ -35,9 +42,27 @@ export default function StaffDashboard() {
       setCurrentTab('dashboard');
       setCurrentView('dashboard');
     } else if (path.includes('/dashboard/staff/documents/')) {
+      const parts = path.split('/dashboard/staff/documents/');
+      const docId = parts[1];
+      if (docId) {
+        getDocument(docId)
+          .then((res) => {
+            if (res) setSelectedDocument((prev) => ({ ...prev, ...res }));
+          })
+          .catch(() => {});
+      }
       setCurrentTab('contacts');
       setCurrentView('customer-document-detail');
     } else if (path.includes('/dashboard/staff/deals/')) {
+      const parts = path.split('/dashboard/staff/deals/');
+      const dealId = parts[1];
+      if (dealId) {
+        getDeal(dealId)
+          .then((res) => {
+            if (res) setSelectedDeal((prev) => ({ ...prev, ...res }));
+          })
+          .catch(() => {});
+      }
       setCurrentTab('deals');
       setCurrentView('deal-detail');
     } else if (
@@ -49,9 +74,17 @@ export default function StaffDashboard() {
     } else if (path.includes('/dashboard/staff/contacts/')) {
       const parts = path.split('/dashboard/staff/contacts/');
       const contactId = parts[1];
-      const found = MOCK_CONTACTS.find((c) => c.id === contactId);
-      if (found) {
-        setSelectedContact({ ...CONTACT_DETAIL_DATA, ...found });
+      if (contactId) {
+        getContact(contactId)
+          .then((data) => {
+            if (data) {
+              handleSelectContact(data, false);
+            }
+          })
+          .catch(() => {
+            const found = SAMPLE_CONTACTS.find((c) => c.id === contactId || c.code === contactId);
+            if (found) handleSelectContact(found, false);
+          });
       }
       setCurrentTab('contacts');
       setCurrentView('contact-detail');
@@ -62,7 +95,7 @@ export default function StaffDashboard() {
   }, [location.pathname]);
 
   // Handlers for smooth navigation
-  function handleSelectContact(contact) {
+  function handleSelectContact(contact, updateUrl = true) {
     const p = contact.primary || {};
     let firstName = contact.firstName || p.firstName;
     let middleName = contact.middleName || p.middleName || '';
@@ -115,7 +148,9 @@ export default function StaffDashboard() {
 
     setSelectedContact(mergedContact);
     setCurrentView('contact-detail');
-    navigate(`/dashboard/staff/contacts/${contact.id}`, { replace: false });
+    if (updateUrl && location.pathname !== `/dashboard/staff/contacts/${contact.id}`) {
+      navigate(`/dashboard/staff/contacts/${contact.id}`, { replace: false });
+    }
   }
 
   function handleSelectDeal(deal) {
@@ -211,6 +246,11 @@ export default function StaffDashboard() {
           onSelectCustomerDocument={handleSelectCustomerDocument}
           onUpdateDeal={(updated) => {
             setSelectedDeal((prev) => ({ ...prev, ...updated }));
+            if (updated?.id) {
+              apiUpdateDeal(updated.id, updated).catch((err) =>
+                console.warn('[StaffDashboard] Could not persist deal update:', err)
+              );
+            }
           }}
         />
       )}

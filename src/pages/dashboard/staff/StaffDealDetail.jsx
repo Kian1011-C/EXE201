@@ -46,6 +46,17 @@ export default function StaffDealDetail({
   ]);
   const [activitiesList, setActivitiesList] = useState(dealInfo.activities || []);
 
+  useEffect(() => {
+    if (deal) {
+      if (deal.title) setDealTitle(deal.title);
+      if (deal.pipeline) setPipeline(deal.pipeline);
+      if (deal.stage) setStage(deal.stage);
+      if (deal.amount) setAmount(deal.amount);
+      if (deal.closeDate) setCloseDate(deal.closeDate);
+      if (deal.activities) setActivitiesList(deal.activities);
+    }
+  }, [deal]);
+
   const stageDropdownRef = useRef(null);
   const pipelineDropdownRef = useRef(null);
 
