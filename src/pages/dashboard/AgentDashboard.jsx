@@ -547,6 +547,8 @@ export default function AgentDashboard() {
           onBack={handleBackToContacts}
           onSelectDeal={handleSelectDeal}
           onSelectCustomerDocument={handleSelectCustomerDocument}
+          onSelectTicket={handleSelectTicket}
+          onSelectTask={handleSelectTask}
         />
       )}
 
@@ -565,6 +567,8 @@ export default function AgentDashboard() {
           onBack={handleBackFromDeal}
           onSelectContact={() => handleSelectContact(selectedContact)}
           onSelectCustomerDocument={handleSelectCustomerDocument}
+          onSelectTicket={handleSelectTicket}
+          onSelectTask={handleSelectTask}
           onUpdateDeal={(updated) => {
             setSelectedDeal((prev) => ({ ...prev, ...updated }));
             if (updated?.id) {

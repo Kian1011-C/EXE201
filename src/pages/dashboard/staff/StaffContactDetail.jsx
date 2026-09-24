@@ -6,6 +6,7 @@ export default function StaffContactDetail({
   onBack,
   onSelectDeal,
   onSelectCustomerDocument,
+  onSelectTicket,
 }) {
   const [activeTab, setActiveTab] = useState('activity');
   // Accordion states: mở ra mở vô được
@@ -1592,13 +1593,43 @@ export default function StaffContactDetail({
             {/* Content Body */}
             {rightTicketsOpen && (
               <div className="p-3">
-                <div className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs">
+                <div
+                  onClick={() => {
+                    if (onSelectTicket) {
+                      onSelectTicket({
+                        id: 'TC2600101',
+                        title: 'ACA account 2026',
+                        pipeline: 'ACA account',
+                        status: 'DONE',
+                        rawStatus: 'Uploaded - Waiting for Verification',
+                        priority: 'High',
+                        closeDate: '05/27/2026',
+                        dueDate: '05/14/2026',
+                        ticketResult: '',
+                        changeDueDateReason: '',
+                        carrier: contact?.dealCarrier || 'UHC - RMHP',
+                        ticketOwner: 'Tri Tran (tritran92@5)',
+                        serviceAgent: 'Sean Ngo (sean75@8)',
+                        contactName: contact?.fullName || 'Minh trang Tran',
+                        contactPhone: contact?.phone || '3462158034',
+                        contactEmail: contact?.email || 'dungnguyen20041960@gmail.com',
+                        leadOwner: 'Tri Tran',
+                        dealTitle: 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
+                        dealPipeline: 'Obamacare 2026',
+                        dealStage: 'Enrolled - Active',
+                        dealOwner: 'Tri Tran',
+                        dealCarrier: 'UHC - RMHP',
+                      });
+                    }
+                  }}
+                  className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
+                >
                   {/* Title row with badge */}
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition">
                       <span className="material-symbols-outlined text-[15px]">confirmation_number</span>
                     </div>
-                    <span className="font-bold text-[#104882] text-xs">ACA account 2026</span>
+                    <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">ACA account 2026</span>
                   </div>
 
                   {/* Properties list with icons */}
@@ -1629,6 +1660,34 @@ export default function StaffContactDetail({
                 {/* Footer Link */}
                 <button
                   type="button"
+                  onClick={() => {
+                    if (onSelectTicket) {
+                      onSelectTicket({
+                        id: 'TC2600101',
+                        title: 'ACA account 2026',
+                        pipeline: 'ACA account',
+                        status: 'DONE',
+                        rawStatus: 'Uploaded - Waiting for Verification',
+                        priority: 'High',
+                        closeDate: '05/27/2026',
+                        dueDate: '05/14/2026',
+                        ticketResult: '',
+                        changeDueDateReason: '',
+                        carrier: contact?.dealCarrier || 'UHC - RMHP',
+                        ticketOwner: 'Tri Tran (tritran92@5)',
+                        serviceAgent: 'Sean Ngo (sean75@8)',
+                        contactName: contact?.fullName || 'Minh trang Tran',
+                        contactPhone: contact?.phone || '3462158034',
+                        contactEmail: contact?.email || 'dungnguyen20041960@gmail.com',
+                        leadOwner: 'Tri Tran',
+                        dealTitle: 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
+                        dealPipeline: 'Obamacare 2026',
+                        dealStage: 'Enrolled - Active',
+                        dealOwner: 'Tri Tran',
+                        dealCarrier: 'UHC - RMHP',
+                      });
+                    }
+                  }}
                   className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer pl-0.5"
                 >
                   <span>» View Associated Ticket</span>
