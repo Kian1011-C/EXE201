@@ -93,7 +93,7 @@ export default function StaffTicketDetail({ ticket, onBack, onSelectContact, onS
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold text-slate-800">{ticket.title}</h1>
-            <span className={\`text-[10px] px-2 py-0.5 rounded border font-medium \${getPipelineColor(ticket.pipeline)}\`}>
+            <span className={`text-[10px] px-2 py-0.5 rounded border font-medium ${getPipelineColor(ticket.pipeline)}`}>
               {ticket.pipeline}
             </span>
           </div>
@@ -127,7 +127,7 @@ export default function StaffTicketDetail({ ticket, onBack, onSelectContact, onS
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Priority (Auto)</label>
             <div className="px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded text-slate-700 font-medium flex items-center gap-2">
-              <span className={\`w-2 h-2 rounded-full \${ticket.priority === 'HIGH' ? 'bg-rose-500' : ticket.priority === 'MEDIUM' ? 'bg-amber-500' : 'bg-emerald-500'}\`}></span>
+              <span className={`w-2 h-2 rounded-full ${ticket.priority === 'HIGH' ? 'bg-rose-500' : ticket.priority === 'MEDIUM' ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
               {ticket.priority}
             </div>
           </div>
@@ -146,14 +146,14 @@ export default function StaffTicketDetail({ ticket, onBack, onSelectContact, onS
             <div>
               <p className="text-[10px] text-slate-400">Owner</p>
               <div className="flex items-center gap-1.5 mt-1">
-                <div className={\`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold \${ticket.owner?.bg || 'bg-slate-200 text-slate-700'}\`}>{ticket.owner?.avatar || 'U'}</div>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${ticket.owner?.bg || 'bg-slate-200 text-slate-700'}`}>{ticket.owner?.avatar || 'U'}</div>
                 <span className="text-xs text-slate-700 truncate">{ticket.owner?.name || 'Unassigned'}</span>
               </div>
             </div>
             <div>
               <p className="text-[10px] text-slate-400">Service Agent</p>
               <div className="flex items-center gap-1.5 mt-1">
-                <div className={\`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold \${ticket.serviceAgent?.bg || 'bg-slate-200 text-slate-700'}\`}>{ticket.serviceAgent?.avatar || 'U'}</div>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${ticket.serviceAgent?.bg || 'bg-slate-200 text-slate-700'}`}>{ticket.serviceAgent?.avatar || 'U'}</div>
                 <span className="text-xs text-slate-700 truncate">{ticket.serviceAgent?.name || 'Unassigned'}</span>
               </div>
             </div>
@@ -169,7 +169,7 @@ export default function StaffTicketDetail({ ticket, onBack, onSelectContact, onS
           <div className="flex-grow overflow-y-auto p-6 space-y-6">
             {comments.map(c => (
               <div key={c.id} className="flex gap-3">
-                <div className={\`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 \${c.bg}\`}>{c.avatar}</div>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${c.bg}`}>{c.avatar}</div>
                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex-grow">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-slate-800">{c.author}</span>

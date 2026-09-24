@@ -167,7 +167,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   function handleCreateSubmit(e) {
     e.preventDefault();
     const newRecord = {
-      id: \`TK2600\${ticketsList.length + 1}\`,
+      id: `TK2600${ticketsList.length + 1}`,
       no: ticketsList.length + 1,
       title: title || 'New Ticket',
       pipeline,
@@ -417,18 +417,18 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                       <div className="text-[11px] text-slate-400 mt-0.5">{ticket.id} • {ticket.created}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={\`inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium \${getPipelineColor(ticket.pipeline)}\`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ${getPipelineColor(ticket.pipeline)}`}>
                         {ticket.pipeline}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={\`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium \${getStatusColor(ticket.status)}\`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${getStatusColor(ticket.status)}`}>
                         {ticket.status}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <span className={\`w-2 h-2 rounded-full \${getPriorityColor(ticket.priority)}\`}></span>
+                        <span className={`w-2 h-2 rounded-full ${getPriorityColor(ticket.priority)}`}></span>
                         <span className="text-slate-700">{ticket.priority}</span>
                       </div>
                     </td>
@@ -447,7 +447,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className={\`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold \${ticket.owner.bg}\`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${ticket.owner.bg}`}>
                           {ticket.owner.avatar}
                         </div>
                         <span className="text-slate-700">{ticket.owner.name}</span>
