@@ -96,7 +96,7 @@ model Deal {
   brokerEffectiveDate String   @default("2026-09-09")
   terminationDate     String   @default("2027-12-31")
   primaryMemberId     String   @default("MID-98234710")
-  saleSupportStatus   String   @default("Completed")
+  saleSupportStatus   String   @default("None")
   numberMember        Int      @default(1)
   closedLostReason    String   @default("---")
 

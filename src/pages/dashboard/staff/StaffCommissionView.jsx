@@ -499,14 +499,18 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                         <div className="mt-0.5">
                           <span
                             className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase border ${
-                              (row.saleSupportStatus || '').includes('NONE')
+                              (row.saleSupportStatus || '').toUpperCase().includes('NONE')
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : (row.saleSupportStatus || '').includes('PARTIAL')
+                                : (row.saleSupportStatus || '').toUpperCase().includes('PARTIAL')
                                 ? 'bg-amber-50 text-amber-700 border-amber-200'
                                 : 'bg-purple-50 text-purple-700 border-purple-200'
                             }`}
                           >
-                            SSS: {row.saleSupportStatus || 'NONE'}
+                            SSS: {(row.saleSupportStatus || '').toUpperCase().includes('NONE')
+                              ? 'NONE (7/3)'
+                              : (row.saleSupportStatus || '').toUpperCase().includes('PARTIAL')
+                              ? 'PARTIAL (5/5)'
+                              : 'FULL (3/7)'}
                           </span>
                         </div>
                       </td>
@@ -638,7 +642,13 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">Sale Support Status (SSS)</span>
-                  <span className="font-bold text-blue-700">{selectedRecord.saleSupportStatus || 'NONE'}</span>
+                  <span className="font-bold text-blue-700">
+                    {(selectedRecord.saleSupportStatus || '').toUpperCase().includes('NONE')
+                      ? 'NONE (7/3 Split: Agent 70% / Support 30%)'
+                      : (selectedRecord.saleSupportStatus || '').toUpperCase().includes('PARTIAL')
+                      ? 'PARTIAL (5/5 Split: Agent 50% / Support 50%)'
+                      : 'FULL (3/7 Split: Agent 30% / Support 70%)'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">Statement Period</span>

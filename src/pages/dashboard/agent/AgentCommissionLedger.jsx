@@ -10,22 +10,22 @@ import AgentCommissionCalculator from './AgentCommissionCalculator';
 const INITIAL_COMMISSION_DATA = [
   {
     id: 'COMM-2026-001',
-    policyNumber: 'BCBS-NC-88219',
+    policyNumber: 'BCBS-NC-88912',
     memberId: 'MID-98234710',
-    clientName: 'Nhat Huu Tuan Dang',
+    clientName: 'Nhat H Dang',
     clientCode: 'CT26002600',
-    carrier: 'BCBS North Carolina',
+    carrier: 'Blue Cross Blue Shield NC',
     category: 'Obamacare / ACA',
-    planName: 'Blue Advantage Bronze 2026',
+    planName: 'Blue Advantage Silver 2026',
     membersCount: 1,
     premium: 395,
     subsidy: 395,
     commissionRate: '$30.00 PMPM (Per Member Per Month)',
     grossAmount: 30.0,
-    supportDeduction: 0.0,
+    supportDeduction: 0.30,
     saleSupportStatus: 'NONE',
-    commissionAmount: 30.0,
-    annualProjected: 360.0,
+    commissionAmount: 21.0,
+    annualProjected: 252.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -45,10 +45,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 380,
     commissionRate: '$32.00 PMPM',
     grossAmount: 32.0,
-    supportDeduction: 0.40,
+    supportDeduction: 0.50,
     saleSupportStatus: 'PARTIAL',
-    commissionAmount: 19.2,
-    annualProjected: 230.4,
+    commissionAmount: 16.0,
+    annualProjected: 192.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -68,10 +68,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 340,
     commissionRate: '$28.00 PMPM',
     grossAmount: 28.0,
-    supportDeduction: 0.0,
+    supportDeduction: 0.30,
     saleSupportStatus: 'NONE',
-    commissionAmount: 28.0,
-    annualProjected: 336.0,
+    commissionAmount: 19.6,
+    annualProjected: 235.2,
     status: 'Pending Carrier Review',
     cycle: '2026-09',
     payoutDate: 'Pending (Next Cycle)',
@@ -91,10 +91,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 720,
     commissionRate: '$30.00 PMPM ($60/mo for 2)',
     grossAmount: 60.0,
-    supportDeduction: 0.40,
+    supportDeduction: 0.50,
     saleSupportStatus: 'PARTIAL',
-    commissionAmount: 36.0,
-    annualProjected: 432.0,
+    commissionAmount: 30.0,
+    annualProjected: 360.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -114,10 +114,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 0,
     commissionRate: '$51.00 / mo ($612 Initial CMS)',
     grossAmount: 51.0,
-    supportDeduction: 0.0,
+    supportDeduction: 0.30,
     saleSupportStatus: 'NONE',
-    commissionAmount: 51.0,
-    annualProjected: 612.0,
+    commissionAmount: 35.7,
+    annualProjected: 428.4,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -137,10 +137,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 410,
     commissionRate: '$30.00 PMPM',
     grossAmount: 30.0,
-    supportDeduction: 0.0,
+    supportDeduction: 0.30,
     saleSupportStatus: 'NONE',
-    commissionAmount: 30.0,
-    annualProjected: 360.0,
+    commissionAmount: 21.0,
+    annualProjected: 252.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -160,10 +160,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 360,
     commissionRate: '$29.00 PMPM',
     grossAmount: 29.0,
-    supportDeduction: 0.75,
+    supportDeduction: 0.70,
     saleSupportStatus: 'FULL',
-    commissionAmount: 7.25,
-    annualProjected: 87.0,
+    commissionAmount: 8.7,
+    annualProjected: 104.4,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -183,10 +183,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 420,
     commissionRate: '$35.00 PMPM',
     grossAmount: 35.0,
-    supportDeduction: 0.40,
+    supportDeduction: 0.50,
     saleSupportStatus: 'PARTIAL',
-    commissionAmount: 21.0,
-    annualProjected: 252.0,
+    commissionAmount: 17.5,
+    annualProjected: 210.0,
     status: 'Pending Carrier Review',
     cycle: '2026-09',
     payoutDate: 'Pending (Next Cycle)',
@@ -206,10 +206,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 335,
     commissionRate: '$30.00 PMPM',
     grossAmount: 30.0,
-    supportDeduction: 0.0,
+    supportDeduction: 0.30,
     saleSupportStatus: 'NONE',
-    commissionAmount: 30.0,
-    annualProjected: 360.0,
+    commissionAmount: 21.0,
+    annualProjected: 252.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -229,10 +229,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 750,
     commissionRate: '$32.00 PMPM ($64/mo for 2)',
     grossAmount: 64.0,
-    supportDeduction: 0.40,
+    supportDeduction: 0.50,
     saleSupportStatus: 'PARTIAL',
-    commissionAmount: 38.4,
-    annualProjected: 460.8,
+    commissionAmount: 32.0,
+    annualProjected: 384.0,
     status: 'In Processing',
     cycle: '2026-09',
     payoutDate: '09/28/2026',
@@ -731,14 +731,18 @@ export default function AgentCommissionLedger({ onSelectContact }) {
                   <td className="py-3 px-3.5 text-center">
                     <span
                       className={`inline-block px-2 py-0.5 rounded font-bold text-[10px] uppercase border ${
-                        (row.saleSupportStatus || '').includes('NONE')
+                        (row.saleSupportStatus || '').toUpperCase().includes('NONE')
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                          : row.saleSupportStatus === 'PARTIAL'
+                          : (row.saleSupportStatus || '').toUpperCase() === 'PARTIAL'
                           ? 'bg-amber-50 text-amber-700 border-amber-300'
                           : 'bg-rose-50 text-rose-700 border-rose-300'
                       }`}
                     >
-                      {row.saleSupportStatus || 'NONE'}
+                      {(row.saleSupportStatus || '').toUpperCase().includes('NONE')
+                        ? 'NONE (7/3)'
+                        : (row.saleSupportStatus || '').toUpperCase() === 'PARTIAL'
+                        ? 'PARTIAL (5/5)'
+                        : 'FULL (3/7)'}
                     </span>
                   </td>
 
@@ -754,7 +758,7 @@ export default function AgentCommissionLedger({ onSelectContact }) {
                         -{(row.supportDeduction * 100).toFixed(0)}%
                       </span>
                     ) : (
-                      <span className="text-emerald-600 font-semibold">0% (100% Net)</span>
+                      <span className="text-emerald-600 font-semibold">0% (Grace)</span>
                     )}
                   </td>
 

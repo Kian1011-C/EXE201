@@ -85,20 +85,20 @@ export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
 
     if (quoteBy === 'Agent' && enrollBy === 'Agent') {
       sss = 'NONE';
-      deductionPercent = 0.0;
-      ruleCitation = 'Rule 1: Agent Quotes + Agent Enrolls → SSS = NONE (0% Support Deduction)';
+      deductionPercent = 0.30;
+      ruleCitation = 'Rule 1: Agent Quotes + Agent Enrolls → SSS = NONE (7/3 Split: Agent 70% / TBR Support Fee 30%)';
     } else if (quoteBy === 'Agent' && enrollBy === 'Support') {
       sss = 'PARTIAL';
-      deductionPercent = 0.40;
-      ruleCitation = 'Rule 2: Agent Quotes + Company Support Enrolls → SSS = PARTIAL (40% TBR Support Fee)';
+      deductionPercent = 0.50;
+      ruleCitation = 'Rule 2: Agent Quotes + Company Support Enrolls → SSS = PARTIAL (5/5 Split: Agent 50% / TBR Support Fee 50%)';
     } else if (quoteBy === 'Support' && enrollBy === 'Support') {
       sss = 'FULL';
-      deductionPercent = 0.75;
-      ruleCitation = 'Rule 3: Company Quotes + Company Support Enrolls → SSS = FULL (75% TBR Support Fee)';
+      deductionPercent = 0.70;
+      ruleCitation = 'Rule 3: Company Quotes + Company Support Enrolls → SSS = FULL (3/7 Split: Agent 30% / TBR Support Fee 70%)';
     } else if (quoteBy === 'Support' && enrollBy === 'Agent') {
       sss = 'PARTIAL';
-      deductionPercent = 0.40;
-      ruleCitation = 'Rule 4: Support Quote Hand-off → SSS = PARTIAL (40% TBR Support Fee)';
+      deductionPercent = 0.50;
+      ruleCitation = 'Rule 4: Support Quote Hand-off → SSS = PARTIAL (5/5 Split: Agent 50% / TBR Support Fee 50%)';
     }
 
     // Territory & NPN Master Override (Anh Que Pham NPN 20011862)

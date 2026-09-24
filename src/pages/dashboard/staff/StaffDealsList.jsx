@@ -250,7 +250,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
         supportAgent: 'Anya Nguyen (anya42@9)',
         code: newCode,
         primaryMemberId: 'MID-' + Math.floor(10000000 + Math.random() * 90000000),
-        saleSupportStatus: 'Completed',
+        saleSupportStatus: 'None',
         numberMember: 1,
         sellingState: sellingState,
         carrier: carrier,

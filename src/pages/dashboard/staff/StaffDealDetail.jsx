@@ -62,6 +62,8 @@ export default function StaffDealDetail({
       if (deal?.activities) setActivitiesList(deal.activities);
       if (deal?.notes) setNotesList(deal.notes);
       if (deal?.tasks) setTasksList(deal.tasks);
+      const sss = deal?.adminOnly?.saleSupportStatus || deal?.saleSupportStatus;
+      if (sss) setSaleSupportStatus(sss);
     }
   }, [deal]);
 
@@ -197,7 +199,7 @@ export default function StaffDealDetail({
     dealInfo.adminOnly?.terminationDate || '2027-12-31'
   );
   const [saleSupportStatus, setSaleSupportStatus] = useState(
-    dealInfo.adminOnly?.saleSupportStatus || 'Completed'
+    dealInfo.adminOnly?.saleSupportStatus || dealInfo.saleSupportStatus || 'None'
   );
   const [closedLostReason, setClosedLostReason] = useState(
     dealInfo.adminOnly?.closedLostReason || '---'
@@ -305,6 +307,22 @@ export default function StaffDealDetail({
         tasks: tasksList,
       });
     }
+  }
+
+  function handleUpdateSaleSupportStatus(newSss) {
+    setSaleSupportStatus(newSss);
+    logActivity('Deal Property Updated', `changed Sale Support Status to "${newSss}"`);
+    if (onUpdateDeal) {
+      onUpdateDeal({
+        ...dealInfo,
+        title: dealTitle,
+        pipeline,
+        stage,
+        adminOnly: { ...(dealInfo.adminOnly || {}), saleSupportStatus: newSss },
+        saleSupportStatus: newSss,
+      });
+    }
+    showToast(`Sale Support Status updated to ${newSss}`);
   }
 
   function handleFileAttach(e) {
@@ -860,17 +878,28 @@ export default function StaffDealDetail({
 
                   {/* Sale Support Status */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Sale Support Status
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-slate-700 font-semibold text-[11px]">
+                        Sale Support Status
+                      </label>
+                      <span className="text-[10px] font-bold text-blue-600">
+                        {saleSupportStatus === 'None' || saleSupportStatus === 'NONE'
+                          ? '7/3 Split (Agent 70% / Support 30%)'
+                          : saleSupportStatus === 'Partial' || saleSupportStatus === 'PARTIAL'
+                          ? '5/5 Split (Agent 50% / Support 50%)'
+                          : saleSupportStatus === 'Full' || saleSupportStatus === 'FULL'
+                          ? '3/7 Split (Agent 30% / Support 70%)'
+                          : ''}
+                      </span>
+                    </div>
                     <select
                       value={saleSupportStatus}
-                      onChange={(e) => setSaleSupportStatus(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700"
+                      onChange={(e) => handleUpdateSaleSupportStatus(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
                     >
-                      <option>Completed</option>
-                      <option>In Progress</option>
-                      <option>Pending Verification</option>
+                      <option value="None">None (7/3)</option>
+                      <option value="Partial">Partial (5/5)</option>
+                      <option value="Full">Full (3/7)</option>
                     </select>
                   </div>
 

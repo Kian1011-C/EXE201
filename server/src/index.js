@@ -931,19 +931,20 @@ app.post('/api/commissions/calculate', async (req, res) => {
         grossPerMonth = 30.0 * members; // $30 PMPM
       }
 
-      // SSS (Sale Support Status) Logic from SOP:
-      // NONE: 0% support deduction (Agent quotes + Agent enrolls)
-      // PARTIAL: 40% support deduction (Agent quotes + Support enrolls)
-      // FULL: 75% support deduction (Support quotes + Support enrolls)
-      let sss = (deal.saleSupportStatus || '').toUpperCase();
-      if (!['NONE', 'PARTIAL', 'FULL'].includes(sss)) {
-        sss = deal.stage.includes('Active') ? 'NONE' : 'PARTIAL';
-      }
+      // SSS (Sale Support Status) Split Logic:
+      // NONE: 7/3 split (Agent 70%, Support 30% deduction) -> deductionRate = 0.30
+      // PARTIAL: 5/5 split (Agent 50%, Support 50% deduction) -> deductionRate = 0.50
+      // FULL: 3/7 split (Agent 30%, Support 70% deduction) -> deductionRate = 0.70
+      let rawSss = String(deal.saleSupportStatus || '').toUpperCase();
+      let sss = 'NONE';
+      if (rawSss.includes('FULL')) sss = 'FULL';
+      else if (rawSss.includes('PARTIAL')) sss = 'PARTIAL';
+      else sss = 'NONE';
 
-      let deductionRate = 0;
-      if (sss === 'PARTIAL') deductionRate = 0.40;
-      else if (sss === 'FULL') deductionRate = 0.75;
-      else deductionRate = 0.0;
+      let deductionRate = 0.30; // NONE: 7/3 split (Agent 70%, Support 30%)
+      if (sss === 'PARTIAL') deductionRate = 0.50; // PARTIAL: 5/5 split (Agent 50%, Support 50%)
+      else if (sss === 'FULL') deductionRate = 0.70; // FULL: 3/7 split (Agent 30%, Support 70%)
+      else deductionRate = 0.30;
 
       // New Agent Grace: First 20 deals or tenure <= 3 months get 100% (NONE)
       if (isNewAgent) {
