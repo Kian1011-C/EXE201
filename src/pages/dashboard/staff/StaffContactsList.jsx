@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { SAMPLE_CONTACTS } from '../../../data/mockCrmData';
 import { getContacts, createContact as apiCreateContact } from '../../../services/api';
 
 export default function StaffContactsList({ onSelectContact }) {
@@ -15,16 +14,16 @@ export default function StaffContactsList({ onSelectContact }) {
     setLoading(true);
     try {
       const data = await getContacts();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setContactsList(data);
         setIsDbConnected(true);
       } else {
-        setContactsList(SAMPLE_CONTACTS);
+        setContactsList([]);
         setIsDbConnected(false);
       }
     } catch (err) {
-      console.warn('[StaffContactsList] API error, falling back to sample data:', err);
-      setContactsList(SAMPLE_CONTACTS);
+      console.warn('[StaffContactsList] API error:', err);
+      setContactsList([]);
       setIsDbConnected(false);
     } finally {
       setLoading(false);
@@ -69,8 +68,11 @@ export default function StaffContactsList({ onSelectContact }) {
 
   // Unique owners for filter
   const ownerOptions = useMemo(() => {
-    const listToScan = contactsList.length > 0 ? contactsList : SAMPLE_CONTACTS;
-    const set = new Set(listToScan.map((c) => c.contactOwner.name));
+    const set = new Set(
+      contactsList
+        .map((c) => (typeof c.contactOwner === 'object' ? c.contactOwner?.name : c.contactOwner))
+        .filter(Boolean)
+    );
     return Array.from(set);
   }, [contactsList]);
 
@@ -327,27 +329,16 @@ export default function StaffContactsList({ onSelectContact }) {
           </button>
         </div>
 
-        {/* Quick sample loader / clear toggle */}
+        {/* DB Sync / Refresh button */}
         <div className="flex items-center gap-2">
-          {contactsList.length === 0 ? (
-            <button
-              type="button"
-              onClick={() => setContactsList(SAMPLE_CONTACTS)}
-              className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[15px]">download</span>
-              <span>Tải dữ liệu mẫu để kiểm tra</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setContactsList([])}
-              className="text-xs text-rose-600 hover:underline font-medium flex items-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[15px]">delete_sweep</span>
-              <span>Xóa trống data</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={loadData}
+            className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-[15px]">sync</span>
+            <span>Làm mới ({contactsList.length} liên hệ)</span>
+          </button>
         </div>
       </div>
 
@@ -413,11 +404,11 @@ export default function StaffContactsList({ onSelectContact }) {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setContactsList(SAMPLE_CONTACTS)}
+                          onClick={loadData}
                           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium shadow-xs transition cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[15px] text-slate-500">cloud_download</span>
-                          <span>Tải dữ liệu mẫu để test</span>
+                          <span className="material-symbols-outlined text-[15px] text-slate-500">sync</span>
+                          <span>Tải lại từ Database</span>
                         </button>
                       </div>
                     </div>

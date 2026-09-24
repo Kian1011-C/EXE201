@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  SAMPLE_DEALS,
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
 } from '../../../data/mockCrmData';
@@ -22,16 +21,16 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
     setLoading(true);
     try {
       const data = await getDeals();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setDealsList(data);
         setIsDbConnected(true);
       } else {
-        setDealsList(SAMPLE_DEALS);
+        setDealsList([]);
         setIsDbConnected(false);
       }
     } catch (err) {
-      console.warn('[StaffDealsList] API error, falling back to sample deals:', err);
-      setDealsList(SAMPLE_DEALS);
+      console.warn('[StaffDealsList] API error:', err);
+      setDealsList([]);
       setIsDbConnected(false);
     } finally {
       setLoading(false);
@@ -345,27 +344,16 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
           </div>
         </div>
 
-        {/* Quick sample loader / clear toggle */}
+        {/* DB Sync / Refresh button */}
         <div className="flex items-center gap-2 shrink-0">
-          {dealsList.length === 0 ? (
-            <button
-              type="button"
-              onClick={() => setDealsList(SAMPLE_DEALS)}
-              className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[15px]">download</span>
-              <span>Tải dữ liệu mẫu</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setDealsList([])}
-              className="text-xs text-rose-600 hover:underline font-medium flex items-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[15px]">delete_sweep</span>
-              <span>Xóa data</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={loadDealsData}
+            className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-[15px]">sync</span>
+            <span>Làm mới ({dealsList.length} deals)</span>
+          </button>
         </div>
       </div>
 
@@ -432,10 +420,10 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setDealsList(SAMPLE_DEALS)}
+                          onClick={loadDealsData}
                           className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium cursor-pointer"
                         >
-                          Tải dữ liệu mẫu
+                          Tải lại từ Database
                         </button>
                       </div>
                     </div>
