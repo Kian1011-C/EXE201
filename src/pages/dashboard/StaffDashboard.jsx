@@ -11,6 +11,7 @@ import StaffTicketsList from './staff/StaffTicketsList';
 import StaffTicketDetail from './staff/StaffTicketDetail';
 import StaffTasksList from './staff/StaffTasksList';
 import StaffTaskDetail from './staff/StaffTaskDetail';
+import StaffCommissionView from './staff/StaffCommissionView';
 import {
   MOCK_CONTACTS,
   SAMPLE_CONTACTS,
@@ -96,6 +97,9 @@ export default function StaffDashboard() {
     } else if (path.endsWith('/dashboard/staff/deals') || path.endsWith('/dashboard/staff/deals/')) {
       setCurrentTab('deals');
       setCurrentView('deals-list');
+    } else if (path.endsWith('/dashboard/staff/commission') || path.endsWith('/dashboard/staff/commission/')) {
+      setCurrentTab('commission');
+      setCurrentView('commission-ledger');
     } else if (path.includes('/dashboard/staff/contacts/')) {
       const parts = path.split('/dashboard/staff/contacts/');
       const contactId = parts[1];
@@ -213,6 +217,9 @@ export default function StaffDashboard() {
     } else if (tab === 'tasks') {
       setCurrentView('tasks-list');
       navigate('/dashboard/staff/tasks', { replace: false });
+    } else if (tab === 'commission') {
+      setCurrentView('commission-ledger');
+      navigate('/dashboard/staff/commission', { replace: false });
     }
   }
 
@@ -248,7 +255,7 @@ export default function StaffDashboard() {
   }
 
   return (
-    <StaffCrmLayout currentTab={currentTab} onSelectTab={handleSelectTab}>
+    <StaffCrmLayout currentTab={currentTab} onSelectTab={handleSelectTab} showCommission={true}>
       {currentView === 'dashboard' && (
         <StaffCrmDashboard
           onSelectTab={handleSelectTab}
@@ -343,6 +350,14 @@ export default function StaffDashboard() {
           onSelectContact={handleSelectContact}
           onSelectDeal={handleSelectDeal}
           onSelectTicket={handleSelectTicket}
+        />
+      )}
+
+      {/* ── Commission View ──────────────────────────────────────────────── */}
+      {currentView === 'commission-ledger' && (
+        <StaffCommissionView
+          onSelectDeal={handleSelectDeal}
+          onSelectContact={handleSelectContact}
         />
       )}
     </StaffCrmLayout>

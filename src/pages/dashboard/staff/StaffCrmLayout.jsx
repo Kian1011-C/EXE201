@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthContext';
 import { checkBackendHealth } from '../../../services/api';
+import CommandPaletteModal from '../../../components/common/CommandPaletteModal';
 
 export default function StaffCrmLayout({
   children,
@@ -10,15 +11,31 @@ export default function StaffCrmLayout({
   isAgent = false,
   agentName = 'Khánh Nguyen',
   agentNpn = '#1984210',
-  showCommission = false,
+  showCommission = true,
 }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(3);
   const [dbStatus, setDbStatus] = useState('checking'); // 'connected' | 'offline' | 'checking'
   const userMenuRef = useRef(null);
   const quickCreateRef = useRef(null);
+  const notificationsRef = useRef(null);
+
+  // Global Ctrl+K / Cmd+K listener for Command Palette
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowCommandPalette((prev) => !prev);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -51,6 +68,9 @@ export default function StaffCrmLayout({
       }
       if (quickCreateRef.current && !quickCreateRef.current.contains(event.target)) {
         setShowQuickCreate(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setShowNotifications(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -183,10 +203,141 @@ export default function StaffCrmLayout({
               );
             })}
           </nav>
+
+          {/* Command Palette Trigger Pill (Desktop) */}
+          <button
+            type="button"
+            onClick={() => setShowCommandPalette(true)}
+            className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/90 text-xs text-slate-500 hover:text-slate-800 transition cursor-pointer shadow-2xs group"
+            title="Mở Command Palette (Ctrl+K)"
+          >
+            <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600 transition">search</span>
+            <span className="font-medium text-slate-600">Quick Actions...</span>
+            <kbd className="ml-1 px-1.5 py-0.5 text-[10px] font-bold text-slate-400 bg-white rounded border border-slate-200 shadow-2xs group-hover:border-blue-300 group-hover:text-blue-600">
+              ⌘K
+            </kbd>
+          </button>
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Mobile Search Icon Trigger */}
+          <button
+            type="button"
+            onClick={() => setShowCommandPalette(true)}
+            className="xl:hidden w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+            title="Quick Search (Ctrl+K)"
+          >
+            <span className="material-symbols-outlined text-[20px]">search</span>
+          </button>
+
+          {/* Notification Center Dropdown */}
+          <div className="relative" ref={notificationsRef}>
+            <button
+              type="button"
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+              title="Trung tâm Thông báo"
+            >
+              <span className="material-symbols-outlined text-[20px]">notifications</span>
+              {unreadNotifications > 0 && (
+                <span className="absolute top-1 right-1 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 animate-fade-in-up">
+                <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900 text-xs tracking-tight">Notification Center</span>
+                    {unreadNotifications > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                        {unreadNotifications} new
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setUnreadNotifications(0)}
+                    className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+                  >
+                    Mark all read
+                  </button>
+                </div>
+
+                <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                  <div
+                    onClick={() => {
+                      setShowNotifications(false);
+                      onSelectTab && onSelectTab('tickets');
+                    }}
+                    className="p-3 hover:bg-slate-50 transition cursor-pointer flex gap-3 items-start"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="material-symbols-outlined text-[16px]">priority_high</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800">SLA Warning: Tickets Near Due</p>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">3 tickets need response within 24h</p>
+                      <span className="text-[10px] text-slate-400 font-medium">10 mins ago</span>
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={() => {
+                      setShowNotifications(false);
+                      onSelectTab && onSelectTab('deals');
+                    }}
+                    className="p-3 hover:bg-slate-50 transition cursor-pointer flex gap-3 items-start"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="material-symbols-outlined text-[16px]">verified</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800">New Verified ACA Enrollment</p>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">D26005033 • Nhat Dang • BCBS NC</p>
+                      <span className="text-[10px] text-slate-400 font-medium">1 hour ago</span>
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={() => {
+                      setShowNotifications(false);
+                      onSelectTab && onSelectTab('commission');
+                    }}
+                    className="p-3 hover:bg-slate-50 transition cursor-pointer flex gap-3 items-start"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="material-symbols-outlined text-[16px]">payments</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800">Commission Cycle Reconciled</p>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">September 2026 ledger updated with 10 records</p>
+                      <span className="text-[10px] text-slate-400 font-medium">2 hours ago</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNotifications(false);
+                      setShowCommandPalette(true);
+                    }}
+                    className="text-[11px] text-slate-600 hover:text-blue-600 font-medium flex items-center justify-center gap-1 mx-auto cursor-pointer"
+                  >
+                    <span>View All Activity &amp; Commands</span>
+                    <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Quick Create Button + Dropdown */}
           <div className="relative" ref={quickCreateRef}>
             <button
@@ -423,6 +574,15 @@ export default function StaffCrmLayout({
           {children}
         </main>
       </div>
+
+      {/* Global Command Palette Modal (Ctrl+K / Cmd+K) */}
+      <CommandPaletteModal
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        onNavigate={(target) => {
+          if (onSelectTab) onSelectTab(target);
+        }}
+      />
     </div>
   );
 }
