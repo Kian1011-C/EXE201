@@ -1025,52 +1025,333 @@ async function main() {
   const allDeals = await prisma.deal.findMany();
 
   if (allContacts.length > 0 && allDeals.length > 0) {
-    console.log('Generating additional sample tickets and commissions...');
+    console.log('Generating additional sample deals, tickets, tasks and commissions...');
     
-    // Create Sample Tickets
+    // Create Additional Realistic Deals across Medicare & Obamacare
+    const extraDealsData = [
+      {
+        id: 'D26005040',
+        code: 'D26005040',
+        title: 'Medicare Advantage - Quyen Le - 2026 (TX)',
+        shortTitle: 'Medicare - Quyen Le...',
+        pipeline: 'Medicare 2026',
+        stage: 'Enrolled - HRA Done - Active (Medicare 2026)',
+        carrier: 'Humana',
+        amount: '$350.00',
+        closeDate: '10/12/2026',
+        sellingState: 'Texas (TX)',
+        dealOwnerName: 'Quyen Le',
+        enrolledNpn: 'Quyen Le 20491823',
+        brokerEffectiveDate: '2026-09-01',
+        terminationDate: '2027-12-31',
+        primaryMemberId: 'MID-77182901',
+        saleSupportStatus: 'Completed',
+        numberMember: 1,
+        consentFormStatus: 'Uploaded',
+      },
+      {
+        id: 'D26005041',
+        code: 'D26005041',
+        title: 'Medicare Supplement - Tri Tran - 2026 (CA)',
+        shortTitle: 'Medicare - Tri Tran...',
+        pipeline: 'Medicare 2026',
+        stage: 'Auto Renew - Active (Medicare 2026)',
+        carrier: 'UHC',
+        amount: '$280.00',
+        closeDate: '10/05/2026',
+        sellingState: 'California (CA)',
+        dealOwnerName: 'Tri Tran',
+        enrolledNpn: 'Tri Tran 19823412',
+        brokerEffectiveDate: '2026-09-10',
+        terminationDate: '2027-12-31',
+        primaryMemberId: 'MID-88192033',
+        saleSupportStatus: 'Completed',
+        numberMember: 1,
+        consentFormStatus: 'Collected',
+      },
+      {
+        id: 'D26005042',
+        code: 'D26005042',
+        title: 'Medicare Advantage - Jay Ly - 2026 (FL)',
+        shortTitle: 'Medicare - Jay Ly...',
+        pipeline: 'Medicare 2026',
+        stage: 'Enrolled - Active (Medicare 2026)',
+        carrier: 'Aetna',
+        amount: '$310.00',
+        closeDate: '09/28/2026',
+        sellingState: 'Florida (FL)',
+        dealOwnerName: 'Jay Ly',
+        enrolledNpn: 'Jay Ly 20011862',
+        brokerEffectiveDate: '2026-09-05',
+        terminationDate: '2027-12-31',
+        primaryMemberId: 'MID-11029384',
+        saleSupportStatus: 'Completed',
+        numberMember: 1,
+        consentFormStatus: 'Sent out',
+      },
+      {
+        id: 'D26005043',
+        code: 'D26005043',
+        title: 'Medicare Advantage - Ivy Le - 2026 (NC)',
+        shortTitle: 'Medicare - Ivy Le...',
+        pipeline: 'Medicare 2026',
+        stage: 'Deal Lost (Medicare 2026)',
+        carrier: 'BCBS',
+        amount: '$0.00',
+        closeDate: '09/15/2026',
+        sellingState: 'North Carolina (NC)',
+        dealOwnerName: 'Ivy Le',
+        enrolledNpn: 'Anh Que Pham 20011862',
+        brokerEffectiveDate: '2026-09-01',
+        terminationDate: '2027-12-31',
+        primaryMemberId: '',
+        saleSupportStatus: 'NONE',
+        numberMember: 1,
+        closedLostReason: 'Client chose competitor',
+        consentFormStatus: 'Existing client',
+      },
+      {
+        id: 'D26005044',
+        code: 'D26005044',
+        title: 'OB 2026 - Sean Ngo - Enrolled Active (GA)',
+        shortTitle: 'OB - Sean Ngo...',
+        pipeline: 'Obamacare 2026',
+        stage: 'Enrolled - Active (Obamacare 2026)',
+        carrier: 'Ambetter',
+        amount: '$190.00',
+        closeDate: '10/01/2026',
+        sellingState: 'Georgia (GA)',
+        dealOwnerName: 'Sean Ngo',
+        enrolledNpn: 'Sean Ngo 20991823',
+        brokerEffectiveDate: '2026-09-01',
+        terminationDate: '2027-12-31',
+        primaryMemberId: 'MID-44910293',
+        saleSupportStatus: 'Completed',
+        numberMember: 2,
+        consentFormStatus: 'Collected',
+      },
+      {
+        id: 'D26005045',
+        code: 'D26005045',
+        title: 'OB 2026 - Ivy Le - Termination (TX)',
+        shortTitle: 'OB - Ivy Le...',
+        pipeline: 'Obamacare 2026',
+        stage: 'Termination (Obamacare 2026)',
+        carrier: 'Molina Healthcare',
+        amount: '$0.00',
+        closeDate: '09/10/2026',
+        sellingState: 'Texas (TX)',
+        dealOwnerName: 'Ivy Le',
+        enrolledNpn: 'Ivy Le 19823412',
+        brokerEffectiveDate: '2026-08-01',
+        terminationDate: '2026-09-10',
+        primaryMemberId: 'MID-33910294',
+        saleSupportStatus: 'NONE',
+        numberMember: 1,
+        closedLostReason: 'Non-payment',
+        consentFormStatus: 'Uploaded',
+      },
+      {
+        id: 'D26005046',
+        code: 'D26005046',
+        title: 'OB 2026 - Sarah Thai - Deal Lost (FL)',
+        shortTitle: 'OB - Sarah Thai...',
+        pipeline: 'Obamacare 2026',
+        stage: 'Deal Lost (Obamacare 2026)',
+        carrier: 'Oscar',
+        amount: '$0.00',
+        closeDate: '09/05/2026',
+        sellingState: 'Florida (FL)',
+        dealOwnerName: 'Sarah Thai',
+        enrolledNpn: 'Sarah Thai 20119283',
+        brokerEffectiveDate: '2026-09-01',
+        terminationDate: '2027-12-31',
+        primaryMemberId: '',
+        saleSupportStatus: 'NONE',
+        numberMember: 1,
+        closedLostReason: 'Income over limit',
+        consentFormStatus: 'Need send new form',
+      },
+      {
+        id: 'D26005047',
+        code: 'D26005047',
+        title: 'OB 2026 - Anya Nguyen - Active Policy (NC)',
+        shortTitle: 'OB - Anya Nguyen...',
+        pipeline: 'Obamacare 2026',
+        stage: 'Enrolled - Active (Obamacare 2026)',
+        carrier: 'BCBS',
+        amount: '$220.00',
+        closeDate: '09/20/2026',
+        sellingState: 'North Carolina (NC)',
+        dealOwnerName: 'Anya Nguyen',
+        enrolledNpn: 'Anya Nguyen 20188212',
+        brokerEffectiveDate: '2026-09-01',
+        terminationDate: '2027-12-31',
+        primaryMemberId: 'MID-88291024',
+        saleSupportStatus: 'Completed',
+        numberMember: 1,
+        consentFormStatus: 'Collected',
+      },
+    ];
+
+    for (let i = 0; i < extraDealsData.length; i++) {
+      const d = extraDealsData[i];
+      const assignedContact = allContacts[i % allContacts.length];
+      await prisma.deal.create({
+        data: {
+          ...d,
+          contactId: assignedContact.id,
+        },
+      });
+    }
+
+    // Refresh deals list after creating extra deals
+    const currentDeals = await prisma.deal.findMany();
+
+    // Create Sample Tickets with realistic agents, due dates, stages
     const pipelineTypes = ['CLIENT_SUPPORT', 'PAYMENT', 'COLLECT_DOCUMENT', 'CHOOSE_DOCTOR', 'AGENT_SUPPORT'];
+    const agents = ['Anya Nguyen', 'Sean Ngo', 'Ivy Le', 'Sarah Thai'];
+    const sampleDates = ['2026-09-10', '2026-09-15', '2026-09-18', '2026-09-25', '2026-09-28', '2026-10-05'];
     let tcCount = 0;
+    
     for (const pipeline of pipelineTypes) {
       for (let i = 0; i < 5; i++) {
         tcCount++;
         const contact = allContacts[Math.floor(Math.random() * allContacts.length)];
-        const deal = allDeals[Math.floor(Math.random() * allDeals.length)];
+        const deal = currentDeals[Math.floor(Math.random() * currentDeals.length)];
+        const agent = agents[(tcCount + i) % agents.length];
+        const dueDate = sampleDates[tcCount % sampleDates.length];
+        const status = i === 4 ? 'Closed' : (i === 3 ? 'In Progress' : 'Open');
+        const stage = i % 2 === 0 ? 'Waiting on verification' : 'Waiting on contact';
+
         const ticket = await prisma.ticket.create({
           data: {
             id: `TC2699${tcCount}`,
             contactId: contact.id,
             dealId: deal.id,
-            title: `Sample Ticket ${pipeline} ${i}`,
+            title: `${pipeline === 'COLLECT_DOCUMENT' ? 'Collect Documents for Upload' : pipeline === 'PAYMENT' ? 'Check Monthly Payment' : pipeline === 'CHOOSE_DOCTOR' ? 'Choose Doctor Request' : 'Client Support Request'} #${tcCount}`,
             pipeline: pipeline,
-            status: 'Open',
-            priority: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)],
+            status,
+            stage,
+            priority: ['High', 'Medium', 'Low'][i % 3],
             category: 'Support',
+            ticketOwner: deal.dealOwnerName || 'Khanh Nguyen',
+            serviceAgent: agent,
+            dueDate,
           }
         });
         
         await prisma.ticketComment.create({
           data: {
             ticketId: ticket.id,
-            content: 'This is a sample comment.',
-            authorName: 'System',
+            content: `Ticket logged by ${agent}. Processing Post-Sale SLA.`,
+            authorName: agent,
           }
         });
       }
     }
 
+    // Create Sample Tasks with realistic assignees and due dates
+    const sampleTasks = [
+      {
+        id: 'TSK-001',
+        title: 'Follow up on marketplace consent form - Nguyen Van A',
+        status: 'Pending',
+        priority: 'High',
+        assignedTo: 'Anya Nguyen',
+        dueDate: '2026-09-18', // Overdue
+        contactId: allContacts[0].id,
+        dealId: currentDeals[0].id,
+      },
+      {
+        id: 'TSK-002',
+        title: 'Call client to confirm PCP doctor - Tran Thi B',
+        status: 'Pending',
+        priority: 'Medium',
+        assignedTo: 'Anya Nguyen',
+        dueDate: '2026-09-28',
+        contactId: allContacts[1 % allContacts.length].id,
+        dealId: currentDeals[1 % currentDeals.length].id,
+      },
+      {
+        id: 'TSK-003',
+        title: 'Request SSN proof verification document',
+        status: 'Pending',
+        priority: 'High',
+        assignedTo: 'Sean Ngo',
+        dueDate: '2026-09-15', // Overdue
+        contactId: allContacts[2 % allContacts.length].id,
+        dealId: currentDeals[2 % currentDeals.length].id,
+      },
+      {
+        id: 'TSK-004',
+        title: 'Verify first month premium payment status',
+        status: 'Pending',
+        priority: 'Low',
+        assignedTo: 'Ivy Le',
+        dueDate: '2026-09-30',
+        contactId: allContacts[3 % allContacts.length].id,
+        dealId: currentDeals[3 % currentDeals.length].id,
+      },
+      {
+        id: 'TSK-005',
+        title: 'Process refund dispute with BCBS',
+        status: 'Completed',
+        priority: 'High',
+        assignedTo: 'Sarah Thai',
+        dueDate: '2026-09-12',
+        contactId: allContacts[4 % allContacts.length].id,
+        dealId: currentDeals[4 % currentDeals.length].id,
+      },
+      {
+        id: 'TSK-006',
+        title: 'Update member ID in Marketplace portal',
+        status: 'Pending',
+        priority: 'Medium',
+        assignedTo: 'Sarah Thai',
+        dueDate: '2026-09-29',
+        contactId: allContacts[0].id,
+        dealId: currentDeals[0].id,
+      },
+      {
+        id: 'TSK-007',
+        title: 'Collect Citizenship document from client',
+        status: 'Pending',
+        priority: 'High',
+        assignedTo: 'Sean Ngo',
+        dueDate: '2026-09-27',
+        contactId: allContacts[1 % allContacts.length].id,
+        dealId: currentDeals[1 % currentDeals.length].id,
+      },
+      {
+        id: 'TSK-008',
+        title: 'Assist agent on special enrollment application',
+        status: 'Pending',
+        priority: 'Low',
+        assignedTo: 'Ivy Le',
+        dueDate: '2026-10-02',
+        contactId: allContacts[2 % allContacts.length].id,
+        dealId: currentDeals[2 % currentDeals.length].id,
+      },
+    ];
+
+    for (const tsk of sampleTasks) {
+      await prisma.task.create({ data: tsk });
+    }
+
     // Create Sample Commissions
     const carriers = ['BCBS', 'Ambetter', 'Kaiser', 'UHC', 'Humana', 'Molina', 'Oscar', 'Aetna', 'Cigna', 'Blue Shield CA'];
     for (let i = 0; i < carriers.length; i++) {
-      const deal = allDeals[Math.floor(Math.random() * allDeals.length)];
+      const deal = currentDeals[i % currentDeals.length];
       await prisma.commission.create({
         data: {
           dealId: deal.id,
-          agentName: 'Anya Nguyen',
+          agentName: deal.dealOwnerName || 'Anya Nguyen',
           carrier: carriers[i],
           period: '2026-10',
-          grossAmount: 25.00,
-          netAmount: 25.00,
-          status: ['PENDING', 'SETTLED'][Math.floor(Math.random() * 2)],
+          grossAmount: 30.00,
+          netAmount: 30.00,
+          status: ['PENDING', 'SETTLED'][i % 2],
         }
       });
     }
