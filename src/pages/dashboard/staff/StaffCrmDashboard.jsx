@@ -1,21 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { getDashboardStats } from '../../../services/api';
+import React, { useState, useEffect, useMemo } from 'react';
+import { getDashboardStats, getTickets } from '../../../services/api';
 
 export default function StaffCrmDashboard({
   onSelectTab,
   onSelectDeal,
   onSelectContact,
+  onSelectTicket,
+  onSelectTask,
 }) {
   const [refreshing, setRefreshing] = useState(false);
   const [dbStats, setDbStats] = useState(null);
+  const [liveTickets, setLiveTickets] = useState([]);
   const [selectedDashboard, setSelectedDashboard] = useState(
     'Daily work of support - Team Tiger Truong'
   );
 
   async function fetchStats() {
     try {
-      const res = await getDashboardStats();
+      const [res, tix] = await Promise.all([
+        getDashboardStats().catch(() => null),
+        getTickets().catch(() => []),
+      ]);
       if (res) setDbStats(res);
+      if (Array.isArray(tix) && tix.length > 0) setLiveTickets(tix);
     } catch (err) {
       console.warn('[StaffCrmDashboard] Could not fetch live dashboard stats:', err);
     }
@@ -39,6 +46,36 @@ export default function StaffCrmDashboard({
   const C_SARAH = '#38bdf8'; // Sky Blue
   const C_PURPLE = '#a855f7';
   const C_RED = '#ef4444';
+
+  const uploadTicketsDisplay = useMemo(() => {
+    const docTix = liveTickets.filter(
+      (t) =>
+        t.pipeline === 'COLLECT_DOCUMENT' ||
+        t.title?.toLowerCase().includes('document') ||
+        t.title?.toLowerCase().includes('upload')
+    );
+    if (docTix.length > 0) {
+      return docTix.slice(0, 7).map((t, idx) => ({
+        no: idx + 1,
+        ticketId: t.title || `Collect Document #${t.id?.slice(-4)}`,
+        due: t.dueDate ? new Date(t.dueDate).toLocaleDateString() : '09/22/2026',
+        owner: t.contact?.fullName || t.owner || 'Jay Ly',
+        stage: t.status === 'WAITING_ON_CLIENT' ? 'Waiting on contact' : (t.status || 'Waiting on verification'),
+        agent: t.assignedTo || 'Sean Ngo',
+        rawTicket: t,
+        contact: t.contact,
+      }));
+    }
+    return [
+      { no: 1, ticketId: 'Collect Documents for Upload (ACA)', due: '09/22/2026', owner: 'Jay Ly', stage: 'Waiting on verification', agent: 'Ivy Le' },
+      { no: 2, ticketId: 'Collect Documents for Upload (SSN)', due: '09/06/2026', owner: 'Khanh Nguyen', stage: 'Waiting on contact', agent: 'Sarah Thai' },
+      { no: 3, ticketId: 'Collect Documents for Upload (Income)', due: '09/21/2026', owner: 'Tri Tran', stage: 'Waiting on contact', agent: 'Sean Ngo' },
+      { no: 4, ticketId: 'Collect Documents for Upload (Citizenship)', due: '08/10/2026', owner: 'Tri Tran', stage: 'Waiting on verification', agent: 'Sean Ngo' },
+      { no: 5, ticketId: 'Collect Documents for Upload (Tax Return)', due: '06/24/2026', owner: 'Tri Tran', stage: 'Waiting on contact', agent: 'Sean Ngo' },
+      { no: 6, ticketId: 'Collect Documents for Upload (ID Card)', due: '08/06/2026', owner: 'Quyen Le', stage: 'Waiting on contact', agent: 'Sean Ngo' },
+      { no: 7, ticketId: 'Collect Documents for Upload (Proof of Address)', due: '09/21/2026', owner: 'Quyen Le', stage: 'Waiting on verification', agent: 'Sean Ngo' },
+    ];
+  }, [liveTickets]);
 
   return (
     <div className="flex flex-col h-full bg-[#F4F6F9] overflow-y-auto">
@@ -266,11 +303,16 @@ export default function StaffCrmDashboard({
                 { stage: 'Ready to Enroll (Obamacare 2026)', count: 1, segments: [1] },
                 { stage: 'Waiting for document (Obamacare 2026)', count: 1, segments: [1] },
               ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <div className="w-56 truncate text-right text-slate-600 font-medium shrink-0" title={item.stage}>
+                <div
+                  key={idx}
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
+                  title={`Click to view all ${item.stage} deals`}
+                >
+                  <div className="w-56 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition" title={item.stage}>
                     {item.stage}
                   </div>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-sm">
+                  <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
                     {item.segments.map((seg, sIdx) => {
                       const widthPercent = (seg / 800) * 100;
                       const colors = [C_ANYA, C_SEAN, C_IVY, C_SARAH];
@@ -287,7 +329,7 @@ export default function StaffCrmDashboard({
                       );
                     })}
                   </div>
-                  <span className="text-[10px] font-bold text-slate-700 w-8">{item.count}</span>
+                  <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-700 w-8">{item.count}</span>
                 </div>
               ))}
               <div className="flex items-center justify-end text-[9px] text-slate-400 gap-12 pr-10 pt-1">
@@ -298,7 +340,7 @@ export default function StaffCrmDashboard({
                 <span>800</span>
               </div>
               <div className="text-center text-[10px] text-slate-500 font-semibold mt-0.5">
-                (Count Distinct) Deal (Id)
+                (Count Distinct) Deal (Id) • Click any stage to open Deals
               </div>
             </div>
           </div>
@@ -334,8 +376,12 @@ export default function StaffCrmDashboard({
             </div>
 
             {/* Distinct Count Highlight Card */}
-            <div className="max-w-[200px] mx-auto my-2 p-3 bg-white rounded-xl border border-slate-200 text-center shadow-2xs">
-              <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+            <div
+              onClick={() => onSelectTab && onSelectTab('deals')}
+              className="max-w-[200px] mx-auto my-2 p-3 bg-white rounded-xl border border-slate-200 text-center shadow-2xs hover:border-blue-400 cursor-pointer transition group"
+              title="Click to view all Medicare deals"
+            >
+              <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider group-hover:text-blue-600">
                 DEAL (ID)
               </div>
               <div className="text-[10px] text-slate-400">(Count Distinct)</div>
@@ -375,11 +421,16 @@ export default function StaffCrmDashboard({
                 { stage: 'Enrolled (Medicare 2026)', count: 1, segments: [1] },
                 { stage: 'Need Telesale Review (Medicare 2026)', count: 1, segments: [1] },
               ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <div className="w-60 truncate text-right text-slate-600 font-medium shrink-0" title={item.stage}>
+                <div
+                  key={idx}
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
+                  title={`Click to view all ${item.stage} deals`}
+                >
+                  <div className="w-60 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition" title={item.stage}>
                     {item.stage}
                   </div>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-xs">
+                  <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-xs group-hover:ring-1 group-hover:ring-blue-300">
                     {item.segments.map((seg, sIdx) => {
                       const widthPercent = (seg / 40) * 100;
                       const colors = [C_ANYA, C_SEAN, C_IVY, C_SARAH];
@@ -395,7 +446,7 @@ export default function StaffCrmDashboard({
                       );
                     })}
                   </div>
-                  <span className="text-[10px] font-bold text-slate-700 w-6">{item.count}</span>
+                  <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-700 w-6">{item.count}</span>
                 </div>
               ))}
             </div>
@@ -429,15 +480,20 @@ export default function StaffCrmDashboard({
                 { agent: 'Ivy Le', count: 171 },
                 { agent: 'Sarah Thai', count: 84 },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
-                  <span className="w-20 truncate text-slate-600 text-right">{item.agent}</span>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3 overflow-hidden">
+                <div
+                  key={i}
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                  title={`Click to view deals handled by ${item.agent}`}
+                >
+                  <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">{item.agent}</span>
+                  <div className="flex-grow bg-slate-100 rounded-sm h-3 overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
                     <div
                       style={{ width: `${(item.count / 350) * 100}%` }}
                       className="bg-[#5271ff] h-full"
                     />
                   </div>
-                  <span className="w-8 font-bold text-slate-800 text-[11px]">{item.count}</span>
+                  <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">{item.count}</span>
                 </div>
               ))}
             </div>
@@ -446,7 +502,11 @@ export default function StaffCrmDashboard({
           {/* Card 4: Total Medicare deals 2026 - Support Agent */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900 truncate">
+              <h3
+                onClick={() => onSelectTab && onSelectTab('deals')}
+                className="text-xs font-bold text-slate-900 truncate hover:text-blue-600 cursor-pointer"
+                title="Click to view Medicare deals"
+              >
                 Total Medicare deals 2026 -...
               </h3>
               <div className="flex items-center gap-1 text-slate-400">
@@ -468,9 +528,14 @@ export default function StaffCrmDashboard({
                 { agent: 'Anya Nguyen', count: 21, segments: [11, 10] },
                 { agent: 'Sarah Thai', count: 1, segments: [1] },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
-                  <span className="w-20 truncate text-slate-600 text-right">{item.agent}</span>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden">
+                <div
+                  key={i}
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="flex items-center gap-2 text-xs hover:bg-amber-50/70 p-0.5 rounded cursor-pointer transition group"
+                  title={`Click to view Medicare deals handled by ${item.agent}`}
+                >
+                  <span className="w-20 truncate text-slate-600 text-right group-hover:text-amber-700">{item.agent}</span>
+                  <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden group-hover:ring-1 group-hover:ring-amber-300">
                     <div
                       style={{ width: `${(item.count / 35) * 60}%` }}
                       className="bg-amber-400 h-full"
@@ -480,7 +545,7 @@ export default function StaffCrmDashboard({
                       className="bg-rose-500 h-full"
                     />
                   </div>
-                  <span className="w-8 font-bold text-slate-800 text-[11px]">{item.count}</span>
+                  <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-amber-700">{item.count}</span>
                 </div>
               ))}
             </div>
@@ -527,9 +592,14 @@ export default function StaffCrmDashboard({
                 { agent: 'Ivy Le', active: 187, inactive: 60, total: 247 },
                 { agent: 'Sarah Thai', active: 65, inactive: 8, total: 73 },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
-                  <span className="w-20 truncate text-slate-600 text-right">{item.agent}</span>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden">
+                <div
+                  key={i}
+                  onClick={() => onSelectTab && onSelectTab('contacts')}
+                  className="flex items-center gap-2 text-xs hover:bg-slate-100/80 p-0.5 rounded cursor-pointer transition group"
+                  title={`Click to view contacts owned by ${item.agent}`}
+                >
+                  <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">{item.agent}</span>
+                  <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
                     <div
                       style={{ width: `${(item.inactive / 500) * 100}%` }}
                       className="bg-[#5271ff] h-full"
@@ -539,7 +609,7 @@ export default function StaffCrmDashboard({
                       className="bg-[#84cc16] h-full"
                     />
                   </div>
-                  <span className="w-8 font-bold text-slate-800 text-[11px]">{item.total}</span>
+                  <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">{item.total}</span>
                 </div>
               ))}
             </div>
@@ -551,12 +621,23 @@ export default function StaffCrmDashboard({
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-slate-500">bar_chart</span>
-              <h3 className="text-xs font-bold text-slate-900 tracking-tight">
+              <h3
+                onClick={() => onSelectTab && onSelectTab('deals')}
+                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                title="Click to view Deals"
+              >
                 Deals by Agent (Not count Lost&amp;Terminated)
               </h3>
             </div>
             <div className="flex items-center gap-1 text-slate-400">
-              <span className="material-symbols-outlined text-[16px]">crop_free</span>
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('deals')}
+                className="hover:text-blue-600 p-0.5 cursor-pointer"
+                title="View Deals List"
+              >
+                <span className="material-symbols-outlined text-[16px]">crop_free</span>
+              </button>
               <span className="material-symbols-outlined text-[16px]">more_horiz</span>
             </div>
           </div>
@@ -590,16 +671,21 @@ export default function StaffCrmDashboard({
               const medHeight = (d.med / (d.total || 1)) * totalHeight;
 
               return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-                  <span className="text-[10px] font-bold text-slate-700">{d.total}</span>
+                <div
+                  key={i}
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="flex-1 flex flex-col items-center gap-1 group cursor-pointer hover:scale-105 transition-transform"
+                  title={`Click to filter deals by ${d.name} (${d.total} deals)`}
+                >
+                  <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-600">{d.total}</span>
                   <div
                     style={{ height: `${totalHeight}px` }}
-                    className="w-7 rounded-t-sm flex flex-col justify-end overflow-hidden shadow-2xs group-hover:opacity-90 transition"
+                    className="w-7 rounded-t-sm flex flex-col justify-end overflow-hidden shadow-2xs group-hover:ring-2 group-hover:ring-blue-400 transition"
                   >
                     <div style={{ height: `${medHeight}px` }} className="bg-[#84cc16] w-full" />
                     <div style={{ height: `${obHeight}px` }} className="bg-[#5271ff] w-full" />
                   </div>
-                  <div className="w-20 text-[10px] text-slate-600 text-center truncate rotate-45 origin-top-left mt-3 font-medium">
+                  <div className="w-20 text-[10px] text-slate-600 text-center truncate rotate-45 origin-top-left mt-3 font-medium group-hover:text-blue-700">
                     {d.name}
                   </div>
                 </div>
@@ -607,7 +693,7 @@ export default function StaffCrmDashboard({
             })}
           </div>
           <div className="text-center text-[10px] text-slate-500 font-semibold mt-12">
-            Deal Owner
+            Deal Owner • Click any agent column to view deals
           </div>
         </div>
 
@@ -615,9 +701,22 @@ export default function StaffCrmDashboard({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900">All Open Tasks Report</h3>
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tasks')}
+                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                title="Click to view all Tasks"
+              >
+                All Open Tasks Report
+              </h3>
               <div className="flex items-center gap-1 text-slate-400">
-                <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('tasks')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="View Tasks List"
+                >
+                  <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                </button>
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
               </div>
             </div>
@@ -626,28 +725,49 @@ export default function StaffCrmDashboard({
               <span>(Count Distinct) TaskId</span>
             </div>
             <div className="space-y-4 my-auto py-2">
-              <div className="flex items-center gap-3 text-xs">
-                <span className="w-24 text-right text-slate-600">Anya Nguyen</span>
-                <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden">
+              <div
+                onClick={() => onSelectTab && onSelectTab('tasks')}
+                className="flex items-center gap-3 text-xs hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
+                title="Click to view Anya's tasks"
+              >
+                <span className="w-24 text-right text-slate-600 group-hover:text-blue-700">Anya Nguyen</span>
+                <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
                   <div className="bg-[#5271ff] h-full w-full" />
                 </div>
-                <span className="font-bold text-slate-800 text-xs">2</span>
+                <span className="font-bold text-slate-800 text-xs group-hover:text-blue-700">2</span>
               </div>
-              <div className="flex items-center gap-3 text-xs">
-                <span className="w-24 text-right text-slate-600">Ivy Le</span>
-                <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden">
+              <div
+                onClick={() => onSelectTab && onSelectTab('tasks')}
+                className="flex items-center gap-3 text-xs hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
+                title="Click to view Ivy's tasks"
+              >
+                <span className="w-24 text-right text-slate-600 group-hover:text-blue-700">Ivy Le</span>
+                <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
                   <div className="bg-[#5271ff] h-full w-1/2" />
                 </div>
-                <span className="font-bold text-slate-800 text-xs">1</span>
+                <span className="font-bold text-slate-800 text-xs group-hover:text-blue-700">1</span>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900">Overdue Tasks Report</h3>
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tasks')}
+                className="text-xs font-bold text-slate-900 hover:text-rose-600 cursor-pointer"
+                title="Click to view overdue Tasks"
+              >
+                Overdue Tasks Report
+              </h3>
               <div className="flex items-center gap-1 text-slate-400">
-                <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('tasks')}
+                  className="hover:text-rose-600 p-0.5 cursor-pointer"
+                  title="View Tasks List"
+                >
+                  <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                </button>
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
               </div>
             </div>
@@ -656,19 +776,27 @@ export default function StaffCrmDashboard({
               <span>(Count Distinct) TaskId</span>
             </div>
             <div className="space-y-4 my-auto py-2">
-              <div className="flex items-center gap-3 text-xs">
-                <span className="w-24 text-right text-slate-600">Anya Nguyen</span>
-                <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden">
+              <div
+                onClick={() => onSelectTab && onSelectTab('tasks')}
+                className="flex items-center gap-3 text-xs hover:bg-rose-50/70 p-1 rounded cursor-pointer transition group"
+                title="Click to view Anya's overdue tasks"
+              >
+                <span className="w-24 text-right text-slate-600 group-hover:text-rose-700">Anya Nguyen</span>
+                <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden group-hover:ring-1 group-hover:ring-rose-300">
                   <div className="bg-[#5271ff] h-full w-full" />
                 </div>
-                <span className="font-bold text-slate-800 text-xs">1</span>
+                <span className="font-bold text-rose-700 text-xs">1</span>
               </div>
-              <div className="flex items-center gap-3 text-xs">
-                <span className="w-24 text-right text-slate-600">Ivy Le</span>
-                <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden">
+              <div
+                onClick={() => onSelectTab && onSelectTab('tasks')}
+                className="flex items-center gap-3 text-xs hover:bg-rose-50/70 p-1 rounded cursor-pointer transition group"
+                title="Click to view Ivy's overdue tasks"
+              >
+                <span className="w-24 text-right text-slate-600 group-hover:text-rose-700">Ivy Le</span>
+                <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden group-hover:ring-1 group-hover:ring-rose-300">
                   <div className="bg-[#5271ff] h-full w-full" />
                 </div>
-                <span className="font-bold text-slate-800 text-xs">1</span>
+                <span className="font-bold text-rose-700 text-xs">1</span>
               </div>
             </div>
           </div>
@@ -679,11 +807,25 @@ export default function StaffCrmDashboard({
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
-              <h3 className="text-xs font-bold text-slate-900 tracking-tight">
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                title="Click to view all overdue tickets"
+              >
                 All Tickets Overdue Details
               </h3>
             </div>
-            <span className="material-symbols-outlined text-[16px] text-slate-400">more_horiz</span>
+            <div className="flex items-center gap-1 text-slate-400">
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="hover:text-blue-600 p-0.5 cursor-pointer"
+                title="View in Tickets module"
+              >
+                <span className="material-symbols-outlined text-[16px]">crop_free</span>
+              </button>
+              <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -701,46 +843,66 @@ export default function StaffCrmDashboard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-600">
-                <tr>
+                <tr
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="hover:bg-blue-50/70 transition cursor-pointer group"
+                  title="Click to view ACA Account overdue tickets"
+                >
                   <td rowSpan={4} className="p-2.5 font-bold text-slate-900 border-r border-slate-200 bg-white align-top">
                     Anya Nguyen
                   </td>
-                  <td className="p-2 border-r border-slate-200">Uploaded - Waiting for Verification</td>
+                  <td className="p-2 border-r border-slate-200 group-hover:text-blue-700 font-medium">Uploaded - Waiting for Verification</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
-                  <td className="p-2 text-center font-bold text-blue-600 border-r border-slate-200">1</td>
+                  <td className="p-2 text-center font-bold text-blue-600 border-r border-slate-200 bg-blue-50/40">1</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
-                  <td className="p-2 text-center font-bold bg-slate-50">1</td>
+                  <td className="p-2 text-center font-bold bg-slate-50 group-hover:text-blue-700">1</td>
                 </tr>
-                <tr>
-                  <td className="p-2 border-r border-slate-200">Check payment (Payment)</td>
+                <tr
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="hover:bg-blue-50/70 transition cursor-pointer group"
+                  title="Click to view Payment overdue tickets"
+                >
+                  <td className="p-2 border-r border-slate-200 group-hover:text-blue-700 font-medium">Check payment (Payment)</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
-                  <td className="p-2 text-center font-bold text-blue-600 border-r border-slate-200">1</td>
+                  <td className="p-2 text-center font-bold text-blue-600 border-r border-slate-200 bg-blue-50/40">1</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
-                  <td className="p-2 text-center font-bold bg-slate-50">1</td>
+                  <td className="p-2 text-center font-bold bg-slate-50 group-hover:text-blue-700">1</td>
                 </tr>
-                <tr>
-                  <td className="p-2 border-r border-slate-200">Need choose Doctor (Choose Doctor)</td>
+                <tr
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="hover:bg-blue-50/70 transition cursor-pointer group"
+                  title="Click to view Choose Doctor overdue tickets"
+                >
+                  <td className="p-2 border-r border-slate-200 group-hover:text-blue-700 font-medium">Need choose Doctor (Choose Doctor)</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
-                  <td className="p-2 text-center font-bold text-blue-600 border-r border-slate-200">7</td>
-                  <td className="p-2 text-center font-bold bg-slate-50">7</td>
+                  <td className="p-2 text-center font-bold text-blue-600 border-r border-slate-200 bg-blue-50/40">7</td>
+                  <td className="p-2 text-center font-bold bg-slate-50 group-hover:text-blue-700">7</td>
                 </tr>
-                <tr>
-                  <td className="p-2 border-r border-slate-200">Waiting on contact (Upload document)</td>
+                <tr
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="hover:bg-blue-50/70 transition cursor-pointer group"
+                  title="Click to view Upload Document overdue tickets"
+                >
+                  <td className="p-2 border-r border-slate-200 group-hover:text-blue-700 font-medium">Waiting on contact (Upload document)</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
-                  <td className="p-2 text-center font-bold text-blue-600 border-r border-slate-200">2</td>
+                  <td className="p-2 text-center font-bold text-blue-600 border-r border-slate-200 bg-blue-50/40">2</td>
                   <td className="p-2 text-center border-r border-slate-200">0</td>
-                  <td className="p-2 text-center font-bold bg-slate-50">2</td>
+                  <td className="p-2 text-center font-bold bg-slate-50 group-hover:text-blue-700">2</td>
                 </tr>
-                <tr className="bg-slate-100 font-bold text-slate-900 border-t border-slate-200">
+                <tr
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="bg-slate-100 font-bold text-slate-900 border-t border-slate-200 hover:bg-blue-100/70 cursor-pointer transition"
+                  title="Click to view all 43 overdue tickets"
+                >
                   <td colSpan={2} className="p-2.5 text-right uppercase tracking-wide">TOTAL</td>
                   <td className="p-2 text-center text-blue-700">11</td>
                   <td className="p-2 text-center text-blue-700">9</td>
@@ -758,9 +920,22 @@ export default function StaffCrmDashboard({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900">All Open Tickets</h3>
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                title="Click to view all Open Tickets"
+              >
+                All Open Tickets
+              </h3>
               <div className="flex items-center gap-1 text-slate-400">
-                <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="View Tickets List"
+                >
+                  <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                </button>
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
               </div>
             </div>
@@ -779,15 +954,20 @@ export default function StaffCrmDashboard({
                 { agent: 'Ivy Le', count: 34, segments: [6, 4, 24] },
                 { agent: 'Sarah Thai', count: 19, segments: [2, 12, 5] },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
-                  <span className="w-20 text-right text-slate-600 truncate">{item.agent}</span>
-                  <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden">
+                <div
+                  key={i}
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                  title={`Click to view open tickets for ${item.agent}`}
+                >
+                  <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">{item.agent}</span>
+                  <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
                     <div style={{ width: `${(item.segments[0] / 70) * 100}%` }} className="bg-[#5271ff] h-full" />
                     <div style={{ width: `${(item.segments[1] / 70) * 100}%` }} className="bg-[#84cc16] h-full" />
                     <div style={{ width: `${(item.segments[2] / 70) * 100}%` }} className="bg-sky-400 h-full" />
                     <div style={{ width: `${((item.segments[3] || 0) / 70) * 100}%` }} className="bg-amber-400 h-full" />
                   </div>
-                  <span className="w-6 font-bold text-slate-800 text-[11px]">{item.count}</span>
+                  <span className="w-6 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">{item.count}</span>
                 </div>
               ))}
             </div>
@@ -795,9 +975,22 @@ export default function StaffCrmDashboard({
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900">All Overdue Tickets</h3>
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-xs font-bold text-slate-900 hover:text-rose-600 cursor-pointer"
+                title="Click to view all Overdue Tickets"
+              >
+                All Overdue Tickets
+              </h3>
               <div className="flex items-center gap-1 text-slate-400">
-                <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="hover:text-rose-600 p-0.5 cursor-pointer"
+                  title="View Tickets List"
+                >
+                  <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                </button>
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
               </div>
             </div>
@@ -816,14 +1009,19 @@ export default function StaffCrmDashboard({
                 { agent: 'Ivy Le', count: 4, segments: [4] },
                 { agent: 'Sarah Thai', count: 3, segments: [3] },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
-                  <span className="w-20 text-right text-slate-600 truncate">{item.agent}</span>
-                  <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden">
+                <div
+                  key={i}
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="flex items-center gap-2 text-xs hover:bg-rose-50/70 p-0.5 rounded cursor-pointer transition group"
+                  title={`Click to view overdue tickets for ${item.agent}`}
+                >
+                  <span className="w-20 text-right text-slate-600 truncate group-hover:text-rose-700">{item.agent}</span>
+                  <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden group-hover:ring-1 group-hover:ring-rose-300">
                     <div style={{ width: `${(item.segments[0] / 20) * 40}%` }} className="bg-[#5271ff] h-full" />
                     <div style={{ width: `${((item.segments[1] || 0) / 20) * 30}%` }} className="bg-[#84cc16] h-full" />
                     <div style={{ width: `${((item.segments[2] || 0) / 20) * 30}%` }} className="bg-amber-400 h-full" />
                   </div>
-                  <span className="w-6 font-bold text-slate-800 text-[11px]">{item.count}</span>
+                  <span className="w-6 font-bold text-slate-800 text-[11px] group-hover:text-rose-700">{item.count}</span>
                 </div>
               ))}
             </div>
@@ -833,13 +1031,17 @@ export default function StaffCrmDashboard({
         {/* ── ROW 7: Empty state + Need Update Member ID + Need Create Account */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 12: Need Extend Tickets */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col items-center justify-center min-h-[190px]">
+          <div
+            onClick={() => onSelectTab && onSelectTab('tickets')}
+            className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col items-center justify-center min-h-[190px] cursor-pointer hover:border-blue-300 hover:shadow-xs transition group"
+            title="Click to check tickets needing extension"
+          >
             <div className="w-full flex items-center justify-between mb-auto pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900">Need Extend Tickets</h3>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-blue-600">Need Extend Tickets</h3>
               <span className="material-symbols-outlined text-[15px] text-slate-400">crop_free</span>
             </div>
             <div className="my-auto py-4 text-center">
-              <div className="w-12 h-12 mx-auto rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center mb-2">
+              <div className="w-12 h-12 mx-auto rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-[24px]">manage_search</span>
               </div>
               <div className="text-xs font-bold text-slate-800">No Data Here!</div>
@@ -850,62 +1052,82 @@ export default function StaffCrmDashboard({
           {/* Card 13: Need Update Member ID */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900">Need Update Member ID</h3>
-              <span className="material-symbols-outlined text-[15px] text-slate-400">crop_free</span>
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                title="Click to view Member ID update tickets"
+              >
+                Need Update Member ID
+              </h3>
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-slate-400 hover:text-blue-600 cursor-pointer"
+                title="View in Tickets"
+              >
+                <span className="material-symbols-outlined text-[15px]">crop_free</span>
+              </button>
             </div>
             <div className="space-y-3 my-auto py-2">
-              <div className="flex items-center gap-2 text-xs">
-                <span className="w-20 text-right text-slate-600 truncate">Anya Nguyen</span>
-                <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden">
-                  <div className="bg-[#5271ff] h-full w-full" />
+              {[
+                { agent: 'Anya Nguyen', count: 5, width: 'w-full' },
+                { agent: 'Sean Ngo', count: 5, width: 'w-full' },
+                { agent: 'Sarah Thai', count: 1, width: 'w-1/5' },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                  title={`Click to view tickets for ${item.agent}`}
+                >
+                  <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">{item.agent}</span>
+                  <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                    <div className={`bg-[#5271ff] h-full ${item.width}`} />
+                  </div>
+                  <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">{item.count}</span>
                 </div>
-                <span className="font-bold text-slate-800 text-[11px]">5</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="w-20 text-right text-slate-600 truncate">Sean Ngo</span>
-                <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden">
-                  <div className="bg-[#5271ff] h-full w-full" />
-                </div>
-                <span className="font-bold text-slate-800 text-[11px]">5</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="w-20 text-right text-slate-600 truncate">Sarah Thai</span>
-                <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden">
-                  <div className="bg-[#5271ff] h-full w-1/5" />
-                </div>
-                <span className="font-bold text-slate-800 text-[11px]">1</span>
-              </div>
+              ))}
             </div>
           </div>
 
           {/* Card 14: Need Create Member Account */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900">Need Create Member Account...</h3>
-              <span className="material-symbols-outlined text-[15px] text-slate-400">crop_free</span>
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                title="Click to view Member Account tickets"
+              >
+                Need Create Member Account...
+              </h3>
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-slate-400 hover:text-blue-600 cursor-pointer"
+                title="View in Tickets"
+              >
+                <span className="material-symbols-outlined text-[15px]">crop_free</span>
+              </button>
             </div>
             <div className="space-y-3 my-auto py-2">
-              <div className="flex items-center gap-2 text-xs">
-                <span className="w-20 text-right text-slate-600 truncate">Kattie Nguyen</span>
-                <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden">
-                  <div className="bg-[#5271ff] h-full w-full" />
+              {[
+                { agent: 'Kattie Nguyen', count: 20, width: 'w-full' },
+                { agent: 'Attis Dang', count: 8, width: 'w-2/5' },
+                { agent: 'Penny Van', count: 7, width: 'w-1/3' },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                  title={`Click to view account creation tickets for ${item.agent}`}
+                >
+                  <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">{item.agent}</span>
+                  <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                    <div className={`bg-[#5271ff] h-full ${item.width}`} />
+                  </div>
+                  <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">{item.count}</span>
                 </div>
-                <span className="font-bold text-slate-800 text-[11px]">20</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="w-20 text-right text-slate-600 truncate">Attis Dang</span>
-                <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden">
-                  <div className="bg-[#5271ff] h-full w-2/5" />
-                </div>
-                <span className="font-bold text-slate-800 text-[11px]">8</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="w-20 text-right text-slate-600 truncate">Penny Van</span>
-                <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden">
-                  <div className="bg-[#5271ff] h-full w-1/3" />
-                </div>
-                <span className="font-bold text-slate-800 text-[11px]">7</span>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -915,13 +1137,27 @@ export default function StaffCrmDashboard({
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
-              <h3 className="text-xs font-bold text-slate-900 tracking-tight">
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                title="Click to view all upload document tickets"
+              >
                 Open Upload Document Ticket
               </h3>
+              {liveTickets.length > 0 && (
+                <span className="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
+                  Live DB
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2 text-slate-400">
-              <button type="button" className="hover:text-slate-600 p-0.5">
-                <span className="material-symbols-outlined text-[16px]">download</span>
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="hover:text-blue-600 p-0.5 cursor-pointer"
+                title="Open Tickets Module"
+              >
+                <span className="material-symbols-outlined text-[16px]">crop_free</span>
               </button>
               <button type="button" className="hover:text-slate-600 p-0.5">
                 <span className="material-symbols-outlined text-[16px]">more_horiz</span>
@@ -942,21 +1178,44 @@ export default function StaffCrmDashboard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {[
-                  { no: 1, ticketId: 'Collect Documents for Upl...', due: '09/22/2026', owner: 'Jay Ly', stage: 'Waiting on verification (Uploa...', agent: 'Ivy Le' },
-                  { no: 2, ticketId: 'Collect Documents for Upl...', due: '09/06/2026', owner: 'Khanh Nguyen', stage: 'Waiting on contact (Upload d...', agent: 'Sarah Thai' },
-                  { no: 3, ticketId: 'Collect Documents for Upl...', due: '09/21/2026', owner: 'Tri Tran', stage: 'Waiting on contact (Upload d...', agent: 'Sean Ngo' },
-                  { no: 4, ticketId: 'Collect Documents for Upl...', due: '08/10/2026', owner: 'Tri Tran', stage: 'Waiting on verification (Uploa...', agent: 'Sean Ngo' },
-                  { no: 5, ticketId: 'Collect Documents for Upl...', due: '06/24/2026', owner: 'Tri Tran', stage: 'Waiting on contact (Upload d...', agent: 'Sean Ngo' },
-                  { no: 6, ticketId: 'Collect Documents for Upl...', due: '08/06/2026', owner: 'Quyen Le', stage: 'Waiting on contact (Upload d...', agent: 'Sean Ngo' },
-                  { no: 7, ticketId: 'Collect Documents for Upl...', due: '09/21/2026', owner: 'Quyen Le', stage: 'Waiting on verification (Uploa...', agent: 'Sean Ngo' },
-                ].map((row) => (
-                  <tr key={row.no} className="hover:bg-slate-50 transition">
-                    <td className="px-3 py-2 text-center text-slate-400">{row.no}</td>
-                    <td className="px-3 py-2 font-semibold text-blue-700 hover:underline cursor-pointer">{row.ticketId}</td>
+                {uploadTicketsDisplay.map((row) => (
+                  <tr
+                    key={row.no}
+                    onClick={() => {
+                      if (row.rawTicket && onSelectTicket) {
+                        onSelectTicket(row.rawTicket);
+                      } else if (onSelectTab) {
+                        onSelectTab('tickets');
+                      }
+                    }}
+                    className="hover:bg-blue-50/70 transition cursor-pointer group"
+                    title="Click to open ticket details"
+                  >
+                    <td className="px-3 py-2 text-center text-slate-400 font-mono">{row.no}</td>
+                    <td className="px-3 py-2 font-semibold text-blue-700 group-hover:underline">
+                      {row.ticketId}
+                    </td>
                     <td className="px-3 py-2 font-mono text-slate-600">{row.due}</td>
-                    <td className="px-3 py-2 text-slate-800 font-medium">{row.owner}</td>
-                    <td className="px-3 py-2 text-slate-600">{row.stage}</td>
+                    <td
+                      onClick={(e) => {
+                        if (row.contact && onSelectContact) {
+                          e.stopPropagation();
+                          onSelectContact(row.contact);
+                        } else if (row.owner && onSelectContact) {
+                          e.stopPropagation();
+                          onSelectContact({ fullName: row.owner });
+                        }
+                      }}
+                      className="px-3 py-2 text-slate-800 font-medium hover:text-blue-600 hover:underline"
+                      title="Click to view Contact profile"
+                    >
+                      {row.owner}
+                    </td>
+                    <td className="px-3 py-2 text-slate-600">
+                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-medium">
+                        {row.stage}
+                      </span>
+                    </td>
                     <td className="px-3 py-2 text-slate-800 font-medium">{row.agent}</td>
                   </tr>
                 ))}
@@ -969,11 +1228,22 @@ export default function StaffCrmDashboard({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
             <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-              <h3 className="text-xs font-bold text-slate-900">
+              <h3
+                onClick={() => onSelectTab && onSelectTab('deals')}
+                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                title="Click to view ACA Deals"
+              >
                 ACA Consent Form Status (Normal States) - Manager
               </h3>
               <div className="flex items-center gap-1 text-slate-400">
-                <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="View Deals"
+                >
+                  <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                </button>
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
               </div>
             </div>
@@ -994,9 +1264,14 @@ export default function StaffCrmDashboard({
                 { label: 'Need send new form', count: 7, segments: [7] },
                 { label: 'not sent', count: 4, segments: [4] },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="w-32 text-right text-slate-600 truncate">{item.label}</span>
-                  <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm">
+                <div
+                  key={i}
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                  title={`Click to view deals with consent status: ${item.label}`}
+                >
+                  <span className="w-32 text-right text-slate-600 truncate group-hover:text-blue-700">{item.label}</span>
+                  <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
                     {item.segments.map((s, idx) => {
                       const colors = [C_ANYA, C_SEAN, C_IVY, C_SARAH];
                       return (
@@ -1008,7 +1283,7 @@ export default function StaffCrmDashboard({
                       );
                     })}
                   </div>
-                  <span className="w-8 font-bold text-slate-800 text-[10px]">{item.count}</span>
+                  <span className="w-8 font-bold text-slate-800 text-[10px] group-hover:text-blue-700">{item.count}</span>
                 </div>
               ))}
             </div>
@@ -1016,11 +1291,22 @@ export default function StaffCrmDashboard({
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
             <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-              <h3 className="text-xs font-bold text-slate-900">
+              <h3
+                onClick={() => onSelectTab && onSelectTab('deals')}
+                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                title="Click to view ACA Deals"
+              >
                 ACA Consent Form Status (Special States) - Manager
               </h3>
               <div className="flex items-center gap-1 text-slate-400">
-                <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="View Deals"
+                >
+                  <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                </button>
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
               </div>
             </div>
@@ -1040,9 +1326,14 @@ export default function StaffCrmDashboard({
                 { label: 'Existing client', count: 2, segments: [2] },
                 { label: 'Need send new form', count: 2, segments: [2] },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="w-32 text-right text-slate-600 truncate">{item.label}</span>
-                  <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm">
+                <div
+                  key={i}
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                  title={`Click to view deals with consent status: ${item.label}`}
+                >
+                  <span className="w-32 text-right text-slate-600 truncate group-hover:text-blue-700">{item.label}</span>
+                  <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
                     {item.segments.map((s, idx) => {
                       const colors = [C_ANYA, C_SEAN, C_IVY, C_SARAH];
                       return (
@@ -1054,7 +1345,7 @@ export default function StaffCrmDashboard({
                       );
                     })}
                   </div>
-                  <span className="w-8 font-bold text-slate-800 text-[10px]">{item.count}</span>
+                  <span className="w-8 font-bold text-slate-800 text-[10px] group-hover:text-blue-700">{item.count}</span>
                 </div>
               ))}
             </div>
@@ -1066,12 +1357,21 @@ export default function StaffCrmDashboard({
           <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-slate-500">article</span>
-              <h3 className="text-xs font-bold text-slate-900 tracking-tight">
+              <h3
+                onClick={() => onSelectTab && onSelectTab('deals')}
+                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                title="Click to view Active Policies"
+              >
                 Active Policies OB 26 Not Done ACA - Manager
               </h3>
             </div>
             <div className="flex items-center gap-1 text-slate-400">
-              <button type="button" className="hover:text-slate-600 p-0.5" title="Expand">
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('deals')}
+                className="hover:text-blue-600 p-0.5 cursor-pointer"
+                title="View Deals"
+              >
                 <span className="material-symbols-outlined text-[16px]">crop_free</span>
               </button>
               <button type="button" className="hover:text-slate-600 p-0.5" title="Options">
@@ -1151,12 +1451,17 @@ export default function StaffCrmDashboard({
                   ],
                 },
               ].map((row, idx) => (
-                <div key={idx} className="flex items-center gap-3 relative z-10">
-                  <div className="w-56 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate">
+                <div
+                  key={idx}
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="flex items-center gap-3 relative z-10 hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
+                  title={`Click to view deals in stage: ${row.label}`}
+                >
+                  <div className="w-56 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
                     {row.label}
                   </div>
                   <div className="flex-grow flex items-center">
-                    <div className="h-3 flex overflow-hidden rounded-xs" style={{ width: `${(row.total / 25) * 100}%` }}>
+                    <div className="h-3 flex overflow-hidden rounded-xs group-hover:ring-2 group-hover:ring-blue-400 transition" style={{ width: `${(row.total / 25) * 100}%` }}>
                       {row.segments.map((seg, sIdx) => (
                         <div
                           key={sIdx}
@@ -1169,7 +1474,7 @@ export default function StaffCrmDashboard({
                         />
                       ))}
                     </div>
-                    <span className="text-[10px] text-slate-700 font-bold ml-2">
+                    <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
                       {row.total}
                     </span>
                   </div>
@@ -1199,11 +1504,23 @@ export default function StaffCrmDashboard({
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
-              <h3 className="text-xs font-bold text-slate-900 tracking-tight">
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                title="Click to view Complete Tickets"
+              >
                 Daily Complete Tickets
               </h3>
             </div>
             <div className="flex items-center gap-1 text-slate-400">
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="hover:text-blue-600 p-0.5 cursor-pointer"
+                title="View in Tickets"
+              >
+                <span className="material-symbols-outlined text-[16px]">crop_free</span>
+              </button>
               <button type="button" className="hover:text-slate-600 p-0.5">
                 <span className="material-symbols-outlined text-[16px]">more_horiz</span>
               </button>
@@ -1239,24 +1556,33 @@ export default function StaffCrmDashboard({
                   { agent: 'Panther Nguyen', vals: [0, 0, 0, 0, 0, 0, 0, 0, 0] },
                   { agent: 'Ivy Le', vals: [0, 0, 7, 2, 1, 3, 0, 1, 0] },
                 ].map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition">
-                    <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800">
+                  <tr
+                    key={idx}
+                    onClick={() => onSelectTab && onSelectTab('tickets')}
+                    className="hover:bg-blue-50/70 transition cursor-pointer group"
+                    title={`Click to view tickets for ${row.agent}`}
+                  >
+                    <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800 group-hover:text-blue-700">
                       {row.agent}
                     </td>
                     {row.vals.map((v, vIdx) => (
-                      <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700">
+                      <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700 group-hover:text-blue-800">
                         {v}
                       </td>
                     ))}
                   </tr>
                 ))}
                 {/* TOTAL ROW */}
-                <tr className="bg-slate-50 font-bold border-t-2 border-slate-300">
-                  <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider">
+                <tr
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="bg-slate-50 font-bold border-t-2 border-slate-300 hover:bg-blue-100/70 transition cursor-pointer group"
+                  title="Click to view all completed tickets"
+                >
+                  <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider group-hover:text-blue-800">
                     TOTAL
                   </td>
                   {[3, 7, 104, 95, 13, 46, 28, 4, 7].map((t, idx) => (
-                    <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900">
+                    <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900 group-hover:text-blue-800">
                       {t}
                     </td>
                   ))}
@@ -1271,11 +1597,23 @@ export default function StaffCrmDashboard({
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
-              <h3 className="text-xs font-bold text-slate-900 tracking-tight">
+              <h3
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                title="Click to view New Tickets"
+              >
                 Daily New Tickets
               </h3>
             </div>
             <div className="flex items-center gap-1 text-slate-400">
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="hover:text-blue-600 p-0.5 cursor-pointer"
+                title="View in Tickets"
+              >
+                <span className="material-symbols-outlined text-[16px]">crop_free</span>
+              </button>
               <button type="button" className="hover:text-slate-600 p-0.5">
                 <span className="material-symbols-outlined text-[16px]">more_horiz</span>
               </button>
@@ -1309,24 +1647,33 @@ export default function StaffCrmDashboard({
                   { agent: 'Sean Ngo', vals: [0, 0, 0, 0, 3, 4, 0, 1, 2] },
                   { agent: 'Sarah Thai', vals: [0, 0, 0, 0, 0, 1, 0, 4, 2] },
                 ].map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition">
-                    <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800">
+                  <tr
+                    key={idx}
+                    onClick={() => onSelectTab && onSelectTab('tickets')}
+                    className="hover:bg-blue-50/70 transition cursor-pointer group"
+                    title={`Click to view tickets for ${row.agent}`}
+                  >
+                    <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800 group-hover:text-blue-700">
                       {row.agent}
                     </td>
                     {row.vals.map((v, vIdx) => (
-                      <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700">
+                      <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700 group-hover:text-blue-800">
                         {v}
                       </td>
                     ))}
                   </tr>
                 ))}
                 {/* TOTAL ROW */}
-                <tr className="bg-slate-50 font-bold border-t-2 border-slate-300">
-                  <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider">
+                <tr
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="bg-slate-50 font-bold border-t-2 border-slate-300 hover:bg-blue-100/70 transition cursor-pointer group"
+                  title="Click to view all new tickets"
+                >
+                  <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider group-hover:text-blue-800">
                     TOTAL
                   </td>
                   {[1, 3, 2, 3, 12, 6, 2, 7, 9].map((t, idx) => (
-                    <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900">
+                    <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900 group-hover:text-blue-800">
                       {t}
                     </td>
                   ))}
@@ -1343,12 +1690,21 @@ export default function StaffCrmDashboard({
             <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-slate-500">article</span>
-                <h3 className="text-xs font-bold text-slate-900 tracking-tight">
+                <h3
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                  title="Click to view deals needing manager enrollment"
+                >
                   Need Manager enroll
                 </h3>
               </div>
               <div className="flex items-center gap-1 text-slate-400">
-                <button type="button" className="hover:text-slate-600 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="View Deals"
+                >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
                 <button type="button" className="hover:text-slate-600 p-0.5">
@@ -1387,12 +1743,16 @@ export default function StaffCrmDashboard({
                   <div className="h-full border-r border-slate-100" style={{ left: '100%' }} />
                 </div>
 
-                <div className="flex items-center gap-3 relative z-10 my-4">
-                  <span className="w-28 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate">
+                <div
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="flex items-center gap-3 relative z-10 my-4 hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
+                  title="Click to view deals needing manager enrollment"
+                >
+                  <span className="w-28 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
                     Obamacare 2026
                   </span>
                   <div className="flex-grow flex items-center">
-                    <div className="h-3 flex overflow-hidden rounded-xs w-full">
+                    <div className="h-3 flex overflow-hidden rounded-xs w-full group-hover:ring-2 group-hover:ring-blue-400 transition">
                       <div
                         style={{ width: '50%', backgroundColor: '#5271ff' }}
                         className="h-full"
@@ -1404,7 +1764,7 @@ export default function StaffCrmDashboard({
                         title="Ready to Enroll: 1"
                       />
                     </div>
-                    <span className="text-[10px] text-slate-700 font-bold ml-2">2</span>
+                    <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">2</span>
                   </div>
                 </div>
 
@@ -1429,12 +1789,21 @@ export default function StaffCrmDashboard({
             <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-slate-500">article</span>
-                <h3 className="text-xs font-bold text-slate-900 tracking-tight">
+                <h3
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                  title="Click to view SOA Deals"
+                >
                   SOA Status - Manager
                 </h3>
               </div>
               <div className="flex items-center gap-1 text-slate-400">
-                <button type="button" className="hover:text-slate-600 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="View Deals"
+                >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
                 <button type="button" className="hover:text-slate-600 p-0.5">
@@ -1514,13 +1883,18 @@ export default function StaffCrmDashboard({
                     ],
                   },
                 ].map((row, idx) => (
-                  <div key={idx} className="flex items-center gap-3 relative z-10">
-                    <span className="w-24 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate">
+                  <div
+                    key={idx}
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="flex items-center gap-3 relative z-10 hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                    title={`Click to view deals with SOA status: ${row.label}`}
+                  >
+                    <span className="w-24 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
                       {row.label}
                     </span>
                     <div className="flex-grow flex items-center">
                       <div
-                        className="h-3 flex overflow-hidden rounded-xs"
+                        className="h-3 flex overflow-hidden rounded-xs group-hover:ring-1 group-hover:ring-blue-300 transition"
                         style={{ width: `${(row.total / 30) * 100}%` }}
                       >
                         {row.segments.map((seg, sIdx) => (
@@ -1535,7 +1909,7 @@ export default function StaffCrmDashboard({
                           />
                         ))}
                       </div>
-                      <span className="text-[10px] text-slate-700 font-bold ml-2">
+                      <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
                         {row.total}
                       </span>
                     </div>

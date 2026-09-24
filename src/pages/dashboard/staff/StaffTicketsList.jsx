@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { getTickets } from '../../../services/api';
 
 const SAMPLE_TICKETS = [
   {
@@ -100,11 +101,42 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [showCreateModal, setShowCreateModal] = useState(false);
   
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setTicketsList(SAMPLE_TICKETS);
-      setLoading(false);
-    }, 500);
+    async function loadTickets() {
+      setLoading(true);
+      try {
+        const data = await getTickets();
+        if (Array.isArray(data) && data.length > 0) {
+          const formatted = data.map((t, idx) => ({
+            id: t.id,
+            no: idx + 1,
+            title: t.title,
+            pipeline: t.pipeline || 'Client Support',
+            status: t.status || 'Open',
+            priority: (t.priority || 'MEDIUM').toUpperCase(),
+            contactName: t.contact?.fullName || t.contactName || 'Nguyen Van A',
+            contactId: t.contactId,
+            dealTitle: t.deal?.title || t.dealTitle || 'Obamacare 2026',
+            dealId: t.dealId,
+            dueDate: t.dueDate || '2026-10-15',
+            owner: { name: t.owner || 'Khanh Nguyen', avatar: (t.owner || 'K')[0], bg: 'bg-blue-100 text-blue-700' },
+            serviceAgent: { name: 'Anya Nguyen', avatar: 'A', bg: 'bg-pink-100 text-pink-700' },
+            created: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '02/10/2026',
+            description: t.description || '',
+            ticketResult: t.ticketResult || '',
+            isOverdue: t.dueDate && t.dueDate < new Date().toISOString().split('T')[0],
+          }));
+          setTicketsList(formatted);
+        } else {
+          setTicketsList(SAMPLE_TICKETS);
+        }
+      } catch (err) {
+        console.warn('[StaffTicketsList] API error, using sample tickets:', err);
+        setTicketsList(SAMPLE_TICKETS);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadTickets();
   }, []);
 
   // Filtered tickets

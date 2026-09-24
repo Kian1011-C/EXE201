@@ -354,6 +354,8 @@ export default function AgentDashboard() {
                 onSelectTab={handleSelectTab}
                 onSelectDeal={handleSelectDeal}
                 onSelectContact={handleSelectContact}
+                onSelectTicket={handleSelectTicket}
+                onSelectTask={handleSelectTask}
               />
             </div>
           ) : (

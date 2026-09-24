@@ -254,6 +254,8 @@ export default function StaffDashboard() {
           onSelectTab={handleSelectTab}
           onSelectDeal={handleSelectDeal}
           onSelectContact={handleSelectContact}
+          onSelectTicket={handleSelectTicket}
+          onSelectTask={handleSelectTask}
         />
       )}
 
