@@ -22,6 +22,7 @@ export default function StaffCrmDashboard({
   const [liveTickets, setLiveTickets] = useState([]);
   const [liveTasks, setLiveTasks] = useState([]);
   const [liveCommissions, setLiveCommissions] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'obamacare' | 'medicare' | 'tickets' | 'tasks' | 'commissions'
   const [selectedDashboard, setSelectedDashboard] = useState(
     'Daily work of support - Team Tiger Truong'
   );
@@ -595,6 +596,36 @@ export default function StaffCrmDashboard({
     return Object.values(map).sort((a, b) => b.total - a.total);
   }, [medDeals]);
 
+  // ── ROW 14: Commissions Summary & Ledger ──────────────────────────────────
+  const commissionsSummary = useMemo(() => {
+    const totalGross = liveCommissions.reduce((sum, c) => sum + (Number(c.grossAmount) || 0), 0);
+    const totalNet = liveCommissions.reduce((sum, c) => sum + (Number(c.netAmount) || 0), 0);
+    const totalDeduction = liveCommissions.reduce((sum, c) => sum + (Number(c.supportDeduction) || 0), 0);
+    const settledCount = liveCommissions.filter((c) => c.status === 'SETTLED' || c.status === 'PAID').length;
+    const pendingCount = liveCommissions.filter((c) => c.status === 'PENDING' || c.status === 'AUDIT').length;
+
+    // By Carrier
+    const carrierMap = {};
+    liveCommissions.forEach((c) => {
+      const carrier = c.carrier || 'Other Carrier';
+      if (!carrierMap[carrier]) {
+        carrierMap[carrier] = { carrier, gross: 0, net: 0, count: 0 };
+      }
+      carrierMap[carrier].gross += Number(c.grossAmount) || 0;
+      carrierMap[carrier].net += Number(c.netAmount) || 0;
+      carrierMap[carrier].count += 1;
+    });
+
+    return {
+      totalGross,
+      totalNet,
+      totalDeduction,
+      settledCount,
+      pendingCount,
+      byCarrier: Object.values(carrierMap).sort((a, b) => b.net - a.net),
+    };
+  }, [liveCommissions]);
+
   return (
     <div className="flex flex-col h-full bg-[#F4F6F9] overflow-y-auto">
       {/* ── Top Dashboard Header ─────────────────────────────────────────── */}
@@ -642,24 +673,52 @@ export default function StaffCrmDashboard({
         </div>
       </div>
 
-      {/* ── Filter Bar ───────────────────────────────────────────────────── */}
-      <div className="px-6 py-2.5 bg-white border-b border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-slate-500 font-medium">Filter by:</span>
-          <button
-            type="button"
-            className="flex items-center gap-1 text-[#104882] hover:underline font-semibold cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[15px]">tune</span>
-            <span>Advanced filters</span>
-          </button>
+      {/* ── Category Filter Bar ───────────────────────────────────────────── */}
+      <div className="px-6 py-2.5 bg-white border-b border-slate-200/90 flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs text-slate-600 shrink-0 shadow-2xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
+          {[
+            { id: 'all', label: 'All Reports', count: 27, icon: 'grid_view' },
+            { id: 'obamacare', label: 'Obamacare Funnel', count: 8, icon: 'health_and_safety' },
+            { id: 'medicare', label: 'Medicare Lifecycle', count: 5, icon: 'medical_services' },
+            { id: 'tickets', label: 'Tickets & Ops', count: 8, icon: 'confirmation_number' },
+            { id: 'tasks', label: 'Tasks & SLA', count: 4, icon: 'checklist' },
+            { id: 'commissions', label: 'Commissions', count: 5, icon: 'payments' },
+          ].map((cat) => {
+            const active = categoryFilter === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setCategoryFilter(cat.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                  active
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[15px]">{cat.icon}</span>
+                <span>{cat.label}</span>
+                <span
+                  className={`ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    active ? 'bg-blue-700 text-white' : 'bg-white text-slate-600 border border-slate-200'
+                  }`}
+                >
+                  {cat.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-          <span className="material-symbols-outlined text-[16px] text-emerald-600">database</span>
-          <span>Status:</span>
-          <span className="font-bold text-emerald-700">100% Real Database Data</span>
-          <span className="text-slate-400 font-normal">({liveDeals.length} deals • {liveTickets.length} tickets • {liveTasks.length} tasks)</span>
+        <div className="flex items-center gap-1.5 text-slate-500 font-medium shrink-0">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="font-bold text-emerald-700">100% Real DB Data</span>
+          <span className="text-slate-400 font-normal">
+            ({liveDeals.length} deals • {liveTickets.length} tickets • {liveTasks.length} tasks)
+          </span>
         </div>
       </div>
 
@@ -670,31 +729,33 @@ export default function StaffCrmDashboard({
           {/* Card 1: Total Contacts */}
           <div
             onClick={() => onSelectTab && onSelectTab('contacts')}
-            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-sm transition cursor-pointer group"
+            className="bg-white p-4 rounded-2xl border border-slate-200/90 hover:border-blue-400 hover:shadow-md transition-all duration-200 crm-card-hover cursor-pointer group relative overflow-hidden shadow-2xs"
           >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-400" />
             <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
               <span className="font-semibold group-hover:text-blue-600 transition">Contacts</span>
               <span className="material-symbols-outlined text-[18px] text-blue-600">contacts</span>
             </div>
-            <div className="text-2xl font-black text-slate-900">
+            <div className="text-2xl font-black text-slate-900 tracking-tight">
               {liveContacts.length}
             </div>
             <div className="text-[10px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>Real PostgreSQL Data</span>
+              <span>PostgreSQL Live</span>
             </div>
           </div>
 
           {/* Card 2: Active Pipeline Deals */}
           <div
             onClick={() => onSelectTab && onSelectTab('deals')}
-            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-indigo-400 hover:shadow-sm transition cursor-pointer group"
+            className="bg-white p-4 rounded-2xl border border-slate-200/90 hover:border-indigo-400 hover:shadow-md transition-all duration-200 crm-card-hover cursor-pointer group relative overflow-hidden shadow-2xs"
           >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-400" />
             <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
               <span className="font-semibold group-hover:text-indigo-600 transition">Active Deals</span>
               <span className="material-symbols-outlined text-[18px] text-indigo-600">handshake</span>
             </div>
-            <div className="text-2xl font-black text-slate-900">
+            <div className="text-2xl font-black text-slate-900 tracking-tight">
               {activeDealsList.length}
             </div>
             <div className="text-[10px] text-slate-500 font-medium mt-1 truncate">
@@ -705,13 +766,14 @@ export default function StaffCrmDashboard({
           {/* Card 3: Open Service Tickets */}
           <div
             onClick={() => onSelectTab && onSelectTab('tickets')}
-            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-cyan-400 hover:shadow-sm transition cursor-pointer group"
+            className="bg-white p-4 rounded-2xl border border-slate-200/90 hover:border-cyan-400 hover:shadow-md transition-all duration-200 crm-card-hover cursor-pointer group relative overflow-hidden shadow-2xs"
           >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-400" />
             <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
               <span className="font-semibold group-hover:text-cyan-600 transition">Open Tickets</span>
               <span className="material-symbols-outlined text-[18px] text-cyan-600">confirmation_number</span>
             </div>
-            <div className="text-2xl font-black text-slate-900">
+            <div className="text-2xl font-black text-slate-900 tracking-tight">
               {openTicketsList.length}
             </div>
             <div className="text-[10px] text-amber-600 font-bold mt-1 flex items-center gap-1">
@@ -723,13 +785,14 @@ export default function StaffCrmDashboard({
           {/* Card 4: Overdue Action Items */}
           <div
             onClick={() => onSelectTab && onSelectTab('tickets')}
-            className="bg-white p-3.5 rounded-xl border border-rose-200 hover:border-rose-400 hover:shadow-sm transition cursor-pointer group bg-rose-50/20"
+            className="bg-white p-4 rounded-2xl border border-rose-200 hover:border-rose-400 hover:shadow-md transition-all duration-200 crm-card-hover cursor-pointer group relative overflow-hidden bg-rose-50/15 shadow-2xs"
           >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-red-400" />
             <div className="flex items-center justify-between text-rose-700 text-xs mb-1">
               <span className="font-semibold group-hover:underline">Overdue Queue</span>
               <span className="material-symbols-outlined text-[18px] text-rose-600">warning</span>
             </div>
-            <div className="text-2xl font-black text-rose-700">
+            <div className="text-2xl font-black text-rose-700 tracking-tight">
               {overdueTicketsList.length}
             </div>
             <div className="text-[10px] text-rose-600 font-medium mt-1">
@@ -740,13 +803,14 @@ export default function StaffCrmDashboard({
           {/* Card 5: Pending Tasks */}
           <div
             onClick={() => onSelectTab && onSelectTab('tasks')}
-            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-purple-400 hover:shadow-sm transition cursor-pointer group"
+            className="bg-white p-4 rounded-2xl border border-slate-200/90 hover:border-purple-400 hover:shadow-md transition-all duration-200 crm-card-hover cursor-pointer group relative overflow-hidden shadow-2xs"
           >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-400" />
             <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
               <span className="font-semibold group-hover:text-purple-600 transition">Agent Tasks</span>
               <span className="material-symbols-outlined text-[18px] text-purple-600">checklist</span>
             </div>
-            <div className="text-2xl font-black text-slate-900">
+            <div className="text-2xl font-black text-slate-900 tracking-tight">
               {openTasksList.length}
             </div>
             <div className="text-[10px] text-slate-500 font-medium mt-1">
@@ -757,13 +821,14 @@ export default function StaffCrmDashboard({
           {/* Card 6: Monthly Commission Revenue */}
           <div
             onClick={() => onSelectTab && onSelectTab('commission')}
-            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-emerald-400 hover:shadow-sm transition cursor-pointer group bg-emerald-50/20"
+            className="bg-white p-4 rounded-2xl border border-slate-200/90 hover:border-emerald-400 hover:shadow-md transition-all duration-200 crm-card-hover cursor-pointer group relative overflow-hidden bg-emerald-50/15 shadow-2xs"
           >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400" />
             <div className="flex items-center justify-between text-emerald-800 text-xs mb-1">
               <span className="font-semibold group-hover:text-emerald-700 transition">Mth Revenue</span>
               <span className="material-symbols-outlined text-[18px] text-emerald-600">payments</span>
             </div>
-            <div className="text-2xl font-black text-emerald-700 font-mono">
+            <div className="text-2xl font-black text-emerald-700 font-mono tracking-tight">
               ${commissionStats.monthly.toFixed(0)}
             </div>
             <div className="text-[10px] text-emerald-700 font-medium mt-1 font-mono">
@@ -773,36 +838,38 @@ export default function StaffCrmDashboard({
         </div>
 
         {/* ── ROW 1: 2 Main Deal Charts (50% / 50%) ──────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Card 1: Total Obamacare deals 2026 */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-slate-500">
-                  article
-                </span>
-                <h3
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
-                  title="Click to view in Deals List"
-                >
-                  Total Obamacare deals 2026 ({obDeals.length} deals)
-                </h3>
-              </div>
-              <div className="flex items-center gap-1 text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="hover:text-blue-600 p-0.5 cursor-pointer"
-                  title="View Deals List"
-                >
-                  <span className="material-symbols-outlined text-[16px]">crop_free</span>
-                </button>
-                <button type="button" className="hover:text-slate-600 p-0.5">
-                  <span className="material-symbols-outlined text-[16px]">more_horiz</span>
-                </button>
-              </div>
-            </div>
+        {['all', 'obamacare', 'medicare'].includes(categoryFilter) && (
+          <div className={`grid grid-cols-1 ${categoryFilter === 'all' ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-6`}>
+            {/* Card 1: Total Obamacare deals 2026 */}
+            {['all', 'obamacare'].includes(categoryFilter) && (
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-5 flex flex-col">
+                <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-slate-500">
+                      article
+                    </span>
+                    <h3
+                      onClick={() => onSelectTab && onSelectTab('deals')}
+                      className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                      title="Click to view in Deals List"
+                    >
+                      Total Obamacare deals 2026 ({obDeals.length} deals)
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-1 text-slate-400">
+                    <button
+                      type="button"
+                      onClick={() => onSelectTab && onSelectTab('deals')}
+                      className="hover:text-blue-600 p-0.5 cursor-pointer"
+                      title="View Deals List"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">crop_free</span>
+                    </button>
+                    <button type="button" className="hover:text-slate-600 p-0.5">
+                      <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                    </button>
+                  </div>
+                </div>
 
             {/* Horizontal Bar Chart for OB Deals (100% Real DB Data) */}
             <div className="flex-grow flex flex-col justify-center space-y-1.5 text-[11px] pt-1">
@@ -855,11 +922,13 @@ export default function StaffCrmDashboard({
                 (Count Distinct) Deal (Id) • Click any stage to open Deals
               </div>
             </div>
-          </div>
+              </div>
+            )}
 
-          {/* Card 2: Total Medicare deals 2026 */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+            {/* Card 2: Total Medicare deals 2026 */}
+            {['all', 'medicare'].includes(categoryFilter) && (
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-5 flex flex-col">
+                <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-slate-500">
                   article
@@ -956,17 +1025,21 @@ export default function StaffCrmDashboard({
                 ))
               )}
             </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* ── ROW 2: 3 Medium Charts (33% / 33% / 33%) ─────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 3: Total Active OB 2026 - Support Agent */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900 truncate">
-                Total Active OB 2026 - Support Agent
-              </h3>
+        {['all', 'obamacare', 'medicare'].includes(categoryFilter) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Card 3: Total Active OB 2026 - Support Agent */}
+            {['all', 'obamacare'].includes(categoryFilter) && (
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                  <h3 className="text-xs font-bold text-slate-900 truncate">
+                    Total Active OB 2026 - Support Agent
+                  </h3>
               <div className="flex items-center gap-1 text-slate-400">
                 <span className="material-symbols-outlined text-[15px]">crop_free</span>
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
@@ -1002,18 +1075,20 @@ export default function StaffCrmDashboard({
                 </div>
               ))}
             </div>
-          </div>
+              </div>
+            )}
 
-          {/* Card 4: Total Medicare deals 2026 - Support Agent */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3
-                onClick={() => onSelectTab && onSelectTab('deals')}
-                className="text-xs font-bold text-slate-900 truncate hover:text-blue-600 cursor-pointer"
-                title="Click to view Medicare deals"
-              >
-                Total Medicare deals 2026 - Support Agent
-              </h3>
+            {/* Card 4: Total Medicare deals 2026 - Support Agent */}
+            {['all', 'medicare'].includes(categoryFilter) && (
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                  <h3
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="text-xs font-bold text-slate-900 truncate hover:text-blue-600 cursor-pointer"
+                    title="Click to view Medicare deals"
+                  >
+                    Total Medicare deals 2026 - Support Agent
+                  </h3>
               <div className="flex items-center gap-1 text-slate-400">
                 <span className="material-symbols-outlined text-[15px]">crop_free</span>
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
@@ -1050,86 +1125,91 @@ export default function StaffCrmDashboard({
               ))}
             </div>
           </div>
+        )}
 
-          {/* Card 5: Total Contact Count */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3
-                onClick={() => onSelectTab && onSelectTab('contacts')}
-                className="text-xs font-bold text-slate-900 truncate hover:text-blue-600 cursor-pointer"
-                title="Click to view all Contacts"
-              >
-                Total Contact Count ({liveContacts.length} contacts)
-              </h3>
-              <div className="flex items-center gap-1 text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => onSelectTab && onSelectTab('contacts')}
-                  className="hover:text-blue-600 p-0.5 cursor-pointer"
-                  title="View Contacts List"
-                >
-                  <span className="material-symbols-outlined text-[15px]">crop_free</span>
-                </button>
-                <button type="button" className="hover:text-slate-600 p-0.5">
-                  <span className="material-symbols-outlined text-[15px]">more_horiz</span>
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center justify-center gap-4 text-[10px] text-slate-500 mb-2">
-              <div className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-[#5271ff]" />
-                <span>Inactive</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-[#84cc16]" />
-                <span>Active</span>
-              </div>
-            </div>
-            <div className="space-y-3 my-auto py-2">
-              {contactsByOwner.map((item, i) => (
-                <div
-                  key={i}
-                  onClick={() => onSelectTab && onSelectTab('contacts')}
-                  className="flex items-center gap-2 text-xs hover:bg-slate-100/80 p-0.5 rounded cursor-pointer transition group"
-                  title={`Click to view contacts owned by ${item.agent}`}
-                >
-                  <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">
-                    {item.agent}
-                  </span>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
-                    <div
-                      style={{ width: `${(item.inactive / maxContactOwner) * 100}%` }}
-                      className="bg-[#5271ff] h-full"
-                      title={`Inactive: ${item.inactive}`}
-                    />
-                    <div
-                      style={{ width: `${(item.active / maxContactOwner) * 100}%` }}
-                      className="bg-[#84cc16] h-full"
-                      title={`Active: ${item.active}`}
-                    />
+            {/* Card 5: Total Contact Count */}
+            {['all', 'obamacare', 'medicare'].includes(categoryFilter) && (
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                  <h3
+                    onClick={() => onSelectTab && onSelectTab('contacts')}
+                    className="text-xs font-bold text-slate-900 truncate hover:text-blue-600 cursor-pointer"
+                    title="Click to view all Contacts"
+                  >
+                    Total Contact Count ({liveContacts.length} contacts)
+                  </h3>
+                  <div className="flex items-center gap-1 text-slate-400">
+                    <button
+                      type="button"
+                      onClick={() => onSelectTab && onSelectTab('contacts')}
+                      className="hover:text-blue-600 p-0.5 cursor-pointer"
+                      title="View Contacts List"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                    </button>
+                    <button type="button" className="hover:text-slate-600 p-0.5">
+                      <span className="material-symbols-outlined text-[15px]">more_horiz</span>
+                    </button>
                   </div>
-                  <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
-                    {item.total}
-                  </span>
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center justify-center gap-4 text-[10px] text-slate-500 mb-2">
+                  <div className="flex items-center gap-1">
+                    <span className="w-3 h-2 rounded-xs bg-[#5271ff]" />
+                    <span>Inactive</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-3 h-2 rounded-xs bg-[#84cc16]" />
+                    <span>Active</span>
+                  </div>
+                </div>
+                <div className="space-y-3 my-auto py-2">
+                  {contactsByOwner.map((item, i) => (
+                    <div
+                      key={i}
+                      onClick={() => onSelectTab && onSelectTab('contacts')}
+                      className="flex items-center gap-2 text-xs hover:bg-slate-100/80 p-0.5 rounded cursor-pointer transition group"
+                      title={`Click to view contacts owned by ${item.agent}`}
+                    >
+                      <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">
+                        {item.agent}
+                      </span>
+                      <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                        <div
+                          style={{ width: `${(item.inactive / maxContactOwner) * 100}%` }}
+                          className="bg-[#5271ff] h-full"
+                          title={`Inactive: ${item.inactive}`}
+                        />
+                        <div
+                          style={{ width: `${(item.active / maxContactOwner) * 100}%` }}
+                          className="bg-[#84cc16] h-full"
+                          title={`Active: ${item.active}`}
+                        />
+                      </div>
+                      <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
+                        {item.total}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* ── ROW 3: Deals by Agent Vertical Column Chart ────────────────── */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
-          <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-slate-500">bar_chart</span>
-              <h3
-                onClick={() => onSelectTab && onSelectTab('deals')}
-                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
-                title="Click to view Deals"
-              >
-                Deals by Agent (Not count Lost&amp;Terminated)
-              </h3>
-            </div>
+        {['all', 'obamacare', 'medicare'].includes(categoryFilter) && (
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-slate-500">bar_chart</span>
+                <h3
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                  title="Click to view Deals"
+                >
+                  Deals by Agent (Not count Lost&amp;Terminated)
+                </h3>
+              </div>
             <div className="flex items-center gap-1 text-slate-400">
               <button
                 type="button"
@@ -1190,9 +1270,11 @@ export default function StaffCrmDashboard({
             Deal Owner • Click any agent column to view deals
           </div>
         </div>
+        )}
 
         {/* ── ROW 4: All Open Tasks & Overdue Tasks ────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {['all', 'tasks'].includes(categoryFilter) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card 7: All Open Tasks Report */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
@@ -1309,9 +1391,11 @@ export default function StaffCrmDashboard({
             </div>
           </div>
         </div>
+        )}
 
         {/* ── ROW 5: All Tickets Overdue Details Pivot Table ───────────────── */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col overflow-hidden">
+        {['all', 'tickets'].includes(categoryFilter) && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
@@ -1426,9 +1510,11 @@ export default function StaffCrmDashboard({
             </table>
           </div>
         </div>
+        )}
 
         {/* ── ROW 6: All Open Tickets & All Overdue Tickets ────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {['all', 'tickets'].includes(categoryFilter) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Card 10: All Open Tickets */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
@@ -1537,791 +1623,931 @@ export default function StaffCrmDashboard({
             </div>
           </div>
         </div>
+        )}
 
         {/* ── ROW 7: Empty state + Need Update Member ID + Need Create Account */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 12: Need Extend Tickets */}
-          <div
-            onClick={() => onSelectTab && onSelectTab('tickets')}
-            className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col items-center justify-center min-h-[190px] cursor-pointer hover:border-blue-300 hover:shadow-xs transition group"
-            title="Click to check tickets needing extension"
-          >
-            <div className="w-full flex items-center justify-between mb-auto pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold text-slate-900 group-hover:text-blue-600">
-                Need Extend Tickets
-              </h3>
-              <span className="material-symbols-outlined text-[15px] text-slate-400">crop_free</span>
-            </div>
-            <div className="my-auto py-4 text-center">
-              <div className="w-12 h-12 mx-auto rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined text-[24px]">manage_search</span>
+        {['all', 'tickets', 'obamacare'].includes(categoryFilter) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Card 12: Need Extend Tickets */}
+            {['all', 'tickets'].includes(categoryFilter) && (
+              <div
+                onClick={() => onSelectTab && onSelectTab('tickets')}
+                className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col items-center justify-center min-h-[190px] cursor-pointer hover:border-blue-300 hover:shadow-xs transition group"
+                title="Click to check tickets needing extension"
+              >
+                <div className="w-full flex items-center justify-between mb-auto pb-2 border-b border-slate-100">
+                  <h3 className="text-xs font-bold text-slate-900 group-hover:text-blue-600">
+                    Need Extend Tickets
+                  </h3>
+                  <span className="material-symbols-outlined text-[15px] text-slate-400">crop_free</span>
+                </div>
+                <div className="my-auto py-4 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined text-[24px]">manage_search</span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-800">
+                    {needExtendTickets.length > 0
+                      ? `${needExtendTickets.length} Tickets Needing Extension`
+                      : 'No Data Here!'}
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    {needExtendTickets.length > 0
+                      ? 'Click to review tickets exceeding deadline'
+                      : 'All tickets have valid active due dates.'}
+                  </div>
+                </div>
               </div>
-              <div className="text-xs font-bold text-slate-800">
-                {needExtendTickets.length > 0
-                  ? `${needExtendTickets.length} Tickets Needing Extension`
-                  : 'No Data Here!'}
-              </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">
-                {needExtendTickets.length > 0
-                  ? 'Click to review tickets exceeding deadline'
-                  : 'All tickets have valid active due dates.'}
-              </div>
-            </div>
-          </div>
+            )}
 
-          {/* Card 13: Need Update Member ID */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3
-                onClick={() => onSelectTab && onSelectTab('deals')}
-                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
-                title="Click to view Member ID update deals"
-              >
-                Need Update Member ID
-              </h3>
-              <button
-                type="button"
-                onClick={() => onSelectTab && onSelectTab('deals')}
-                className="text-slate-400 hover:text-blue-600 cursor-pointer"
-                title="View in Deals"
-              >
-                <span className="material-symbols-outlined text-[15px]">crop_free</span>
-              </button>
-            </div>
-            <div className="space-y-3 my-auto py-2">
-              {needUpdateMemberIdData.length === 0 ? (
-                <div className="text-center text-slate-400 text-xs py-4">All deals have Member IDs</div>
-              ) : (
-                needUpdateMemberIdData.map((item, idx) => (
-                  <div
-                    key={idx}
+            {/* Card 13: Need Update Member ID */}
+            {['all', 'obamacare'].includes(categoryFilter) && (
+              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                  <h3
                     onClick={() => onSelectTab && onSelectTab('deals')}
-                    className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click to view deals for ${item.agent}`}
+                    className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                    title="Click to view Member ID update deals"
                   >
-                    <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">
-                      {item.agent}
-                    </span>
-                    <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                    Need Update Member ID
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="text-slate-400 hover:text-blue-600 cursor-pointer"
+                    title="View in Deals"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                  </button>
+                </div>
+                <div className="space-y-3 my-auto py-2">
+                  {needUpdateMemberIdData.length === 0 ? (
+                    <div className="text-center text-slate-400 text-xs py-4">All deals have Member IDs</div>
+                  ) : (
+                    needUpdateMemberIdData.map((item, idx) => (
                       <div
-                        style={{ width: `${item.widthPercent}%` }}
-                        className="bg-[#5271ff] h-full"
-                      />
-                    </div>
-                    <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
-                      {item.count}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+                        key={idx}
+                        onClick={() => onSelectTab && onSelectTab('deals')}
+                        className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                        title={`Click to view deals for ${item.agent}`}
+                      >
+                        <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">
+                          {item.agent}
+                        </span>
+                        <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                          <div
+                            style={{ width: `${item.widthPercent}%` }}
+                            className="bg-[#5271ff] h-full"
+                          />
+                        </div>
+                        <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
+                          {item.count}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
 
-          {/* Card 14: Need Create Member Account */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-              <h3
-                onClick={() => onSelectTab && onSelectTab('contacts')}
-                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
-                title="Click to view Member Account tasks"
-              >
-                Need Create Member Account...
-              </h3>
-              <button
-                type="button"
-                onClick={() => onSelectTab && onSelectTab('contacts')}
-                className="text-slate-400 hover:text-blue-600 cursor-pointer"
-                title="View in Contacts"
-              >
-                <span className="material-symbols-outlined text-[15px]">crop_free</span>
-              </button>
-            </div>
-            <div className="space-y-3 my-auto py-2">
-              {needCreateMemberAccountData.length === 0 ? (
-                <div className="text-center text-slate-400 text-xs py-4">All contacts have accounts</div>
-              ) : (
-                needCreateMemberAccountData.map((item, idx) => (
-                  <div
-                    key={idx}
+            {/* Card 14: Need Create Member Account */}
+            {['all', 'obamacare'].includes(categoryFilter) && (
+              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                  <h3
                     onClick={() => onSelectTab && onSelectTab('contacts')}
-                    className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click to view account creation for ${item.agent}`}
+                    className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                    title="Click to view Member Account tasks"
                   >
-                    <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">
-                      {item.agent}
-                    </span>
-                    <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                    Need Create Member Account...
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => onSelectTab && onSelectTab('contacts')}
+                    className="text-slate-400 hover:text-blue-600 cursor-pointer"
+                    title="View in Contacts"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                  </button>
+                </div>
+                <div className="space-y-3 my-auto py-2">
+                  {needCreateMemberAccountData.length === 0 ? (
+                    <div className="text-center text-slate-400 text-xs py-4">All contacts have accounts</div>
+                  ) : (
+                    needCreateMemberAccountData.map((item, idx) => (
                       <div
-                        style={{ width: `${item.widthPercent}%` }}
-                        className="bg-[#5271ff] h-full"
-                      />
-                    </div>
-                    <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
-                      {item.count}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
+                        key={idx}
+                        onClick={() => onSelectTab && onSelectTab('contacts')}
+                        className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                        title={`Click to view account creation for ${item.agent}`}
+                      >
+                        <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">
+                          {item.agent}
+                        </span>
+                        <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                          <div
+                            style={{ width: `${item.widthPercent}%` }}
+                            className="bg-[#5271ff] h-full"
+                          />
+                        </div>
+                        <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
+                          {item.count}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* ── ROW 8: Open Upload Document Ticket Table (100% Real DB Data) ─── */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
-              <h3
-                onClick={() => onSelectTab && onSelectTab('tickets')}
-                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
-                title="Click to view all upload document tickets"
-              >
-                Open Upload Document Ticket
-              </h3>
-              <span className="text-[10px] bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">
-                {uploadTicketsDisplay.length} Live Tickets
-              </span>
+        {['all', 'tickets', 'obamacare'].includes(categoryFilter) && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
+                <h3
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                  title="Click to view all upload document tickets"
+                >
+                  Open Upload Document Ticket
+                </h3>
+                <span className="text-[10px] bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">
+                  {uploadTicketsDisplay.length} Live Tickets
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="Open Tickets Module"
+                >
+                  <span className="material-symbols-outlined text-[16px]">crop_free</span>
+                </button>
+                <button type="button" className="hover:text-slate-600 p-0.5">
+                  <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-slate-400">
-              <button
-                type="button"
-                onClick={() => onSelectTab && onSelectTab('tickets')}
-                className="hover:text-blue-600 p-0.5 cursor-pointer"
-                title="Open Tickets Module"
-              >
-                <span className="material-symbols-outlined text-[16px]">crop_free</span>
-              </button>
-              <button type="button" className="hover:text-slate-600 p-0.5">
-                <span className="material-symbols-outlined text-[16px]">more_horiz</span>
-              </button>
-            </div>
-          </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[11px] text-slate-700 whitespace-nowrap">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px]">
-                <tr>
-                  <th className="px-3 py-2 w-10 text-center">No.</th>
-                  <th className="px-3 py-2">TicketId</th>
-                  <th className="px-3 py-2">Ticket Due Date</th>
-                  <th className="px-3 py-2">Ticket Owner</th>
-                  <th className="px-3 py-2">Stage</th>
-                  <th className="px-3 py-2">Service Agent</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {uploadTicketsDisplay.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[11px] text-slate-700 whitespace-nowrap">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px]">
                   <tr>
-                    <td colSpan={6} className="px-3 py-8 text-center text-slate-400">
-                      No upload document tickets currently open in the database.
-                    </td>
+                    <th className="px-3 py-2 w-10 text-center">No.</th>
+                    <th className="px-3 py-2">TicketId</th>
+                    <th className="px-3 py-2">Ticket Due Date</th>
+                    <th className="px-3 py-2">Ticket Owner</th>
+                    <th className="px-3 py-2">Stage</th>
+                    <th className="px-3 py-2">Service Agent</th>
                   </tr>
-                ) : (
-                  uploadTicketsDisplay.map((row) => (
-                    <tr
-                      key={row.no}
-                      onClick={() => {
-                        if (row.rawTicket && onSelectTicket) {
-                          onSelectTicket(row.rawTicket);
-                        } else if (onSelectTab) {
-                          onSelectTab('tickets');
-                        }
-                      }}
-                      className="hover:bg-blue-50/70 transition cursor-pointer group"
-                      title="Click to open ticket details"
-                    >
-                      <td className="px-3 py-2 text-center text-slate-400 font-mono">{row.no}</td>
-                      <td className="px-3 py-2 font-semibold text-blue-700 group-hover:underline">
-                        {row.ticketId}
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {uploadTicketsDisplay.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-3 py-8 text-center text-slate-400">
+                        No upload document tickets currently open in the database.
                       </td>
-                      <td className="px-3 py-2 font-mono text-slate-600">{row.due}</td>
-                      <td
-                        onClick={(e) => {
-                          if (row.contact && onSelectContact) {
-                            e.stopPropagation();
-                            onSelectContact(row.contact);
-                          } else if (row.owner && onSelectContact) {
-                            e.stopPropagation();
-                            onSelectContact({ fullName: row.owner });
+                    </tr>
+                  ) : (
+                    uploadTicketsDisplay.map((row) => (
+                      <tr
+                        key={row.no}
+                        onClick={() => {
+                          if (row.rawTicket && onSelectTicket) {
+                            onSelectTicket(row.rawTicket);
+                          } else if (onSelectTab) {
+                            onSelectTab('tickets');
                           }
                         }}
-                        className="px-3 py-2 text-slate-800 font-medium hover:text-blue-600 hover:underline"
-                        title="Click to view Contact profile"
+                        className="hover:bg-blue-50/70 transition cursor-pointer group"
+                        title="Click to open ticket details"
                       >
-                        {row.owner}
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">
-                        <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-medium">
-                          {row.stage}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-slate-800 font-medium">{row.agent}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                        <td className="px-3 py-2 text-center text-slate-400 font-mono">{row.no}</td>
+                        <td className="px-3 py-2 font-semibold text-blue-700 group-hover:underline">
+                          {row.ticketId}
+                        </td>
+                        <td className="px-3 py-2 font-mono text-slate-600">{row.due}</td>
+                        <td
+                          onClick={(e) => {
+                            if (row.contact && onSelectContact) {
+                              e.stopPropagation();
+                              onSelectContact(row.contact);
+                            } else if (row.owner && onSelectContact) {
+                              e.stopPropagation();
+                              onSelectContact({ fullName: row.owner });
+                            }
+                          }}
+                          className="px-3 py-2 text-slate-800 font-medium hover:text-blue-600 hover:underline"
+                          title="Click to view Contact profile"
+                        >
+                          {row.owner}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">
+                          <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-medium">
+                            {row.stage}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-slate-800 font-medium">{row.agent}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── ROW 9: ACA Consent Form Status (100% Real DB Data) ───────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Card 16: ACA Consent Form Status (Normal States) */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-              <h3
-                onClick={() => onSelectTab && onSelectTab('deals')}
-                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
-                title="Click to view ACA Deals"
-              >
-                ACA Consent Form Status (Normal States) - Manager
-              </h3>
-              <div className="flex items-center gap-1 text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="hover:text-blue-600 p-0.5 cursor-pointer"
-                  title="View Deals"
-                >
-                  <span className="material-symbols-outlined text-[15px]">crop_free</span>
-                </button>
-                <span className="material-symbols-outlined text-[15px]">more_horiz</span>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-[11px] my-auto">
-              {acaConsentStatusData.map((item, i) => {
-                const maxConsent = Math.max(...acaConsentStatusData.map((c) => c.count), 1);
-                return (
-                  <div
-                    key={i}
-                    onClick={() => onSelectTab && onSelectTab('deals')}
-                    className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click to view deals with consent status: ${item.label}`}
-                  >
-                    <span className="w-32 text-right text-slate-600 truncate group-hover:text-blue-700">
-                      {item.label}
-                    </span>
-                    <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
-                      <div
-                        style={{
-                          width: `${(item.count / maxConsent) * 100}%`,
-                          backgroundColor: [C_ANYA, C_SEAN, C_IVY, C_SARAH][i % 4],
-                        }}
-                        className="h-full"
-                      />
-                    </div>
-                    <span className="w-8 font-bold text-slate-800 text-[10px] group-hover:text-blue-700">
-                      {item.count}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Card 17: ACA Consent Form Status (Special States) */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-              <h3
-                onClick={() => onSelectTab && onSelectTab('deals')}
-                className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
-                title="Click to view ACA Deals"
-              >
-                ACA Consent Form Status (Special States) - Manager
-              </h3>
-              <div className="flex items-center gap-1 text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="hover:text-blue-600 p-0.5 cursor-pointer"
-                  title="View Deals"
-                >
-                  <span className="material-symbols-outlined text-[15px]">crop_free</span>
-                </button>
-                <span className="material-symbols-outlined text-[15px]">more_horiz</span>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-[11px] my-auto">
-              {acaConsentStatusData.map((item, i) => {
-                const maxVal = Math.max(...acaConsentStatusData.map((c) => c.count), 1);
-                return (
-                  <div
-                    key={i}
-                    onClick={() => onSelectTab && onSelectTab('deals')}
-                    className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click to view deals with consent status: ${item.label}`}
-                  >
-                    <span className="w-32 text-right text-slate-600 truncate group-hover:text-blue-700">
-                      {item.label}
-                    </span>
-                    <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
-                      <div
-                        style={{
-                          width: `${(item.count / maxVal) * 100}%`,
-                          backgroundColor: [C_ANYA, C_SEAN, C_IVY, C_SARAH][i % 4],
-                        }}
-                        className="h-full"
-                      />
-                    </div>
-                    <span className="w-8 font-bold text-slate-800 text-[10px] group-hover:text-blue-700">
-                      {item.count}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* ── ROW 10: Active Policies OB 26 Not Done ACA - Manager ────────── */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
-          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-slate-500">article</span>
-              <h3
-                onClick={() => onSelectTab && onSelectTab('deals')}
-                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
-                title="Click to view Active Policies"
-              >
-                Active Policies OB 26 Not Done ACA - Manager
-              </h3>
-            </div>
-            <div className="flex items-center gap-1 text-slate-400">
-              <button
-                type="button"
-                onClick={() => onSelectTab && onSelectTab('deals')}
-                className="hover:text-blue-600 p-0.5 cursor-pointer"
-                title="View Deals"
-              >
-                <span className="material-symbols-outlined text-[16px]">crop_free</span>
-              </button>
-              <button type="button" className="hover:text-slate-600 p-0.5" title="Options">
-                <span className="material-symbols-outlined text-[16px]">more_horiz</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-stretch gap-3 pl-2 pr-6">
-            <div className="flex items-center justify-center shrink-0 w-8">
-              <span className="text-slate-500 text-[11px] font-medium -rotate-90 origin-center whitespace-nowrap select-none">
-                ACA Account Status
-              </span>
-            </div>
-
-            <div className="flex-grow flex flex-col justify-between space-y-4 py-2 border-l border-slate-300 relative">
-              {activePoliciesObNotDoneAca.length === 0 ? (
-                <div className="text-center text-slate-400 text-xs py-4">No active policies found</div>
-              ) : (
-                activePoliciesObNotDoneAca.map((row, idx) => {
-                  const maxRowVal = Math.max(...activePoliciesObNotDoneAca.map((r) => r.total), 1);
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => onSelectTab && onSelectTab('deals')}
-                      className="flex items-center gap-3 relative z-10 hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
-                      title={`Click to view deals in stage: ${row.label}`}
-                    >
-                      <div className="w-56 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
-                        {row.label}
-                      </div>
-                      <div className="flex-grow flex items-center">
-                        <div
-                          className="h-3 flex overflow-hidden rounded-xs group-hover:ring-2 group-hover:ring-blue-400 transition"
-                          style={{ width: `${(row.total / maxRowVal) * 100}%` }}
-                        >
-                          <div
-                            style={{
-                              width: '100%',
-                              backgroundColor: [C_ANYA, C_SEAN, C_AMBER, C_TEAL][idx % 4],
-                            }}
-                            className="h-full"
-                            title={`${row.label}: ${row.total}`}
-                          />
-                        </div>
-                        <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
-                          {row.total}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-
-              <div className="pt-2 border-t border-slate-300 mt-2">
-                <div className="text-center text-[10px] text-slate-500 font-medium mt-1">
-                  (Count Distinct) Contact (Id)
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── ROW 11: Daily Complete Tickets ───────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
-              <h3
-                onClick={() => onSelectTab && onSelectTab('tickets')}
-                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
-                title="Click to view Complete Tickets"
-              >
-                Daily Complete Tickets
-              </h3>
-            </div>
-            <div className="flex items-center gap-1 text-slate-400">
-              <button
-                type="button"
-                onClick={() => onSelectTab && onSelectTab('tickets')}
-                className="hover:text-blue-600 p-0.5 cursor-pointer"
-                title="View in Tickets"
-              >
-                <span className="material-symbols-outlined text-[16px]">crop_free</span>
-              </button>
-              <button type="button" className="hover:text-slate-600 p-0.5">
-                <span className="material-symbols-outlined text-[16px]">more_horiz</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[11px] text-slate-700 border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-700 font-semibold text-[10.5px]">
-                  <th rowSpan={2} className="px-4 py-2 border border-slate-200 text-slate-700 min-w-[140px]">
-                    Service Agent
-                  </th>
-                  {ticketDateColumns.map((date) => (
-                    <th key={date} className="px-3 py-1.5 border border-slate-200 text-center font-semibold text-slate-700">
-                      {date}
-                    </th>
-                  ))}
-                </tr>
-                <tr className="border-b border-slate-200 bg-slate-50/50 text-[10px] text-slate-400 font-normal">
-                  {ticketDateColumns.map((_, i) => (
-                    <th key={i} className="px-3 py-1 border border-slate-200 text-center font-normal text-slate-400">
-                      TicketId
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {dailyCompleteTicketsData.matrix.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    onClick={() => onSelectTab && onSelectTab('tickets')}
-                    className="hover:bg-blue-50/70 transition cursor-pointer group"
-                    title={`Click to view tickets for ${row.agent}`}
-                  >
-                    <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800 group-hover:text-blue-700">
-                      {row.agent}
-                    </td>
-                    {row.vals.map((v, vIdx) => (
-                      <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700 group-hover:text-blue-800">
-                        {v}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-                {/* DYNAMIC TOTAL ROW */}
-                <tr
-                  onClick={() => onSelectTab && onSelectTab('tickets')}
-                  className="bg-slate-50 font-bold border-t-2 border-slate-300 hover:bg-blue-100/70 transition cursor-pointer group"
-                  title="Click to view all completed tickets"
-                >
-                  <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider group-hover:text-blue-800">
-                    TOTAL
-                  </td>
-                  {dailyCompleteTicketsData.colTotals.map((t, idx) => (
-                    <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900 group-hover:text-blue-800">
-                      {t}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* ── ROW 12: Daily New Tickets ───────────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
-              <h3
-                onClick={() => onSelectTab && onSelectTab('tickets')}
-                className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
-                title="Click to view New Tickets"
-              >
-                Daily New Tickets
-              </h3>
-            </div>
-            <div className="flex items-center gap-1 text-slate-400">
-              <button
-                type="button"
-                onClick={() => onSelectTab && onSelectTab('tickets')}
-                className="hover:text-blue-600 p-0.5 cursor-pointer"
-                title="View in Tickets"
-              >
-                <span className="material-symbols-outlined text-[16px]">crop_free</span>
-              </button>
-              <button type="button" className="hover:text-slate-600 p-0.5">
-                <span className="material-symbols-outlined text-[16px]">more_horiz</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[11px] text-slate-700 border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-700 font-semibold text-[10.5px]">
-                  <th rowSpan={2} className="px-4 py-2 border border-slate-200 text-slate-700 min-w-[140px]">
-                    Service Agent
-                  </th>
-                  {ticketDateColumns.map((date) => (
-                    <th key={date} className="px-3 py-1.5 border border-slate-200 text-center font-semibold text-slate-700">
-                      {date}
-                    </th>
-                  ))}
-                </tr>
-                <tr className="border-b border-slate-200 bg-slate-50/50 text-[10px] text-slate-400 font-normal">
-                  {ticketDateColumns.map((_, i) => (
-                    <th key={i} className="px-3 py-1 border border-slate-200 text-center font-normal text-slate-400">
-                      TicketId
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {dailyNewTicketsData.matrix.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    onClick={() => onSelectTab && onSelectTab('tickets')}
-                    className="hover:bg-blue-50/70 transition cursor-pointer group"
-                    title={`Click to view tickets for ${row.agent}`}
-                  >
-                    <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800 group-hover:text-blue-700">
-                      {row.agent}
-                    </td>
-                    {row.vals.map((v, vIdx) => (
-                      <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700 group-hover:text-blue-800">
-                        {v}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-                {/* DYNAMIC TOTAL ROW */}
-                <tr
-                  onClick={() => onSelectTab && onSelectTab('tickets')}
-                  className="bg-slate-50 font-bold border-t-2 border-slate-300 hover:bg-blue-100/70 transition cursor-pointer group"
-                  title="Click to view all new tickets"
-                >
-                  <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider group-hover:text-blue-800">
-                    TOTAL
-                  </td>
-                  {dailyNewTicketsData.colTotals.map((t, idx) => (
-                    <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900 group-hover:text-blue-800">
-                      {t}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* ── ROW 13: Need Manager enroll & SOA Status - Manager ───────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Card 21: Need Manager enroll */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-slate-500">article</span>
+        {['all', 'obamacare'].includes(categoryFilter) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Card 16: ACA Consent Form Status (Normal States) */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
                 <h3
                   onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
-                  title="Click to view deals needing manager enrollment"
+                  className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                  title="Click to view ACA Deals"
                 >
-                  Need Manager enroll ({needManagerEnrollData.total} deals)
+                  ACA Consent Form Status (Normal States) - Manager
                 </h3>
-              </div>
-              <div className="flex items-center gap-1 text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="hover:text-blue-600 p-0.5 cursor-pointer"
-                  title="View Deals"
-                >
-                  <span className="material-symbols-outlined text-[16px]">crop_free</span>
-                </button>
-                <button type="button" className="hover:text-slate-600 p-0.5">
-                  <span className="material-symbols-outlined text-[16px]">more_horiz</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Legend */}
-            <div className="flex items-center justify-center gap-4 text-[10px] text-slate-600 mb-6 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#5271ff' }} />
-                <span>Waiting for document ({needManagerEnrollData.waitingDocCount})</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#84cc16' }} />
-                <span>Ready to Enroll ({needManagerEnrollData.readyEnrollCount})</span>
-              </div>
-            </div>
-
-            {/* Chart Area */}
-            <div className="flex items-stretch gap-3 pl-2 pr-4 flex-grow my-auto">
-              <div className="flex items-center justify-center shrink-0 w-6">
-                <span className="text-slate-500 text-[11px] font-medium -rotate-90 origin-center whitespace-nowrap select-none">
-                  Pipeline
-                </span>
-              </div>
-
-              <div className="flex-grow flex flex-col justify-between py-2 border-l border-slate-300 relative">
-                <div
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="flex items-center gap-3 relative z-10 my-4 hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
-                  title="Click to view deals needing manager enrollment"
-                >
-                  <span className="w-28 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
-                    Obamacare 2026
-                  </span>
-                  <div className="flex-grow flex items-center">
-                    <div className="h-3 flex overflow-hidden rounded-xs w-full group-hover:ring-2 group-hover:ring-blue-400 transition bg-slate-100">
-                      {needManagerEnrollData.total > 0 && (
-                        <>
-                          <div
-                            style={{
-                              width: `${(needManagerEnrollData.waitingDocCount / needManagerEnrollData.total) * 100}%`,
-                              backgroundColor: '#5271ff',
-                            }}
-                            className="h-full"
-                            title={`Waiting for document: ${needManagerEnrollData.waitingDocCount}`}
-                          />
-                          <div
-                            style={{
-                              width: `${(needManagerEnrollData.readyEnrollCount / needManagerEnrollData.total) * 100}%`,
-                              backgroundColor: '#84cc16',
-                            }}
-                            className="h-full"
-                            title={`Ready to Enroll: ${needManagerEnrollData.readyEnrollCount}`}
-                          />
-                        </>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
-                      {needManagerEnrollData.total}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-slate-300 mt-4">
-                  <div className="text-center text-[10px] text-slate-500 font-medium mt-1">
-                    (Count) DealId
-                  </div>
+                <div className="flex items-center gap-1 text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="hover:text-blue-600 p-0.5 cursor-pointer"
+                    title="View Deals"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                  </button>
+                  <span className="material-symbols-outlined text-[15px]">more_horiz</span>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Card 22: SOA Status - Manager */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-slate-500">article</span>
-                <h3
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
-                  title="Click to view SOA Deals"
-                >
-                  SOA Status - Manager ({medDeals.length} deals)
-                </h3>
-              </div>
-              <div className="flex items-center gap-1 text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="hover:text-blue-600 p-0.5 cursor-pointer"
-                  title="View Deals"
-                >
-                  <span className="material-symbols-outlined text-[16px]">crop_free</span>
-                </button>
-                <button type="button" className="hover:text-slate-600 p-0.5">
-                  <span className="material-symbols-outlined text-[16px]">more_horiz</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Dynamic Legend */}
-            <div className="flex items-center justify-center gap-4 text-[10px] text-slate-600 mb-6 flex-wrap">
-              {medUniqueAgents.map((ag, idx) => (
-                <div key={ag} className="flex items-center gap-1.5">
-                  <span
-                    className="w-3 h-2 rounded-xs"
-                    style={{ backgroundColor: getAgentColor(ag, idx) }}
-                  />
-                  <span>{ag}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Chart Area */}
-            <div className="flex items-stretch gap-3 pl-2 pr-4 flex-grow my-auto">
-              <div className="flex items-center justify-center shrink-0 w-6">
-                <span className="text-slate-500 text-[11px] font-medium -rotate-90 origin-center whitespace-nowrap select-none">
-                  SOA Status
-                </span>
-              </div>
-
-              <div className="flex-grow flex flex-col justify-between space-y-3 py-1 border-l border-slate-300 relative">
-                {soaStatusData.map((row, idx) => {
-                  const maxSoa = Math.max(...soaStatusData.map((s) => s.total), 1);
+              <div className="space-y-2 text-[11px] my-auto">
+                {acaConsentStatusData.map((item, i) => {
+                  const maxConsent = Math.max(...acaConsentStatusData.map((c) => c.count), 1);
                   return (
                     <div
-                      key={idx}
+                      key={i}
                       onClick={() => onSelectTab && onSelectTab('deals')}
-                      className="flex items-center gap-3 relative z-10 hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                      title={`Click to view deals with SOA status: ${row.label}`}
+                      className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                      title={`Click to view deals with consent status: ${item.label}`}
                     >
-                      <span className="w-24 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
-                        {row.label}
+                      <span className="w-32 text-right text-slate-600 truncate group-hover:text-blue-700">
+                        {item.label}
                       </span>
-                      <div className="flex-grow flex items-center">
+                      <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
                         <div
-                          className="h-3 flex overflow-hidden rounded-xs group-hover:ring-1 group-hover:ring-blue-300 transition"
-                          style={{ width: `${(row.total / maxSoa) * 100}%` }}
-                        >
-                          <div
-                            style={{
-                              width: '100%',
-                              backgroundColor: [C_ANYA, C_SEAN, C_AMBER, C_SARAH][idx % 4],
-                            }}
-                            className="h-full"
-                            title={`${row.label}: ${row.total}`}
-                          />
-                        </div>
-                        <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
-                          {row.total}
-                        </span>
+                          style={{
+                            width: `${(item.count / maxConsent) * 100}%`,
+                            backgroundColor: [C_ANYA, C_SEAN, C_IVY, C_SARAH][i % 4],
+                          }}
+                          className="h-full"
+                        />
                       </div>
+                      <span className="w-8 font-bold text-slate-800 text-[10px] group-hover:text-blue-700">
+                        {item.count}
+                      </span>
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* Card 17: ACA Consent Form Status (Special States) */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+                <h3
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="text-xs font-bold text-slate-900 hover:text-blue-600 cursor-pointer"
+                  title="Click to view ACA Deals"
+                >
+                  ACA Consent Form Status (Special States) - Manager
+                </h3>
+                <div className="flex items-center gap-1 text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="hover:text-blue-600 p-0.5 cursor-pointer"
+                    title="View Deals"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">crop_free</span>
+                  </button>
+                  <span className="material-symbols-outlined text-[15px]">more_horiz</span>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-[11px] my-auto">
+                {acaConsentStatusData.map((item, i) => {
+                  const maxVal = Math.max(...acaConsentStatusData.map((c) => c.count), 1);
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => onSelectTab && onSelectTab('deals')}
+                      className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                      title={`Click to view deals with consent status: ${item.label}`}
+                    >
+                      <span className="w-32 text-right text-slate-600 truncate group-hover:text-blue-700">
+                        {item.label}
+                      </span>
+                      <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
+                        <div
+                          style={{
+                            width: `${(item.count / maxVal) * 100}%`,
+                            backgroundColor: [C_ANYA, C_SEAN, C_IVY, C_SARAH][i % 4],
+                          }}
+                          className="h-full"
+                        />
+                      </div>
+                      <span className="w-8 font-bold text-slate-800 text-[10px] group-hover:text-blue-700">
+                        {item.count}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ROW 10: Active Policies OB 26 Not Done ACA - Manager ────────── */}
+        {['all', 'obamacare'].includes(categoryFilter) && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-slate-500">article</span>
+                <h3
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                  title="Click to view Active Policies"
+                >
+                  Active Policies OB 26 Not Done ACA - Manager
+                </h3>
+              </div>
+              <div className="flex items-center gap-1 text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('deals')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="View Deals"
+                >
+                  <span className="material-symbols-outlined text-[16px]">crop_free</span>
+                </button>
+                <button type="button" className="hover:text-slate-600 p-0.5" title="Options">
+                  <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-stretch gap-3 pl-2 pr-6">
+              <div className="flex items-center justify-center shrink-0 w-8">
+                <span className="text-slate-500 text-[11px] font-medium -rotate-90 origin-center whitespace-nowrap select-none">
+                  ACA Account Status
+                </span>
+              </div>
+
+              <div className="flex-grow flex flex-col justify-between space-y-4 py-2 border-l border-slate-300 relative">
+                {activePoliciesObNotDoneAca.length === 0 ? (
+                  <div className="text-center text-slate-400 text-xs py-4">No active policies found</div>
+                ) : (
+                  activePoliciesObNotDoneAca.map((row, idx) => {
+                    const maxRowVal = Math.max(...activePoliciesObNotDoneAca.map((r) => r.total), 1);
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => onSelectTab && onSelectTab('deals')}
+                        className="flex items-center gap-3 relative z-10 hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
+                        title={`Click to view deals in stage: ${row.label}`}
+                      >
+                        <div className="w-56 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
+                          {row.label}
+                        </div>
+                        <div className="flex-grow flex items-center">
+                          <div
+                            className="h-3 flex overflow-hidden rounded-xs group-hover:ring-2 group-hover:ring-blue-400 transition"
+                            style={{ width: `${(row.total / maxRowVal) * 100}%` }}
+                          >
+                            <div
+                              style={{
+                                width: '100%',
+                                backgroundColor: [C_ANYA, C_SEAN, C_AMBER, C_TEAL][idx % 4],
+                              }}
+                              className="h-full"
+                              title={`${row.label}: ${row.total}`}
+                            />
+                          </div>
+                          <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
+                            {row.total}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
 
                 <div className="pt-2 border-t border-slate-300 mt-2">
                   <div className="text-center text-[10px] text-slate-500 font-medium mt-1">
-                    (Count Distinct) Deal (Id)
+                    (Count Distinct) Contact (Id)
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* ── ROW 11: Daily Complete Tickets ───────────────────────────────── */}
+        {['all', 'tickets'].includes(categoryFilter) && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
+                <h3
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                  title="Click to view Complete Tickets"
+                >
+                  Daily Complete Tickets
+                </h3>
+              </div>
+              <div className="flex items-center gap-1 text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="View in Tickets"
+                >
+                  <span className="material-symbols-outlined text-[16px]">crop_free</span>
+                </button>
+                <button type="button" className="hover:text-slate-600 p-0.5">
+                  <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[11px] text-slate-700 border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-700 font-semibold text-[10.5px]">
+                    <th rowSpan={2} className="px-4 py-2 border border-slate-200 text-slate-700 min-w-[140px]">
+                      Service Agent
+                    </th>
+                    {ticketDateColumns.map((date) => (
+                      <th key={date} className="px-3 py-1.5 border border-slate-200 text-center font-semibold text-slate-700">
+                        {date}
+                      </th>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-slate-200 bg-slate-50/50 text-[10px] text-slate-400 font-normal">
+                    {ticketDateColumns.map((_, i) => (
+                      <th key={i} className="px-3 py-1 border border-slate-200 text-center font-normal text-slate-400">
+                        TicketId
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {dailyCompleteTicketsData.matrix.map((row, idx) => (
+                    <tr
+                      key={idx}
+                      onClick={() => onSelectTab && onSelectTab('tickets')}
+                      className="hover:bg-blue-50/70 transition cursor-pointer group"
+                      title={`Click to view tickets for ${row.agent}`}
+                    >
+                      <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800 group-hover:text-blue-700">
+                        {row.agent}
+                      </td>
+                      {row.vals.map((v, vIdx) => (
+                        <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700 group-hover:text-blue-800">
+                          {v}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  {/* DYNAMIC TOTAL ROW */}
+                  <tr
+                    onClick={() => onSelectTab && onSelectTab('tickets')}
+                    className="bg-slate-50 font-bold border-t-2 border-slate-300 hover:bg-blue-100/70 transition cursor-pointer group"
+                    title="Click to view all completed tickets"
+                  >
+                    <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider group-hover:text-blue-800">
+                      TOTAL
+                    </td>
+                    {dailyCompleteTicketsData.colTotals.map((t, idx) => (
+                      <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900 group-hover:text-blue-800">
+                        {t}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── ROW 12: Daily New Tickets ───────────────────────────────────── */}
+        {['all', 'tickets'].includes(categoryFilter) && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-slate-500">table_chart</span>
+                <h3
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                  title="Click to view New Tickets"
+                >
+                  Daily New Tickets
+                </h3>
+              </div>
+              <div className="flex items-center gap-1 text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('tickets')}
+                  className="hover:text-blue-600 p-0.5 cursor-pointer"
+                  title="View in Tickets"
+                >
+                  <span className="material-symbols-outlined text-[16px]">crop_free</span>
+                </button>
+                <button type="button" className="hover:text-slate-600 p-0.5">
+                  <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[11px] text-slate-700 border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-700 font-semibold text-[10.5px]">
+                    <th rowSpan={2} className="px-4 py-2 border border-slate-200 text-slate-700 min-w-[140px]">
+                      Service Agent
+                    </th>
+                    {ticketDateColumns.map((date) => (
+                      <th key={date} className="px-3 py-1.5 border border-slate-200 text-center font-semibold text-slate-700">
+                        {date}
+                      </th>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-slate-200 bg-slate-50/50 text-[10px] text-slate-400 font-normal">
+                    {ticketDateColumns.map((_, i) => (
+                      <th key={i} className="px-3 py-1 border border-slate-200 text-center font-normal text-slate-400">
+                        TicketId
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {dailyNewTicketsData.matrix.map((row, idx) => (
+                    <tr
+                      key={idx}
+                      onClick={() => onSelectTab && onSelectTab('tickets')}
+                      className="hover:bg-blue-50/70 transition cursor-pointer group"
+                      title={`Click to view tickets for ${row.agent}`}
+                    >
+                      <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800 group-hover:text-blue-700">
+                        {row.agent}
+                      </td>
+                      {row.vals.map((v, vIdx) => (
+                        <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700 group-hover:text-blue-800">
+                          {v}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  {/* DYNAMIC TOTAL ROW */}
+                  <tr
+                    onClick={() => onSelectTab && onSelectTab('tickets')}
+                    className="bg-slate-50 font-bold border-t-2 border-slate-300 hover:bg-blue-100/70 transition cursor-pointer group"
+                    title="Click to view all new tickets"
+                  >
+                    <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider group-hover:text-blue-800">
+                      TOTAL
+                    </td>
+                    {dailyNewTicketsData.colTotals.map((t, idx) => (
+                      <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900 group-hover:text-blue-800">
+                        {t}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── ROW 13: Need Manager enroll & SOA Status - Manager ───────────── */}
+        {['all', 'medicare', 'obamacare'].includes(categoryFilter) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Card 21: Need Manager enroll */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-slate-500">article</span>
+                  <h3
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                    title="Click to view deals needing manager enrollment"
+                  >
+                    Need Manager enroll ({needManagerEnrollData.total} deals)
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1 text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="hover:text-blue-600 p-0.5 cursor-pointer"
+                    title="View Deals"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">crop_free</span>
+                  </button>
+                  <button type="button" className="hover:text-slate-600 p-0.5">
+                    <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="flex items-center justify-center gap-4 text-[10px] text-slate-600 mb-6 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#5271ff' }} />
+                  <span>Waiting for document ({needManagerEnrollData.waitingDocCount})</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#84cc16' }} />
+                  <span>Ready to Enroll ({needManagerEnrollData.readyEnrollCount})</span>
+                </div>
+              </div>
+
+              {/* Chart Area */}
+              <div className="flex items-stretch gap-3 pl-2 pr-4 flex-grow my-auto">
+                <div className="flex items-center justify-center shrink-0 w-6">
+                  <span className="text-slate-500 text-[11px] font-medium -rotate-90 origin-center whitespace-nowrap select-none">
+                    Pipeline
+                  </span>
+                </div>
+
+                <div className="flex-grow flex flex-col justify-between py-2 border-l border-slate-300 relative">
+                  <div
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="flex items-center gap-3 relative z-10 my-4 hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
+                    title="Click to view deals needing manager enrollment"
+                  >
+                    <span className="w-28 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
+                      Obamacare 2026
+                    </span>
+                    <div className="flex-grow flex items-center">
+                      <div className="h-3 flex overflow-hidden rounded-xs w-full group-hover:ring-2 group-hover:ring-blue-400 transition bg-slate-100">
+                        {needManagerEnrollData.total > 0 && (
+                          <>
+                            <div
+                              style={{
+                                width: `${(needManagerEnrollData.waitingDocCount / needManagerEnrollData.total) * 100}%`,
+                                backgroundColor: '#5271ff',
+                              }}
+                              className="h-full"
+                              title={`Waiting for document: ${needManagerEnrollData.waitingDocCount}`}
+                            />
+                            <div
+                              style={{
+                                width: `${(needManagerEnrollData.readyEnrollCount / needManagerEnrollData.total) * 100}%`,
+                                backgroundColor: '#84cc16',
+                              }}
+                              className="h-full"
+                              title={`Ready to Enroll: ${needManagerEnrollData.readyEnrollCount}`}
+                            />
+                          </>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
+                        {needManagerEnrollData.total}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-300 mt-4">
+                    <div className="text-center text-[10px] text-slate-500 font-medium mt-1">
+                      (Count) DealId
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 22: SOA Status - Manager */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-slate-500">article</span>
+                  <h3
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="text-xs font-bold text-slate-900 tracking-tight hover:text-blue-600 cursor-pointer"
+                    title="Click to view SOA Deals"
+                  >
+                    SOA Status - Manager ({medDeals.length} deals)
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1 text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="hover:text-blue-600 p-0.5 cursor-pointer"
+                    title="View Deals"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">crop_free</span>
+                  </button>
+                  <button type="button" className="hover:text-slate-600 p-0.5">
+                    <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Dynamic Legend */}
+              <div className="flex items-center justify-center gap-4 text-[10px] text-slate-600 mb-6 flex-wrap">
+                {medUniqueAgents.map((ag, idx) => (
+                  <div key={ag} className="flex items-center gap-1.5">
+                    <span
+                      className="w-3 h-2 rounded-xs"
+                      style={{ backgroundColor: getAgentColor(ag, idx) }}
+                    />
+                    <span>{ag}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Chart Area */}
+              <div className="flex items-stretch gap-3 pl-2 pr-4 flex-grow my-auto">
+                <div className="flex items-center justify-center shrink-0 w-6">
+                  <span className="text-slate-500 text-[11px] font-medium -rotate-90 origin-center whitespace-nowrap select-none">
+                    SOA Status
+                  </span>
+                </div>
+
+                <div className="flex-grow flex flex-col justify-between space-y-3 py-1 border-l border-slate-300 relative">
+                  {soaStatusData.map((row, idx) => {
+                    const maxSoa = Math.max(...soaStatusData.map((s) => s.total), 1);
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => onSelectTab && onSelectTab('deals')}
+                        className="flex items-center gap-3 relative z-10 hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                        title={`Click to view deals with SOA status: ${row.label}`}
+                      >
+                        <span className="w-24 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
+                          {row.label}
+                        </span>
+                        <div className="flex-grow flex items-center">
+                          <div
+                            className="h-3 flex overflow-hidden rounded-xs group-hover:ring-1 group-hover:ring-blue-300 transition"
+                            style={{ width: `${(row.total / maxSoa) * 100}%` }}
+                          >
+                            <div
+                              style={{
+                                width: '100%',
+                                backgroundColor: [C_ANYA, C_SEAN, C_AMBER, C_SARAH][idx % 4],
+                              }}
+                              className="h-full"
+                              title={`${row.label}: ${row.total}`}
+                            />
+                          </div>
+                          <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
+                            {row.total}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <div className="pt-2 border-t border-slate-300 mt-2">
+                    <div className="text-center text-[10px] text-slate-500 font-medium mt-1">
+                      (Count Distinct) Deal (Id)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ROW 14: Carrier Commission Ledger & Financial Summary ────────── */}
+        {['all', 'commissions'].includes(categoryFilter) && (
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[18px]">payments</span>
+                </div>
+                <div>
+                  <h3
+                    onClick={() => onSelectTab && onSelectTab('commission')}
+                    className="text-xs font-bold text-slate-900 tracking-tight hover:text-emerald-600 cursor-pointer"
+                    title="Click to view Commission Ledger"
+                  >
+                    Carrier Commission Ledger &amp; Payout Summary ({liveCommissions.length} records)
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Live PMPM Carrier Remittances &amp; Support Fee Splits</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab('commission')}
+                  className="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Open Commission Engine</span>
+                  <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick KPI Stat Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-3">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Total Gross Paid</span>
+                <span className="text-base font-extrabold text-slate-900 font-mono">
+                  ${commissionsSummary.totalGross.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-3">
+                <span className="text-[10px] font-semibold text-amber-600 uppercase tracking-wider block">Support Agent Share (20%)</span>
+                <span className="text-base font-extrabold text-amber-700 font-mono">
+                  ${commissionsSummary.totalDeduction.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-3">
+                <span className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wider block">Net Agent Payout (80%)</span>
+                <span className="text-base font-extrabold text-emerald-800 font-mono">
+                  ${commissionsSummary.totalNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl p-3">
+                <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider block">Settlement Status</span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-xs font-bold text-emerald-700">{commissionsSummary.settledCount} Settled</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-xs font-bold text-amber-600">{commissionsSummary.pendingCount} Audit</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Carrier Breakdown Table */}
+            <div className="overflow-x-auto border border-slate-100 rounded-xl">
+              <table className="w-full text-left text-[11px] text-slate-700 whitespace-nowrap">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th className="px-3 py-2">Insurance Carrier</th>
+                    <th className="px-3 py-2 text-center">Policies</th>
+                    <th className="px-3 py-2 text-right">Gross Commission</th>
+                    <th className="px-3 py-2 text-right">Support Share</th>
+                    <th className="px-3 py-2 text-right">Net Agent Payout</th>
+                    <th className="px-3 py-2 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {commissionsSummary.byCarrier.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-3 py-6 text-center text-slate-400">
+                        No carrier commission records loaded in database.
+                      </td>
+                    </tr>
+                  ) : (
+                    commissionsSummary.byCarrier.map((item, idx) => (
+                      <tr
+                        key={idx}
+                        onClick={() => onSelectTab && onSelectTab('commission')}
+                        className="hover:bg-emerald-50/50 transition cursor-pointer group"
+                        title={`Click to view details for ${item.carrier}`}
+                      >
+                        <td className="px-3 py-2.5 font-semibold text-slate-900 group-hover:text-emerald-700 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                          <span>{item.carrier}</span>
+                        </td>
+                        <td className="px-3 py-2.5 text-center font-bold text-slate-700">
+                          {item.count}
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-mono text-slate-600">
+                          ${item.gross.toFixed(2)}
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-mono text-amber-600">
+                          ${(item.gross - item.net).toFixed(2)}
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-mono font-bold text-emerald-700">
+                          ${item.net.toFixed(2)}
+                        </td>
+                        <td className="px-3 py-2.5 text-center">
+                          <span className="text-[10px] text-blue-600 font-medium group-hover:underline">
+                            View Ledger →
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

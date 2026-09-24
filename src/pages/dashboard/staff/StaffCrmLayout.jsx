@@ -15,9 +15,10 @@ export default function StaffCrmLayout({
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showCrmMenu, setShowCrmMenu] = useState(false);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [dbStatus, setDbStatus] = useState('checking'); // 'connected' | 'offline' | 'checking'
-  const crmMenuRef = useRef(null);
+  const userMenuRef = useRef(null);
+  const quickCreateRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -45,8 +46,11 @@ export default function StaffCrmLayout({
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (crmMenuRef.current && !crmMenuRef.current.contains(event.target)) {
-        setShowCrmMenu(false);
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+      if (quickCreateRef.current && !quickCreateRef.current.contains(event.target)) {
+        setShowQuickCreate(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -60,162 +64,289 @@ export default function StaffCrmLayout({
     navigate('/login', { replace: true });
   }
 
+  // Navigation Items Specification
+  const navItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: 'dashboard',
+      badge: '27',
+      desc: 'Báo cáo & Tổng quan điều hành',
+    },
+    {
+      id: 'contacts',
+      label: 'Contacts',
+      icon: 'person_search',
+      desc: 'Danh bạ khách hàng tiềm năng',
+    },
+    {
+      id: 'deals',
+      label: 'Deals',
+      icon: 'handshake',
+      desc: 'Hồ sơ bảo hiểm đang xử lý',
+    },
+    {
+      id: 'tickets',
+      label: 'Tickets',
+      icon: 'confirmation_number',
+      desc: 'Hỗ trợ dịch vụ sau bán & SLA',
+    },
+    {
+      id: 'tasks',
+      label: 'Tasks',
+      icon: 'checklist',
+      desc: 'Quản lý công việc & Kanban',
+    },
+    ...((showCommission || isAgent)
+      ? [
+          {
+            id: 'commission',
+            label: 'Commission',
+            icon: 'payments',
+            desc: 'Bảng kê đối soát hoa hồng',
+          },
+        ]
+      : []),
+  ];
+
+  const currentTabObj = navItems.find((n) => n.id === currentTab) || navItems[0];
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased selection:bg-cyan-100 selection:text-cyan-950">
-      {/* ── Top Bar Header (Image 1, 2, 3) ─────────────────────────────────── */}
-      <header className="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 shrink-0">
-        {/* Left: Brand + Navigation */}
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-950">
+      {/* ── Top Bar Header ─────────────────────────────────────────────────── */}
+      <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 flex items-center justify-between sticky top-0 z-40 shrink-0 shadow-2xs">
+        {/* Left: Brand + Segmented Tabs */}
         <div className="flex items-center gap-6">
           {/* Logo */}
-          <Link to={isAgent ? "/dashboard/agent" : "/dashboard/staff"} className="flex items-center gap-2.5 group">
-            <img
-              src="/images/insurmatch-logo.png"
-              alt="InsurMatch"
-              className="w-8 h-8 object-contain rounded-lg shrink-0 transition-transform duration-200 group-hover:scale-105"
-            />
+          <Link
+            to={isAgent ? '/dashboard/agent' : '/dashboard/staff'}
+            className="flex items-center gap-2.5 group shrink-0"
+          >
+            <div className="relative">
+              <img
+                src="/images/insurmatch-logo.png"
+                alt="InsurMatch"
+                className="w-8 h-8 object-contain rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-105 shadow-2xs"
+              />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white ring-1 ring-emerald-500/20" />
+            </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5 leading-tight">
                 <span className="text-[14px] font-black tracking-tight text-slate-900">
-                  INSUR<span className="text-slate-500 font-normal">MATCH</span>
+                  INSUR<span className="text-blue-600 font-extrabold">MATCH</span>
                 </span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold border tracking-wide uppercase ${
-                  isAgent
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
-                    : 'bg-blue-50 text-blue-700 border-blue-200/70'
-                }`}>
+                <span
+                  className={`text-[9px] px-2 py-0.5 rounded-full font-bold border tracking-wide uppercase shadow-2xs ${
+                    isAgent
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-blue-50 text-blue-700 border-blue-200'
+                  }`}
+                >
                   {isAgent ? 'Licensed Agent' : 'Staff CRM'}
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 font-medium tracking-wide">
-                {isAgent ? 'Independent Agent Portal • CMS Compliant' : 'Digital Lead & Agent Matching Platform'}
+              <span className="text-[10px] text-slate-400 font-medium tracking-tight">
+                {isAgent ? 'CMS Compliant Agent Portal' : 'Enterprise Policy & Lead Hub'}
               </span>
             </div>
           </Link>
 
-          {/* Nav items */}
-          <nav className="hidden md:flex items-center gap-5 ml-2 text-xs font-medium text-slate-600">
-            <Link
-              to="/"
-              className="flex items-center gap-1.5 hover:text-blue-600 transition-colors py-3"
-            >
-              <span className="material-symbols-outlined text-[16px] text-slate-400">home</span>
-              <span>Portal</span>
-            </Link>
-            <div className="flex items-center gap-1.5 text-blue-600 font-semibold border-b-2 border-blue-600 py-3.5 px-0.5">
-              <span className="material-symbols-outlined text-[16px]">folder_managed</span>
-              <span>Management</span>
-            </div>
+          {/* Quick-Nav Tab Pills (Desktop) */}
+          <nav className="hidden lg:flex items-center p-1 bg-slate-100/80 border border-slate-200/70 rounded-xl">
+            {navItems.map((item) => {
+              const active = currentTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab(item.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${
+                    active
+                      ? 'bg-white text-blue-700 shadow-xs ring-1 ring-slate-900/5'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  }`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-[16px] ${
+                      active ? 'text-blue-600' : 'text-slate-400'
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-blue-100 text-blue-800">
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-3">
-          {/* Quick Create + */}
-          <button
-            title="Create Record"
-            className="w-7 h-7 rounded-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition text-sm cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-          </button>
-
-          {/* Notifications */}
-          <div className="relative">
+        <div className="flex items-center gap-2.5">
+          {/* Quick Create Button + Dropdown */}
+          <div className="relative" ref={quickCreateRef}>
             <button
-              title="Notifications"
-              className="w-7 h-7 rounded-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition cursor-pointer"
+              type="button"
+              onClick={() => setShowQuickCreate(!showQuickCreate)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold shadow-xs transition-all duration-150 cursor-pointer hover:shadow-sm"
             >
-              <span className="material-symbols-outlined text-[18px]">notifications</span>
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">
-                0
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              <span className="hidden sm:inline">Create</span>
+              <span className="material-symbols-outlined text-[14px] text-blue-200">
+                expand_more
               </span>
             </button>
+
+            {showQuickCreate && (
+              <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-fade-in-up">
+                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                  Quick Create Record
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowQuickCreate(false);
+                    onSelectTab && onSelectTab('contacts');
+                  }}
+                  className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer text-left font-medium"
+                >
+                  <span className="material-symbols-outlined text-[17px] text-blue-600">person_add</span>
+                  <span>New Contact</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowQuickCreate(false);
+                    onSelectTab && onSelectTab('deals');
+                  }}
+                  className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer text-left font-medium"
+                >
+                  <span className="material-symbols-outlined text-[17px] text-emerald-600">add_business</span>
+                  <span>New Deal / Policy</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowQuickCreate(false);
+                    onSelectTab && onSelectTab('tickets');
+                  }}
+                  className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition cursor-pointer text-left font-medium"
+                >
+                  <span className="material-symbols-outlined text-[17px] text-amber-600">confirmation_number</span>
+                  <span>New Ticket</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowQuickCreate(false);
+                    onSelectTab && onSelectTab('tasks');
+                  }}
+                  className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition cursor-pointer text-left font-medium"
+                >
+                  <span className="material-symbols-outlined text-[17px] text-purple-600">add_task</span>
+                  <span>New Task</span>
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* DB Docker Status Badge */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition shadow-2xs border">
+          {/* Database Live Connectivity Indicator */}
+          <div className="flex items-center">
             {dbStatus === 'connected' ? (
-              <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border-emerald-200">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>PostgreSQL Online</span>
+              <span
+                title="PostgreSQL 16 & Express API Live Sync"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 shadow-2xs"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="hidden md:inline">PostgreSQL Live</span>
               </span>
             ) : dbStatus === 'checking' ? (
-              <span className="flex items-center gap-1.5 text-amber-600 bg-amber-50 border-amber-200">
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                <span>Connecting DB...</span>
+                <span className="hidden md:inline">Connecting...</span>
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 text-slate-500 bg-slate-50 border-slate-200">
-                <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                <span>Offline Fallback</span>
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                <span className="hidden md:inline">DB Offline</span>
               </span>
             )}
           </div>
 
           {/* Agent Regulatory Badge */}
           {isAgent && (
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+            <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>NPN {agentNpn} • TX &amp; CA Verified</span>
+              <span>NPN {agentNpn}</span>
             </div>
           )}
 
-          {/* Language selector */}
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 px-2 py-1 rounded border border-slate-200 bg-white">
-            <span className="material-symbols-outlined text-[16px] text-slate-500">language</span>
-            <span>English</span>
-            <span className="material-symbols-outlined text-[14px] text-slate-400">expand_more</span>
-          </div>
-
-          {/* User profile dropdown */}
-          <div className="relative">
+          {/* User Profile */}
+          <div className="relative" ref={userMenuRef}>
             <button
+              type="button"
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100 transition cursor-pointer"
+              className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100 transition-all duration-150 cursor-pointer border border-transparent hover:border-slate-200"
             >
-              <div className={`w-7 h-7 rounded-full text-white flex items-center justify-center font-bold text-xs ${
-                isAgent ? 'bg-[#104882]' : 'bg-cyan-700'
-              }`}>
-                {isAgent ? 'KN' : (user?.avatar || 'TB')}
+              <div
+                className={`w-7 h-7 rounded-full text-white flex items-center justify-center font-bold text-xs shadow-2xs ${
+                  isAgent ? 'bg-gradient-to-tr from-blue-700 to-indigo-600' : 'bg-gradient-to-tr from-cyan-600 to-blue-600'
+                }`}
+              >
+                {isAgent ? 'KN' : user?.avatar || 'TB'}
               </div>
-              <span className="hidden lg:inline text-xs font-semibold text-slate-700 max-w-[140px] truncate">
-                {isAgent ? agentName : (user?.email || 'tiger.truongBG@...')}
+              <span className="hidden md:inline text-xs font-semibold text-slate-700 max-w-[130px] truncate">
+                {isAgent ? agentName : user?.email || 'tiger.truongBG@...'}
               </span>
-              <span className="material-symbols-outlined text-[14px] text-slate-400">expand_more</span>
+              <span className="material-symbols-outlined text-[14px] text-slate-400">
+                expand_more
+              </span>
             </button>
 
-            {/* Menu */}
+            {/* Profile Dropdown */}
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-                <div className="px-3 py-2 border-b border-slate-100">
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in-up">
+                <div className="px-3.5 py-2.5 border-b border-slate-100">
                   <div className="text-xs font-bold text-slate-900">
-                    {isAgent ? `${agentName}, Licensed Agent` : (user?.name || 'Staff User')}
+                    {isAgent ? `${agentName}, Licensed Agent` : user?.name || 'Staff User'}
                   </div>
-                  <div className="text-[11px] text-slate-500 truncate">
-                    {isAgent ? `NPN: ${agentNpn}` : (user?.email || 'tiger.truongBG@...')}
+                  <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                    {isAgent ? `NPN: ${agentNpn}` : user?.email || 'tiger.truongBG@...'}
                   </div>
-                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                    isAgent ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    Role: {isAgent ? 'INDEPENDENT AGENT' : (user?.role || 'staff')}
+                  <span
+                    className={`inline-block mt-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                      isAgent ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
+                    }`}
+                  >
+                    {isAgent ? 'INDEPENDENT AGENT' : user?.role || 'STAFF OPERATIONS'}
                   </span>
                 </div>
 
-                <Link
-                  to="/"
-                  className="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
-                  onClick={() => setShowUserMenu(false)}
-                >
-                  <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                  <span>View Public Site</span>
-                </Link>
-
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 text-left transition cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[16px]">logout</span>
-                  <span>Sign Out</span>
-                </button>
+                <div className="py-1">
+                  <Link
+                    to="/"
+                    className="flex items-center gap-2 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 transition"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <span className="material-symbols-outlined text-[16px] text-slate-400">open_in_new</span>
+                    <span>View Public Portal</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-3.5 py-2 text-xs text-rose-600 hover:bg-rose-50 text-left transition cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">logout</span>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -224,181 +355,71 @@ export default function StaffCrmLayout({
 
       {/* ── Main Body with Left Slim Rail ──────────────────────────────────── */}
       <div className="flex-grow flex overflow-hidden">
-        {/* Leftmost Dark Navy Navigation Rail (Exact as in Images 1, 2, 3) */}
-        <aside className="w-12 bg-[#0C1B33] shrink-0 flex flex-col items-center py-3 gap-2.5 z-30 shadow-md">
-          {/* Top Home / Apps Icon */}
-          <button
-            title="App Switcher"
-            className="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition cursor-pointer"
+        {/* Leftmost Dark Navy Navigation Rail */}
+        <aside className="w-14 bg-[#0A1628] shrink-0 flex flex-col items-center py-3.5 gap-2 z-30 shadow-lg border-r border-slate-800/50">
+          {/* Top Home Button */}
+          <Link
+            to="/"
+            title="Return to Public Portal"
+            className="w-9 h-9 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition-all duration-150 cursor-pointer mb-2"
           >
-            <span className="material-symbols-outlined text-[20px]">grid_view</span>
-          </button>
+            <span className="material-symbols-outlined text-[20px]">home</span>
+          </Link>
 
-          {/* Middle Button with CRM Flyout Menu (Matching media_1789719138580.png & media_1789719153156.png) */}
-          <div className="relative" ref={crmMenuRef}>
-            <button
-              title="CRM Management"
-              onClick={() => setShowCrmMenu(!showCrmMenu)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer ${
-                currentTab === 'contacts' || currentTab === 'deals' || showCrmMenu
-                  ? 'bg-[#00B4D8] text-white shadow-sm ring-2 ring-cyan-300/40'
-                  : 'text-slate-400 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[20px]">contacts</span>
-            </button>
+          <div className="w-6 h-px bg-slate-800 my-1" />
 
-            {/* Flyout Menu (Showing ONLY the 4 requested items) */}
-            {showCrmMenu && (
-              <div className="absolute left-full top-0 ml-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-                {/* Header */}
-                <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 select-none">
-                  CRM Management
-                </div>
-
-                {/* 1. Dashboard (Above Contacts) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCrmMenu(false);
-                    onSelectTab && onSelectTab('dashboard');
-                  }}
-                  className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
-                    currentTab === 'dashboard'
-                      ? 'bg-blue-50 text-blue-600 font-semibold'
-                      : 'text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[17px] text-slate-500">grid_view</span>
-                  <span>Dashboard</span>
-                </button>
-
-                {/* 2. Contacts */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCrmMenu(false);
-                    onSelectTab && onSelectTab('contacts');
-                  }}
-                  className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
-                    currentTab === 'contacts'
-                      ? 'bg-blue-50 text-blue-600 font-semibold'
-                      : 'text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[17px] text-slate-500">contacts</span>
-                  <span>Contacts</span>
-                </button>
-
-                {/* 2. Deals */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCrmMenu(false);
-                    onSelectTab && onSelectTab('deals');
-                  }}
-                  className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
-                    currentTab === 'deals'
-                      ? 'bg-blue-50 text-blue-600 font-semibold'
-                      : 'text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[17px] text-slate-500">handshake</span>
-                  <span>Deals</span>
-                </button>
-
-                {/* 3. Tickets */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCrmMenu(false);
-                    onSelectTab && onSelectTab('tickets');
-                  }}
-                  className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
-                    currentTab === 'tickets'
-                      ? 'bg-blue-50 text-blue-600 font-semibold'
-                      : 'text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[17px] text-slate-500">confirmation_number</span>
-                  <span>Tickets</span>
-                </button>
-
-                {/* 4. Tasks */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCrmMenu(false);
-                    onSelectTab && onSelectTab('tasks');
-                  }}
-                  className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
-                    currentTab === 'tasks'
-                      ? 'bg-blue-50 text-blue-600 font-semibold'
-                      : 'text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[17px] text-slate-500">checklist</span>
-                  <span>Tasks</span>
-                </button>
-
-                {/* 5. Commission (Image media_1790171960593.png) */}
-                {(showCommission || isAgent) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCrmMenu(false);
-                      onSelectTab && onSelectTab('commission');
-                    }}
-                    className={`w-full px-3 py-2 flex items-center gap-2.5 text-xs text-left transition cursor-pointer ${
-                      currentTab === 'commission'
-                        ? 'bg-blue-50 text-blue-600 font-semibold'
-                        : 'text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[17px] text-slate-500">payments</span>
-                    <span>Commission</span>
-                  </button>
+          {/* Direct Module Buttons with Floating Tooltips */}
+          {navItems.map((item) => {
+            const active = currentTab === item.id;
+            return (
+              <div key={item.id} className="relative group w-full flex justify-center">
+                {active && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-cyan-400 rounded-r-full shadow-sm shadow-cyan-400/50" />
                 )}
+                <button
+                  type="button"
+                  onClick={() => onSelectTab && onSelectTab(item.id)}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                    active
+                      ? 'bg-[#00B4D8] text-white shadow-md shadow-cyan-500/25 ring-2 ring-cyan-300/40'
+                      : 'text-slate-400 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                </button>
+
+                {/* Smooth Hover Tooltip */}
+                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-slate-900 text-white rounded-lg shadow-xl text-xs font-semibold whitespace-nowrap opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 pointer-events-none transition-all duration-200 z-50 flex items-center gap-1.5 border border-slate-700">
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-cyan-500 text-slate-950">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-
-          {/* Quick Commission Icon on Rail (for Agent) */}
-          {(showCommission || isAgent) && (
-            <button
-              title="Commission Ledger"
-              onClick={() => onSelectTab && onSelectTab('commission')}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer ${
-                currentTab === 'commission'
-                  ? 'bg-[#00B4D8] text-white shadow-sm ring-2 ring-cyan-300/40'
-                  : 'text-slate-400 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[20px]">payments</span>
-            </button>
-          )}
-
-          {/* Management / Team Icon */}
-          <button
-            title="Agents &amp; Staff"
-            className="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[20px]">group</span>
-          </button>
+            );
+          })}
 
           <div className="flex-grow" />
 
           {/* Bottom Settings Icon */}
-          <button
-            title="Settings"
-            className="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px]">settings</span>
-          </button>
+          <div className="relative group w-full flex justify-center">
+            <button
+              type="button"
+              title="Settings"
+              className="w-9 h-9 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">settings</span>
+            </button>
+            <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2 py-1 bg-slate-900 text-white rounded-lg shadow-xl text-xs font-medium whitespace-nowrap opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 pointer-events-none transition-all duration-200 z-50 border border-slate-700">
+              System Settings
+            </div>
+          </div>
         </aside>
 
         {/* Dynamic CRM Page Content */}
-        <main className="flex-grow overflow-auto bg-[#F8FAFC] flex flex-col">
+        <main className="flex-grow overflow-auto bg-[#F8FAFC] flex flex-col animate-fade-in-up">
           {children}
         </main>
       </div>
