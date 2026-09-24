@@ -171,61 +171,15 @@ export default function StaffCrmLayout({
             </div>
           </Link>
 
-          {/* Quick-Nav Tab Pills (Desktop) */}
-          <nav className="hidden lg:flex items-center p-1 bg-slate-100/80 border border-slate-200/70 rounded-xl">
-            {navItems.map((item) => {
-              const active = currentTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onSelectTab && onSelectTab(item.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${
-                    active
-                      ? 'bg-white text-blue-700 shadow-xs ring-1 ring-slate-900/5'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                  }`}
-                >
-                  <span
-                    className={`material-symbols-outlined text-[16px] ${
-                      active ? 'text-blue-600' : 'text-slate-400'
-                    }`}
-                  >
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-blue-100 text-blue-800">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Command Palette Trigger Pill (Desktop) */}
-          <button
-            type="button"
-            onClick={() => setShowCommandPalette(true)}
-            className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/90 text-xs text-slate-500 hover:text-slate-800 transition cursor-pointer shadow-2xs group"
-            title="Mở Command Palette (Ctrl+K)"
-          >
-            <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600 transition">search</span>
-            <span className="font-medium text-slate-600">Quick Actions...</span>
-            <kbd className="ml-1 px-1.5 py-0.5 text-[10px] font-bold text-slate-400 bg-white rounded border border-slate-200 shadow-2xs group-hover:border-blue-300 group-hover:text-blue-600">
-              ⌘K
-            </kbd>
-          </button>
         </div>
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Mobile Search Icon Trigger */}
+          {/* Quick Search Icon Trigger (Ctrl+K) */}
           <button
             type="button"
             onClick={() => setShowCommandPalette(true)}
-            className="xl:hidden w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
             title="Quick Search (Ctrl+K)"
           >
             <span className="material-symbols-outlined text-[20px]">search</span>
