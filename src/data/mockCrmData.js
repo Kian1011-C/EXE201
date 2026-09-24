@@ -494,6 +494,7 @@ export const OBAMACARE_DEAL_STAGES = [
   'Need to Quote (Obamacare 2026)',
   'Quoted - Need Client Confirm (Obamacare 2026)',
   'Waiting for document (Obamacare 2026)',
+  'Uploaded - Waiting for Verification',
   'Need Agent Enroll (Obamacare 2026)',
   'Ready to Enroll (Obamacare 2026)',
   '$0 plan - Ready to enroll (Obamacare 2026)',

@@ -144,7 +144,7 @@ export default function StaffDealDetail({
     setIsPipelineDropdownOpen(false);
     const defaultStage = newPipeline.includes('Medicare')
       ? MEDICARE_DEAL_STAGES[1]
-      : OBAMACARE_DEAL_STAGES[6];
+      : OBAMACARE_DEAL_STAGES[7];
     handleSelectStage(defaultStage);
     showToast(`Pipeline changed to ${newPipeline}`);
   }

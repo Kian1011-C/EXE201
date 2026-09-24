@@ -71,9 +71,12 @@ export const PIPELINE_STAGE_TEMPLATES = {
   ],
   all: [
     'New Opportunity/Call to Renew (Obamacare 2026)',
+    'Need Agent Contact (Obamacare 2026)',
     'Need to Quote (Obamacare 2026)',
+    'Quoted - Need Client Confirm (Obamacare 2026)',
     'Waiting for document (Obamacare 2026)',
     'Uploaded - Waiting for Verification',
+    'Need Agent Enroll (Obamacare 2026)',
     'Ready to Enroll (Obamacare 2026)',
     '$0 plan - Ready to enroll (Obamacare 2026)',
     'Enrolled - Need 1st Payment (Obamacare 2026)',
@@ -82,8 +85,10 @@ export const PIPELINE_STAGE_TEMPLATES = {
     'Non-Commission - Active (Obamacare 2026)',
     'Auto Renew - Active (Medicare 2026)',
     'Enrolled - HRA Done - Active (Medicare 2026)',
+    'Need Telesale Review (Obamacare 2026)',
     'Termination (Obamacare 2026)',
     'Deal Lost (Obamacare 2026)',
+    'Do not contact (Obamacare 2026)',
   ],
 };
 
