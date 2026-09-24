@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getTickets, createTicket } from '../../../services/api';
+import { SAMPLE_TICKETS } from '../../../data/mockCrmData';
 
 export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSelectDeal }) {
   const [ticketsList, setTicketsList] = useState([]);
@@ -11,6 +12,35 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [ownerFilter, setOwnerFilter] = useState('all');
   const [quickFilter, setQuickFilter] = useState(null); // null | 'overdue'
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const fallbackList = useMemo(() => {
+    return (SAMPLE_TICKETS || []).map((t, idx) => ({
+      id: t.id,
+      no: idx + 1,
+      title: t.title,
+      pipeline: t.pipeline || 'Payment',
+      status: t.status || 'Make payment',
+      priority: (t.priority || 'NONE').toUpperCase(),
+      contactName: t.contactName || '',
+      contactId: t.contactId,
+      dealTitle: t.dealShortTitle || t.dealTitle || '',
+      dealId: t.dealId,
+      dueDate: t.dueDate || '',
+      owner: {
+        name: t.ticketOwner || 'Khanh Nguyen',
+        avatar: t.ticketOwnerAvatar || 'KN',
+      },
+      serviceAgent: {
+        name: t.serviceAgent || 'Anya Nguyen',
+        avatar: t.serviceAgentAvatar || 'AN',
+      },
+      created: '09/15/2026',
+      description: t.description || '',
+      ticketResult: t.ticketResult || '',
+      isOverdue: false,
+      rawTicket: t,
+    }));
+  }, []);
 
   async function loadTickets() {
     setLoading(true);
@@ -55,11 +85,11 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
         }));
         setTicketsList(formatted);
       } else {
-        setTicketsList([]);
+        setTicketsList(fallbackList);
       }
     } catch (err) {
-      console.warn('[StaffTicketsList] API error:', err);
-      setTicketsList([]);
+      console.warn('[StaffTicketsList] API error, using sample data:', err);
+      setTicketsList(fallbackList);
     } finally {
       setLoading(false);
     }
@@ -487,7 +517,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                   <tr
                     key={ticket.id}
                     className="hover:bg-blue-50/40 cursor-pointer group transition-colors"
-                    onClick={() => onSelectTicket && onSelectTicket(ticket)}
+                    onClick={() => onSelectTicket && onSelectTicket(ticket.rawTicket || ticket)}
                   >
                     <td className="px-4 py-3 font-mono text-slate-400">{index + 1}</td>
                     <td className="px-4 py-3">

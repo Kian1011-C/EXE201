@@ -1,48 +1,122 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const DEFAULT_TICKET_DATA = {
+export const PAYMENT_TICKET_DEFAULTS = {
+  id: 'TC2600201',
+  title: 'Oct/26 Company Pay ticket',
+  avatar: 'OT',
+  pipeline: 'Payment',
+  status: 'Make payment',
+  priority: 'None',
+  openDays: 9,
+  closeDate: '',
+  dueDate: '09/20/2026',
+  serviceAgent: 'Anya Nguyen (anya42@9)',
+  serviceAgentAvatar: 'AN',
+  serviceAgentBg: 'bg-slate-600',
+  ticketOwner: 'Khanh Nguyen (khanhnguyen31@7)',
+  ticketOwnerAvatar: 'KN',
+  ticketOwnerBg: 'bg-slate-600',
+  ticketResult: '',
+  paymentStatus: 'Company Pay',
+  changeDueDateReason: '',
+  carrier: 'Kaiser Permanente',
+  deadlineDate: '',
+  paidThroughDate: '--',
+  files: [],
+  proof: [],
+  contactName: 'Hoai thanh Nguyen',
+  contactInitials: 'HN',
+  contactPhone: '+1 (838) 776-1434',
+  contactEmail: 'nguyenleminhquang1215@gmail.com',
+  leadOwner: 'Khanh Nguyen',
+  dealTitle: 'Non Commission - Hoai thanh Nguyen - OB 2026',
+  dealShortTitle: 'Non Commission - Hoai thanh...',
+  dealPipeline: 'Obamacare 2026',
+  dealStage: 'Non-Commission - Active',
+  dealOwner: 'Khanh Nguyen',
+  dealCarrier: 'Kaiser Permanente',
+  timelineActivity: {
+    month: 'Sep 2026',
+    title: 'Ticket Activity',
+    timestamp: '09/15/2026, 09:58',
+    text: 'Create Payment Ticket - 2026 [Company Pay + Need Auto Pay + No Value] (version 7) created ticket',
+    targetTicketName: 'Oct/26 Company Pay ticket',
+  },
+};
+
+export const ACA_TICKET_DEFAULTS = {
   id: 'TC2600101',
   title: 'ACA account 2026',
+  avatar: 'A2',
   pipeline: 'ACA account',
   status: 'DONE',
   priority: 'High',
+  openDays: null,
   closeDate: '05/27/2026',
   dueDate: '05/14/2026',
   serviceAgent: 'Sean Ngo (sean75@8)',
   serviceAgentAvatar: 'SN',
+  serviceAgentBg: 'bg-[#B25E3B]',
   ticketOwner: 'Tri Tran (tritran92@5)',
   ticketOwnerAvatar: 'TT',
+  ticketOwnerBg: 'bg-[#B91C1C]',
   ticketResult: '',
+  paymentStatus: '',
   changeDueDateReason: '',
-  carrier: '',
+  carrier: 'UHC - RMHP',
+  deadlineDate: '',
+  paidThroughDate: '',
+  files: [],
+  proof: [],
   contactName: 'Minh trang Tran',
+  contactInitials: 'MT',
   contactPhone: '3462158034',
   contactEmail: 'dungnguyen20041960@gmail.com',
   leadOwner: 'Tri Tran',
   dealTitle: 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
+  dealShortTitle: 'Tien Dung Nguyen + Minh Trung...',
   dealPipeline: 'Obamacare 2026',
   dealStage: 'Enrolled - Active',
   dealOwner: 'Tri Tran',
   dealCarrier: 'UHC - RMHP',
+  timelineActivity: {
+    month: 'Aug 2026',
+    title: 'Deal Activity',
+    timestamp: '08/14/2026, 06:19',
+    actor: 'Sean Ngo (sean76@8)',
+    action: 'moved deal',
+    dealName: 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
+    targetStage: 'Enrolled - Active',
+  },
 };
 
 const AGENT_OPTIONS = [
+  { name: 'Anya Nguyen (anya42@9)', avatar: 'AN', bg: 'bg-slate-600' },
+  { name: 'Khanh Nguyen (khanhnguyen31@7)', avatar: 'KN', bg: 'bg-slate-600' },
   { name: 'Sean Ngo (sean75@8)', avatar: 'SN', bg: 'bg-[#B25E3B]' },
   { name: 'Tri Tran (tritran92@5)', avatar: 'TT', bg: 'bg-[#B91C1C]' },
-  { name: 'Anya Nguyen (anya42@9)', avatar: 'AN', bg: 'bg-indigo-600' },
-  { name: 'Khanh Nguyen (khanhnguyen31@7)', avatar: 'KN', bg: 'bg-emerald-600' },
 ];
 
 const PIPELINE_OPTIONS = [
+  'Payment',
   'ACA account',
   'Client Support',
-  'Payment',
   'Collect Document',
   'Choose Doctor',
   'Agent Support',
 ];
 
-const STATUS_OPTIONS = [
+const STATUS_OPTIONS_PAYMENT = [
+  'Make payment',
+  'Uploaded - Waiting for Verification',
+  'Waiting on Customer',
+  'Waiting on Carrier',
+  'Paid',
+  'DONE',
+  'Closed',
+];
+
+const STATUS_OPTIONS_DEFAULT = [
   'DONE',
   'Uploaded - Waiting for Verification',
   'Open',
@@ -52,7 +126,17 @@ const STATUS_OPTIONS = [
   'Closed',
 ];
 
-const PRIORITY_OPTIONS = ['High', 'Medium', 'Low'];
+const PAYMENT_STATUS_OPTIONS = [
+  'Company Pay',
+  'Client Pay',
+  'Need Auto Pay',
+  'Auto Pay Setup',
+  'Pending Payment',
+  'Paid',
+  'Refund Requested',
+];
+
+const PRIORITY_OPTIONS = ['None', 'High', 'Medium', 'Low'];
 
 export default function StaffTicketDetail({
   ticket,
@@ -60,34 +144,58 @@ export default function StaffTicketDetail({
   onSelectContact,
   onSelectDeal,
 }) {
-  const ticketData = {
-    ...DEFAULT_TICKET_DATA,
+  // Determine if initial ticket is Payment type
+  const isPaymentInitially =
+    ticket?.pipeline === 'Payment' ||
+    (ticket?.title && ticket.title.toLowerCase().includes('pay'));
+
+  const baseDefaults = isPaymentInitially ? PAYMENT_TICKET_DEFAULTS : ACA_TICKET_DEFAULTS;
+  const initialData = {
+    ...baseDefaults,
     ...(typeof ticket === 'object' && ticket !== null ? ticket : {}),
   };
 
   // Ticket basic fields
-  const [ticketTitle, setTicketTitle] = useState(ticketData.title || 'ACA account 2026');
+  const [ticketTitle, setTicketTitle] = useState(initialData.title);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [tempTitle, setTempTitle] = useState(ticketData.title || 'ACA account 2026');
+  const [tempTitle, setTempTitle] = useState(initialData.title);
 
-  const [priority, setPriority] = useState(ticketData.priority || 'High');
-  const [closeDate, setCloseDate] = useState(ticketData.closeDate || '05/27/2026');
-  const [pipeline, setPipeline] = useState(ticketData.pipeline || 'ACA account');
-  const [status, setStatus] = useState(ticketData.status || 'DONE');
-  const [dueDate, setDueDate] = useState(ticketData.dueDate || '05/14/2026');
+  const [avatar, setAvatar] = useState(initialData.avatar || (isPaymentInitially ? 'OT' : 'A2'));
+  const [priority, setPriority] = useState(initialData.priority || (isPaymentInitially ? 'None' : 'High'));
+  const [openDays, setOpenDays] = useState(initialData.openDays ?? (isPaymentInitially ? 9 : null));
+  const [closeDate, setCloseDate] = useState(initialData.closeDate || (isPaymentInitially ? '' : '05/27/2026'));
+  const [pipeline, setPipeline] = useState(initialData.pipeline || (isPaymentInitially ? 'Payment' : 'ACA account'));
+  const [status, setStatus] = useState(initialData.status || (isPaymentInitially ? 'Make payment' : 'DONE'));
+  const [dueDate, setDueDate] = useState(initialData.dueDate || (isPaymentInitially ? '09/20/2026' : '05/14/2026'));
 
   // Properties in "About this ticket"
-  const [serviceAgent, setServiceAgent] = useState(
-    ticketData.serviceAgent || 'Sean Ngo (sean75@8)'
-  );
-  const [ticketOwner, setTicketOwner] = useState(
-    ticketData.ticketOwner || 'Tri Tran (tritran92@5)'
-  );
-  const [ticketResult, setTicketResult] = useState(ticketData.ticketResult || '');
-  const [changeDueDateReason, setChangeDueDateReason] = useState(
-    ticketData.changeDueDateReason || ''
-  );
-  const [carrier, setCarrier] = useState(ticketData.carrier || '');
+  const [serviceAgent, setServiceAgent] = useState(initialData.serviceAgent);
+  const [ticketOwner, setTicketOwner] = useState(initialData.ticketOwner);
+  const [ticketResult, setTicketResult] = useState(initialData.ticketResult || '');
+  const [paymentStatus, setPaymentStatus] = useState(initialData.paymentStatus || (isPaymentInitially ? 'Company Pay' : ''));
+  const [changeDueDateReason, setChangeDueDateReason] = useState(initialData.changeDueDateReason || '');
+  const [carrier, setCarrier] = useState(initialData.carrier || '');
+  const [deadlineDate, setDeadlineDate] = useState(initialData.deadlineDate || '');
+  const [paidThroughDate, setPaidThroughDate] = useState(initialData.paidThroughDate || (isPaymentInitially ? '--' : ''));
+
+  // Files & Proof lists
+  const [filesList, setFilesList] = useState(initialData.files || []);
+  const [proofList, setProofList] = useState(initialData.proof || []);
+  const fileInputRef = useRef(null);
+  const proofInputRef = useRef(null);
+
+  // Entities
+  const [contactName, setContactName] = useState(initialData.contactName);
+  const [contactPhone, setContactPhone] = useState(initialData.contactPhone);
+  const [contactEmail, setContactEmail] = useState(initialData.contactEmail);
+  const [leadOwner, setLeadOwner] = useState(initialData.leadOwner);
+
+  const [dealTitle, setDealTitle] = useState(initialData.dealTitle);
+  const [dealShortTitle, setDealShortTitle] = useState(initialData.dealShortTitle || initialData.dealTitle);
+  const [dealPipeline, setDealPipeline] = useState(initialData.dealPipeline || 'Obamacare 2026');
+  const [dealStage, setDealStage] = useState(initialData.dealStage || 'Non-Commission - Active');
+  const [dealOwner, setDealOwner] = useState(initialData.dealOwner || 'Khanh Nguyen');
+  const [dealCarrier, setDealCarrier] = useState(initialData.dealCarrier || initialData.carrier || '');
 
   // Dropdowns
   const [isPriorityOpen, setIsPriorityOpen] = useState(false);
@@ -95,14 +203,19 @@ export default function StaffTicketDetail({
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isServiceAgentOpen, setIsServiceAgentOpen] = useState(false);
   const [isTicketOwnerOpen, setIsTicketOwnerOpen] = useState(false);
+  const [isPaymentStatusOpen, setIsPaymentStatusOpen] = useState(false);
 
-  // Due Date reason modal
+  // Modals
   const [showDueDateModal, setShowDueDateModal] = useState(false);
   const [tempDueDate, setTempDueDate] = useState(dueDate);
   const [tempReason, setTempReason] = useState('');
-
-  // History modal
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailSubject, setEmailSubject] = useState(`Follow up on ${ticketTitle}`);
+  const [emailBody, setEmailBody] = useState('');
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskDue, setTaskDue] = useState('09/25/2026');
 
   // Accordion sections
   const [aboutOpen, setAboutOpen] = useState(true);
@@ -111,45 +224,53 @@ export default function StaffTicketDetail({
   const [dealsOpen, setDealsOpen] = useState(true);
 
   // Center column tabs & feed
-  const [activeCenterTab, setActiveCenterTab] = useState('activity'); // 'activity' | 'notes' | 'emails' | 'tasks'
+  const [activeCenterTab, setActiveCenterTab] = useState('activity');
   const [filterAuthor, setFilterAuthor] = useState('all');
   const [showNoteComposer, setShowNoteComposer] = useState(false);
   const [newNoteContent, setNewNoteContent] = useState('');
 
-  // Email draft modal
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [emailSubject, setEmailSubject] = useState('Follow up on ACA account 2026');
-  const [emailBody, setEmailBody] = useState('');
-
-  // Task creation modal
-  const [showTaskModal, setShowTaskModal] = useState(false);
-  const [taskTitle, setTaskTitle] = useState('');
-  const [taskDue, setTaskDue] = useState('05/20/2026');
-
   // Timeline Items
-  const [timelineItems, setTimelineItems] = useState([
-    {
-      id: 'item-1',
-      month: 'Aug 2026',
-      type: 'deal_activity',
-      title: 'Deal Activity',
-      timestamp: '08/14/2026, 06:19',
-      actor: 'Sean Ngo (sean76@8)',
-      dealName: ticketData.dealTitle || 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
-      targetStage: 'Enrolled - Active',
-    },
-    {
-      id: 'item-2',
-      month: 'May 2026',
-      type: 'note',
-      title: 'Note',
-      timestamp: '05/20/2026, 08:13',
-      actor: 'Sean Ngo',
-      isExpanded: false,
-      content:
-        'Uploaded ACA verification documents to Marketplace portal. Waiting for Marketplace confirmation.',
-    },
-  ]);
+  const [timelineItems, setTimelineItems] = useState(() => {
+    if (isPaymentInitially) {
+      return [
+        {
+          id: 'pay-act-1',
+          month: 'Sep 2026',
+          type: 'ticket_activity',
+          title: 'Ticket Activity',
+          timestamp: '09/15/2026, 09:58',
+          actor: 'System',
+          content:
+            'Create Payment Ticket - 2026 [Company Pay + Need Auto Pay + No Value] (version 7) created ticket Oct/26 Company Pay ticket ↗',
+          targetTicketName: 'Oct/26 Company Pay ticket',
+        },
+      ];
+    } else {
+      return [
+        {
+          id: 'aca-act-1',
+          month: 'Aug 2026',
+          type: 'deal_activity',
+          title: 'Deal Activity',
+          timestamp: '08/14/2026, 06:19',
+          actor: 'Sean Ngo (sean76@8)',
+          dealName: 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
+          targetStage: 'Enrolled - Active',
+        },
+        {
+          id: 'aca-act-2',
+          month: 'May 2026',
+          type: 'note',
+          title: 'Note',
+          timestamp: '05/20/2026, 08:13',
+          actor: 'Sean Ngo',
+          isExpanded: false,
+          content:
+            'Uploaded ACA verification documents to Marketplace portal. Waiting for Marketplace confirmation.',
+        },
+      ];
+    }
+  });
 
   // Toast feedback
   const [toastMsg, setToastMsg] = useState(null);
@@ -168,11 +289,87 @@ export default function StaffTicketDetail({
         setIsStatusOpen(false);
         setIsServiceAgentOpen(false);
         setIsTicketOwnerOpen(false);
+        setIsPaymentStatusOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Preset loader to easily switch between screenshots
+  const loadPreset = (presetType) => {
+    const p = presetType === 'payment' ? PAYMENT_TICKET_DEFAULTS : ACA_TICKET_DEFAULTS;
+    setTicketTitle(p.title);
+    setTempTitle(p.title);
+    setAvatar(p.avatar);
+    setPipeline(p.pipeline);
+    setStatus(p.status);
+    setPriority(p.priority);
+    setOpenDays(p.openDays);
+    setCloseDate(p.closeDate);
+    setDueDate(p.dueDate);
+    setServiceAgent(p.serviceAgent);
+    setTicketOwner(p.ticketOwner);
+    setTicketResult(p.ticketResult);
+    setPaymentStatus(p.paymentStatus || '');
+    setChangeDueDateReason(p.changeDueDateReason);
+    setCarrier(p.carrier);
+    setDeadlineDate(p.deadlineDate || '');
+    setPaidThroughDate(p.paidThroughDate || '');
+    setFilesList(p.files || []);
+    setProofList(p.proof || []);
+    setContactName(p.contactName);
+    setContactPhone(p.contactPhone);
+    setContactEmail(p.contactEmail);
+    setLeadOwner(p.leadOwner);
+    setDealTitle(p.dealTitle);
+    setDealShortTitle(p.dealShortTitle || p.dealTitle);
+    setDealPipeline(p.dealPipeline);
+    setDealStage(p.dealStage);
+    setDealOwner(p.dealOwner);
+    setDealCarrier(p.dealCarrier);
+
+    if (presetType === 'payment') {
+      setTimelineItems([
+        {
+          id: 'pay-act-1',
+          month: 'Sep 2026',
+          type: 'ticket_activity',
+          title: 'Ticket Activity',
+          timestamp: '09/15/2026, 09:58',
+          actor: 'System',
+          content:
+            'Create Payment Ticket - 2026 [Company Pay + Need Auto Pay + No Value] (version 7) created ticket Oct/26 Company Pay ticket ↗',
+          targetTicketName: 'Oct/26 Company Pay ticket',
+        },
+      ]);
+    } else {
+      setTimelineItems([
+        {
+          id: 'aca-act-1',
+          month: 'Aug 2026',
+          type: 'deal_activity',
+          title: 'Deal Activity',
+          timestamp: '08/14/2026, 06:19',
+          actor: 'Sean Ngo (sean76@8)',
+          dealName: 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
+          targetStage: 'Enrolled - Active',
+        },
+        {
+          id: 'aca-act-2',
+          month: 'May 2026',
+          type: 'note',
+          title: 'Note',
+          timestamp: '05/20/2026, 08:13',
+          actor: 'Sean Ngo',
+          isExpanded: false,
+          content:
+            'Uploaded ACA verification documents to Marketplace portal. Waiting for Marketplace confirmation.',
+        },
+      ]);
+    }
+    showToast(`Loaded ${presetType === 'payment' ? 'Payment Ticket' : 'ACA Account'} View`);
+  };
 
   // Handlers
   const handleSaveTitle = () => {
@@ -198,20 +395,20 @@ export default function StaffTicketDetail({
     setChangeDueDateReason(tempReason);
     setShowDueDateModal(false);
 
-    // Auto recalculate priority based on new due date
-    const d = new Date(tempDueDate);
-    const now = new Date();
-    const diffHours = (d - now) / (1000 * 60 * 60);
-    if (!isNaN(diffHours)) {
-      if (diffHours <= 48) setPriority('High');
-      else if (diffHours <= 120) setPriority('Medium');
-      else setPriority('Low');
+    if (priority !== 'None') {
+      const d = new Date(tempDueDate);
+      const now = new Date();
+      const diffHours = (d - now) / (1000 * 60 * 60);
+      if (!isNaN(diffHours)) {
+        if (diffHours <= 48) setPriority('High');
+        else if (diffHours <= 120) setPriority('Medium');
+        else setPriority('Low');
+      }
     }
 
-    // Add activity record
     const newActivity = {
       id: `act-${Date.now()}`,
-      month: 'Aug 2026',
+      month: 'Sep 2026',
       type: 'activity',
       title: 'Due Date Changed',
       timestamp: new Date().toLocaleString('en-US', {
@@ -239,11 +436,37 @@ export default function StaffTicketDetail({
     showToast(`Status updated to ${st}`);
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const newFile = {
+        name: file.name,
+        size: `${(file.size / 1024).toFixed(1)} KB`,
+        uploadedAt: new Date().toLocaleDateString(),
+      };
+      setFilesList((prev) => [...prev, newFile]);
+      showToast(`File "${file.name}" uploaded`);
+    }
+  };
+
+  const handleProofUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const newProof = {
+        name: file.name,
+        size: `${(file.size / 1024).toFixed(1)} KB`,
+        uploadedAt: new Date().toLocaleDateString(),
+      };
+      setProofList((prev) => [...prev, newProof]);
+      showToast(`Proof "${file.name}" uploaded`);
+    }
+  };
+
   const handleAddNote = () => {
     if (!newNoteContent.trim()) return;
     const item = {
       id: `note-${Date.now()}`,
-      month: 'Aug 2026',
+      month: 'Sep 2026',
       type: 'note',
       title: 'Note',
       timestamp: new Date().toLocaleString('en-US', {
@@ -268,7 +491,7 @@ export default function StaffTicketDetail({
     if (!taskTitle.trim()) return;
     const item = {
       id: `task-${Date.now()}`,
-      month: 'Aug 2026',
+      month: 'Sep 2026',
       type: 'task',
       title: 'Task Created',
       timestamp: new Date().toLocaleString('en-US', {
@@ -292,7 +515,7 @@ export default function StaffTicketDetail({
     if (!emailBody.trim()) return;
     const item = {
       id: `email-${Date.now()}`,
-      month: 'Aug 2026',
+      month: 'Sep 2026',
       type: 'email',
       title: 'Email Sent',
       timestamp: new Date().toLocaleString('en-US', {
@@ -326,6 +549,9 @@ export default function StaffTicketDetail({
     setTimelineItems((prev) => prev.map((item) => ({ ...item, isExpanded: true })));
   };
 
+  const isPayment = pipeline === 'Payment';
+  const statusOptions = isPayment ? STATUS_OPTIONS_PAYMENT : STATUS_OPTIONS_DEFAULT;
+
   // Group timeline items by month
   const filteredTimeline = timelineItems.filter((item) => {
     if (filterAuthor !== 'all' && !item.actor.toLowerCase().includes(filterAuthor.toLowerCase())) {
@@ -334,13 +560,30 @@ export default function StaffTicketDetail({
     if (activeCenterTab === 'notes') return item.type === 'note';
     if (activeCenterTab === 'emails') return item.type === 'email';
     if (activeCenterTab === 'tasks') return item.type === 'task';
-    return true; // 'activity' tab shows all
+    return true;
   });
 
   const months = Array.from(new Set(filteredTimeline.map((item) => item.month)));
 
   return (
-    <div className="flex flex-col h-full bg-[#F4F6F9] overflow-hidden text-slate-800 text-xs font-sans selection:bg-blue-600 selection:text-white" ref={dropdownRef}>
+    <div
+      className="flex flex-col h-full bg-[#F4F6F9] overflow-hidden text-slate-800 text-xs font-sans selection:bg-blue-600 selection:text-white"
+      ref={dropdownRef}
+    >
+      {/* Hidden file inputs for Files & Proof */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={proofInputRef}
+        onChange={handleProofUpload}
+        className="hidden"
+      />
+
       {/* Toast Notification */}
       {toastMsg && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#0F2962] text-white px-4 py-2 rounded-lg shadow-xl text-xs font-medium flex items-center gap-2 animate-bounce">
@@ -351,15 +594,43 @@ export default function StaffTicketDetail({
 
       {/* ── TOP HEADER BAR ────────────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-200 px-5 py-2.5 flex items-center justify-between shrink-0 shadow-2xs">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onBack}
-            className="p-1 rounded-md text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition cursor-pointer flex items-center gap-1.5 font-bold text-sm"
+            className="p-1 rounded-md text-slate-700 hover:text-blue-700 hover:bg-slate-100 transition cursor-pointer flex items-center gap-1.5 font-bold text-sm"
           >
             <span className="material-symbols-outlined text-[19px]">arrow_back</span>
             <span>Ticket Detail</span>
           </button>
+
+          {/* Quick preset switcher to toggle between screenshots */}
+          <div className="hidden md:flex items-center gap-1 ml-4 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-[11px]">
+            <button
+              type="button"
+              onClick={() => loadPreset('payment')}
+              className={`px-2.5 py-1 rounded-md font-semibold transition cursor-pointer flex items-center gap-1 ${
+                isPayment
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span>Payment Ticket (Oct/26)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => loadPreset('aca')}
+              className={`px-2.5 py-1 rounded-md font-semibold transition cursor-pointer flex items-center gap-1 ${
+                !isPayment
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span>ACA Account 2026</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 text-xs font-medium text-slate-600">
@@ -389,10 +660,15 @@ export default function StaffTicketDetail({
           {/* Header Ticket Profile Card */}
           <div className="p-4 border-b border-slate-100">
             <div className="flex items-start gap-3">
-              {/* Orange round avatar with A2 */}
-              <div className="w-10 h-10 rounded-full bg-[#E05638] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-                A2
+              {/* Round avatar: OT for Payment, A2 for ACA */}
+              <div
+                className={`w-10 h-10 rounded-full ${
+                  isPayment ? 'bg-[#B25E3B]' : 'bg-[#E05638]'
+                } text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs`}
+              >
+                {avatar}
               </div>
+
               <div className="flex-1 min-w-0">
                 {isEditingTitle ? (
                   <div className="flex items-center gap-1">
@@ -439,7 +715,7 @@ export default function StaffTicketDetail({
 
                 {/* Sub-properties list matching screenshot */}
                 <div className="mt-2 space-y-1 text-[11px] text-slate-600">
-                  {/* Priority */}
+                  {/* 1. Priority */}
                   <div className="flex items-center justify-between group">
                     <div className="flex items-center gap-1 text-slate-500">
                       <span className="material-symbols-outlined text-[13px] text-slate-400">bookmark</span>
@@ -451,7 +727,17 @@ export default function StaffTicketDetail({
                         onClick={() => setIsPriorityOpen(!isPriorityOpen)}
                         className="flex items-center gap-1 font-semibold text-slate-700 hover:text-blue-600 cursor-pointer"
                       >
-                        <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />
+                        {priority !== 'None' && (
+                          <span
+                            className={`w-2 h-2 rounded-full inline-block ${
+                              priority === 'High'
+                                ? 'bg-rose-500'
+                                : priority === 'Medium'
+                                ? 'bg-amber-500'
+                                : 'bg-emerald-500'
+                            }`}
+                          />
+                        )}
                         <span>{priority}</span>
                         <span className="material-symbols-outlined text-[13px]">arrow_drop_down</span>
                       </button>
@@ -468,15 +754,19 @@ export default function StaffTicketDetail({
                               }}
                               className="w-full text-left px-3 py-1 hover:bg-slate-50 text-xs flex items-center gap-1.5"
                             >
-                              <span
-                                className={`w-2 h-2 rounded-full ${
-                                  p === 'High'
-                                    ? 'bg-rose-500'
-                                    : p === 'Medium'
-                                    ? 'bg-amber-500'
-                                    : 'bg-emerald-500'
-                                }`}
-                              />
+                              {p !== 'None' ? (
+                                <span
+                                  className={`w-2 h-2 rounded-full ${
+                                    p === 'High'
+                                      ? 'bg-rose-500'
+                                      : p === 'Medium'
+                                      ? 'bg-amber-500'
+                                      : 'bg-emerald-500'
+                                  }`}
+                                />
+                              ) : (
+                                <span className="w-2 h-2 rounded-full bg-slate-300" />
+                              )}
                               {p}
                             </button>
                           ))}
@@ -485,16 +775,26 @@ export default function StaffTicketDetail({
                     </div>
                   </div>
 
-                  {/* Close date */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-slate-500">
-                      <span className="material-symbols-outlined text-[13px] text-slate-400">calendar_today</span>
-                      <span>Close date:</span>
+                  {/* 2. Open: 9 Day(s) for Payment vs Close date: 05/27/2026 for ACA */}
+                  {openDays !== null && openDays !== undefined ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-slate-500">
+                        <span className="material-symbols-outlined text-[13px] text-slate-400">schedule</span>
+                        <span>Open:</span>
+                      </div>
+                      <span className="font-semibold text-slate-700">{openDays} Day(s)</span>
                     </div>
-                    <span className="font-semibold text-slate-700">{closeDate}</span>
-                  </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-slate-500">
+                        <span className="material-symbols-outlined text-[13px] text-slate-400">calendar_today</span>
+                        <span>Close date:</span>
+                      </div>
+                      <span className="font-semibold text-slate-700">{closeDate || '----------'}</span>
+                    </div>
+                  )}
 
-                  {/* Pipeline */}
+                  {/* 3. Pipeline */}
                   <div className="flex items-center justify-between group">
                     <div className="flex items-center gap-1 text-slate-500">
                       <span className="material-symbols-outlined text-[13px] text-slate-400">account_tree</span>
@@ -530,7 +830,7 @@ export default function StaffTicketDetail({
                     </div>
                   </div>
 
-                  {/* Ticket Status */}
+                  {/* 4. Ticket Status */}
                   <div className="flex items-center justify-between group">
                     <div className="flex items-center gap-1 text-slate-500">
                       <span className="material-symbols-outlined text-[13px] text-slate-400">task_alt</span>
@@ -546,8 +846,8 @@ export default function StaffTicketDetail({
                         <span className="material-symbols-outlined text-[13px]">arrow_drop_down</span>
                       </button>
                       {isStatusOpen && (
-                        <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-48">
-                          {STATUS_OPTIONS.map((st) => (
+                        <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-52">
+                          {statusOptions.map((st) => (
                             <button
                               key={st}
                               type="button"
@@ -613,7 +913,7 @@ export default function StaffTicketDetail({
                         <span
                           onClick={(e) => {
                             e.stopPropagation();
-                            setPriority('Medium');
+                            setPriority('None');
                           }}
                           className="hover:text-slate-600 text-[11px]"
                         >
@@ -659,8 +959,9 @@ export default function StaffTicketDetail({
                       className="w-full flex items-center justify-between px-2 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 cursor-pointer hover:border-slate-300"
                     >
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="w-5 h-5 rounded-full bg-[#B25E3B] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                          SN
+                        <span className="w-5 h-5 rounded-full bg-slate-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                          {serviceAgent.split(' ')[0][0]}
+                          {serviceAgent.split(' ')[1]?.[0] || 'N'}
                         </span>
                         <span className="truncate">{serviceAgent}</span>
                       </div>
@@ -690,7 +991,9 @@ export default function StaffTicketDetail({
                             }}
                             className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-xs flex items-center gap-2"
                           >
-                            <span className={`w-5 h-5 rounded-full ${ag.bg} text-white text-[9px] font-bold flex items-center justify-center shrink-0`}>
+                            <span
+                              className={`w-5 h-5 rounded-full ${ag.bg} text-white text-[9px] font-bold flex items-center justify-center shrink-0`}
+                            >
                               {ag.avatar}
                             </span>
                             <span className="truncate">{ag.name}</span>
@@ -713,9 +1016,57 @@ export default function StaffTicketDetail({
                   />
                 </div>
 
-                {/* 5. Change Due Date Reason */}
+                {/* 5. Payment Status (Payment Pipeline Specific) */}
+                {isPayment && (
+                  <div>
+                    <label className="block text-slate-700 font-medium text-[11px] mb-1">Payment Status</label>
+                    <div className="relative">
+                      <div
+                        onClick={() => setIsPaymentStatusOpen(!isPaymentStatusOpen)}
+                        className="w-full flex items-center justify-between px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 cursor-pointer hover:border-slate-300"
+                      >
+                        <span className="font-semibold text-slate-800">{paymentStatus || '--'}</span>
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPaymentStatus('');
+                            }}
+                            className="hover:text-slate-600 text-[11px]"
+                          >
+                            ✕
+                          </span>
+                          <span className="material-symbols-outlined text-[16px]">arrow_drop_down</span>
+                        </div>
+                      </div>
+
+                      {isPaymentStatusOpen && (
+                        <div className="absolute left-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-full">
+                          {PAYMENT_STATUS_OPTIONS.map((ps) => (
+                            <button
+                              key={ps}
+                              type="button"
+                              onClick={() => {
+                                setPaymentStatus(ps);
+                                setIsPaymentStatusOpen(false);
+                                showToast(`Payment Status set to ${ps}`);
+                              }}
+                              className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-xs font-medium"
+                            >
+                              {ps}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. Change Due Date Reason */}
                 <div>
-                  <label className="block text-slate-700 font-medium text-[11px] mb-1">Change Due Date Reason</label>
+                  <label className="block text-slate-700 font-medium text-[11px] mb-1">
+                    Change Due Date Reason
+                  </label>
                   <input
                     type="text"
                     value={changeDueDateReason}
@@ -725,19 +1076,19 @@ export default function StaffTicketDetail({
                   />
                 </div>
 
-                {/* 6. Carrier */}
+                {/* 7. Carrier */}
                 <div>
                   <label className="block text-slate-700 font-medium text-[11px] mb-1">Carrier</label>
                   <input
                     type="text"
                     value={carrier}
                     onChange={(e) => setCarrier(e.target.value)}
-                    placeholder="e.g. UHC - RMHP, Ambetter"
+                    placeholder="e.g. Kaiser Permanente, UHC - RMHP"
                     className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
-                {/* 7. Ticket Owner */}
+                {/* 8. Ticket Owner */}
                 <div>
                   <label className="block text-slate-700 font-medium text-[11px] mb-1">Ticket Owner</label>
                   <div className="relative">
@@ -746,8 +1097,9 @@ export default function StaffTicketDetail({
                       className="w-full flex items-center justify-between px-2 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 cursor-pointer hover:border-slate-300"
                     >
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="w-5 h-5 rounded-full bg-[#B91C1C] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                          TT
+                        <span className="w-5 h-5 rounded-full bg-slate-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                          {ticketOwner.split(' ')[0][0]}
+                          {ticketOwner.split(' ')[1]?.[0] || 'N'}
                         </span>
                         <span className="truncate">{ticketOwner}</span>
                       </div>
@@ -777,7 +1129,9 @@ export default function StaffTicketDetail({
                             }}
                             className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-xs flex items-center gap-2"
                           >
-                            <span className={`w-5 h-5 rounded-full ${ag.bg} text-white text-[9px] font-bold flex items-center justify-center shrink-0`}>
+                            <span
+                              className={`w-5 h-5 rounded-full ${ag.bg} text-white text-[9px] font-bold flex items-center justify-center shrink-0`}
+                            >
                               {ag.avatar}
                             </span>
                             <span className="truncate">{ag.name}</span>
@@ -787,6 +1141,118 @@ export default function StaffTicketDetail({
                     )}
                   </div>
                 </div>
+
+                {/* 9. Deadline Date (Payment Pipeline) */}
+                {isPayment && (
+                  <div>
+                    <label className="block text-slate-700 font-medium text-[11px] mb-1">Deadline Date</label>
+                    <input
+                      type="date"
+                      value={deadlineDate}
+                      onChange={(e) => setDeadlineDate(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* 10. Files (Payment Pipeline) */}
+                {isPayment && (
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-slate-700 font-medium text-[11px]">Files</label>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-blue-600 hover:text-blue-800 font-semibold text-[11px] flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[13px]">add_circle</span>
+                        <span>Add new</span>
+                      </button>
+                    </div>
+                    {filesList.length > 0 ? (
+                      <div className="space-y-1">
+                        {filesList.map((f, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between p-1.5 bg-slate-50 rounded border border-slate-200 text-[11px]"
+                          >
+                            <span className="truncate font-medium text-slate-700">{f.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => setFilesList((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="text-rose-500 hover:text-rose-700 text-xs"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-slate-400 italic">No files attached yet.</div>
+                    )}
+                  </div>
+                )}
+
+                {/* 11. Paid Through Date (Payment Pipeline) */}
+                {isPayment && (
+                  <div>
+                    <label className="block text-slate-700 font-medium text-[11px] mb-1">
+                      Paid Through Date
+                    </label>
+                    <div className="relative">
+                      <div
+                        onClick={() => {
+                          const picked = prompt('Enter Paid Through Date (MM/DD/YYYY):', paidThroughDate === '--' ? '' : paidThroughDate);
+                          if (picked !== null) setPaidThroughDate(picked || '--');
+                        }}
+                        className="w-full flex items-center justify-between px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 cursor-pointer hover:border-slate-300"
+                      >
+                        <span>{paidThroughDate || '--'}</span>
+                        <span className="material-symbols-outlined text-[15px] text-slate-500">
+                          calendar_month
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 12. Proof (Payment Pipeline) */}
+                {isPayment && (
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-slate-700 font-medium text-[11px]">Proof</label>
+                      <button
+                        type="button"
+                        onClick={() => proofInputRef.current?.click()}
+                        className="text-blue-600 hover:text-blue-800 font-semibold text-[11px] flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[13px]">add_circle</span>
+                        <span>Add new</span>
+                      </button>
+                    </div>
+                    {proofList.length > 0 ? (
+                      <div className="space-y-1">
+                        {proofList.map((p, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between p-1.5 bg-slate-50 rounded border border-slate-200 text-[11px]"
+                          >
+                            <span className="truncate font-medium text-slate-700">{p.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => setProofList((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="text-rose-500 hover:text-rose-700 text-xs"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-slate-400 italic">No proof documents attached.</div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -892,6 +1358,8 @@ export default function StaffTicketDetail({
                   className="bg-white border border-slate-200 rounded px-2 py-1 text-[11px] text-slate-700 focus:outline-none cursor-pointer pr-6"
                 >
                   <option value="all">Search by created by...</option>
+                  <option value="Anya Nguyen">Anya Nguyen</option>
+                  <option value="Khanh Nguyen">Khanh Nguyen</option>
                   <option value="Sean Ngo">Sean Ngo</option>
                   <option value="Tri Tran">Tri Tran</option>
                 </select>
@@ -975,7 +1443,9 @@ export default function StaffTicketDetail({
           <div className="p-6 space-y-6">
             {months.length === 0 ? (
               <div className="text-center py-12 text-slate-400">
-                <span className="material-symbols-outlined text-4xl mb-2 text-slate-300">chat_bubble_outline</span>
+                <span className="material-symbols-outlined text-4xl mb-2 text-slate-300">
+                  chat_bubble_outline
+                </span>
                 <p>No activity records match your filter.</p>
               </div>
             ) : (
@@ -987,6 +1457,31 @@ export default function StaffTicketDetail({
 
                     <div className="space-y-3">
                       {itemsInMonth.map((item) => {
+                        // Ticket Activity for Payment ticket
+                        if (item.type === 'ticket_activity') {
+                          return (
+                            <div
+                              key={item.id}
+                              className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-2xs hover:shadow-xs transition"
+                            >
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="font-bold text-xs text-slate-900">{item.title}</span>
+                                <span className="text-[11px] text-slate-400">{item.timestamp}</span>
+                              </div>
+                              <div className="text-xs text-slate-600 leading-relaxed">
+                                <span>
+                                  Create Payment Ticket - 2026 [Company Pay + Need Auto Pay + No Value] (version 7) created ticket{' '}
+                                </span>
+                                <span className="text-blue-600 font-semibold hover:underline cursor-pointer inline-flex items-center gap-0.5">
+                                  <span>{item.targetTicketName || ticketTitle}</span>
+                                  <span className="material-symbols-outlined text-[11px]">open_in_new</span>
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // Deal Activity
                         if (item.type === 'deal_activity') {
                           return (
                             <div
@@ -1006,10 +1501,10 @@ export default function StaffTicketDetail({
                                     onSelectDeal({
                                       id: 'D26005033',
                                       title: item.dealName,
-                                      pipeline: ticketData.dealPipeline,
+                                      pipeline: dealPipeline,
                                       stage: item.targetStage,
-                                      carrier: ticketData.dealCarrier,
-                                      contactName: ticketData.contactName,
+                                      carrier: dealCarrier,
+                                      contactName: contactName,
                                     })
                                   }
                                   className="text-blue-600 font-semibold hover:underline cursor-pointer inline-flex items-center gap-0.5"
@@ -1025,10 +1520,10 @@ export default function StaffTicketDetail({
                                     onSelectDeal({
                                       id: 'D26005033',
                                       title: item.dealName,
-                                      pipeline: ticketData.dealPipeline,
+                                      pipeline: dealPipeline,
                                       stage: item.targetStage,
-                                      carrier: ticketData.dealCarrier,
-                                      contactName: ticketData.contactName,
+                                      carrier: dealCarrier,
+                                      contactName: contactName,
                                     })
                                   }
                                   className="text-blue-600 font-medium hover:underline cursor-pointer inline-flex items-center gap-0.5 ml-1"
@@ -1041,7 +1536,7 @@ export default function StaffTicketDetail({
                           );
                         }
 
-                        // Note or Activity or Email or Task Item
+                        // Note or Other Activity
                         return (
                           <div
                             key={item.id}
@@ -1149,37 +1644,38 @@ export default function StaffTicketDetail({
                   onClick={() =>
                     onSelectContact &&
                     onSelectContact({
-                      id: 'CT26002600',
-                      fullName: ticketData.contactName || 'Minh trang Tran',
-                      phone: ticketData.contactPhone || '3462158034',
-                      email: ticketData.contactEmail || 'dungnguyen20041960@gmail.com',
-                      leadOwner: ticketData.leadOwner || 'Tri Tran',
+                      id: isPayment ? 'CT26002606' : 'CT26002600',
+                      fullName: contactName,
+                      phone: contactPhone,
+                      email: contactEmail,
+                      leadOwner: leadOwner,
                     })
                   }
                   className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                      MT
+                      {contactName.split(' ')[0][0]}
+                      {contactName.split(' ')[1]?.[0] || 'N'}
                     </div>
                     <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
-                      {ticketData.contactName || 'Minh trang Tran'}
+                      {contactName}
                     </span>
                   </div>
 
                   <div className="space-y-1 pt-0.5 text-[11px] text-slate-600 pl-0.5">
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[14px] text-slate-400">call</span>
-                      <span className="text-slate-500">{ticketData.contactPhone || '3462158034'}</span>
+                      <span className="text-slate-500">{contactPhone}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[14px] text-slate-400">mail</span>
-                      <span className="text-slate-500 truncate">{ticketData.contactEmail || 'dungnguyen20041960@gmail...'}</span>
+                      <span className="text-slate-500 truncate">{contactEmail}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[14px] text-slate-400">person</span>
                       <span className="text-slate-500">Lead Owner:</span>
-                      <span className="font-semibold text-slate-800">{ticketData.leadOwner || 'Tri Tran'}</span>
+                      <span className="font-semibold text-slate-800">{leadOwner}</span>
                     </div>
                   </div>
                 </div>
@@ -1189,11 +1685,11 @@ export default function StaffTicketDetail({
                   onClick={() =>
                     onSelectContact &&
                     onSelectContact({
-                      id: 'CT26002600',
-                      fullName: ticketData.contactName || 'Minh trang Tran',
-                      phone: ticketData.contactPhone || '3462158034',
-                      email: ticketData.contactEmail || 'dungnguyen20041960@gmail.com',
-                      leadOwner: ticketData.leadOwner || 'Tri Tran',
+                      id: isPayment ? 'CT26002606' : 'CT26002600',
+                      fullName: contactName,
+                      phone: contactPhone,
+                      email: contactEmail,
+                      leadOwner: leadOwner,
                     })
                   }
                   className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
@@ -1233,22 +1729,23 @@ export default function StaffTicketDetail({
                   onClick={() =>
                     onSelectDeal &&
                     onSelectDeal({
-                      id: 'D26005033',
-                      title: ticketData.dealTitle || 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
-                      pipeline: ticketData.dealPipeline || 'Obamacare 2026',
-                      stage: ticketData.dealStage || 'Enrolled - Active',
-                      carrier: ticketData.dealCarrier || 'UHC - RMHP',
-                      contactName: ticketData.contactName || 'Minh trang Tran',
+                      id: isPayment ? 'D26005120' : 'D26005033',
+                      title: dealTitle,
+                      pipeline: dealPipeline,
+                      stage: dealStage,
+                      carrier: dealCarrier,
+                      contactName: contactName,
                     })
                   }
                   className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition">
-                      <span className="material-symbols-outlined text-[15px]">trending_up</span>
+                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
+                      {dealTitle.split(' ')[0][0]}
+                      {dealTitle.split(' ')[1]?.[0] || 'D'}
                     </div>
                     <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
-                      {ticketData.dealTitle || 'Tien Dung Nguyen + Minh Trung...'}
+                      {dealShortTitle}
                     </span>
                   </div>
 
@@ -1256,22 +1753,22 @@ export default function StaffTicketDetail({
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[14px] text-slate-400">bar_chart</span>
                       <span className="text-slate-500">Pipeline:</span>
-                      <span className="font-semibold text-slate-800">{ticketData.dealPipeline || 'Obamacare 2026'}</span>
+                      <span className="font-semibold text-slate-800">{dealPipeline}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[14px] text-slate-400">trending_up</span>
                       <span className="text-slate-500">Stage:</span>
-                      <span className="font-semibold text-slate-800">{ticketData.dealStage || 'Enrolled - Active'}</span>
+                      <span className="font-semibold text-slate-800">{dealStage}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[14px] text-slate-400">person</span>
                       <span className="text-slate-500">Deal Owner:</span>
-                      <span className="font-semibold text-slate-800">{ticketData.dealOwner || 'Tri Tran'}</span>
+                      <span className="font-semibold text-slate-800">{dealOwner}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[14px] text-slate-400">verified_user</span>
                       <span className="text-slate-500">Carrier:</span>
-                      <span className="font-semibold text-slate-800">{ticketData.dealCarrier || 'UHC - RMHP'}</span>
+                      <span className="font-semibold text-slate-800">{dealCarrier || '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -1281,12 +1778,12 @@ export default function StaffTicketDetail({
                   onClick={() =>
                     onSelectDeal &&
                     onSelectDeal({
-                      id: 'D26005033',
-                      title: ticketData.dealTitle || 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
-                      pipeline: ticketData.dealPipeline || 'Obamacare 2026',
-                      stage: ticketData.dealStage || 'Enrolled - Active',
-                      carrier: ticketData.dealCarrier || 'UHC - RMHP',
-                      contactName: ticketData.contactName || 'Minh trang Tran',
+                      id: isPayment ? 'D26005120' : 'D26005033',
+                      title: dealTitle,
+                      pipeline: dealPipeline,
+                      stage: dealStage,
+                      carrier: dealCarrier,
+                      contactName: contactName,
                     })
                   }
                   className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
@@ -1383,26 +1880,20 @@ export default function StaffTicketDetail({
             <div className="space-y-3 text-xs max-h-80 overflow-y-auto pr-1">
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 space-y-1">
                 <div className="flex justify-between font-semibold text-slate-800">
-                  <span>Status changed to DONE</span>
-                  <span className="text-[11px] text-slate-400">08/14/2026, 06:19</span>
+                  <span>Status: {status}</span>
+                  <span className="text-[11px] text-slate-400">09/15/2026, 09:58</span>
                 </div>
-                <p className="text-slate-600">Updated by Sean Ngo (sean75@8)</p>
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 space-y-1">
-                <div className="flex justify-between font-semibold text-slate-800">
-                  <span>Note published</span>
-                  <span className="text-[11px] text-slate-400">05/20/2026, 08:13</span>
-                </div>
-                <p className="text-slate-600">Uploaded ACA verification documents to Marketplace portal.</p>
+                <p className="text-slate-600">Updated by {serviceAgent}</p>
               </div>
 
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 space-y-1">
                 <div className="flex justify-between font-semibold text-slate-800">
                   <span>Ticket Created</span>
-                  <span className="text-[11px] text-slate-400">05/14/2026, 09:00</span>
+                  <span className="text-[11px] text-slate-400">09/15/2026, 09:58</span>
                 </div>
-                <p className="text-slate-600">Created by Tri Tran (tritran92@5) with Priority High</p>
+                <p className="text-slate-600">
+                  Created ticket {ticketTitle} with Priority {priority}
+                </p>
               </div>
             </div>
 
@@ -1443,7 +1934,7 @@ export default function StaffTicketDetail({
                 <input
                   type="text"
                   readOnly
-                  value={`${ticketData.contactName} <${ticketData.contactEmail}>`}
+                  value={`${contactName} <${contactEmail}>`}
                   className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-600"
                 />
               </div>
@@ -1463,7 +1954,7 @@ export default function StaffTicketDetail({
                 <textarea
                   value={emailBody}
                   onChange={(e) => setEmailBody(e.target.value)}
-                  placeholder="Dear client, regarding your ACA account verification..."
+                  placeholder="Dear client, regarding your insurance policy payment..."
                   rows={4}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-xs"
                 />
@@ -1516,7 +2007,7 @@ export default function StaffTicketDetail({
                   type="text"
                   value={taskTitle}
                   onChange={(e) => setTaskTitle(e.target.value)}
-                  placeholder="e.g. Call Marketplace to verify document upload"
+                  placeholder="e.g. Verify carrier autopay processing"
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                   autoFocus
                 />
