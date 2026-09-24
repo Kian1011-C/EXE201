@@ -2,12 +2,13 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
+  SAMPLE_DEALS,
 } from '../../../data/mockCrmData';
 import { getDeals, updateDeal } from '../../../services/api';
 import StaffDealsKanban from './StaffDealsKanban';
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
-  const [dealsList, setDealsList] = useState([]);
+  const [dealsList, setDealsList] = useState(SAMPLE_DEALS);
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
   const [viewMode, setViewMode] = useState('kanban'); // 'list' | 'kanban'
@@ -26,16 +27,16 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
     setLoading(true);
     try {
       const data = await getDeals();
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         setDealsList(data);
         setIsDbConnected(true);
       } else {
-        setDealsList([]);
+        setDealsList(SAMPLE_DEALS);
         setIsDbConnected(false);
       }
     } catch (err) {
       console.warn('[StaffDealsList] API error:', err);
-      setDealsList([]);
+      setDealsList(SAMPLE_DEALS);
       setIsDbConnected(false);
     } finally {
       setLoading(false);
@@ -176,33 +177,6 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
     }));
   }
 
-  // Live KPI Statistics
-  const dealStats = useMemo(() => {
-    const total = dealsList.length;
-    const readyToEnroll = dealsList.filter((d) => (d.stage || '').includes('Ready to Enroll')).length;
-    const verifiedWon = dealsList.filter((d) =>
-      (d.stage || '').includes('VERIFIED') || (d.stage || '').includes('Closed Won')
-    ).length;
-    const obamacareCount = dealsList.filter((d) =>
-      (d.pipeline || '').toLowerCase().includes('obamacare')
-    ).length;
-    const medicareCount = dealsList.filter((d) =>
-      (d.pipeline || '').toLowerCase().includes('medicare')
-    ).length;
-    const totalMembers = dealsList.reduce((sum, d) => {
-      const cnt = Number(d.adminOnly?.numberMember) || 1;
-      return sum + cnt;
-    }, 0);
-
-    return {
-      total,
-      readyToEnroll,
-      verifiedWon,
-      obamacareCount,
-      medicareCount,
-      totalMembers,
-    };
-  }, [dealsList]);
 
   // Handle Create Deal Submit
   function handleCreateSubmit(e) {
@@ -345,117 +319,15 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
         </div>
       </div>
 
-      {/* ── 2. Visual KPI Overview Strip ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* Card 1: Total Active Deals */}
-        <div
+      {/* ── Top View Tabs (Matching Screenshot media_1790228065239.png) ────────── */}
+      <div className="flex items-center gap-1 border-b border-slate-200 text-xs font-semibold overflow-x-auto pb-px">
+        <button
           onClick={() => {
             setActiveViewTab('all');
             setPipelineFilter('all');
             setStageFilter('all');
+            setOwnerFilter('all');
           }}
-          className="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer relative overflow-hidden group"
-        >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 opacity-90" />
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-blue-700 transition">
-              Total Active Deals
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px]">handshake</span>
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-slate-900 mt-1 tracking-tight">
-            {dealStats.total}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500">
-            <span className="font-semibold text-blue-700">{dealStats.totalMembers}</span>
-            <span>Covered Members Across Portfolios</span>
-          </div>
-        </div>
-
-        {/* Card 2: Ready to Enroll */}
-        <div
-          onClick={() => {
-            setActiveViewTab('ready');
-          }}
-          className="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs hover:shadow-md hover:border-amber-300 transition-all duration-200 cursor-pointer relative overflow-hidden group"
-        >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-600 opacity-90" />
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-amber-700 transition">
-              Ready to Enroll (SLA Action)
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-slate-900 mt-1 tracking-tight">
-            {dealStats.readyToEnroll}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1 text-[11px] text-amber-700 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            <span>Marketplace Consent &amp; Submission</span>
-          </div>
-        </div>
-
-        {/* Card 3: Verified Won */}
-        <div
-          onClick={() => {
-            setActiveViewTab('verified');
-          }}
-          className="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all duration-200 cursor-pointer relative overflow-hidden group"
-        >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-600 opacity-90" />
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-emerald-700 transition">
-              Verified &amp; Won Policies
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px]">verified</span>
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-emerald-700 mt-1 tracking-tight">
-            {dealStats.verifiedWon}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1 text-[11px] text-emerald-700 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span>Active Binder Confirmed by Carrier</span>
-          </div>
-        </div>
-
-        {/* Card 4: Book Distribution */}
-        <div
-          onClick={() => {
-            setPipelineFilter(pipelineFilter === 'Obamacare 2026' ? 'Medicare' : 'Obamacare 2026');
-          }}
-          className="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs hover:shadow-md hover:border-purple-300 transition-all duration-200 cursor-pointer relative overflow-hidden group"
-        >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-600 opacity-90" />
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-purple-700 transition">
-              Pipeline Distribution
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px]">pie_chart</span>
-            </div>
-          </div>
-          <div className="text-lg font-bold text-slate-900 mt-1 tracking-tight flex items-center gap-2">
-            <span className="text-blue-600">{dealStats.obamacareCount} <span className="text-xs font-semibold text-slate-500">ACA</span></span>
-            <span className="text-slate-300">/</span>
-            <span className="text-purple-600">{dealStats.medicareCount} <span className="text-xs font-semibold text-slate-500">Med</span></span>
-          </div>
-          <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500">
-            <span className="material-symbols-outlined text-[14px] text-purple-500">filter_alt</span>
-            <span>Click to toggle ACA / Medicare</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 3. Top View Tabs (Matching Screenshot) ───────────────────────── */}
-      <div className="flex items-center gap-1 border-b border-slate-200 text-xs font-semibold overflow-x-auto pb-px">
-        <button
-          onClick={() => setActiveViewTab('all')}
           className={`px-3.5 py-2 border-b-2 transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
             activeViewTab === 'all'
               ? 'border-[#00B4D8] text-[#104882] font-bold'
@@ -464,9 +336,6 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
         >
           <span className="material-symbols-outlined text-[15px] text-slate-400">group</span>
           <span>All Deals</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-            {dealsList.length >= 1000 ? `${(dealsList.length / 1000).toFixed(1)}K` : dealsList.length}
-          </span>
         </button>
 
         <button
