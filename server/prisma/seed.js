@@ -1475,9 +1475,85 @@ async function main() {
         }
       });
     }
+
+    // Seed Kanban Deals from Screenshot media_1790228065239.png
+    const KANBAN_ITEMS = [
+      { id: 'D26005101', code: 'D26005101', title: 'Phuoc (Thi) Le - Obamacare 10/2026 (NC)', shortTitle: 'Phuoc (Thi) Le - Obamacare 10/...', amount: '$20.57', carrier: 'BCBS', pipeline: 'Obamacare 2026', stage: 'Enrolled - Need 1st Payment (Obamacare 2026)', sellingState: 'North Carolina (NC)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '09/23/2026, 15:52', createdAt: new Date('2026-09-23T15:52:00.000Z'), contactName: 'Phuoc (Thi) Le' },
+      { id: 'D26005102', code: 'D26005102', title: 'TUYETHANG PHAM - OB 10/26', shortTitle: 'TUYETHANG PHAM - OB 10/26', amount: '$10.67', carrier: 'Community Health Choice', pipeline: 'Obamacare 2026', stage: 'Enrolled - Need 1st Payment (Obamacare 2026)', sellingState: 'Texas (TX)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '09/21/2026, 06:42', createdAt: new Date('2026-09-21T06:42:00.000Z'), contactName: 'Tuyethang Pham' },
+      { id: 'D26005103', code: 'D26005103', title: 'Thi Minh Tam Le - OB 10/2026', shortTitle: 'Thi Minh Tam Le - OB 10/2026', amount: '$10.56', carrier: 'UHC - RMHP', pipeline: 'Obamacare 2026', stage: 'Enrolled - Need 1st Payment (Obamacare 2026)', sellingState: 'Colorado (CO)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '09/18/2026, 15:39', createdAt: new Date('2026-09-18T15:39:00.000Z'), contactName: 'Thi Minh Tam Le' },
+      { id: 'D26005104', code: 'D26005104', title: 'Thi Kim Minh Le - OB 10/2026', shortTitle: 'Thi Kim Minh Le - OB 10/2026', amount: '$70.01', carrier: 'UHC - RMHP', pipeline: 'Obamacare 2026', stage: 'Enrolled - Need 1st Payment (Obamacare 2026)', sellingState: 'Colorado (CO)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '05/21/2026, 15:34', createdAt: new Date('2026-05-21T15:34:00.000Z'), contactName: 'Thi Kim Minh Le' },
+      { id: 'D26005105', code: 'D26005105', title: 'Bao Nguyen - OB 10/2026 (NC)', shortTitle: 'Bao Nguyen - OB 10/2026 (NC)', amount: '$136.08', carrier: 'Ambetter', pipeline: 'Obamacare 2026', stage: 'Enrolled - Need 1st Payment (Obamacare 2026)', sellingState: 'North Carolina (NC)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '09/15/2026, 11:20', createdAt: new Date('2026-09-15T11:20:00.000Z'), contactName: 'Bao Nguyen' },
+      { id: 'D26005106', code: 'D26005106', title: 'Thanh van Tran + Phuong thuy Tran', shortTitle: 'Thanh van Tran + Phuong thuy...', amount: '$0.00', carrier: 'UHC - RMHP', pipeline: 'Obamacare 2026', stage: 'Enrolled - 1st Payment done (Obamacare 2026)', sellingState: 'Colorado (CO)', dealOwnerName: 'Tri Chau', dealOwnerAvatar: 'TC', dealOwnerBg: 'bg-emerald-600 text-white', lastModifiedTime: '09/10/2026, 07:43', createdAt: new Date('2026-09-10T07:43:00.000Z'), contactName: 'Thanh Van Tran' },
+      { id: 'D26005107', code: 'D26005107', title: 'Cuong Si Truong - OB 10/2026', shortTitle: 'Cuong Si Truong - OB 10/2026', amount: '$0.00', carrier: 'Oscar', pipeline: 'Obamacare 2026', stage: 'Enrolled - 1st Payment done (Obamacare 2026)', sellingState: 'Texas (TX)', dealOwnerName: 'Hao Nguyen', dealOwnerAvatar: 'HN', dealOwnerBg: 'bg-purple-600 text-white', lastModifiedTime: '09/10/2026, 16:02', createdAt: new Date('2026-09-10T16:02:00.000Z'), contactName: 'Cuong Si Truong' },
+      { id: 'D26005108', code: 'D26005108', title: 'Thai Pham + Thy Thi Xuan Nguyen', shortTitle: 'Thai Pham + Thy Thi Xuan Nguye...', amount: '$0.00', carrier: 'Ambetter', pipeline: 'Obamacare 2026', stage: 'Enrolled - 1st Payment done (Obamacare 2026)', sellingState: 'Indiana (IN)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '09/16/2026, 11:09', createdAt: new Date('2026-09-16T11:09:00.000Z'), contactName: 'Thai Pham' },
+      { id: 'D26005109', code: 'D26005109', title: 'Duc Minh Le - OB 2026 (TX)', shortTitle: 'Duc Minh Le - OB 2026 (TX)', amount: '$1,210.17', carrier: 'BCBS', pipeline: 'Obamacare 2026', stage: 'Enrolled - 1st Payment done (Obamacare 2026)', sellingState: 'Texas (TX)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '09/08/2026, 10:14', createdAt: new Date('2026-09-08T10:14:00.000Z'), contactName: 'Duc Minh Le' },
+      { id: 'D26005110', code: 'D26005110', title: 'Tien Dung Nguyen + Minh Trang', shortTitle: 'Tien Dung Nguyen + Minh Trang...', amount: '$0.00', carrier: 'UHC - RMHP', pipeline: 'Obamacare 2026', stage: 'Enrolled - Active (Obamacare 2026)', sellingState: 'Colorado (CO)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '05/14/2026, 08:22', createdAt: new Date('2026-05-14T08:22:00.000Z'), contactName: 'Tien Dung Nguyen' },
+      { id: 'D26005111', code: 'D26005111', title: 'Vi Huynh Truc Nguyen OB 6/26 (MI)', shortTitle: 'Vi Huynh Truc Nguyen OB 6/26 (MI)', amount: '$125.28', carrier: 'Priority Health', pipeline: 'Obamacare 2026', stage: 'Enrolled - Active (Obamacare 2026)', sellingState: 'Michigan (MI)', dealOwnerName: 'Tri Chau', dealOwnerAvatar: 'TC', dealOwnerBg: 'bg-emerald-600 text-white', lastModifiedTime: '06/28/2026, 11:14', createdAt: new Date('2026-06-28T11:14:00.000Z'), contactName: 'Vi Huynh Truc Nguyen' },
+      { id: 'D26005112', code: 'D26005112', title: 'CF-Larry (B) Edwards Jr + Victoria Edwards', shortTitle: 'CF-Larry (B) Edwards Jr + Victori...', amount: '$179.98', carrier: 'BCBS', pipeline: 'Obamacare 2026', stage: 'Enrolled - Active (Obamacare 2026)', sellingState: 'North Carolina (NC)', dealOwnerName: 'Hao Nguyen', dealOwnerAvatar: 'HN', dealOwnerBg: 'bg-purple-600 text-white', lastModifiedTime: '11/11/2025, 16:24', createdAt: new Date('2025-11-11T16:24:00.000Z'), contactName: 'Larry Edwards Jr' },
+      { id: 'D26005113', code: 'D26005113', title: 'Nguyen D Nguyen - OB 06/22/2026', shortTitle: 'Nguyen D Nguyen - OB 06/22/2026', amount: '$0.00', carrier: 'Ambetter', pipeline: 'Obamacare 2026', stage: 'Enrolled - Active (Obamacare 2026)', sellingState: 'Georgia (GA)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '08/13/2026, 14:03', createdAt: new Date('2026-08-13T14:03:00.000Z'), contactName: 'Nguyen D Nguyen' },
+      { id: 'D26005118', code: 'D26005118', title: 'Portfolio Multi-Family ACA Active Group', shortTitle: 'Portfolio Multi-Family ACA Active...', amount: '$62,308.99', carrier: 'BCBS', pipeline: 'Obamacare 2026', stage: 'Enrolled - Active (Obamacare 2026)', sellingState: 'National Portfolios', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '09/01/2026, 08:00', createdAt: new Date('2026-09-01T08:00:00.000Z'), contactName: 'The Best Rate Enterprise Clients' },
+      { id: 'D26005114', code: 'D26005114', title: 'Non Commission - Thanh Nguyen OB 2026', shortTitle: 'Non Commission - Thanh Nguye...', amount: '$73.60', carrier: 'Ambetter', pipeline: 'Obamacare 2026', stage: 'Non-Commission - Active (Obamacare 2026)', sellingState: 'Texas (TX)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '07/15/2026, 09:34', createdAt: new Date('2026-07-15T09:34:00.000Z'), contactName: 'Thanh Nguyen' },
+      { id: 'D26005115', code: 'D26005115', title: 'Non Commission - My Anh Hong Tran', shortTitle: 'Non Commission - My Anh Hong ...', amount: '$56.95', carrier: 'MercyCare', pipeline: 'Obamacare 2026', stage: 'Non-Commission - Active (Obamacare 2026)', sellingState: 'Wisconsin (WI)', dealOwnerName: 'Tri Chau', dealOwnerAvatar: 'TC', dealOwnerBg: 'bg-emerald-600 text-white', lastModifiedTime: '11/13/2025, 12:39', createdAt: new Date('2025-11-13T12:39:00.000Z'), contactName: 'My Anh Hong' },
+      { id: 'D26005116', code: 'D26005116', title: 'Non Commission - need collect fee - Khanh Linh', shortTitle: 'Non Commission - need collect f...', amount: '$72.69', carrier: 'BCBS', pipeline: 'Obamacare 2026', stage: 'Non-Commission - Active (Obamacare 2026)', sellingState: 'North Carolina (NC)', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '10/24/2025, 09:06', createdAt: new Date('2025-10-24T09:06:00.000Z'), contactName: 'Khanh Linh Tran' },
+      { id: 'D26005117', code: 'D26005117', title: 'Han Pham + Dylan Nguyen - OB 2026', shortTitle: 'Han Pham + Dylan Nguyen - OB...', amount: '$56.96', carrier: 'Scott & White', pipeline: 'Obamacare 2026', stage: 'Non-Commission - Active (Obamacare 2026)', sellingState: 'Texas (TX)', dealOwnerName: 'Hao Nguyen', dealOwnerAvatar: 'HN', dealOwnerBg: 'bg-purple-600 text-white', lastModifiedTime: '08/13/2026, 14:00', createdAt: new Date('2026-08-13T14:00:00.000Z'), contactName: 'Han Pham' },
+      { id: 'D26005119', code: 'D26005119', title: 'Non-Commission Legacy Active Policies Group', shortTitle: 'Non-Commission Legacy Active...', amount: '$1,008.31', carrier: 'Ambetter', pipeline: 'Obamacare 2026', stage: 'Non-Commission - Active (Obamacare 2026)', sellingState: 'Multi-State', dealOwnerName: 'Khanh Nguyen', dealOwnerAvatar: 'KN', dealOwnerBg: 'bg-blue-600 text-white', lastModifiedTime: '08/01/2026, 09:00', createdAt: new Date('2026-08-01T09:00:00.000Z'), contactName: 'Legacy ACA Accounts' },
+    ];
+
+    for (const item of KANBAN_ITEMS) {
+      const exists = await prisma.deal.findUnique({ where: { id: item.id } });
+      if (!exists) {
+        let contact = await prisma.contact.findFirst({ where: { fullName: item.contactName } });
+        if (!contact) {
+          contact = await prisma.contact.create({
+            data: {
+              id: `CT_${item.code}`,
+              code: `CT_${item.code}`,
+              firstName: item.contactName.split(' ')[0] || item.contactName,
+              lastName: item.contactName.split(' ').slice(1).join(' ') || 'Client',
+              fullName: item.contactName,
+              phone: '+1 (555) 019-' + Math.floor(1000 + Math.random() * 9000),
+              email: item.contactName.toLowerCase().replace(/[^a-z0-9]/g, '') + '@example.com',
+              language: 'Vietnamese',
+              contactOwnerName: item.dealOwnerName,
+              contactOwnerAvatar: item.dealOwnerAvatar,
+              contactOwnerBg: item.dealOwnerBg,
+              status: 'Active',
+              lastModifiedBy: item.dealOwnerName,
+              lastModifiedTime: item.lastModifiedTime,
+              state: item.sellingState,
+            },
+          });
+        }
+        await prisma.deal.create({
+          data: {
+            id: item.id,
+            code: item.code,
+            title: item.title,
+            shortTitle: item.shortTitle,
+            contactId: contact.id,
+            pipeline: item.pipeline,
+            stage: item.stage,
+            carrier: item.carrier,
+            amount: item.amount,
+            closeDate: '10/31/2026',
+            sellingState: item.sellingState,
+            dealOwnerName: item.dealOwnerName,
+            dealOwnerAvatar: item.dealOwnerAvatar,
+            dealOwnerBg: item.dealOwnerBg,
+            lastModifiedBy: item.dealOwnerName,
+            lastModifiedTime: item.lastModifiedTime,
+            createdAt: item.createdAt,
+            primaryMemberId: 'MID-' + Math.floor(10000000 + Math.random() * 90000000),
+            enrolledNpn: 'Anh Que Pham 20011862',
+            saleSupportStatus: 'Completed',
+            numberMember: 1,
+          },
+        });
+      }
+    }
   }
 
-  console.log('🎉 Seeding completed successfully! 10 full customer profiles ready.');
+  console.log('🎉 Seeding completed successfully! Full customer profiles and Kanban deals ready.');
 }
 
 main()

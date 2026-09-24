@@ -3,17 +3,22 @@ import {
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
 } from '../../../data/mockCrmData';
-import { getDeals } from '../../../services/api';
+import { getDeals, updateDeal } from '../../../services/api';
+import StaffDealsKanban from './StaffDealsKanban';
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
   const [dealsList, setDealsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
+  const [viewMode, setViewMode] = useState('kanban'); // 'list' | 'kanban'
   const [searchQuery, setSearchQuery] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('all');
   const [pipelineFilter, setPipelineFilter] = useState('all');
+  const [carrierFilter, setCarrierFilter] = useState('all');
+  const [commissionIdQuery, setCommissionIdQuery] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
   const [activeViewTab, setActiveViewTab] = useState('all');
+  const [collapsedColumns, setCollapsedColumns] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -76,6 +81,15 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
         pipelineFilter === 'all' ||
         (d.pipeline && d.pipeline.toLowerCase().includes(pipelineFilter.toLowerCase()));
 
+      const matchesCarrier =
+        carrierFilter === 'all' ||
+        (d.carrier && d.carrier.toLowerCase().includes(carrierFilter.toLowerCase()));
+
+      const matchesCommissionId =
+        !commissionIdQuery ||
+        (d.code && d.code.toLowerCase().includes(commissionIdQuery.toLowerCase())) ||
+        (d.primaryMemberId && d.primaryMemberId.toLowerCase().includes(commissionIdQuery.toLowerCase()));
+
       const matchesStage =
         stageFilter === 'all' ||
         (d.stage && d.stage.toLowerCase().includes(stageFilter.toLowerCase()));
@@ -83,21 +97,84 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
       let matchesTab = true;
       if (activeViewTab === 'my') {
         matchesTab = d.dealOwner?.name?.includes('Khanh Nguyen');
+      } else if (activeViewTab === 'team') {
+        matchesTab = ['khanh nguyen', 'tri chau', 'hao nguyen'].some((name) =>
+          d.dealOwner?.name?.toLowerCase().includes(name)
+        );
       } else if (activeViewTab === 'ready') {
         matchesTab = d.stage?.includes('Ready to Enroll');
       } else if (activeViewTab === 'verified') {
         matchesTab = d.stage?.includes('VERIFIED') || d.stage?.includes('Closed Won');
       }
 
-      return matchesSearch && matchesOwner && matchesPipeline && matchesStage && matchesTab;
+      return (
+        matchesSearch &&
+        matchesOwner &&
+        matchesPipeline &&
+        matchesCarrier &&
+        matchesCommissionId &&
+        matchesStage &&
+        matchesTab
+      );
     });
-  }, [dealsList, searchQuery, ownerFilter, pipelineFilter, stageFilter, activeViewTab]);
+  }, [
+    dealsList,
+    searchQuery,
+    ownerFilter,
+    pipelineFilter,
+    carrierFilter,
+    commissionIdQuery,
+    stageFilter,
+    activeViewTab,
+  ]);
 
   // Unique owners
   const ownerOptions = useMemo(() => {
     const set = new Set(dealsList.map((d) => d.dealOwner?.name).filter(Boolean));
     return Array.from(set);
   }, [dealsList]);
+
+  // Unique carriers
+  const carrierOptions = useMemo(() => {
+    const set = new Set(dealsList.map((d) => d.carrier).filter(Boolean));
+    return Array.from(set);
+  }, [dealsList]);
+
+  // Handle stage change from Kanban drag and drop
+  async function handleUpdateDealStage(dealId, newStage) {
+    setDealsList((prev) =>
+      prev.map((d) => (d.id === dealId ? { ...d, stage: newStage } : d))
+    );
+    try {
+      await updateDeal(dealId, { stage: newStage });
+      showToast(`Đã chuyển trạng thái deal`);
+    } catch (err) {
+      console.warn('[StaffDealsList] Error updating deal stage:', err);
+      loadDealsData();
+    }
+  }
+
+  function handleCollapseAll() {
+    setCollapsedColumns({
+      PENDING_ENROLLMENT: true,
+      NEED_1ST_PAYMENT: true,
+      PAYMENT_DONE: true,
+      ENROLLED_ACTIVE: true,
+      NON_COMMISSION_ACTIVE: true,
+      CAN_NOT_CONTACT: true,
+    });
+  }
+
+  function handleExpandAll() {
+    setCollapsedColumns({});
+  }
+
+  function handleToggleColumn(colId) {
+    setCollapsedColumns((prev) => ({
+      ...prev,
+      [colId]: !prev[colId],
+    }));
+  }
 
   // Live KPI Statistics
   const dealStats = useMemo(() => {
@@ -375,127 +452,248 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
         </div>
       </div>
 
-      {/* ── 3. Quick View Tabs ───────────────────────────────────────────── */}
+      {/* ── 3. Top View Tabs (Matching Screenshot) ───────────────────────── */}
       <div className="flex items-center gap-1 border-b border-slate-200 text-xs font-semibold overflow-x-auto pb-px">
-        {[
-          { key: 'all', label: `All Deals (${dealsList.length})` },
-          { key: 'my', label: 'My Deals' },
-          { key: 'ready', label: 'Ready to Enroll' },
-          { key: 'verified', label: 'Verified / Won' },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveViewTab(tab.key)}
-            className={`px-3 py-2 border-b-2 transition cursor-pointer whitespace-nowrap ${
-              activeViewTab === tab.key
-                ? 'border-[#104882] text-[#104882]'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        <button
+          onClick={() => setActiveViewTab('all')}
+          className={`px-3.5 py-2 border-b-2 transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeViewTab === 'all'
+              ? 'border-[#00B4D8] text-[#104882] font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[15px] text-slate-400">group</span>
+          <span>All Deals</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+            {dealsList.length >= 1000 ? `${(dealsList.length / 1000).toFixed(1)}K` : dealsList.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveViewTab('my')}
+          className={`px-3.5 py-2 border-b-2 transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeViewTab === 'my'
+              ? 'border-[#00B4D8] text-[#104882] font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[15px] text-slate-400">badge</span>
+          <span>My Team Deal</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+            1.1K
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveViewTab('team')}
+          className={`px-3.5 py-2 border-b-2 transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeViewTab === 'team'
+              ? 'border-[#00B4D8] text-[#104882] font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[15px] text-slate-400">diversity_3</span>
+          <span>Khanh, TriChau, Hao - Deal</span>
+        </button>
+
         <button
           type="button"
-          className="px-2 py-1 text-slate-400 hover:text-blue-600 flex items-center gap-1 text-[11px]"
+          onClick={() => showToast('Feature: Create custom saved view')}
+          className="px-2.5 py-1 text-blue-600 hover:text-blue-800 flex items-center gap-1 text-[11px] font-medium cursor-pointer ml-1"
         >
           <span className="material-symbols-outlined text-[14px]">add</span>
-          <span>Add view</span>
+          <span>Add View</span>
         </button>
       </div>
 
-      {/* ── 3. Filters & Search Toolbar ──────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-        <div className="flex items-center gap-2 flex-wrap flex-grow">
-          {/* Search Box */}
-          <div className="relative min-w-[240px] max-w-sm flex-grow">
-            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">
-              search
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by deal name, code, contact..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 bg-white"
-            />
+      {/* ── 4. Secondary Control Toolbar (Exact match to media_1790228065239.png) ─ */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+        {/* Left Side: View Toggle & Dropdown Filters */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* List vs Kanban Toggle Button */}
+          <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-lg border border-slate-200/80 shrink-0">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">format_list_bulleted</span>
+              <span>List</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('kanban')}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                viewMode === 'kanban'
+                  ? 'bg-[#00B4D8] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">view_kanban</span>
+              <span>Kanban</span>
+            </button>
           </div>
 
-          {/* Deal Owner Filter */}
+          <span className="text-xs font-bold text-slate-700 ml-1">Filters:</span>
+
+          {/* Pipeline Selector */}
+          <div className="relative">
+            <select
+              value={pipelineFilter}
+              onChange={(e) => setPipelineFilter(e.target.value)}
+              className="appearance-none pl-2.5 pr-7 py-1 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 hover:bg-slate-50 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+            >
+              <option value="all">All Pipelines</option>
+              <option value="Obamacare 2026">Obamacare 2026</option>
+              <option value="Medicare 2026">Medicare 2026</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+              expand_more
+            </span>
+          </div>
+
+          {/* Deal Owner Dropdown */}
           <div className="relative">
             <select
               value={ownerFilter}
               onChange={(e) => setOwnerFilter(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:border-blue-500 transition cursor-pointer"
+              className="appearance-none pl-2.5 pr-7 py-1 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
             >
-              <option value="all">Deal Owner: All</option>
+              <option value="all">Deal Owner...</option>
               {ownerOptions.map((o) => (
                 <option key={o} value={o}>
                   {o}
                 </option>
               ))}
             </select>
-            <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[15px] text-slate-400 pointer-events-none">
+            <span className="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
               expand_more
             </span>
           </div>
 
-          {/* Pipeline Filter */}
+          {/* Carrier Dropdown */}
           <div className="relative">
             <select
-              value={pipelineFilter}
-              onChange={(e) => setPipelineFilter(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:border-blue-500 transition cursor-pointer"
+              value={carrierFilter}
+              onChange={(e) => setCarrierFilter(e.target.value)}
+              className="appearance-none pl-2.5 pr-7 py-1 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
             >
-              <option value="all">Pipeline: All</option>
-              <option value="Obamacare 2026">Obamacare 2026</option>
-              <option value="Medicare 2026">Medicare 2026</option>
-            </select>
-            <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[15px] text-slate-400 pointer-events-none">
-              expand_more
-            </span>
-          </div>
-
-          {/* Stage Filter */}
-          <div className="relative">
-            <select
-              value={stageFilter}
-              onChange={(e) => setStageFilter(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:border-blue-500 transition cursor-pointer max-w-[210px] truncate"
-            >
-              <option value="all">Stage: All</option>
-              {(pipelineFilter.includes('Medicare')
-                ? MEDICARE_DEAL_STAGES
-                : OBAMACARE_DEAL_STAGES
-              ).map((st) => (
-                <option key={st} value={st}>
-                  {st}
+              <option value="all">Carrier...</option>
+              {carrierOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
                 </option>
               ))}
             </select>
-            <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[15px] text-slate-400 pointer-events-none">
+            <span className="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
               expand_more
             </span>
           </div>
+
+          {/* Commission ID Input */}
+          <div className="relative w-36">
+            <input
+              type="text"
+              value={commissionIdQuery}
+              onChange={(e) => setCommissionIdQuery(e.target.value)}
+              placeholder="Commission ID..."
+              className="w-full pl-2.5 pr-6 py-1 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 bg-white shadow-2xs"
+            />
+            <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+              search
+            </span>
+          </div>
+
+          {/* Advanced Filters Button with Red Badge '1' */}
+          <button
+            type="button"
+            onClick={() => showToast('Advanced Filters: Active (1 rule applied)')}
+            className="relative px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs cursor-pointer transition"
+          >
+            <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">
+              1
+            </span>
+            <span>Advanced Filters</span>
+          </button>
         </div>
 
-        {/* DB Sync / Refresh button */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Right Side: Refresh, Collapse All, Expand All */}
+        <div className="flex items-center gap-3 shrink-0 self-end lg:self-center">
           <button
             type="button"
             onClick={loadDealsData}
-            className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-1"
+            className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 cursor-pointer transition"
+            title="Tải lại dữ liệu từ PostgreSQL"
           >
-            <span className="material-symbols-outlined text-[15px]">sync</span>
-            <span>Làm mới ({dealsList.length} deals)</span>
+            <span className={`material-symbols-outlined text-[16px] text-slate-500 ${loading ? 'animate-spin' : ''}`}>
+              refresh
+            </span>
+            <span>Refresh</span>
           </button>
+
+          {viewMode === 'kanban' && (
+            <>
+              <button
+                type="button"
+                onClick={handleCollapseAll}
+                className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 cursor-pointer transition"
+                title="Thu gọn tất cả các cột"
+              >
+                <span className="material-symbols-outlined text-[16px] text-slate-500">unfold_less</span>
+                <span>Collapse all</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExpandAll}
+                className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 cursor-pointer transition"
+                title="Mở rộng tất cả các cột"
+              >
+                <span className="material-symbols-outlined text-[16px] text-slate-500">unfold_more</span>
+                <span>Expand all</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* ── 4. Main Deals Table (Exact matching Contacts List layout) ─────── */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
-        {/* Table Title Bar */}
-        <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+      {/* ── 5. Tertiary Search Sub-row (Matching Image) ──────────────────── */}
+      <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        <span className="text-xs font-bold text-slate-700">Filters:</span>
+        <div className="relative flex-grow max-w-md">
+          <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[15px] text-slate-400">
+            search
+          </span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name, code..."
+            className="w-full pl-8 pr-3 py-1 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 bg-white"
+          />
+        </div>
+        <div className="text-[11px] text-slate-500 font-medium ml-auto">
+          Hiển thị <span className="font-bold text-slate-800">{filteredDeals.length}</span> / {dealsList.length} deals
+        </div>
+      </div>
+
+      {/* ── 6. Main Content Area (Kanban or Table) ────────────────────────── */}
+      {viewMode === 'kanban' ? (
+        <StaffDealsKanban
+          deals={filteredDeals}
+          onSelectDeal={onSelectDeal}
+          onUpdateDealStage={handleUpdateDealStage}
+          collapsedColumns={collapsedColumns}
+          onToggleCollapse={handleToggleColumn}
+        />
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
+          {/* Table Title Bar */}
+          <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
             <span className="material-symbols-outlined text-[16px] text-slate-500">grid_on</span>
             <span>All Deals</span>
@@ -730,7 +928,8 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* ── 5. Create Deal Modal ─────────────────────────────────────────── */}
       {showCreateModal && (
