@@ -93,7 +93,7 @@ export default function App() {
             }
           />
           <Route
-            path="/dashboard/agent"
+            path="/dashboard/agent/*"
             element={
               <ProtectedRoute allowedRoles={['agent']}>
                 <AgentDashboard />

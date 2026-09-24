@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import StaffCrmLayout from './staff/StaffCrmLayout';
 import StaffContactsList from './staff/StaffContactsList';
 import StaffContactDetail from './staff/StaffContactDetail';
@@ -7,6 +7,10 @@ import StaffDealDetail from './staff/StaffDealDetail';
 import StaffDealsList from './staff/StaffDealsList';
 import StaffCustomerDocumentDetail from './staff/StaffCustomerDocumentDetail';
 import StaffCrmDashboard from './staff/StaffCrmDashboard';
+import StaffTicketsList from './staff/StaffTicketsList';
+import StaffTicketDetail from './staff/StaffTicketDetail';
+import StaffTasksList from './staff/StaffTasksList';
+import StaffTaskDetail from './staff/StaffTaskDetail';
 import {
   MOCK_CONTACTS,
   SAMPLE_CONTACTS,
@@ -19,36 +23,62 @@ import {
   getDeal,
   getDocument,
   updateDeal as apiUpdateDeal,
+  getTicket,
+  getTask,
 } from '../../services/api';
 
 export default function StaffDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Current view: 'dashboard' | 'list' | 'contact-detail' | 'deals-list' | 'deal-detail' | 'customer-document-detail'
+  // Current view: 'dashboard' | 'list' | 'contact-detail' | 'deals-list' | 'deal-detail' | 'customer-document-detail' | 'tickets-list' | 'ticket-detail' | 'tasks-list' | 'task-detail'
   const [currentTab, setCurrentTab] = useState('contacts');
   const [currentView, setCurrentView] = useState('list');
   const [selectedContact, setSelectedContact] = useState(CONTACT_DETAIL_DATA);
   const [selectedDeal, setSelectedDeal] = useState(DEAL_DETAIL_DATA);
   const [selectedDocument, setSelectedDocument] = useState(CUSTOMER_DOCUMENT_DATA);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
 
-  // Sync state with URL path if applicable
+  // Sync state with URL path
   useEffect(() => {
     const path = location.pathname;
-    if (
-      path.endsWith('/dashboard/staff/dashboard') ||
-      path.endsWith('/dashboard/staff/dashboard/')
-    ) {
+
+    if (path.endsWith('/dashboard/staff/dashboard') || path.endsWith('/dashboard/staff/dashboard/')) {
       setCurrentTab('dashboard');
       setCurrentView('dashboard');
+    } else if (path.includes('/dashboard/staff/tickets/')) {
+      const parts = path.split('/dashboard/staff/tickets/');
+      const ticketId = parts[1];
+      if (ticketId) {
+        getTicket(ticketId)
+          .then((res) => { if (res) setSelectedTicket(res); })
+          .catch(() => {});
+      }
+      setCurrentTab('tickets');
+      setCurrentView('ticket-detail');
+    } else if (path.endsWith('/dashboard/staff/tickets') || path.endsWith('/dashboard/staff/tickets/')) {
+      setCurrentTab('tickets');
+      setCurrentView('tickets-list');
+    } else if (path.includes('/dashboard/staff/tasks/')) {
+      const parts = path.split('/dashboard/staff/tasks/');
+      const taskId = parts[1];
+      if (taskId) {
+        getTask(taskId)
+          .then((res) => { if (res) setSelectedTask(res); })
+          .catch(() => {});
+      }
+      setCurrentTab('tasks');
+      setCurrentView('task-detail');
+    } else if (path.endsWith('/dashboard/staff/tasks') || path.endsWith('/dashboard/staff/tasks/')) {
+      setCurrentTab('tasks');
+      setCurrentView('tasks-list');
     } else if (path.includes('/dashboard/staff/documents/')) {
       const parts = path.split('/dashboard/staff/documents/');
       const docId = parts[1];
       if (docId) {
         getDocument(docId)
-          .then((res) => {
-            if (res) setSelectedDocument((prev) => ({ ...prev, ...res }));
-          })
+          .then((res) => { if (res) setSelectedDocument((prev) => ({ ...prev, ...res })); })
           .catch(() => {});
       }
       setCurrentTab('contacts');
@@ -58,17 +88,12 @@ export default function StaffDashboard() {
       const dealId = parts[1];
       if (dealId) {
         getDeal(dealId)
-          .then((res) => {
-            if (res) setSelectedDeal((prev) => ({ ...prev, ...res }));
-          })
+          .then((res) => { if (res) setSelectedDeal((prev) => ({ ...prev, ...res })); })
           .catch(() => {});
       }
       setCurrentTab('deals');
       setCurrentView('deal-detail');
-    } else if (
-      path.endsWith('/dashboard/staff/deals') ||
-      path.endsWith('/dashboard/staff/deals/')
-    ) {
+    } else if (path.endsWith('/dashboard/staff/deals') || path.endsWith('/dashboard/staff/deals/')) {
       setCurrentTab('deals');
       setCurrentView('deals-list');
     } else if (path.includes('/dashboard/staff/contacts/')) {
@@ -76,11 +101,7 @@ export default function StaffDashboard() {
       const contactId = parts[1];
       if (contactId) {
         getContact(contactId)
-          .then((data) => {
-            if (data) {
-              handleSelectContact(data, false);
-            }
-          })
+          .then((data) => { if (data) handleSelectContact(data, false); })
           .catch(() => {
             const found = SAMPLE_CONTACTS.find((c) => c.id === contactId || c.code === contactId);
             if (found) handleSelectContact(found, false);
@@ -94,7 +115,7 @@ export default function StaffDashboard() {
     }
   }, [location.pathname]);
 
-  // Handlers for smooth navigation
+  // ── Contact Handlers ──────────────────────────────────────────────────────
   function handleSelectContact(contact, updateUrl = true) {
     const p = contact.primary || {};
     let firstName = contact.firstName || p.firstName;
@@ -103,16 +124,9 @@ export default function StaffDashboard() {
 
     if (!firstName && !lastName && contact.fullName) {
       const parts = contact.fullName.trim().split(/\s+/);
-      if (parts.length === 1) {
-        firstName = parts[0];
-        lastName = '';
-      } else if (parts.length === 2) {
-        firstName = parts[0];
-        lastName = parts[1];
-      } else {
-        firstName = parts.slice(0, -1).join(' ');
-        lastName = parts[parts.length - 1];
-      }
+      if (parts.length === 1) { firstName = parts[0]; lastName = ''; }
+      else if (parts.length === 2) { firstName = parts[0]; lastName = parts[1]; }
+      else { firstName = parts.slice(0, -1).join(' '); lastName = parts[parts.length - 1]; }
     }
 
     const mergedContact = {
@@ -153,24 +167,35 @@ export default function StaffDashboard() {
     }
   }
 
+  // ── Deal Handlers ─────────────────────────────────────────────────────────
   function handleSelectDeal(deal) {
-    setSelectedDeal({
-      ...DEAL_DETAIL_DATA,
-      ...(deal || {}),
-    });
+    setSelectedDeal({ ...DEAL_DETAIL_DATA, ...(deal || {}) });
     setCurrentView('deal-detail');
     navigate(`/dashboard/staff/deals/${deal?.id || 'D26005033'}`, { replace: false });
   }
 
+  // ── Document Handler ──────────────────────────────────────────────────────
   function handleSelectCustomerDocument(doc) {
-    setSelectedDocument({
-      ...CUSTOMER_DOCUMENT_DATA,
-      ...(doc || {}),
-    });
+    setSelectedDocument({ ...CUSTOMER_DOCUMENT_DATA, ...(doc || {}) });
     setCurrentView('customer-document-detail');
     navigate(`/dashboard/staff/documents/${doc?.id || 'DOC-01'}`, { replace: false });
   }
 
+  // ── Ticket Handlers ───────────────────────────────────────────────────────
+  function handleSelectTicket(ticket) {
+    setSelectedTicket(ticket);
+    setCurrentView('ticket-detail');
+    navigate(`/dashboard/staff/tickets/${ticket?.id || ticket}`, { replace: false });
+  }
+
+  // ── Task Handlers ─────────────────────────────────────────────────────────
+  function handleSelectTask(task) {
+    setSelectedTask(task);
+    setCurrentView('task-detail');
+    navigate(`/dashboard/staff/tasks/${task?.id || task}`, { replace: false });
+  }
+
+  // ── Tab Navigation ────────────────────────────────────────────────────────
   function handleSelectTab(tab) {
     setCurrentTab(tab);
     if (tab === 'dashboard') {
@@ -182,9 +207,16 @@ export default function StaffDashboard() {
     } else if (tab === 'contacts') {
       setCurrentView('list');
       navigate('/dashboard/staff', { replace: false });
+    } else if (tab === 'tickets') {
+      setCurrentView('tickets-list');
+      navigate('/dashboard/staff/tickets', { replace: false });
+    } else if (tab === 'tasks') {
+      setCurrentView('tasks-list');
+      navigate('/dashboard/staff/tasks', { replace: false });
     }
   }
 
+  // ── Back Navigation ───────────────────────────────────────────────────────
   function handleBackToContacts() {
     setCurrentTab('contacts');
     setCurrentView('list');
@@ -205,11 +237,18 @@ export default function StaffDashboard() {
     }
   }
 
+  function handleBackFromTicket() {
+    setCurrentView('tickets-list');
+    navigate('/dashboard/staff/tickets', { replace: false });
+  }
+
+  function handleBackFromTask() {
+    setCurrentView('tasks-list');
+    navigate('/dashboard/staff/tasks', { replace: false });
+  }
+
   return (
-    <StaffCrmLayout
-      currentTab={currentTab}
-      onSelectTab={handleSelectTab}
-    >
+    <StaffCrmLayout currentTab={currentTab} onSelectTab={handleSelectTab}>
       {currentView === 'dashboard' && (
         <StaffCrmDashboard
           onSelectTab={handleSelectTab}
@@ -235,6 +274,8 @@ export default function StaffDashboard() {
           onBack={handleBackToContacts}
           onSelectDeal={handleSelectDeal}
           onSelectCustomerDocument={handleSelectCustomerDocument}
+          onSelectTicket={handleSelectTicket}
+          onSelectTask={handleSelectTask}
         />
       )}
 
@@ -244,6 +285,8 @@ export default function StaffDashboard() {
           onBack={handleBackFromDeal}
           onSelectContact={() => handleSelectContact(selectedContact)}
           onSelectCustomerDocument={handleSelectCustomerDocument}
+          onSelectTicket={handleSelectTicket}
+          onSelectTask={handleSelectTask}
           onUpdateDeal={(updated) => {
             setSelectedDeal((prev) => ({ ...prev, ...updated }));
             if (updated?.id) {
@@ -261,6 +304,43 @@ export default function StaffDashboard() {
           onBack={handleBackToContactDetail}
           onSelectContact={() => handleSelectContact(selectedContact)}
           onSelectDeal={() => handleSelectDeal(selectedDeal)}
+        />
+      )}
+
+      {/* ── Tickets Views ────────────────────────────────────────────────── */}
+      {currentView === 'tickets-list' && (
+        <StaffTicketsList
+          onSelectTicket={handleSelectTicket}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+        />
+      )}
+
+      {currentView === 'ticket-detail' && (
+        <StaffTicketDetail
+          ticket={selectedTicket}
+          onBack={handleBackFromTicket}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+        />
+      )}
+
+      {/* ── Tasks Views ──────────────────────────────────────────────────── */}
+      {currentView === 'tasks-list' && (
+        <StaffTasksList
+          onSelectTask={handleSelectTask}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+        />
+      )}
+
+      {currentView === 'task-detail' && (
+        <StaffTaskDetail
+          task={selectedTask}
+          onBack={handleBackFromTask}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+          onSelectTicket={handleSelectTicket}
         />
       )}
     </StaffCrmLayout>

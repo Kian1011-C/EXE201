@@ -131,3 +131,84 @@ export async function resetAndSeedDatabase() {
     method: 'POST',
   });
 }
+
+// ── Tickets ──────────────────────────────────────────────────────────────────
+export async function getTickets(params = {}) {
+  const query = new URLSearchParams();
+  if (params.pipeline) query.append('pipeline', params.pipeline);
+  if (params.status) query.append('status', params.status);
+  if (params.priority) query.append('priority', params.priority);
+  if (params.contactId) query.append('contactId', params.contactId);
+  if (params.dealId) query.append('dealId', params.dealId);
+  const qStr = query.toString() ? `?${query.toString()}` : '';
+  return await request(`/tickets${qStr}`);
+}
+
+export async function getTicket(id) {
+  return await request(`/tickets/${encodeURIComponent(id)}`);
+}
+
+export async function createTicket(data) {
+  return await request('/tickets', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function updateTicket(id, data) {
+  return await request(`/tickets/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+export async function addTicketComment(ticketId, data) {
+  return await request(`/tickets/${encodeURIComponent(ticketId)}/comments`, { method: 'POST', body: JSON.stringify(data) });
+}
+
+// ── Tasks ────────────────────────────────────────────────────────────────────
+export async function getTasks(params = {}) {
+  const query = new URLSearchParams();
+  if (params.status) query.append('status', params.status);
+  if (params.priority) query.append('priority', params.priority);
+  if (params.assignedTo) query.append('assignedTo', params.assignedTo);
+  if (params.contactId) query.append('contactId', params.contactId);
+  if (params.dealId) query.append('dealId', params.dealId);
+  const qStr = query.toString() ? `?${query.toString()}` : '';
+  return await request(`/tasks${qStr}`);
+}
+
+export async function getTask(id) {
+  return await request(`/tasks/${encodeURIComponent(id)}`);
+}
+
+export async function createTask(data) {
+  return await request('/tasks', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function updateTask(id, data) {
+  return await request(`/tasks/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+// ── Commissions ──────────────────────────────────────────────────────────────
+export async function getCommissions(params = {}) {
+  const query = new URLSearchParams();
+  if (params.agentName) query.append('agentName', params.agentName);
+  if (params.period) query.append('period', params.period);
+  if (params.status) query.append('status', params.status);
+  if (params.carrier) query.append('carrier', params.carrier);
+  const qStr = query.toString() ? `?${query.toString()}` : '';
+  return await request(`/commissions${qStr}`);
+}
+
+export async function getCommissionSummary(agentName) {
+  const q = agentName ? `?agentName=${encodeURIComponent(agentName)}` : '';
+  return await request(`/commissions/summary${q}`);
+}
+
+export async function createCommission(data) {
+  return await request('/commissions', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function updateCommission(id, data) {
+  return await request(`/commissions/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+// ── Dashboard Stats ──────────────────────────────────────────────────────────
+export async function getDashboardStats() {
+  return await request('/dashboard/stats');
+}

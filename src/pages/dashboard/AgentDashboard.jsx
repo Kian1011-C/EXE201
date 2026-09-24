@@ -7,6 +7,10 @@ import StaffDealDetail from './staff/StaffDealDetail';
 import StaffDealsList from './staff/StaffDealsList';
 import StaffCustomerDocumentDetail from './staff/StaffCustomerDocumentDetail';
 import StaffCrmDashboard from './staff/StaffCrmDashboard';
+import StaffTicketsList from './staff/StaffTicketsList';
+import StaffTicketDetail from './staff/StaffTicketDetail';
+import StaffTasksList from './staff/StaffTasksList';
+import StaffTaskDetail from './staff/StaffTaskDetail';
 import AgentCommissionLedger from './agent/AgentCommissionLedger';
 import {
   MOCK_CONTACTS,
@@ -20,6 +24,8 @@ import {
   getDeal,
   getDocument,
   updateDeal as apiUpdateDeal,
+  getTicket,
+  getTask,
 } from '../../services/api';
 
 export default function AgentDashboard() {
@@ -32,6 +38,8 @@ export default function AgentDashboard() {
   const [selectedContact, setSelectedContact] = useState(CONTACT_DETAIL_DATA);
   const [selectedDeal, setSelectedDeal] = useState(DEAL_DETAIL_DATA);
   const [selectedDocument, setSelectedDocument] = useState(CUSTOMER_DOCUMENT_DATA);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
   const [dashboardMode, setDashboardMode] = useState('crm'); // 'crm' | 'priorities'
 
   // Sync state with URL path
@@ -91,9 +99,29 @@ export default function AgentDashboard() {
     ) {
       setCurrentTab('contacts');
       setCurrentView('contacts');
+    } else if (path.includes('/dashboard/agent/tickets/')) {
+      const parts = path.split('/dashboard/agent/tickets/');
+      const ticketId = parts[1];
+      if (ticketId) {
+        getTicket(ticketId)
+          .then((res) => { if (res) setSelectedTicket(res); })
+          .catch(() => {});
+      }
+      setCurrentTab('tickets');
+      setCurrentView('ticket-detail');
     } else if (path.includes('/dashboard/agent/tickets')) {
       setCurrentTab('tickets');
       setCurrentView('tickets');
+    } else if (path.includes('/dashboard/agent/tasks/')) {
+      const parts = path.split('/dashboard/agent/tasks/');
+      const taskId = parts[1];
+      if (taskId) {
+        getTask(taskId)
+          .then((res) => { if (res) setSelectedTask(res); })
+          .catch(() => {});
+      }
+      setCurrentTab('tasks');
+      setCurrentView('task-detail');
     } else if (path.includes('/dashboard/agent/tasks')) {
       setCurrentTab('tasks');
       setCurrentView('tasks');
@@ -221,6 +249,28 @@ export default function AgentDashboard() {
     } else {
       handleBackToContactDetail();
     }
+  }
+
+  function handleSelectTicket(ticket) {
+    setSelectedTicket(ticket);
+    setCurrentView('ticket-detail');
+    navigate(`/dashboard/agent/tickets/${ticket?.id || ticket}`, { replace: false });
+  }
+
+  function handleSelectTask(task) {
+    setSelectedTask(task);
+    setCurrentView('task-detail');
+    navigate(`/dashboard/agent/tasks/${task?.id || task}`, { replace: false });
+  }
+
+  function handleBackFromTicket() {
+    setCurrentView('tickets');
+    navigate('/dashboard/agent/tickets', { replace: false });
+  }
+
+  function handleBackFromTask() {
+    setCurrentView('tasks');
+    navigate('/dashboard/agent/tasks', { replace: false });
   }
 
   return (
@@ -446,131 +496,43 @@ export default function AgentDashboard() {
         <AgentCommissionLedger onSelectContact={handleSelectContact} />
       )}
 
-      {/* ── 8. TICKETS VIEW ─────────────────────────────────────────────── */}
+      {/* ── 8. TICKETS LIST VIEW ──────────────────────────────────────── */}
       {currentView === 'tickets' && (
-        <div className="p-6 bg-[#F8FAFC] flex flex-col gap-4 min-w-[1024px]">
-          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-cyan-50 text-cyan-700 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[20px]">confirmation_number</span>
-              </div>
-              <div>
-                <h1 className="text-base font-bold text-slate-900 tracking-tight">ACA &amp; Policy Tickets</h1>
-                <p className="text-xs text-slate-500">Service tickets, ACA marketplace submissions &amp; document verifications</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">add</span>
-              <span>+ Create Ticket</span>
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px]">
-                <tr>
-                  <th className="py-3 px-4">Ticket Name</th>
-                  <th className="py-3 px-4">Client</th>
-                  <th className="py-3 px-4">Pipeline</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Owner</th>
-                  <th className="py-3 px-4">Due Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50/60 transition">
-                  <td className="py-3 px-4 font-bold text-blue-700 cursor-pointer">ACA account 2026</td>
-                  <td className="py-3 px-4 font-semibold text-slate-900">Nhat Huu Tuan Dang</td>
-                  <td className="py-3 px-4 text-slate-600">ACA account</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                      Uploaded - Waiting for Verification
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">Khanh Nguyen</td>
-                  <td className="py-3 px-4 font-mono text-slate-500">09/22/2026</td>
-                </tr>
-                <tr className="hover:bg-slate-50/60 transition">
-                  <td className="py-3 px-4 font-bold text-blue-700 cursor-pointer">Marketplace Income Audit</td>
-                  <td className="py-3 px-4 font-semibold text-slate-900">Thang Van Nguyen</td>
-                  <td className="py-3 px-4 text-slate-600">Underwriting Audit</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                      Action Required
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">Anya Nguyen</td>
-                  <td className="py-3 px-4 font-mono text-slate-500">09/25/2026</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <StaffTicketsList
+          onSelectTicket={handleSelectTicket}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+        />
       )}
 
-      {/* ── 9. TASKS VIEW ───────────────────────────────────────────────── */}
-      {currentView === 'tasks' && (
-        <div className="p-6 bg-[#F8FAFC] flex flex-col gap-4 min-w-[1024px]">
-          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[20px]">checklist</span>
-              </div>
-              <div>
-                <h1 className="text-base font-bold text-slate-900 tracking-tight">Agent Tasks &amp; Follow-ups</h1>
-                <p className="text-xs text-slate-500">Action items, renewal calls, document requests &amp; client follow-ups</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">add</span>
-              <span>+ Create Task</span>
-            </button>
-          </div>
+      {/* ── 8b. TICKET DETAIL VIEW ────────────────────────────────────── */}
+      {currentView === 'ticket-detail' && (
+        <StaffTicketDetail
+          ticket={selectedTicket}
+          onBack={handleBackFromTicket}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+        />
+      )}
 
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px]">
-                <tr>
-                  <th className="py-3 px-4">Task Title</th>
-                  <th className="py-3 px-4">Associated Client</th>
-                  <th className="py-3 px-4">Priority</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Due Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50/60 transition">
-                  <td className="py-3 px-4 font-bold text-slate-900">Follow up on Proof of Income submission</td>
-                  <td className="py-3 px-4 font-semibold text-blue-700 cursor-pointer">Thang Van Nguyen</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                      High
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-amber-600 font-semibold">Pending</td>
-                  <td className="py-3 px-4 font-mono text-slate-500">09/25/2026</td>
-                </tr>
-                <tr className="hover:bg-slate-50/60 transition">
-                  <td className="py-3 px-4 font-bold text-slate-900">Confirm First Payment for BCBS Policy</td>
-                  <td className="py-3 px-4 font-semibold text-blue-700 cursor-pointer">Duc Huu Pham</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                      Medium
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-emerald-600 font-semibold">Completed</td>
-                  <td className="py-3 px-4 font-mono text-slate-500">09/17/2026</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+      {/* ── 9. TASKS LIST VIEW ───────────────────────────────────────── */}
+      {currentView === 'tasks' && (
+        <StaffTasksList
+          onSelectTask={handleSelectTask}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+        />
+      )}
+
+      {/* ── 9b. TASK DETAIL VIEW ──────────────────────────────────────── */}
+      {currentView === 'task-detail' && (
+        <StaffTaskDetail
+          task={selectedTask}
+          onBack={handleBackFromTask}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+          onSelectTicket={handleSelectTicket}
+        />
       )}
     </StaffCrmLayout>
   );

@@ -100,7 +100,22 @@ model Deal {
   numberMember        Int      @default(1)
   closedLostReason    String   @default("---")
 
+  // Extended fields from business process
+  holderOfPolicy      String   @default("")
+  policyEffectiveDate String   @default("")
+  commissionAvailDate String   @default("")
+  paymentStatus       String   @default("")
+  chooseDoctorStatus  String   @default("")
+  doctorName          String   @default("")
+  uploadRequest       Boolean  @default(false)
+  deadlineUploadDocs  String   @default("")
+  householdInfo       String   @default("")
+  payThruDate         String   @default("")
+  stageAca            String   @default("")
+  consentFormStatus   String   @default("")
+
   // Relationships
+  commissions         Commission[]
   tickets             Ticket[]
   activities          Activity[]
   notes               Note[]
@@ -154,6 +169,13 @@ model Ticket {
   serviceAgent String   @default("Anya Nguyen")
   dueDate      String   @default("09/22/2026")
   closeDate    String   @default("----------")
+  priority            String   @default("Medium")
+  changeDueDateReason String   @default("")
+  ticketResult        String   @default("")
+  description         String   @default("")
+  category            String   @default("")
+
+  comments     TicketComment[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -209,4 +231,35 @@ model Task {
   attachments String   @default("[]")
 
   createdAt   DateTime @default(now())
+}
+
+model Commission {
+  id                String   @id @default(cuid())
+  dealId            String
+  deal              Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  agentName         String
+  agentNpn          String   @default("")
+  carrier           String
+  planName          String   @default("")
+  policyId          String   @default("")
+  memberCount       Int      @default(1)
+  grossAmount       Float    @default(0)
+  supportDeduction  Float    @default(0)
+  netAmount         Float    @default(0)
+  commissionType    String   @default("ACA_PMPM")
+  saleSupportStatus String   @default("NONE")
+  period            String
+  status            String   @default("PENDING")
+  settledAt         DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model TicketComment {
+  id         String   @id @default(cuid())
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  content    String
+  authorName String
+  createdAt  DateTime @default(now())
 }

@@ -656,6 +656,333 @@ app.post('/api/contacts/:id/tasks', async (req, res) => {
   }
 });
 
+// ── Ticket Routes ────────────────────────────────────────────────────────────
+app.get('/api/tickets', async (req, res) => {
+  try {
+    const { pipeline, status, priority, contactId, dealId } = req.query;
+    const where = {};
+    if (pipeline && pipeline !== 'all') where.pipeline = pipeline;
+    if (status && status !== 'all') where.status = status;
+    if (priority && priority !== 'all') where.priority = priority;
+    if (contactId) where.contactId = contactId;
+    if (dealId) where.dealId = dealId;
+
+    const tickets = await prisma.ticket.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { contact: true, deal: true },
+    });
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch tickets' });
+  }
+});
+
+app.get('/api/tickets/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ticket = await prisma.ticket.findUnique({
+      where: { id },
+      include: { contact: true, deal: true, comments: { orderBy: { createdAt: 'desc' } } },
+    });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch ticket detail' });
+  }
+});
+
+app.post('/api/tickets', async (req, res) => {
+  try {
+    const data = req.body;
+    let priority = data.priority || 'Medium';
+    if (data.dueDate) {
+      const due = new Date(data.dueDate);
+      const diff = due - new Date();
+      if (diff < 86400000) priority = 'High'; // Less than 1 day
+    }
+    const count = await prisma.ticket.count();
+    const newId = `TC2600${2000 + count}`;
+    
+    const ticket = await prisma.ticket.create({
+      data: {
+        ...data,
+        id: newId,
+        priority
+      },
+    });
+    res.status(201).json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create ticket' });
+  }
+});
+
+app.put('/api/tickets/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    
+    const existing = await prisma.ticket.findUnique({ where: { id } });
+    if (data.dueDate && data.dueDate !== existing.dueDate && !data.changeDueDateReason) {
+      return res.status(400).json({ error: 'changeDueDateReason is required when dueDate is changed' });
+    }
+    if (data.status === 'Closed' && !data.ticketResult) {
+      return res.status(400).json({ error: 'ticketResult is required when closing ticket' });
+    }
+
+    const ticket = await prisma.ticket.update({
+      where: { id },
+      data,
+    });
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update ticket' });
+  }
+});
+
+app.post('/api/tickets/:id/comments', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content, authorName } = req.body;
+    const comment = await prisma.ticketComment.create({
+      data: {
+        ticketId: id,
+        content,
+        authorName: authorName || 'System',
+      }
+    });
+    res.status(201).json(comment);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add comment' });
+  }
+});
+
+// ── Task Routes ──────────────────────────────────────────────────────────────
+app.get('/api/tasks', async (req, res) => {
+  try {
+    const { status, priority, assignedTo, contactId, dealId } = req.query;
+    const where = {};
+    if (status && status !== 'all') where.status = status;
+    if (priority && priority !== 'all') where.priority = priority;
+    if (assignedTo && assignedTo !== 'all') where.assignedTo = assignedTo;
+    if (contactId) where.contactId = contactId;
+    if (dealId) where.dealId = dealId;
+
+    const tasks = await prisma.task.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { contact: true, deal: true },
+    });
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch tasks' });
+  }
+});
+
+app.get('/api/tasks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await prisma.task.findUnique({
+      where: { id },
+      include: { contact: true, deal: true },
+    });
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch task detail' });
+  }
+});
+
+app.post('/api/tasks', async (req, res) => {
+  try {
+    const data = req.body;
+    const count = await prisma.task.count();
+    const newId = `TSK-${Date.now()}`;
+    
+    // Default due date = 3 business days from now
+    let dueDate = data.dueDate;
+    if (!dueDate) {
+      let date = new Date();
+      let addedDays = 0;
+      while (addedDays < 3) {
+        date.setDate(date.getDate() + 1);
+        if (date.getDay() !== 0 && date.getDay() !== 6) {
+          addedDays++;
+        }
+      }
+      dueDate = date.toISOString().split('T')[0]; // simple format
+    }
+    
+    const task = await prisma.task.create({
+      data: {
+        ...data,
+        id: newId,
+        dueDate,
+      }
+    });
+    res.status(201).json(task);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create task' });
+  }
+});
+
+app.put('/api/tasks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    const task = await prisma.task.update({
+      where: { id },
+      data,
+    });
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update task' });
+  }
+});
+
+// ── Commission Routes ────────────────────────────────────────────────────────
+app.get('/api/commissions', async (req, res) => {
+  try {
+    const { agentName, period, status, carrier } = req.query;
+    const where = {};
+    if (agentName && agentName !== 'all') where.agentName = agentName;
+    if (period && period !== 'all') where.period = period;
+    if (status && status !== 'all') where.status = status;
+    if (carrier && carrier !== 'all') where.carrier = carrier;
+
+    const commissions = await prisma.commission.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { deal: true },
+    });
+    res.json(commissions);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch commissions' });
+  }
+});
+
+app.get('/api/commissions/summary', async (req, res) => {
+  try {
+    const all = await prisma.commission.findMany();
+    let settledThisMonth = 0;
+    let pendingAudit = 0;
+    let ytdPaid = 0;
+    
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    all.forEach(c => {
+      if (c.status === 'SETTLED' && c.period === currentMonth) settledThisMonth += c.netAmount;
+      if (c.status === 'PENDING') pendingAudit++;
+      if (c.status === 'SETTLED') ytdPaid += c.netAmount; // roughly YTD for simple logic
+    });
+    
+    const activePolicies = await prisma.deal.count({ where: { stage: { contains: 'Active' } } });
+    
+    res.json({ settledThisMonth, pendingAudit, ytdPaid, activePolicies });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get commission summary' });
+  }
+});
+
+app.post('/api/commissions', async (req, res) => {
+  try {
+    const data = req.body;
+    const commission = await prisma.commission.create({ data });
+    res.status(201).json(commission);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create commission' });
+  }
+});
+
+app.put('/api/commissions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body; // status, etc
+    if (data.status === 'SETTLED') data.settledAt = new Date();
+    const commission = await prisma.commission.update({
+      where: { id },
+      data,
+    });
+    res.json(commission);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update commission' });
+  }
+});
+
+// ── Dashboard Routes ─────────────────────────────────────────────────────────
+app.get('/api/dashboard/stats', async (req, res) => {
+  try {
+    const totalContacts = await prisma.contact.count();
+    const activeDeals = await prisma.deal.count({ where: { NOT: { stage: { contains: 'Closed Lost' } } } });
+    const openTickets = await prisma.ticket.count({ where: { status: 'Open' } });
+    const pendingTasks = await prisma.task.count({ where: { status: 'Pending' } });
+
+    const allDeals = await prisma.deal.findMany({ select: { pipeline: true, stage: true } });
+    const dealsByPipeline = Object.entries(allDeals.reduce((acc, curr) => {
+      acc[curr.pipeline] = (acc[curr.pipeline] || 0) + 1;
+      return acc;
+    }, {})).map(([pipeline, count]) => ({ pipeline, count }));
+
+    const dealsByStage = Object.entries(allDeals.reduce((acc, curr) => {
+      acc[curr.stage] = (acc[curr.stage] || 0) + 1;
+      return acc;
+    }, {})).map(([stage, count]) => ({ stage, count }));
+
+    const allTickets = await prisma.ticket.findMany({ select: { pipeline: true, status: true, dueDate: true } });
+    const ticketsByPipeline = Object.entries(allTickets.reduce((acc, curr) => {
+      acc[curr.pipeline] = (acc[curr.pipeline] || 0) + 1;
+      return acc;
+    }, {})).map(([pipeline, count]) => ({ pipeline, count }));
+    
+    const ticketsByStatus = Object.entries(allTickets.reduce((acc, curr) => {
+      acc[curr.status] = (acc[curr.status] || 0) + 1;
+      return acc;
+    }, {})).map(([status, count]) => ({ status, count }));
+
+    let overdueTickets = 0;
+    const nowStr = new Date().toISOString().split('T')[0];
+    allTickets.forEach(t => {
+      if (t.status !== 'Closed' && t.status !== 'Completed' && t.dueDate && t.dueDate < nowStr) overdueTickets++;
+    });
+
+    const allTasks = await prisma.task.findMany({ select: { status: true, dueDate: true } });
+    let overdueTasks = 0;
+    allTasks.forEach(t => {
+      if (t.status !== 'Completed' && t.dueDate && t.dueDate < nowStr) overdueTasks++;
+    });
+
+    const allComms = await prisma.commission.findMany();
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    let commissionThisMonth = 0;
+    let commissionYTD = 0;
+    allComms.forEach(c => {
+      if (c.status === 'SETTLED') {
+        commissionYTD += c.netAmount;
+        if (c.period === currentMonth) commissionThisMonth += c.netAmount;
+      }
+    });
+
+    res.json({
+      totalContacts,
+      activeDeals,
+      openTickets,
+      pendingTasks,
+      dealsByPipeline,
+      dealsByStage,
+      ticketsByPipeline,
+      ticketsByStatus,
+      overdueTickets,
+      overdueTasks,
+      commissionThisMonth,
+      commissionYTD
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch dashboard stats' });
+  }
+});
+
 // Start Server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 InsurMatch CRM Backend running on http://0.0.0.0:${PORT}`);

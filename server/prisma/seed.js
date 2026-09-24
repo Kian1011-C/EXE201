@@ -1020,6 +1020,62 @@ async function main() {
     console.log(`✅ Seeded Contact: [${createdContact.code}] ${createdContact.fullName}`);
   }
 
+  // Fetch all contacts and deals to create more sample data
+  const allContacts = await prisma.contact.findMany();
+  const allDeals = await prisma.deal.findMany();
+
+  if (allContacts.length > 0 && allDeals.length > 0) {
+    console.log('Generating additional sample tickets and commissions...');
+    
+    // Create Sample Tickets
+    const pipelineTypes = ['CLIENT_SUPPORT', 'PAYMENT', 'COLLECT_DOCUMENT', 'CHOOSE_DOCTOR', 'AGENT_SUPPORT'];
+    let tcCount = 0;
+    for (const pipeline of pipelineTypes) {
+      for (let i = 0; i < 5; i++) {
+        tcCount++;
+        const contact = allContacts[Math.floor(Math.random() * allContacts.length)];
+        const deal = allDeals[Math.floor(Math.random() * allDeals.length)];
+        const ticket = await prisma.ticket.create({
+          data: {
+            id: `TC2699${tcCount}`,
+            contactId: contact.id,
+            dealId: deal.id,
+            title: `Sample Ticket ${pipeline} ${i}`,
+            pipeline: pipeline,
+            status: 'Open',
+            priority: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)],
+            category: 'Support',
+          }
+        });
+        
+        await prisma.ticketComment.create({
+          data: {
+            ticketId: ticket.id,
+            content: 'This is a sample comment.',
+            authorName: 'System',
+          }
+        });
+      }
+    }
+
+    // Create Sample Commissions
+    const carriers = ['BCBS', 'Ambetter', 'Kaiser', 'UHC', 'Humana', 'Molina', 'Oscar', 'Aetna', 'Cigna', 'Blue Shield CA'];
+    for (let i = 0; i < carriers.length; i++) {
+      const deal = allDeals[Math.floor(Math.random() * allDeals.length)];
+      await prisma.commission.create({
+        data: {
+          dealId: deal.id,
+          agentName: 'Anya Nguyen',
+          carrier: carriers[i],
+          period: '2026-10',
+          grossAmount: 25.00,
+          netAmount: 25.00,
+          status: ['PENDING', 'SETTLED'][Math.floor(Math.random() * 2)],
+        }
+      });
+    }
+  }
+
   console.log('🎉 Seeding completed successfully! 10 full customer profiles ready.');
 }
 
