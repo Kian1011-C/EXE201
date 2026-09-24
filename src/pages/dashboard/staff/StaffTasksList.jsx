@@ -1,152 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { getTasks } from '../../../services/api';
+import { getTasks, createTask } from '../../../services/api';
 
-const SAMPLE_TASKS = [
-  {
-    id: 'TSK-1001',
-    title: 'Follow up: Cancel deal 01/15/2026',
-    status: 'Not Started',
-    priority: 'High',
-    assignee: { name: 'Anya Nguyen', avatar: 'AN' },
-    contact: { id: 'CT-2601', name: 'Nguyen A' },
-    deal: { id: 'DL-3001', title: 'Health Insurance Plan' },
-    dueDate: '2026-09-24',
-    dueTime: '14:00',
-    type: 'Cancel',
-  },
-  {
-    id: 'TSK-1002',
-    title: 'Create ACA account',
-    status: 'In Progress',
-    priority: 'Medium',
-    assignee: { name: 'Anya Nguyen', avatar: 'AN' },
-    contact: { id: 'CT-2602', name: 'Tran B' },
-    deal: null,
-    dueDate: '2026-09-23',
-    dueTime: '10:00',
-    type: 'ACA Setup',
-  },
-  {
-    id: 'TSK-1003',
-    title: 'Payment ticket review',
-    status: 'Completed',
-    priority: 'Low',
-    assignee: { name: 'Anya Nguyen', avatar: 'AN' },
-    contact: { id: 'CT-2603', name: 'Le C' },
-    deal: { id: 'DL-3003', title: 'Auto Insurance Renewal' },
-    dueDate: '2026-09-20',
-    dueTime: '16:30',
-    type: 'Payment',
-  },
-  {
-    id: 'TSK-1004',
-    title: 'Upload Consent Form',
-    status: 'Not Started',
-    priority: 'High',
-    assignee: { name: 'Michael Smith', avatar: 'MS' },
-    contact: { id: 'CT-2604', name: 'Pham D' },
-    deal: null,
-    dueDate: '2026-09-23',
-    dueTime: '11:00',
-    type: 'Upload Doc',
-  },
-  {
-    id: 'TSK-1005',
-    title: 'Follow up on missing info',
-    status: 'In Progress',
-    priority: 'Medium',
-    assignee: { name: 'Anya Nguyen', avatar: 'AN' },
-    contact: { id: 'CT-2605', name: 'John Doe' },
-    deal: null,
-    dueDate: '2026-09-26',
-    dueTime: '09:00',
-    type: 'Follow-up',
-  },
-  {
-    id: 'TSK-1006',
-    title: 'Help choose Doctor',
-    status: 'Not Started',
-    priority: 'Low',
-    assignee: { name: 'Sarah Lee', avatar: 'SL' },
-    contact: { id: 'CT-2606', name: 'Jane Smith' },
-    deal: null,
-    dueDate: '2026-09-28',
-    dueTime: '13:00',
-    type: 'Choose Doctor',
-  },
-  {
-    id: 'TSK-1007',
-    title: 'General check-in',
-    status: 'Completed',
-    priority: 'Low',
-    assignee: { name: 'Michael Smith', avatar: 'MS' },
-    contact: { id: 'CT-2607', name: 'Robert King' },
-    deal: null,
-    dueDate: '2026-09-15',
-    dueTime: '15:00',
-    type: 'General',
-  },
-  {
-    id: 'TSK-1008',
-    title: 'Process refund request',
-    status: 'Not Started',
-    priority: 'High',
-    assignee: { name: 'Anya Nguyen', avatar: 'AN' },
-    contact: { id: 'CT-2608', name: 'Emily Davis' },
-    deal: { id: 'DL-3008', title: 'Life Insurance App' },
-    dueDate: '2026-09-22',
-    dueTime: '12:00',
-    type: 'Cancel',
-  },
-  {
-    id: 'TSK-1009',
-    title: 'Finalize ACA Setup',
-    status: 'In Progress',
-    priority: 'Medium',
-    assignee: { name: 'Sarah Lee', avatar: 'SL' },
-    contact: { id: 'CT-2609', name: 'David Wilson' },
-    deal: null,
-    dueDate: '2026-09-25',
-    dueTime: '10:30',
-    type: 'ACA Setup',
-  },
-  {
-    id: 'TSK-1010',
-    title: 'Confirm initial payment',
-    status: 'Completed',
-    priority: 'High',
-    assignee: { name: 'Anya Nguyen', avatar: 'AN' },
-    contact: { id: 'CT-2610', name: 'Alice Brown' },
-    deal: { id: 'DL-3010', title: 'Dental Plan' },
-    dueDate: '2026-09-18',
-    dueTime: '14:15',
-    type: 'Payment',
-  },
-  {
-    id: 'TSK-1011',
-    title: 'Upload medical history',
-    status: 'Not Started',
-    priority: 'Medium',
-    assignee: { name: 'Michael Smith', avatar: 'MS' },
-    contact: { id: 'CT-2611', name: 'Tom Hardy' },
-    deal: null,
-    dueDate: '2026-09-27',
-    dueTime: '09:45',
-    type: 'Upload Doc',
-  },
-  {
-    id: 'TSK-1012',
-    title: 'Follow-up call on quote',
-    status: 'In Progress',
-    priority: 'High',
-    assignee: { name: 'Anya Nguyen', avatar: 'AN' },
-    contact: { id: 'CT-2612', name: 'Lucy Liu' },
-    deal: { id: 'DL-3012', title: 'Home Insurance Quote' },
-    dueDate: '2026-09-24',
-    dueTime: '16:00',
-    type: 'Follow-up',
-  }
-];
+const SAMPLE_TASKS = [];
 
 export default function StaffTasksList({ onSelectTask, onSelectContact, onSelectDeal }) {
   const [tasks, setTasks] = useState([]);
@@ -160,22 +15,53 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
   const [assigneeFilter, setAssigneeFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    async function loadTasks() {
-      try {
-        const data = await getTasks();
-        if (Array.isArray(data) && data.length > 0) {
-          setTasks(data);
-        } else {
-          setTasks(SAMPLE_TASKS);
-        }
-      } catch (error) {
-        console.warn('Failed to load tasks, using sample data.', error);
-        setTasks(SAMPLE_TASKS);
-      } finally {
-        setLoading(false);
+  async function loadTasks() {
+    try {
+      setLoading(true);
+      const data = await getTasks();
+      if (Array.isArray(data) && data.length > 0) {
+        const formatted = data.map((t) => ({
+          ...t,
+          assignee: {
+            name: t.assignedTo || t.assignee?.name || 'Anya Nguyen',
+            avatar: (t.assignedTo || t.assignee?.name || 'AN')
+              .split(' ')
+              .map((n) => n[0])
+              .join('')
+              .slice(0, 2)
+              .toUpperCase(),
+          },
+          contact: t.contact
+            ? {
+                id: t.contact.id,
+                name: t.contact.fullName || t.contact.name || 'Client',
+              }
+            : null,
+          deal: t.deal
+            ? {
+                id: t.deal.id,
+                title: t.deal.title || 'Deal',
+              }
+            : null,
+          dueDate: t.dueDate || '',
+          dueTime: t.dueTime || '9:00 AM',
+          type: t.taskType || t.type || 'General',
+          content: t.content || '',
+          rawTask: t,
+        }));
+        setTasks(formatted);
+      } else {
+        setTasks([]);
       }
+    } catch (error) {
+      console.warn('Failed to load tasks from database:', error);
+      setTasks([]);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     loadTasks();
   }, []);
 
@@ -185,37 +71,50 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
     let total = tasks.length;
     let overdue = 0;
     let dueToday = 0;
-    let completedThisWeek = 0; // Simplified for demo
+    let completedThisWeek = 0;
 
-    tasks.forEach(t => {
-      if (t.status !== 'Completed' && t.dueDate < todayStr) overdue++;
-      if (t.status !== 'Completed' && t.dueDate === todayStr) dueToday++;
+    tasks.forEach((t) => {
+      if (t.status !== 'Completed' && t.dueDate && t.dueDate < todayStr) overdue++;
+      if (t.status !== 'Completed' && t.dueDate && t.dueDate === todayStr) dueToday++;
       if (t.status === 'Completed') completedThisWeek++;
     });
 
     return { total, overdue, dueToday, completedThisWeek };
   }, [tasks]);
 
+  const assigneeOptions = useMemo(() => {
+    const set = new Set();
+    tasks.forEach((t) => {
+      const name = t.assignee?.name || t.assignedTo;
+      if (name) set.add(name);
+    });
+    return Array.from(set);
+  }, [tasks]);
+
   // Filter tasks
   const filteredTasks = useMemo(() => {
-    return tasks.filter(t => {
+    return tasks.filter((t) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch = !q || t.title.toLowerCase().includes(q) || t.id.toLowerCase().includes(q);
       const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
       const matchesPriority = priorityFilter === 'All' || t.priority === priorityFilter;
-      const matchesAssignee = assigneeFilter === 'All' || t.assignee.name === assigneeFilter;
+      const matchesAssignee =
+        assigneeFilter === 'All' ||
+        t.assignee?.name === assigneeFilter ||
+        t.assignedTo === assigneeFilter;
       return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
     });
   }, [tasks, searchQuery, statusFilter, priorityFilter, assigneeFilter]);
 
   // Columns for Kanban
-  const kanbanColumns = ['Not Started', 'In Progress', 'Completed'];
+  const kanbanColumns = ['Pending', 'In Progress', 'Completed'];
 
   // Status Colors
   const getStatusColor = (status) => {
     switch (status) {
       case 'Completed': return 'bg-green-100 text-green-800';
       case 'In Progress': return 'bg-blue-100 text-blue-800';
+      case 'Pending': return 'bg-amber-100 text-amber-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -287,6 +186,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
           value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
         >
           <option value="All">All Statuses</option>
+          <option value="Pending">Pending</option>
           <option value="Not Started">Not Started</option>
           <option value="In Progress">In Progress</option>
           <option value="Completed">Completed</option>
@@ -305,9 +205,9 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
           value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}
         >
           <option value="All">All Assignees</option>
-          <option value="Anya Nguyen">Anya Nguyen</option>
-          <option value="Michael Smith">Michael Smith</option>
-          <option value="Sarah Lee">Sarah Lee</option>
+          {assigneeOptions.map((name) => (
+            <option key={name} value={name}>{name}</option>
+          ))}
         </select>
       </div>
 
@@ -478,22 +378,44 @@ function CreateTaskModal({ onClose, onSave }) {
 
   const handleChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newTask = {
-      id: `TSK-${Math.floor(Math.random() * 9000) + 1000}`,
-      title: formData.title,
-      status: 'Not Started',
-      priority: formData.priority,
-      assignee: { name: formData.assignee, avatar: formData.assignee.substring(0,2).toUpperCase() },
-      contact: formData.contactName ? { id: `CT-NEW`, name: formData.contactName } : null,
-      deal: formData.dealTitle ? { id: `DL-NEW`, title: formData.dealTitle } : null,
-      dueDate: formData.dueDate,
-      dueTime: formData.dueTime,
-      type: formData.type,
-      description: formData.description
-    };
-    onSave(newTask);
+    try {
+      const payload = {
+        title: formData.title,
+        status: 'Pending',
+        priority: formData.priority,
+        assignedTo: formData.assignee,
+        dueDate: formData.dueDate,
+        dueTime: formData.dueTime,
+        taskType: formData.type,
+        content: formData.description,
+      };
+      const created = await createTask(payload);
+      onSave({
+        ...(created || payload),
+        id: created?.id || `TSK-${Date.now()}`,
+        assignee: { name: formData.assignee, avatar: formData.assignee.substring(0, 2).toUpperCase() },
+        contact: formData.contactName ? { id: `CT-NEW`, name: formData.contactName } : null,
+        deal: formData.dealTitle ? { id: `DL-NEW`, title: formData.dealTitle } : null,
+      });
+    } catch (err) {
+      console.warn('Could not save task to database, using local item:', err);
+      onSave({
+        id: `TSK-${Date.now()}`,
+        title: formData.title,
+        status: 'Pending',
+        priority: formData.priority,
+        assignedTo: formData.assignee,
+        assignee: { name: formData.assignee, avatar: formData.assignee.substring(0, 2).toUpperCase() },
+        contact: formData.contactName ? { id: `CT-NEW`, name: formData.contactName } : null,
+        deal: formData.dealTitle ? { id: `DL-NEW`, title: formData.dealTitle } : null,
+        dueDate: formData.dueDate,
+        dueTime: formData.dueTime,
+        type: formData.type,
+        description: formData.description,
+      });
+    }
   };
 
   return (
@@ -515,8 +437,9 @@ function CreateTaskModal({ onClose, onSave }) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Assignee</label>
                 <select name="assignee" value={formData.assignee} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
                   <option>Anya Nguyen</option>
-                  <option>Michael Smith</option>
-                  <option>Sarah Lee</option>
+                  <option>Sean Ngo</option>
+                  <option>Ivy Le</option>
+                  <option>Sarah Thai</option>
                 </select>
               </div>
               <div>

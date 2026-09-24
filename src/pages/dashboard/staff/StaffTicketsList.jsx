@@ -1,94 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { getTickets } from '../../../services/api';
+import { getTickets, createTicket } from '../../../services/api';
 
-const SAMPLE_TICKETS = [
-  {
-    id: 'TK26001',
-    no: 1,
-    title: 'Payment Feb 2026 - Nguyen Van A',
-    pipeline: 'Payment',
-    status: 'Open',
-    priority: 'HIGH',
-    contactName: 'Nguyen Van A',
-    dealTitle: 'Obamacare 2026 - Nguyen Van A',
-    dueDate: '2026-02-15',
-    owner: { name: 'Khanh Nguyen', avatar: 'K', bg: 'bg-blue-100 text-blue-700' },
-    serviceAgent: { name: 'Anya Nguyen', avatar: 'A', bg: 'bg-pink-100 text-pink-700' },
-    created: '02/10/2026',
-    description: 'Client needs to process payment for Feb 2026.',
-    ticketResult: '',
-    isOverdue: true
-  },
-  {
-    id: 'TK26002',
-    no: 2,
-    title: 'Collect Document for upload (03/15/2026)',
-    pipeline: 'Collect Document',
-    status: 'In Progress',
-    priority: 'MEDIUM',
-    contactName: 'Tran Thi B',
-    dealTitle: 'Obamacare 2026 - Tran Thi B',
-    dueDate: '2026-03-15',
-    owner: { name: 'Nancy Pham', avatar: 'N', bg: 'bg-emerald-100 text-emerald-700' },
-    serviceAgent: { name: 'Anya Nguyen', avatar: 'A', bg: 'bg-pink-100 text-pink-700' },
-    created: '02/12/2026',
-    description: 'Need income proof documents.',
-    ticketResult: '',
-    isOverdue: false
-  },
-  {
-    id: 'TK26003',
-    no: 3,
-    title: 'Choose Dr for Le Van C',
-    pipeline: 'Choose Doctor',
-    status: 'Waiting',
-    priority: 'LOW',
-    contactName: 'Le Van C',
-    dealTitle: 'Medicare 2026 - Le Van C',
-    dueDate: '2026-04-01',
-    owner: { name: 'Jay Ly', avatar: 'J', bg: 'bg-indigo-100 text-indigo-700' },
-    serviceAgent: { name: 'Winnie Nguyen', avatar: 'W', bg: 'bg-purple-100 text-purple-700' },
-    created: '02/15/2026',
-    description: 'Client needs a new PCP closer to home.',
-    ticketResult: '',
-    isOverdue: false
-  },
-  {
-    id: 'TK26004',
-    no: 4,
-    title: 'Claim bill Vision (DVH) - Pham Thi D',
-    pipeline: 'Client Support',
-    status: 'Resolved',
-    priority: 'LOW',
-    contactName: 'Pham Thi D',
-    dealTitle: 'Dental Vision 2026 - Pham Thi D',
-    dueDate: '2026-01-20',
-    owner: { name: 'Khanh Nguyen', avatar: 'K', bg: 'bg-blue-100 text-blue-700' },
-    serviceAgent: { name: 'Lisa Le', avatar: 'L', bg: 'bg-amber-100 text-amber-700' },
-    created: '01/10/2026',
-    description: 'Process vision claim bill.',
-    ticketResult: 'Processed and approved.',
-    isOverdue: false,
-    resolvedDate: '2026-01-18'
-  },
-  {
-    id: 'TK26005',
-    no: 5,
-    title: 'Agent Support Request - Quote generation',
-    pipeline: 'Agent Support',
-    status: 'Open',
-    priority: 'HIGH',
-    contactName: 'Hoang Van E',
-    dealTitle: 'Life Ins 2026 - Hoang Van E',
-    dueDate: '2026-02-18',
-    owner: { name: 'Trono Truong', avatar: 'T', bg: 'bg-orange-100 text-orange-700' },
-    serviceAgent: { name: 'Miranda Pham', avatar: 'M', bg: 'bg-teal-100 text-teal-700' },
-    created: '02/16/2026',
-    description: 'Please generate a custom quote.',
-    ticketResult: '',
-    isOverdue: true
-  }
-];
+const SAMPLE_TICKETS = [];
 
 export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSelectDeal }) {
   const [ticketsList, setTicketsList] = useState([]);
@@ -100,42 +13,52 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [ownerFilter, setOwnerFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   
-  useEffect(() => {
-    async function loadTickets() {
-      setLoading(true);
-      try {
-        const data = await getTickets();
-        if (Array.isArray(data) && data.length > 0) {
-          const formatted = data.map((t, idx) => ({
-            id: t.id,
-            no: idx + 1,
-            title: t.title,
-            pipeline: t.pipeline || 'Client Support',
-            status: t.status || 'Open',
-            priority: (t.priority || 'MEDIUM').toUpperCase(),
-            contactName: t.contact?.fullName || t.contactName || 'Nguyen Van A',
-            contactId: t.contactId,
-            dealTitle: t.deal?.title || t.dealTitle || 'Obamacare 2026',
-            dealId: t.dealId,
-            dueDate: t.dueDate || '2026-10-15',
-            owner: { name: t.owner || 'Khanh Nguyen', avatar: (t.owner || 'K')[0], bg: 'bg-blue-100 text-blue-700' },
-            serviceAgent: { name: 'Anya Nguyen', avatar: 'A', bg: 'bg-pink-100 text-pink-700' },
-            created: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '02/10/2026',
-            description: t.description || '',
-            ticketResult: t.ticketResult || '',
-            isOverdue: t.dueDate && t.dueDate < new Date().toISOString().split('T')[0],
-          }));
-          setTicketsList(formatted);
-        } else {
-          setTicketsList(SAMPLE_TICKETS);
-        }
-      } catch (err) {
-        console.warn('[StaffTicketsList] API error, using sample tickets:', err);
-        setTicketsList(SAMPLE_TICKETS);
-      } finally {
-        setLoading(false);
+  async function loadTickets() {
+    setLoading(true);
+    try {
+      const data = await getTickets();
+      if (Array.isArray(data) && data.length > 0) {
+        const formatted = data.map((t, idx) => ({
+          id: t.id,
+          no: idx + 1,
+          title: t.title,
+          pipeline: t.pipeline || 'Client Support',
+          status: t.status || 'Open',
+          priority: (t.priority || 'MEDIUM').toUpperCase(),
+          contactName: t.contact?.fullName || t.contactName || '',
+          contactId: t.contactId,
+          dealTitle: t.deal?.title || t.dealTitle || '',
+          dealId: t.dealId,
+          dueDate: t.dueDate || '',
+          owner: {
+            name: t.ticketOwner || t.owner?.name || t.owner || t.deal?.dealOwnerName || 'Khanh Nguyen',
+            avatar: (t.ticketOwner || t.owner?.name || t.owner || 'K')[0],
+            bg: 'bg-blue-100 text-blue-700',
+          },
+          serviceAgent: {
+            name: t.serviceAgent || t.assignedTo || 'Sean Ngo',
+            avatar: (t.serviceAgent || t.assignedTo || 'S')[0],
+            bg: 'bg-pink-100 text-pink-700',
+          },
+          created: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '',
+          description: t.description || '',
+          ticketResult: t.ticketResult || '',
+          isOverdue: t.dueDate && new Date(t.dueDate) < new Date(),
+          rawTicket: t,
+        }));
+        setTicketsList(formatted);
+      } else {
+        setTicketsList([]);
       }
+    } catch (err) {
+      console.warn('[StaffTicketsList] API error:', err);
+      setTicketsList([]);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     loadTickets();
   }, []);
 
@@ -196,29 +119,27 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [dueDate, setDueDate] = useState('');
   const [description, setDescription] = useState('');
 
-  function handleCreateSubmit(e) {
+  async function handleCreateSubmit(e) {
     e.preventDefault();
-    const newRecord = {
-      id: `TK2600${ticketsList.length + 1}`,
-      no: ticketsList.length + 1,
-      title: title || 'New Ticket',
-      pipeline,
-      status: 'Open',
-      priority,
-      contactName: contact || 'Unknown',
-      dealTitle: deal || '-',
-      dueDate: dueDate || '2026-12-31',
-      owner: { name: 'Khanh Nguyen', avatar: 'K', bg: 'bg-blue-100 text-blue-700' },
-      serviceAgent: { name: 'Anya Nguyen', avatar: 'A', bg: 'bg-pink-100 text-pink-700' },
-      created: new Date().toLocaleDateString('en-US'),
-      description,
-      ticketResult: '',
-      isOverdue: false
-    };
-    setTicketsList([newRecord, ...ticketsList]);
-    setShowCreateModal(false);
-    // Reset form
-    setTitle(''); setPipeline('Client Support'); setContact(''); setDeal(''); setPriority('MEDIUM'); setDueDate(''); setDescription('');
+    try {
+      const payload = {
+        title: title || 'New Ticket',
+        pipeline,
+        status: 'Open',
+        priority,
+        dueDate: dueDate || '2026-12-31',
+        description,
+        serviceAgent: 'Sean Ngo',
+        ticketOwner: 'Khanh Nguyen',
+      };
+      await createTicket(payload);
+      await loadTickets();
+      setShowCreateModal(false);
+      setTitle(''); setPipeline('Client Support'); setContact(''); setDeal(''); setPriority('MEDIUM'); setDueDate(''); setDescription('');
+    } catch (err) {
+      console.warn('Could not create ticket via API:', err);
+      setShowCreateModal(false);
+    }
   }
 
   const getPipelineColor = (pipe) => {

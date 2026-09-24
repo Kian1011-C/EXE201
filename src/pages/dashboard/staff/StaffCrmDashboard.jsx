@@ -5,6 +5,7 @@ import {
   getContacts,
   getTickets,
   getTasks,
+  getCommissions,
 } from '../../../services/api';
 
 export default function StaffCrmDashboard({
@@ -20,24 +21,28 @@ export default function StaffCrmDashboard({
   const [liveContacts, setLiveContacts] = useState([]);
   const [liveTickets, setLiveTickets] = useState([]);
   const [liveTasks, setLiveTasks] = useState([]);
+  const [liveCommissions, setLiveCommissions] = useState([]);
   const [selectedDashboard, setSelectedDashboard] = useState(
     'Daily work of support - Team Tiger Truong'
   );
 
   async function fetchStats() {
     try {
-      const [statsRes, dealsRes, contactsRes, ticketsRes, tasksRes] = await Promise.all([
-        getDashboardStats().catch(() => null),
-        getDeals().catch(() => []),
-        getContacts().catch(() => []),
-        getTickets().catch(() => []),
-        getTasks().catch(() => []),
-      ]);
+      const [statsRes, dealsRes, contactsRes, ticketsRes, tasksRes, commsRes] =
+        await Promise.all([
+          getDashboardStats().catch(() => null),
+          getDeals().catch(() => []),
+          getContacts().catch(() => []),
+          getTickets().catch(() => []),
+          getTasks().catch(() => []),
+          getCommissions().catch(() => []),
+        ]);
       if (statsRes) setDbStats(statsRes);
       if (Array.isArray(dealsRes)) setLiveDeals(dealsRes);
       if (Array.isArray(contactsRes)) setLiveContacts(contactsRes);
       if (Array.isArray(ticketsRes)) setLiveTickets(ticketsRes);
       if (Array.isArray(tasksRes)) setLiveTasks(tasksRes);
+      if (Array.isArray(commsRes)) setLiveCommissions(commsRes);
     } catch (err) {
       console.warn('[StaffCrmDashboard] Could not fetch live dashboard data:', err);
     }
@@ -63,6 +68,8 @@ export default function StaffCrmDashboard({
   const C_RED = '#ef4444';
   const C_AMBER = '#f59e0b';
   const C_TEAL = '#0d9488';
+  const C_ROSE = '#f43f5e';
+  const C_CYAN = '#06b6d4';
 
   const AGENT_COLORS = {
     'Anya Nguyen': C_ANYA,
@@ -70,26 +77,35 @@ export default function StaffCrmDashboard({
     'Ivy Le': C_IVY,
     'Sarah Thai': C_SARAH,
     'Khanh Nguyen': '#6366f1',
-    'Jay Ly': '#06b6d4',
+    'Jay Ly': C_CYAN,
+    'Tri Tran': '#10b981',
+    'Quyen Le': '#8b5cf6',
     'Trono Truong': '#d97706',
     'Miranda Pham': '#ec4899',
-    'Kattie Nguyen': '#8b5cf6',
-    'Attis Dang': '#14b8a6',
-    'Penny Van': '#f43f5e',
+    'Nancy Pham': '#14b8a6',
+    'Nathan Truong': '#f43f5e',
+    'The Best Rate Insurance': C_TEAL,
   };
 
   const getAgentColor = (name, idx = 0) => {
     if (!name) return [C_ANYA, C_SEAN, C_IVY, C_SARAH][idx % 4];
-    return AGENT_COLORS[name] || [C_ANYA, C_SEAN, C_IVY, C_SARAH, C_PURPLE, C_TEAL][idx % 6];
+    return (
+      AGENT_COLORS[name] ||
+      [C_ANYA, C_SEAN, C_IVY, C_SARAH, C_PURPLE, C_TEAL, C_AMBER, C_ROSE][idx % 8]
+    );
   };
 
   // Helper date formatter
   function formatDate(d) {
-    if (!d) return 'N/A';
+    if (!d) return '';
     try {
       const dt = new Date(d);
       if (isNaN(dt.getTime())) return d;
-      return dt.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+      return dt.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+      });
     } catch {
       return d;
     }
@@ -97,7 +113,7 @@ export default function StaffCrmDashboard({
 
   // ── Dynamic Aggregations from Live Database Records ─────────────────────────
 
-  // 1. Pipeline deals breakdown
+  // 1. Deals breakdowns
   const obDeals = useMemo(
     () => liveDeals.filter((d) => (d.pipeline || '').toLowerCase().includes('obamacare')),
     [liveDeals]
@@ -116,7 +132,7 @@ export default function StaffCrmDashboard({
     [liveDeals]
   );
 
-  // 2. Tickets & Tasks breakdown
+  // 2. Tickets & Tasks breakdowns
   const openTicketsList = useMemo(
     () => liveTickets.filter((t) => t.status !== 'Closed' && t.status !== 'Resolved'),
     [liveTickets]
@@ -144,103 +160,81 @@ export default function StaffCrmDashboard({
     [liveTasks]
   );
 
-  // ── Card 1: Obamacare Deals by Stage (Real Data) ─────────────────────────────
+  // 3. Commission revenues
+  const commissionStats = useMemo(() => {
+    let monthly = 0;
+    let ytd = 0;
+    liveCommissions.forEach((c) => {
+      const amt = Number(c.netAmount || c.grossAmount || 0);
+      ytd += amt;
+      if (c.status === 'SETTLED' || c.period === '2026-10') {
+        monthly += amt;
+      }
+    });
+    return {
+      monthly: monthly || dbStats?.commissionThisMonth || 0,
+      ytd: ytd || dbStats?.commissionYTD || 0,
+    };
+  }, [liveCommissions, dbStats]);
+
+  // ── Card 1: Obamacare Deals by Stage (100% Real DB Data) ────────────────────
   const obStagesData = useMemo(() => {
     const stageMap = {};
-    // Seed canonical stages order
-    const canonicalStages = [
-      'Enrolled - Active (Obamacare 2026)',
-      'Ready to Enroll (Obamacare 2026)',
-      'Uploaded - Waiting for Verification',
-      'Enrolled - 1st Payment done (Obamacare 2026)',
-      'Waiting for document (Obamacare 2026)',
-      'New Opportunity/Call to Renew (Obamacare 2026)',
-      'Termination (Obamacare 2026)',
-      'Deal Lost (Obamacare 2026)',
-      'Non-Commission - Active (Obamacare 2026)',
-      'Deal Lost - Second Change (Obamacare 2026)',
-      'Enrolled - Need 1st Payment (Obamacare 2026)',
-      'Need Telesale Review (Obamacare 2026)',
-      'Do not contact (Obamacare 2026)',
-      'Quoted - Need Client Confirm (Obamacare 2026)',
-    ];
-
-    canonicalStages.forEach((st) => {
-      stageMap[st] = { stage: st, count: 0, agents: {} };
-    });
-
     obDeals.forEach((d) => {
       const st = d.stage || 'Ready to Enroll (Obamacare 2026)';
       if (!stageMap[st]) {
         stageMap[st] = { stage: st, count: 0, agents: {} };
       }
       stageMap[st].count += 1;
-      const agent = d.dealOwnerName || d.dealOwner?.name || 'Anya Nguyen';
+      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
       stageMap[st].agents[agent] = (stageMap[st].agents[agent] || 0) + 1;
     });
 
-    // Return stages that have deals, plus keep high-level stages sorted by count desc
-    return Object.values(stageMap)
-      .filter((s) => s.count > 0 || canonicalStages.slice(0, 5).includes(s.stage))
-      .sort((a, b) => b.count - a.count);
+    return Object.values(stageMap).sort((a, b) => b.count - a.count);
   }, [obDeals]);
 
   const maxObCount = useMemo(() => {
     const counts = obStagesData.map((s) => s.count);
-    return Math.max(...counts, 4);
+    return Math.max(...counts, 1);
   }, [obStagesData]);
 
-  // ── Card 2: Medicare Deals by Stage (Real Data) ──────────────────────────────
+  // ── Card 2: Medicare Deals by Stage (100% Real DB Data) ─────────────────────
   const medStagesData = useMemo(() => {
     const stageMap = {};
-    const canonicalMedStages = [
-      'Enrolled - HRA Done - Active (Medicare 2026)',
-      'Auto Renew - Active (Medicare 2026)',
-      'Enrolled - Active (Medicare 2026)',
-      'Ready to Enroll (Medicare 2026)',
-      'Deal Lost (Medicare 2026)',
-      'Do Not Contact (Medicare 2026)',
-      'Deal Lost - Second Change (Medicare 2026)',
-      'Enrolled - HRA Done (Medicare 2026)',
-      'Enrolled (Medicare 2026)',
-      'Need Telesale Review (Medicare 2026)',
-    ];
-
-    canonicalMedStages.forEach((st) => {
-      stageMap[st] = { stage: st, count: 0, agents: {} };
-    });
-
     medDeals.forEach((d) => {
       const st = d.stage || 'Enrolled - Active (Medicare 2026)';
       if (!stageMap[st]) {
         stageMap[st] = { stage: st, count: 0, agents: {} };
       }
       stageMap[st].count += 1;
-      const agent = d.dealOwnerName || d.dealOwner?.name || 'Ivy Le';
+      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
       stageMap[st].agents[agent] = (stageMap[st].agents[agent] || 0) + 1;
     });
 
-    return Object.values(stageMap)
-      .filter((s) => s.count > 0 || canonicalMedStages.slice(0, 5).includes(s.stage))
-      .sort((a, b) => b.count - a.count);
+    return Object.values(stageMap).sort((a, b) => b.count - a.count);
   }, [medDeals]);
 
   const maxMedCount = useMemo(() => {
     const counts = medStagesData.map((s) => s.count);
-    return Math.max(...counts, 4);
+    return Math.max(...counts, 1);
   }, [medStagesData]);
 
-  // ── Card 3: Active OB by Support Agent ───────────────────────────────────────
+  const medUniqueAgents = useMemo(() => {
+    const set = new Set();
+    medDeals.forEach((d) => {
+      const ag = d.dealOwnerName || d.dealOwner?.name;
+      if (ag) set.add(ag);
+    });
+    return Array.from(set);
+  }, [medDeals]);
+
+  // ── Card 3: Active OB by Support Agent (100% Real DB Data) ──────────────────
   const activeObByAgent = useMemo(() => {
     const activeOB = obDeals.filter((d) => (d.stage || '').toLowerCase().includes('active'));
     const map = {};
     activeOB.forEach((d) => {
-      const agent = d.dealOwnerName || d.dealOwner?.name || d.contact?.supportAgent || 'Anya Nguyen';
+      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
       map[agent] = (map[agent] || 0) + 1;
-    });
-    // Ensure standard agents appear if empty
-    ['Anya Nguyen', 'Sean Ngo', 'Ivy Le', 'Sarah Thai'].forEach((a) => {
-      if (map[a] === undefined) map[a] = 0;
     });
     return Object.entries(map)
       .map(([agent, count]) => ({ agent, count }))
@@ -252,15 +246,12 @@ export default function StaffCrmDashboard({
     [activeObByAgent]
   );
 
-  // ── Card 4: Medicare Deals by Support Agent ──────────────────────────────────
+  // ── Card 4: Medicare Deals by Support Agent (100% Real DB Data) ─────────────
   const medDealsByAgent = useMemo(() => {
     const map = {};
     medDeals.forEach((d) => {
-      const agent = d.dealOwnerName || d.dealOwner?.name || d.contact?.supportAgent || 'Ivy Le';
+      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
       map[agent] = (map[agent] || 0) + 1;
-    });
-    ['Ivy Le', 'Sean Ngo', 'Anya Nguyen', 'Sarah Thai'].forEach((a) => {
-      if (map[a] === undefined) map[a] = 0;
     });
     return Object.entries(map)
       .map(([agent, count]) => ({ agent, count }))
@@ -272,11 +263,11 @@ export default function StaffCrmDashboard({
     [medDealsByAgent]
   );
 
-  // ── Card 5: Total Contact Count by Owner (Active vs Inactive) ────────────────
+  // ── Card 5: Total Contact Count by Owner (Active vs Inactive) ───────────────
   const contactsByOwner = useMemo(() => {
     const map = {};
     liveContacts.forEach((c) => {
-      const owner = c.contactOwnerName || c.supportAgent || 'Anya Nguyen';
+      const owner = c.contactOwnerName || c.supportAgent || 'Unassigned';
       if (!map[owner]) map[owner] = { agent: owner, active: 0, inactive: 0, total: 0 };
       if (c.status === 'Active') {
         map[owner].active += 1;
@@ -285,11 +276,6 @@ export default function StaffCrmDashboard({
       }
       map[owner].total += 1;
     });
-
-    ['Anya Nguyen', 'Sean Ngo', 'Ivy Le', 'Sarah Thai'].forEach((a) => {
-      if (!map[a]) map[a] = { agent: a, active: 0, inactive: 0, total: 0 };
-    });
-
     return Object.values(map).sort((a, b) => b.total - a.total);
   }, [liveContacts]);
 
@@ -298,11 +284,11 @@ export default function StaffCrmDashboard({
     [contactsByOwner]
   );
 
-  // ── Card 6: Deals by Agent Column Chart (Not count Lost & Terminated) ───────
+  // ── Card 6: Deals by Agent Column Chart (100% Real DB Data) ─────────────────
   const dealsByAgentChart = useMemo(() => {
     const map = {};
     activeDealsList.forEach((d) => {
-      const owner = d.dealOwnerName || d.dealOwner?.name || 'Khanh Nguyen';
+      const owner = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
       if (!map[owner]) map[owner] = { name: owner, ob: 0, med: 0, total: 0 };
       if ((d.pipeline || '').toLowerCase().includes('medicare')) {
         map[owner].med += 1;
@@ -311,17 +297,7 @@ export default function StaffCrmDashboard({
       }
       map[owner].total += 1;
     });
-
-    ['Anya Nguyen', 'Sean Ngo', 'Khanh Nguyen', 'Ivy Le', 'Sarah Thai', 'Trono Truong', 'Jay Ly', 'Quyen Le'].forEach(
-      (a) => {
-        if (!map[a]) map[a] = { name: a, ob: 0, med: 0, total: 0 };
-      }
-    );
-
-    return Object.values(map)
-      .filter((m) => m.total > 0 || ['Anya Nguyen', 'Sean Ngo', 'Khanh Nguyen', 'Ivy Le'].includes(m.name))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 8);
+    return Object.values(map).sort((a, b) => b.total - a.total).slice(0, 10);
   }, [activeDealsList]);
 
   const maxAgentDealTotal = useMemo(
@@ -329,15 +305,12 @@ export default function StaffCrmDashboard({
     [dealsByAgentChart]
   );
 
-  // ── Card 7 & 8: Open & Overdue Tasks by Assignee ─────────────────────────────
+  // ── Card 7 & 8: Open & Overdue Tasks by Assignee ────────────────────────────
   const openTasksByAgent = useMemo(() => {
     const map = {};
     openTasksList.forEach((t) => {
-      const agent = t.assignedTo || 'Anya Nguyen';
+      const agent = t.assignedTo || 'Unassigned';
       map[agent] = (map[agent] || 0) + 1;
-    });
-    ['Anya Nguyen', 'Sean Ngo', 'Ivy Le', 'Sarah Thai'].forEach((a) => {
-      if (map[a] === undefined) map[a] = 0;
     });
     return Object.entries(map)
       .map(([agent, count]) => ({ agent, count }))
@@ -347,29 +320,18 @@ export default function StaffCrmDashboard({
   const overdueTasksByAgent = useMemo(() => {
     const map = {};
     overdueTasksList.forEach((t) => {
-      const agent = t.assignedTo || 'Anya Nguyen';
+      const agent = t.assignedTo || 'Unassigned';
       map[agent] = (map[agent] || 0) + 1;
-    });
-    ['Anya Nguyen', 'Sean Ngo', 'Ivy Le', 'Sarah Thai'].forEach((a) => {
-      if (map[a] === undefined) map[a] = 0;
     });
     return Object.entries(map)
       .map(([agent, count]) => ({ agent, count }))
       .sort((a, b) => b.count - a.count);
   }, [overdueTasksList]);
 
-  // ── Card 9: Tickets Overdue Details Pivot Table ─────────────────────────────
+  // ── Card 9: Tickets Overdue Details Pivot Table (100% Real DB Data) ────────
   const overduePivotTable = useMemo(() => {
-    const pipelines = [
-      'Client Support',
-      'Payment',
-      'ACA account',
-      'Upload document',
-      'Choose Doctor',
-    ];
     const matchPipeline = (pipeStr) => {
       const p = (pipeStr || '').toLowerCase();
-      if (p.includes('client') || p.includes('support')) return 'Client Support';
       if (p.includes('payment') || p.includes('pay')) return 'Payment';
       if (p.includes('aca') || p.includes('account')) return 'ACA account';
       if (p.includes('upload') || p.includes('collect') || p.includes('doc')) return 'Upload document';
@@ -377,13 +339,9 @@ export default function StaffCrmDashboard({
       return 'Client Support';
     };
 
-    const agents = ['Anya Nguyen', 'Sean Ngo', 'Ivy Le', 'Sarah Thai'];
-    const rows = [];
-
-    // Distinct (Agent x Stage) combos from overdueTicketsList
     const combos = {};
     overdueTicketsList.forEach((t) => {
-      const ag = t.serviceAgent || 'Anya Nguyen';
+      const ag = t.serviceAgent || t.assignedTo || 'Unassigned';
       const st = t.stage || t.status || 'Waiting on verification';
       const key = `${ag}:::${st}`;
       if (!combos[key]) {
@@ -404,24 +362,6 @@ export default function StaffCrmDashboard({
       combos[key].counts[pCat] = (combos[key].counts[pCat] || 0) + 1;
       combos[key].total += 1;
     });
-
-    // If no overdue tickets in DB, provide realistic fallback rows based on open tickets
-    if (Object.keys(combos).length === 0) {
-      return [
-        {
-          agent: 'Anya Nguyen',
-          stage: 'Uploaded - Waiting for Verification',
-          counts: { 'Client Support': 0, Payment: 0, 'ACA account': 1, 'Upload document': 0, 'Choose Doctor': 0 },
-          total: 1,
-        },
-        {
-          agent: 'Sean Ngo',
-          stage: 'Check payment (Payment)',
-          counts: { 'Client Support': 0, Payment: 1, 'ACA account': 0, 'Upload document': 0, 'Choose Doctor': 0 },
-          total: 1,
-        },
-      ];
-    }
 
     return Object.values(combos);
   }, [overdueTicketsList]);
@@ -448,14 +388,9 @@ export default function StaffCrmDashboard({
   const openTicketsByAgent = useMemo(() => {
     const map = {};
     openTicketsList.forEach((t) => {
-      const agent = t.serviceAgent || 'Anya Nguyen';
-      if (!map[agent]) map[agent] = { agent, count: 0, pipelines: {} };
+      const agent = t.serviceAgent || t.assignedTo || 'Unassigned';
+      if (!map[agent]) map[agent] = { agent, count: 0 };
       map[agent].count += 1;
-      const pipe = t.pipeline || 'Client Support';
-      map[agent].pipelines[pipe] = (map[agent].pipelines[pipe] || 0) + 1;
-    });
-    ['Anya Nguyen', 'Sean Ngo', 'Ivy Le', 'Sarah Thai'].forEach((a) => {
-      if (!map[a]) map[a] = { agent: a, count: 0, pipelines: {} };
     });
     return Object.values(map).sort((a, b) => b.count - a.count);
   }, [openTicketsList]);
@@ -464,17 +399,21 @@ export default function StaffCrmDashboard({
   const overdueTicketsByAgent = useMemo(() => {
     const map = {};
     overdueTicketsList.forEach((t) => {
-      const agent = t.serviceAgent || 'Sean Ngo';
-      if (!map[agent]) map[agent] = { agent, count: 0, pipelines: {} };
+      const agent = t.serviceAgent || t.assignedTo || 'Unassigned';
+      if (!map[agent]) map[agent] = { agent, count: 0 };
       map[agent].count += 1;
-      const pipe = t.pipeline || 'Client Support';
-      map[agent].pipelines[pipe] = (map[agent].pipelines[pipe] || 0) + 1;
-    });
-    ['Sean Ngo', 'Anya Nguyen', 'Ivy Le', 'Sarah Thai'].forEach((a) => {
-      if (!map[a]) map[a] = { agent: a, count: 0, pipelines: {} };
     });
     return Object.values(map).sort((a, b) => b.count - a.count);
   }, [overdueTicketsList]);
+
+  // ── Card 12: Need Extend Tickets ────────────────────────────────────────────
+  const needExtendTickets = useMemo(() => {
+    return liveTickets.filter(
+      (t) =>
+        (t.title || '').toLowerCase().includes('extend') ||
+        t.category === 'Extend'
+    );
+  }, [liveTickets]);
 
   // ── Card 13: Need Update Member ID ──────────────────────────────────────────
   const needUpdateMemberIdData = useMemo(() => {
@@ -483,11 +422,8 @@ export default function StaffCrmDashboard({
     );
     const map = {};
     missing.forEach((d) => {
-      const agent = d.dealOwnerName || d.dealOwner?.name || 'Anya Nguyen';
+      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
       map[agent] = (map[agent] || 0) + 1;
-    });
-    ['Anya Nguyen', 'Sean Ngo', 'Sarah Thai'].forEach((a) => {
-      if (map[a] === undefined) map[a] = 0;
     });
     const maxVal = Math.max(...Object.values(map), 1);
     return Object.entries(map).map(([agent, count]) => ({
@@ -507,11 +443,8 @@ export default function StaffCrmDashboard({
     );
     const map = {};
     needAccount.forEach((c) => {
-      const agent = c.supportAgent || c.contactOwnerName || 'Anya Nguyen';
+      const agent = c.supportAgent || c.contactOwnerName || 'Unassigned';
       map[agent] = (map[agent] || 0) + 1;
-    });
-    ['Anya Nguyen', 'Sean Ngo', 'Miranda Pham'].forEach((a) => {
-      if (map[a] === undefined) map[a] = 0;
     });
     const maxVal = Math.max(...Object.values(map), 1);
     return Object.entries(map).map(([agent, count]) => ({
@@ -521,72 +454,55 @@ export default function StaffCrmDashboard({
     }));
   }, [liveContacts]);
 
-  // ── Card 15: Open Upload Document Ticket Table (Real Data) ──────────────────
+  // ── Card 15: Open Upload Document Ticket Table (100% Real DB Data) ──────────
   const uploadTicketsDisplay = useMemo(() => {
     const docTix = liveTickets.filter(
       (t) =>
         t.pipeline === 'COLLECT_DOCUMENT' ||
         t.pipeline === 'Upload documents' ||
-        t.title?.toLowerCase().includes('document') ||
-        t.title?.toLowerCase().includes('upload')
+        (t.title || '').toLowerCase().includes('document') ||
+        (t.title || '').toLowerCase().includes('upload')
     );
-    if (docTix.length > 0) {
-      return docTix.slice(0, 7).map((t, idx) => ({
-        no: idx + 1,
-        ticketId: t.title || `Collect Document #${t.id?.slice(-4)}`,
-        due: formatDate(t.dueDate),
-        owner: t.contact?.fullName || t.ticketOwner || 'Customer',
-        stage: t.status === 'WAITING_ON_CLIENT' ? 'Waiting on contact' : (t.stage || t.status || 'Waiting on verification'),
-        agent: t.serviceAgent || t.assignedTo || 'Sean Ngo',
-        rawTicket: t,
-        contact: t.contact,
-      }));
-    }
-    return [
-      { no: 1, ticketId: 'Collect Documents for Upload (ACA)', due: '09/22/2026', owner: 'Jay Ly', stage: 'Waiting on verification', agent: 'Ivy Le' },
-      { no: 2, ticketId: 'Collect Documents for Upload (SSN)', due: '09/06/2026', owner: 'Khanh Nguyen', stage: 'Waiting on contact', agent: 'Sarah Thai' },
-      { no: 3, ticketId: 'Collect Documents for Upload (Income)', due: '09/21/2026', owner: 'Tri Tran', stage: 'Waiting on contact', agent: 'Sean Ngo' },
-    ];
+    return docTix.map((t, idx) => ({
+      no: idx + 1,
+      ticketId: t.title || `Collect Document #${t.id?.slice(-4)}`,
+      due: formatDate(t.dueDate),
+      owner: t.contact?.fullName || t.ticketOwner || 'Customer',
+      stage:
+        t.status === 'WAITING_ON_CLIENT'
+          ? 'Waiting on contact'
+          : t.stage || t.status || 'Waiting on verification',
+      agent: t.serviceAgent || t.assignedTo || 'Unassigned',
+      rawTicket: t,
+      contact: t.contact,
+    }));
   }, [liveTickets]);
 
-  // ── Card 16 & 17: ACA Consent Form Status (Normal & Special States) ────────
+  // ── Card 16 & 17: ACA Consent Form Status (100% Real DB Data) ───────────────
   const acaConsentStatusData = useMemo(() => {
-    const statuses = ['Collected', 'Uploaded', 'Sent out', 'Existing client', 'Need send new form', 'not sent'];
     const map = {};
-    statuses.forEach((st) => {
-      map[st] = { label: st, count: 0, agents: {} };
-    });
-
     obDeals.forEach((d) => {
-      const st = d.consentFormStatus || (d.uploadRequest ? 'Uploaded' : 'Collected');
+      const st = d.consentFormStatus || 'Collected';
       if (!map[st]) map[st] = { label: st, count: 0, agents: {} };
       map[st].count += 1;
-      const agent = d.dealOwnerName || 'Anya Nguyen';
-      map[st].agents[agent] = (map[agent] || 0) + 1;
+      const agent = d.dealOwnerName || 'Unassigned';
+      map[st].agents[agent] = (map[st].agents[agent] || 0) + 1;
     });
-
-    return Object.values(map);
+    return Object.values(map).sort((a, b) => b.count - a.count);
   }, [obDeals]);
 
   // ── Card 18: Active Policies OB 26 Not Done ACA - Manager ──────────────────
   const activePoliciesObNotDoneAca = useMemo(() => {
     const activeOB = obDeals.filter((d) => (d.stage || '').toLowerCase().includes('active'));
-    const rows = [
-      { label: 'Need Create ACA Account', total: 0, agents: {} },
-      { label: 'Pending - Waiting for Document', total: 0, agents: {} },
-      { label: 'Uploaded - Waiting for Verification', total: 0, agents: {} },
-      { label: 'VERIFIED', total: 0, agents: {} },
-    ];
-
+    const map = {};
     activeOB.forEach((d) => {
-      const st = d.contact?.acaAccountStatus || d.stageAca || 'Need Create ACA Account';
-      const row = rows.find((r) => r.label.toLowerCase() === st.toLowerCase()) || rows[0];
-      row.total += 1;
-      const agent = d.dealOwnerName || 'Anya Nguyen';
-      row.agents[agent] = (row.agents[agent] || 0) + 1;
+      const st = d.contact?.acaAccountStatus || d.stageAca || 'Pending - Waiting for Document';
+      if (!map[st]) map[st] = { label: st, total: 0, agents: {} };
+      map[st].total += 1;
+      const agent = d.dealOwnerName || 'Unassigned';
+      map[st].agents[agent] = (map[st].agents[agent] || 0) + 1;
     });
-
-    return rows;
+    return Object.values(map).sort((a, b) => b.total - a.total);
   }, [obDeals]);
 
   // ── Card 19 & 20: Daily Complete Tickets & Daily New Tickets ────────────────
@@ -596,20 +512,28 @@ export default function StaffCrmDashboard({
       if (t.createdAt) set.add(formatDate(t.createdAt));
       if (t.dueDate) set.add(formatDate(t.dueDate));
     });
-    const arr = Array.from(set).slice(0, 9);
-    if (arr.length === 0) {
-      return ['08/02/2026', '08/03/2026', '08/04/2026', '08/05/2026', '08/09/2026', '08/11/2026', '08/12/2026', '08/13/2026', '08/16/2026'];
-    }
-    return arr;
+    const arr = Array.from(set).filter(Boolean).sort();
+    return arr.slice(0, 9);
+  }, [liveTickets]);
+
+  const ticketDistinctAgents = useMemo(() => {
+    const set = new Set();
+    liveTickets.forEach((t) => {
+      const ag = t.serviceAgent || t.assignedTo;
+      if (ag) set.add(ag);
+    });
+    const arr = Array.from(set);
+    return arr.length > 0 ? arr : ['Anya Nguyen', 'Sean Ngo', 'Sarah Thai', 'Ivy Le'];
   }, [liveTickets]);
 
   const dailyCompleteTicketsData = useMemo(() => {
     const completed = liveTickets.filter((t) => t.status === 'Closed' || t.status === 'Resolved');
-    const agents = ['Anya Nguyen', 'Sean Ngo', 'Sarah Thai', 'Ivy Le'];
-    const matrix = agents.map((agent) => {
+    const matrix = ticketDistinctAgents.map((agent) => {
       const vals = ticketDateColumns.map((dt) => {
         return completed.filter(
-          (t) => (t.serviceAgent === agent || t.assignedTo === agent) && formatDate(t.dueDate) === dt
+          (t) =>
+            (t.serviceAgent === agent || t.assignedTo === agent) &&
+            formatDate(t.dueDate || t.updatedAt) === dt
         ).length;
       });
       return { agent, vals };
@@ -618,15 +542,16 @@ export default function StaffCrmDashboard({
       return matrix.reduce((sum, r) => sum + r.vals[cIdx], 0);
     });
     return { matrix, colTotals };
-  }, [liveTickets, ticketDateColumns]);
+  }, [liveTickets, ticketDateColumns, ticketDistinctAgents]);
 
   const dailyNewTicketsData = useMemo(() => {
     const newTix = liveTickets.filter((t) => t.status === 'Open' || t.status === 'In Progress');
-    const agents = ['Anya Nguyen', 'Sean Ngo', 'Sarah Thai', 'Ivy Le'];
-    const matrix = agents.map((agent) => {
+    const matrix = ticketDistinctAgents.map((agent) => {
       const vals = ticketDateColumns.map((dt) => {
         return newTix.filter(
-          (t) => (t.serviceAgent === agent || t.assignedTo === agent) && formatDate(t.createdAt) === dt
+          (t) =>
+            (t.serviceAgent === agent || t.assignedTo === agent) &&
+            formatDate(t.createdAt) === dt
         ).length;
       });
       return { agent, vals };
@@ -635,7 +560,7 @@ export default function StaffCrmDashboard({
       return matrix.reduce((sum, r) => sum + r.vals[cIdx], 0);
     });
     return { matrix, colTotals };
-  }, [liveTickets, ticketDateColumns]);
+  }, [liveTickets, ticketDateColumns, ticketDistinctAgents]);
 
   // ── Card 21: Need Manager Enroll ────────────────────────────────────────────
   const needManagerEnrollData = useMemo(() => {
@@ -644,8 +569,12 @@ export default function StaffCrmDashboard({
         (d.stage || '').toLowerCase().includes('waiting for document') ||
         (d.stage || '').toLowerCase().includes('ready to enroll')
     );
-    const waitingDocCount = waiting.filter((d) => (d.stage || '').toLowerCase().includes('waiting for document')).length;
-    const readyEnrollCount = waiting.filter((d) => (d.stage || '').toLowerCase().includes('ready to enroll')).length;
+    const waitingDocCount = waiting.filter((d) =>
+      (d.stage || '').toLowerCase().includes('waiting for document')
+    ).length;
+    const readyEnrollCount = waiting.filter((d) =>
+      (d.stage || '').toLowerCase().includes('ready to enroll')
+    ).length;
     return {
       total: waiting.length,
       waitingDocCount,
@@ -655,20 +584,15 @@ export default function StaffCrmDashboard({
 
   // ── Card 22: SOA Status - Manager ───────────────────────────────────────────
   const soaStatusData = useMemo(() => {
-    const rows = [
-      { label: 'Sent out', total: 0, agents: {} },
-      { label: 'Existing client', total: 0, agents: {} },
-      { label: 'Collected', total: 0, agents: {} },
-      { label: 'Uploaded', total: 0, agents: {} },
-    ];
+    const map = {};
     medDeals.forEach((d) => {
       const st = d.consentFormStatus || 'Collected';
-      const row = rows.find((r) => r.label.toLowerCase() === st.toLowerCase()) || rows[2];
-      row.total += 1;
-      const agent = d.dealOwnerName || 'Ivy Le';
-      row.agents[agent] = (row.agents[agent] || 0) + 1;
+      if (!map[st]) map[st] = { label: st, total: 0, agents: {} };
+      map[st].total += 1;
+      const agent = d.dealOwnerName || 'Unassigned';
+      map[st].agents[agent] = (map[st].agents[agent] || 0) + 1;
     });
-    return rows;
+    return Object.values(map).sort((a, b) => b.total - a.total);
   }, [medDeals]);
 
   return (
@@ -732,9 +656,10 @@ export default function StaffCrmDashboard({
         </div>
 
         <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-          <span className="material-symbols-outlined text-[16px] text-slate-400">bar_chart</span>
-          <span>Total:</span>
-          <span className="font-bold text-slate-800">27 reports (Live Database)</span>
+          <span className="material-symbols-outlined text-[16px] text-emerald-600">database</span>
+          <span>Status:</span>
+          <span className="font-bold text-emerald-700">100% Real Database Data</span>
+          <span className="text-slate-400 font-normal">({liveDeals.length} deals • {liveTickets.length} tickets • {liveTasks.length} tasks)</span>
         </div>
       </div>
 
@@ -752,11 +677,11 @@ export default function StaffCrmDashboard({
               <span className="material-symbols-outlined text-[18px] text-blue-600">contacts</span>
             </div>
             <div className="text-2xl font-black text-slate-900">
-              {liveContacts.length || dbStats?.totalContacts || 0}
+              {liveContacts.length}
             </div>
             <div className="text-[10px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>100% Live Database</span>
+              <span>Real PostgreSQL Data</span>
             </div>
           </div>
 
@@ -770,7 +695,7 @@ export default function StaffCrmDashboard({
               <span className="material-symbols-outlined text-[18px] text-indigo-600">handshake</span>
             </div>
             <div className="text-2xl font-black text-slate-900">
-              {activeDealsList.length || dbStats?.activeDeals || 0}
+              {activeDealsList.length}
             </div>
             <div className="text-[10px] text-slate-500 font-medium mt-1 truncate">
               {`OB (${obDeals.length}) • Medicare (${medDeals.length})`}
@@ -787,10 +712,10 @@ export default function StaffCrmDashboard({
               <span className="material-symbols-outlined text-[18px] text-cyan-600">confirmation_number</span>
             </div>
             <div className="text-2xl font-black text-slate-900">
-              {openTicketsList.length || dbStats?.openTickets || 0}
+              {openTicketsList.length}
             </div>
             <div className="text-[10px] text-amber-600 font-bold mt-1 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
               <span>{liveTickets.length} Total Tickets</span>
             </div>
           </div>
@@ -805,7 +730,7 @@ export default function StaffCrmDashboard({
               <span className="material-symbols-outlined text-[18px] text-rose-600">warning</span>
             </div>
             <div className="text-2xl font-black text-rose-700">
-              {overdueTicketsList.length || dbStats?.overdueTickets || 0}
+              {overdueTicketsList.length}
             </div>
             <div className="text-[10px] text-rose-600 font-medium mt-1">
               Needs SLA Attention
@@ -822,10 +747,10 @@ export default function StaffCrmDashboard({
               <span className="material-symbols-outlined text-[18px] text-purple-600">checklist</span>
             </div>
             <div className="text-2xl font-black text-slate-900">
-              {openTasksList.length || dbStats?.pendingTasks || 0}
+              {openTasksList.length}
             </div>
             <div className="text-[10px] text-slate-500 font-medium mt-1">
-              {overdueTasksList.length > 0 ? `${overdueTasksList.length} Overdue` : 'All on track'}
+              {overdueTasksList.length > 0 ? `${overdueTasksList.length} Overdue SLA` : 'All on track'}
             </div>
           </div>
 
@@ -839,10 +764,10 @@ export default function StaffCrmDashboard({
               <span className="material-symbols-outlined text-[18px] text-emerald-600">payments</span>
             </div>
             <div className="text-2xl font-black text-emerald-700 font-mono">
-              ${(dbStats?.commissionThisMonth || 0).toFixed(0)}
+              ${commissionStats.monthly.toFixed(0)}
             </div>
             <div className="text-[10px] text-emerald-700 font-medium mt-1 font-mono">
-              YTD: ${(dbStats?.commissionYTD || 150).toFixed(0)} Net
+              YTD: ${commissionStats.ytd.toFixed(0)} Net
             </div>
           </div>
         </div>
@@ -879,26 +804,26 @@ export default function StaffCrmDashboard({
               </div>
             </div>
 
-            {/* Horizontal Bar Chart for OB Deals (Dynamic from DB) */}
+            {/* Horizontal Bar Chart for OB Deals (100% Real DB Data) */}
             <div className="flex-grow flex flex-col justify-center space-y-1.5 text-[11px] pt-1">
-              {obStagesData.map((item, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
-                  title={`Click to view all ${item.stage} deals (${item.count})`}
-                >
+              {obStagesData.length === 0 ? (
+                <div className="py-8 text-center text-slate-400">No Obamacare deals found</div>
+              ) : (
+                obStagesData.map((item, idx) => (
                   <div
-                    className="w-56 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition"
-                    title={item.stage}
+                    key={idx}
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
+                    title={`Click to view all ${item.stage} deals (${item.count})`}
                   >
-                    {item.stage}
-                  </div>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
-                    {item.count === 0 ? (
-                      <div className="w-0 h-full" />
-                    ) : (
-                      Object.entries(item.agents).map(([agent, segCount], sIdx) => {
+                    <div
+                      className="w-56 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition"
+                      title={item.stage}
+                    >
+                      {item.stage}
+                    </div>
+                    <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
+                      {Object.entries(item.agents).map(([agent, segCount], sIdx) => {
                         const widthPercent = (segCount / maxObCount) * 100;
                         return (
                           <div
@@ -911,14 +836,14 @@ export default function StaffCrmDashboard({
                             title={`${agent}: ${segCount}`}
                           />
                         );
-                      })
-                    )}
+                      })}
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-700 w-8">
+                      {item.count}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-700 w-8">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
               <div className="flex items-center justify-end text-[9px] text-slate-400 gap-8 pr-10 pt-1">
                 <span>0</span>
                 <span>{Math.round(maxObCount * 0.25)}</span>
@@ -977,46 +902,39 @@ export default function StaffCrmDashboard({
               </div>
             </div>
 
-            {/* Agent Legend */}
+            {/* Dynamic Agent Legend */}
             <div className="flex items-center justify-center gap-3 text-[10px] text-slate-600 my-2 flex-wrap">
-              <div className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: C_ANYA }} />
-                <span>Anya Nguyen</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: C_SEAN }} />
-                <span>Sean Ngo</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: C_IVY }} />
-                <span>Ivy Le</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: C_SARAH }} />
-                <span>Sarah Thai</span>
-              </div>
+              {medUniqueAgents.map((agent, aIdx) => (
+                <div key={agent} className="flex items-center gap-1">
+                  <span
+                    className="w-3 h-2 rounded-xs"
+                    style={{ backgroundColor: getAgentColor(agent, aIdx) }}
+                  />
+                  <span>{agent}</span>
+                </div>
+              ))}
             </div>
 
-            {/* Horizontal Bar Chart for Medicare Deals (Dynamic from DB) */}
+            {/* Horizontal Bar Chart for Medicare Deals (100% Real DB Data) */}
             <div className="flex-grow flex flex-col justify-center space-y-1.5 text-[11px] pt-1">
-              {medStagesData.map((item, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
-                  title={`Click to view all ${item.stage} deals (${item.count})`}
-                >
+              {medStagesData.length === 0 ? (
+                <div className="py-8 text-center text-slate-400">No Medicare deals found</div>
+              ) : (
+                medStagesData.map((item, idx) => (
                   <div
-                    className="w-60 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition"
-                    title={item.stage}
+                    key={idx}
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
+                    title={`Click to view all ${item.stage} deals (${item.count})`}
                   >
-                    {item.stage}
-                  </div>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-xs group-hover:ring-1 group-hover:ring-blue-300">
-                    {item.count === 0 ? (
-                      <div className="w-0 h-full" />
-                    ) : (
-                      Object.entries(item.agents).map(([agent, segCount], sIdx) => {
+                    <div
+                      className="w-60 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition"
+                      title={item.stage}
+                    >
+                      {item.stage}
+                    </div>
+                    <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-xs group-hover:ring-1 group-hover:ring-blue-300">
+                      {Object.entries(item.agents).map(([agent, segCount], sIdx) => {
                         const widthPercent = (segCount / maxMedCount) * 100;
                         return (
                           <div
@@ -1029,14 +947,14 @@ export default function StaffCrmDashboard({
                             title={`${agent}: ${segCount}`}
                           />
                         );
-                      })
-                    )}
+                      })}
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-700 w-6">
+                      {item.count}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-700 w-6">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -1302,30 +1220,34 @@ export default function StaffCrmDashboard({
               <span>(Count Distinct) TaskId</span>
             </div>
             <div className="space-y-4 my-auto py-2">
-              {openTasksByAgent.map((item, idx) => {
-                const maxTask = Math.max(...openTasksByAgent.map((t) => t.count), 1);
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => onSelectTab && onSelectTab('tasks')}
-                    className="flex items-center gap-3 text-xs hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
-                    title={`Click to view ${item.agent}'s tasks`}
-                  >
-                    <span className="w-24 text-right text-slate-600 group-hover:text-blue-700">
-                      {item.agent}
-                    </span>
-                    <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
-                      <div
-                        style={{ width: `${(item.count / maxTask) * 100}%` }}
-                        className="bg-[#5271ff] h-full"
-                      />
+              {openTasksByAgent.length === 0 ? (
+                <div className="text-center text-slate-400 text-xs py-4">No open tasks</div>
+              ) : (
+                openTasksByAgent.map((item, idx) => {
+                  const maxTask = Math.max(...openTasksByAgent.map((t) => t.count), 1);
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => onSelectTab && onSelectTab('tasks')}
+                      className="flex items-center gap-3 text-xs hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
+                      title={`Click to view ${item.agent}'s tasks`}
+                    >
+                      <span className="w-24 text-right text-slate-600 group-hover:text-blue-700">
+                        {item.agent}
+                      </span>
+                      <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                        <div
+                          style={{ width: `${(item.count / maxTask) * 100}%` }}
+                          className="bg-[#5271ff] h-full"
+                        />
+                      </div>
+                      <span className="font-bold text-slate-800 text-xs group-hover:text-blue-700">
+                        {item.count}
+                      </span>
                     </div>
-                    <span className="font-bold text-slate-800 text-xs group-hover:text-blue-700">
-                      {item.count}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -1356,30 +1278,34 @@ export default function StaffCrmDashboard({
               <span>(Count Distinct) TaskId</span>
             </div>
             <div className="space-y-4 my-auto py-2">
-              {overdueTasksByAgent.map((item, idx) => {
-                const maxOverdue = Math.max(...overdueTasksByAgent.map((t) => t.count), 1);
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => onSelectTab && onSelectTab('tasks')}
-                    className="flex items-center gap-3 text-xs hover:bg-rose-50/70 p-1 rounded cursor-pointer transition group"
-                    title={`Click to view ${item.agent}'s overdue tasks`}
-                  >
-                    <span className="w-24 text-right text-slate-600 group-hover:text-rose-700">
-                      {item.agent}
-                    </span>
-                    <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden group-hover:ring-1 group-hover:ring-rose-300">
-                      <div
-                        style={{ width: `${(item.count / maxOverdue) * 100}%` }}
-                        className="bg-[#5271ff] h-full"
-                      />
+              {overdueTasksByAgent.length === 0 ? (
+                <div className="text-center text-slate-400 text-xs py-4">No overdue tasks</div>
+              ) : (
+                overdueTasksByAgent.map((item, idx) => {
+                  const maxOverdue = Math.max(...overdueTasksByAgent.map((t) => t.count), 1);
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => onSelectTab && onSelectTab('tasks')}
+                      className="flex items-center gap-3 text-xs hover:bg-rose-50/70 p-1 rounded cursor-pointer transition group"
+                      title={`Click to view ${item.agent}'s overdue tasks`}
+                    >
+                      <span className="w-24 text-right text-slate-600 group-hover:text-rose-700">
+                        {item.agent}
+                      </span>
+                      <div className="flex-grow bg-slate-100 h-3.5 rounded-sm max-w-xs overflow-hidden group-hover:ring-1 group-hover:ring-rose-300">
+                        <div
+                          style={{ width: `${(item.count / maxOverdue) * 100}%` }}
+                          className="bg-rose-500 h-full"
+                        />
+                      </div>
+                      <span className="font-bold text-rose-700 text-xs">
+                        {item.count}
+                      </span>
                     </div>
-                    <span className="font-bold text-rose-700 text-xs">
-                      {item.count}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
@@ -1425,67 +1351,77 @@ export default function StaffCrmDashboard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-600">
-                {overduePivotTable.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    onClick={() => onSelectTab && onSelectTab('tickets')}
-                    className="hover:bg-blue-50/70 transition cursor-pointer group"
-                    title={`Click to view tickets for ${row.agent}`}
-                  >
-                    <td className="p-2.5 font-bold text-slate-900 border-r border-slate-200 bg-white">
-                      {row.agent}
-                    </td>
-                    <td className="p-2 border-r border-slate-200 group-hover:text-blue-700 font-medium">
-                      {row.stage}
-                    </td>
-                    <td className="p-2 text-center border-r border-slate-200">
-                      {row.counts['Client Support'] || 0}
-                    </td>
-                    <td className="p-2 text-center border-r border-slate-200">
-                      {row.counts['Payment'] || 0}
-                    </td>
-                    <td className="p-2 text-center border-r border-slate-200">
-                      {row.counts['ACA account'] || 0}
-                    </td>
-                    <td className="p-2 text-center border-r border-slate-200">
-                      {row.counts['Upload document'] || 0}
-                    </td>
-                    <td className="p-2 text-center border-r border-slate-200">
-                      {row.counts['Choose Doctor'] || 0}
-                    </td>
-                    <td className="p-2 text-center font-bold bg-slate-50 group-hover:text-blue-700">
-                      {row.total}
+                {overduePivotTable.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-6 text-center text-slate-400 font-medium">
+                      All clear! No overdue tickets currently in the database queue.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  overduePivotTable.map((row, idx) => (
+                    <tr
+                      key={idx}
+                      onClick={() => onSelectTab && onSelectTab('tickets')}
+                      className="hover:bg-blue-50/70 transition cursor-pointer group"
+                      title={`Click to view tickets for ${row.agent}`}
+                    >
+                      <td className="p-2.5 font-bold text-slate-900 border-r border-slate-200 bg-white">
+                        {row.agent}
+                      </td>
+                      <td className="p-2 border-r border-slate-200 group-hover:text-blue-700 font-medium">
+                        {row.stage}
+                      </td>
+                      <td className="p-2 text-center border-r border-slate-200">
+                        {row.counts['Client Support'] || 0}
+                      </td>
+                      <td className="p-2 text-center border-r border-slate-200">
+                        {row.counts['Payment'] || 0}
+                      </td>
+                      <td className="p-2 text-center border-r border-slate-200">
+                        {row.counts['ACA account'] || 0}
+                      </td>
+                      <td className="p-2 text-center border-r border-slate-200">
+                        {row.counts['Upload document'] || 0}
+                      </td>
+                      <td className="p-2 text-center border-r border-slate-200">
+                        {row.counts['Choose Doctor'] || 0}
+                      </td>
+                      <td className="p-2 text-center font-bold bg-slate-50 group-hover:text-blue-700">
+                        {row.total}
+                      </td>
+                    </tr>
+                  ))
+                )}
                 {/* DYNAMIC TOTAL ROW */}
-                <tr
-                  onClick={() => onSelectTab && onSelectTab('tickets')}
-                  className="bg-slate-100 font-bold text-slate-900 border-t border-slate-200 hover:bg-blue-100/70 cursor-pointer transition"
-                  title="Click to view all overdue tickets"
-                >
-                  <td colSpan={2} className="p-2.5 text-right uppercase tracking-wide">
-                    TOTAL
-                  </td>
-                  <td className="p-2 text-center text-blue-700">
-                    {overduePivotTotals['Client Support']}
-                  </td>
-                  <td className="p-2 text-center text-blue-700">
-                    {overduePivotTotals['Payment']}
-                  </td>
-                  <td className="p-2 text-center text-blue-700">
-                    {overduePivotTotals['ACA account']}
-                  </td>
-                  <td className="p-2 text-center text-blue-700">
-                    {overduePivotTotals['Upload document']}
-                  </td>
-                  <td className="p-2 text-center text-blue-700">
-                    {overduePivotTotals['Choose Doctor']}
-                  </td>
-                  <td className="p-2 text-center text-blue-900 bg-slate-200 text-xs font-black">
-                    {overduePivotTotals.grandTotal}
-                  </td>
-                </tr>
+                {overduePivotTable.length > 0 && (
+                  <tr
+                    onClick={() => onSelectTab && onSelectTab('tickets')}
+                    className="bg-slate-100 font-bold text-slate-900 border-t border-slate-200 hover:bg-blue-100/70 cursor-pointer transition"
+                    title="Click to view all overdue tickets"
+                  >
+                    <td colSpan={2} className="p-2.5 text-right uppercase tracking-wide">
+                      TOTAL
+                    </td>
+                    <td className="p-2 text-center text-blue-700">
+                      {overduePivotTotals['Client Support']}
+                    </td>
+                    <td className="p-2 text-center text-blue-700">
+                      {overduePivotTotals['Payment']}
+                    </td>
+                    <td className="p-2 text-center text-blue-700">
+                      {overduePivotTotals['ACA account']}
+                    </td>
+                    <td className="p-2 text-center text-blue-700">
+                      {overduePivotTotals['Upload document']}
+                    </td>
+                    <td className="p-2 text-center text-blue-700">
+                      {overduePivotTotals['Choose Doctor']}
+                    </td>
+                    <td className="p-2 text-center text-blue-900 bg-slate-200 text-xs font-black">
+                      {overduePivotTotals.grandTotal}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1515,45 +1451,35 @@ export default function StaffCrmDashboard({
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-500 mb-2">
-              <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2 rounded-xs bg-[#5271ff]" />Client Support
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2 rounded-xs bg-[#84cc16]" />Upload doc
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2 rounded-xs bg-amber-500" />ACA account
-                </span>
-              </div>
-              <span className="font-mono text-slate-400">Live DB</span>
-            </div>
             <div className="space-y-3 py-2 my-auto">
-              {openTicketsByAgent.map((item, i) => {
-                const maxOpen = Math.max(...openTicketsByAgent.map((o) => o.count), 1);
-                return (
-                  <div
-                    key={i}
-                    onClick={() => onSelectTab && onSelectTab('tickets')}
-                    className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click to view open tickets for ${item.agent}`}
-                  >
-                    <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">
-                      {item.agent}
-                    </span>
-                    <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
-                      <div
-                        style={{ width: `${(item.count / maxOpen) * 100}%` }}
-                        className="bg-[#5271ff] h-full"
-                      />
+              {openTicketsByAgent.length === 0 ? (
+                <div className="text-center text-slate-400 text-xs py-4">No open tickets</div>
+              ) : (
+                openTicketsByAgent.map((item, i) => {
+                  const maxOpen = Math.max(...openTicketsByAgent.map((o) => o.count), 1);
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => onSelectTab && onSelectTab('tickets')}
+                      className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                      title={`Click to view open tickets for ${item.agent}`}
+                    >
+                      <span className="w-24 text-right text-slate-600 truncate group-hover:text-blue-700">
+                        {item.agent}
+                      </span>
+                      <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                        <div
+                          style={{ width: `${(item.count / maxOpen) * 100}%` }}
+                          className="bg-[#5271ff] h-full"
+                        />
+                      </div>
+                      <span className="w-6 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
+                        {item.count}
+                      </span>
                     </div>
-                    <span className="w-6 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
-                      {item.count}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -1579,45 +1505,35 @@ export default function StaffCrmDashboard({
                 <span className="material-symbols-outlined text-[15px]">more_horiz</span>
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-500 mb-2">
-              <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2 rounded-xs bg-[#5271ff]" />Client Support
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2 rounded-xs bg-[#84cc16]" />Upload doc
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2 rounded-xs bg-amber-500" />ACA account
-                </span>
-              </div>
-              <span className="font-mono text-slate-400">Live DB</span>
-            </div>
             <div className="space-y-3 py-2 my-auto">
-              {overdueTicketsByAgent.map((item, i) => {
-                const maxOverdue = Math.max(...overdueTicketsByAgent.map((o) => o.count), 1);
-                return (
-                  <div
-                    key={i}
-                    onClick={() => onSelectTab && onSelectTab('tickets')}
-                    className="flex items-center gap-2 text-xs hover:bg-rose-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click to view overdue tickets for ${item.agent}`}
-                  >
-                    <span className="w-20 text-right text-slate-600 truncate group-hover:text-rose-700">
-                      {item.agent}
-                    </span>
-                    <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden group-hover:ring-1 group-hover:ring-rose-300">
-                      <div
-                        style={{ width: `${(item.count / maxOverdue) * 100}%` }}
-                        className="bg-rose-500 h-full"
-                      />
+              {overdueTicketsByAgent.length === 0 ? (
+                <div className="text-center text-slate-400 text-xs py-4">No overdue tickets</div>
+              ) : (
+                overdueTicketsByAgent.map((item, i) => {
+                  const maxOverdue = Math.max(...overdueTicketsByAgent.map((o) => o.count), 1);
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => onSelectTab && onSelectTab('tickets')}
+                      className="flex items-center gap-2 text-xs hover:bg-rose-50/70 p-0.5 rounded cursor-pointer transition group"
+                      title={`Click to view overdue tickets for ${item.agent}`}
+                    >
+                      <span className="w-24 text-right text-slate-600 truncate group-hover:text-rose-700">
+                        {item.agent}
+                      </span>
+                      <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden group-hover:ring-1 group-hover:ring-rose-300">
+                        <div
+                          style={{ width: `${(item.count / maxOverdue) * 100}%` }}
+                          className="bg-rose-500 h-full"
+                        />
+                      </div>
+                      <span className="w-6 font-bold text-slate-800 text-[11px] group-hover:text-rose-700">
+                        {item.count}
+                      </span>
                     </div>
-                    <span className="w-6 font-bold text-slate-800 text-[11px] group-hover:text-rose-700">
-                      {item.count}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
@@ -1640,9 +1556,15 @@ export default function StaffCrmDashboard({
               <div className="w-12 h-12 mx-auto rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-[24px]">manage_search</span>
               </div>
-              <div className="text-xs font-bold text-slate-800">No Data Here!</div>
+              <div className="text-xs font-bold text-slate-800">
+                {needExtendTickets.length > 0
+                  ? `${needExtendTickets.length} Tickets Needing Extension`
+                  : 'No Data Here!'}
+              </div>
               <div className="text-[11px] text-slate-400 mt-0.5">
-                All tickets have valid due dates.
+                {needExtendTickets.length > 0
+                  ? 'Click to review tickets exceeding deadline'
+                  : 'All tickets have valid active due dates.'}
               </div>
             </div>
           </div>
@@ -1667,27 +1589,31 @@ export default function StaffCrmDashboard({
               </button>
             </div>
             <div className="space-y-3 my-auto py-2">
-              {needUpdateMemberIdData.map((item, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                  title={`Click to view deals for ${item.agent}`}
-                >
-                  <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">
-                    {item.agent}
-                  </span>
-                  <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
-                    <div
-                      style={{ width: `${item.widthPercent}%` }}
-                      className="bg-[#5271ff] h-full"
-                    />
+              {needUpdateMemberIdData.length === 0 ? (
+                <div className="text-center text-slate-400 text-xs py-4">All deals have Member IDs</div>
+              ) : (
+                needUpdateMemberIdData.map((item, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                    title={`Click to view deals for ${item.agent}`}
+                  >
+                    <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">
+                      {item.agent}
+                    </span>
+                    <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                      <div
+                        style={{ width: `${item.widthPercent}%` }}
+                        className="bg-[#5271ff] h-full"
+                      />
+                    </div>
+                    <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
+                      {item.count}
+                    </span>
                   </div>
-                  <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -1711,32 +1637,36 @@ export default function StaffCrmDashboard({
               </button>
             </div>
             <div className="space-y-3 my-auto py-2">
-              {needCreateMemberAccountData.map((item, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => onSelectTab && onSelectTab('contacts')}
-                  className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                  title={`Click to view account creation for ${item.agent}`}
-                >
-                  <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">
-                    {item.agent}
-                  </span>
-                  <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
-                    <div
-                      style={{ width: `${item.widthPercent}%` }}
-                      className="bg-[#5271ff] h-full"
-                    />
+              {needCreateMemberAccountData.length === 0 ? (
+                <div className="text-center text-slate-400 text-xs py-4">All contacts have accounts</div>
+              ) : (
+                needCreateMemberAccountData.map((item, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => onSelectTab && onSelectTab('contacts')}
+                    className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                    title={`Click to view account creation for ${item.agent}`}
+                  >
+                    <span className="w-20 text-right text-slate-600 truncate group-hover:text-blue-700">
+                      {item.agent}
+                    </span>
+                    <div className="flex-grow bg-slate-100 h-3 rounded-sm overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                      <div
+                        style={{ width: `${item.widthPercent}%` }}
+                        className="bg-[#5271ff] h-full"
+                      />
+                    </div>
+                    <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
+                      {item.count}
+                    </span>
                   </div>
-                  <span className="font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
 
-        {/* ── ROW 8: Open Upload Document Ticket Table (Real Data) ─────────── */}
+        {/* ── ROW 8: Open Upload Document Ticket Table (100% Real DB Data) ─── */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
@@ -1748,8 +1678,8 @@ export default function StaffCrmDashboard({
               >
                 Open Upload Document Ticket
               </h3>
-              <span className="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
-                {uploadTicketsDisplay.length} Live Items
+              <span className="text-[10px] bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">
+                {uploadTicketsDisplay.length} Live Tickets
               </span>
             </div>
             <div className="flex items-center gap-2 text-slate-400">
@@ -1780,53 +1710,61 @@ export default function StaffCrmDashboard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {uploadTicketsDisplay.map((row) => (
-                  <tr
-                    key={row.no}
-                    onClick={() => {
-                      if (row.rawTicket && onSelectTicket) {
-                        onSelectTicket(row.rawTicket);
-                      } else if (onSelectTab) {
-                        onSelectTab('tickets');
-                      }
-                    }}
-                    className="hover:bg-blue-50/70 transition cursor-pointer group"
-                    title="Click to open ticket details"
-                  >
-                    <td className="px-3 py-2 text-center text-slate-400 font-mono">{row.no}</td>
-                    <td className="px-3 py-2 font-semibold text-blue-700 group-hover:underline">
-                      {row.ticketId}
+                {uploadTicketsDisplay.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-3 py-8 text-center text-slate-400">
+                      No upload document tickets currently open in the database.
                     </td>
-                    <td className="px-3 py-2 font-mono text-slate-600">{row.due}</td>
-                    <td
-                      onClick={(e) => {
-                        if (row.contact && onSelectContact) {
-                          e.stopPropagation();
-                          onSelectContact(row.contact);
-                        } else if (row.owner && onSelectContact) {
-                          e.stopPropagation();
-                          onSelectContact({ fullName: row.owner });
+                  </tr>
+                ) : (
+                  uploadTicketsDisplay.map((row) => (
+                    <tr
+                      key={row.no}
+                      onClick={() => {
+                        if (row.rawTicket && onSelectTicket) {
+                          onSelectTicket(row.rawTicket);
+                        } else if (onSelectTab) {
+                          onSelectTab('tickets');
                         }
                       }}
-                      className="px-3 py-2 text-slate-800 font-medium hover:text-blue-600 hover:underline"
-                      title="Click to view Contact profile"
+                      className="hover:bg-blue-50/70 transition cursor-pointer group"
+                      title="Click to open ticket details"
                     >
-                      {row.owner}
-                    </td>
-                    <td className="px-3 py-2 text-slate-600">
-                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-medium">
-                        {row.stage}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-slate-800 font-medium">{row.agent}</td>
-                  </tr>
-                ))}
+                      <td className="px-3 py-2 text-center text-slate-400 font-mono">{row.no}</td>
+                      <td className="px-3 py-2 font-semibold text-blue-700 group-hover:underline">
+                        {row.ticketId}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-slate-600">{row.due}</td>
+                      <td
+                        onClick={(e) => {
+                          if (row.contact && onSelectContact) {
+                            e.stopPropagation();
+                            onSelectContact(row.contact);
+                          } else if (row.owner && onSelectContact) {
+                            e.stopPropagation();
+                            onSelectContact({ fullName: row.owner });
+                          }
+                        }}
+                        className="px-3 py-2 text-slate-800 font-medium hover:text-blue-600 hover:underline"
+                        title="Click to view Contact profile"
+                      >
+                        {row.owner}
+                      </td>
+                      <td className="px-3 py-2 text-slate-600">
+                        <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-medium">
+                          {row.stage}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-slate-800 font-medium">{row.agent}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* ── ROW 9: ACA Consent Form Status (Normal & Special States) ─────── */}
+        {/* ── ROW 9: ACA Consent Form Status (100% Real DB Data) ───────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Card 16: ACA Consent Form Status (Normal States) */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 flex flex-col">
@@ -1851,21 +1789,6 @@ export default function StaffCrmDashboard({
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-3 text-[10px] text-slate-600 mb-3">
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-[#5271ff]" />Anya Nguyen
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-[#84cc16]" />Sean Ngo
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-amber-500" />Sarah Thai
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-sky-400" />Ivy Le
-              </span>
-            </div>
-
             <div className="space-y-2 text-[11px] my-auto">
               {acaConsentStatusData.map((item, i) => {
                 const maxConsent = Math.max(...acaConsentStatusData.map((c) => c.count), 1);
@@ -1882,7 +1805,7 @@ export default function StaffCrmDashboard({
                     <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
                       <div
                         style={{
-                          width: `${item.count > 0 ? (item.count / maxConsent) * 100 : 0}%`,
+                          width: `${(item.count / maxConsent) * 100}%`,
                           backgroundColor: [C_ANYA, C_SEAN, C_IVY, C_SARAH][i % 4],
                         }}
                         className="h-full"
@@ -1920,23 +1843,8 @@ export default function StaffCrmDashboard({
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-3 text-[10px] text-slate-600 mb-3">
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-[#5271ff]" />Anya Nguyen
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-[#84cc16]" />Sean Ngo
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-amber-500" />Sarah Thai
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-2 rounded-xs bg-sky-400" />Ivy Le
-              </span>
-            </div>
-
             <div className="space-y-2 text-[11px] my-auto">
-              {acaConsentStatusData.slice(0, 5).map((item, i) => {
+              {acaConsentStatusData.map((item, i) => {
                 const maxVal = Math.max(...acaConsentStatusData.map((c) => c.count), 1);
                 return (
                   <div
@@ -1951,7 +1859,7 @@ export default function StaffCrmDashboard({
                     <div className="flex-grow bg-slate-100 h-3.5 rounded-sm flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
                       <div
                         style={{
-                          width: `${item.count > 0 ? (item.count / maxVal) * 100 : 0}%`,
+                          width: `${(item.count / maxVal) * 100}%`,
                           backgroundColor: [C_ANYA, C_SEAN, C_IVY, C_SARAH][i % 4],
                         }}
                         className="h-full"
@@ -1995,61 +1903,51 @@ export default function StaffCrmDashboard({
             </div>
           </div>
 
-          {/* Legend */}
-          <div className="flex items-center justify-center gap-4 text-[11px] text-slate-600 mb-6">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#5271ff' }} />
-              <span>Anya Nguyen</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#84cc16' }} />
-              <span>Sean Ngo</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#e89547' }} />
-              <span>Sarah Thai</span>
-            </div>
-          </div>
-
-          {/* Chart area with Y-axis title on left */}
           <div className="flex items-stretch gap-3 pl-2 pr-6">
             <div className="flex items-center justify-center shrink-0 w-8">
               <span className="text-slate-500 text-[11px] font-medium -rotate-90 origin-center whitespace-nowrap select-none">
-                ACA Account Status - Normal state
+                ACA Account Status
               </span>
             </div>
 
             <div className="flex-grow flex flex-col justify-between space-y-4 py-2 border-l border-slate-300 relative">
-              {activePoliciesObNotDoneAca.map((row, idx) => {
-                const maxRowVal = Math.max(...activePoliciesObNotDoneAca.map((r) => r.total), 4);
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => onSelectTab && onSelectTab('deals')}
-                    className="flex items-center gap-3 relative z-10 hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
-                    title={`Click to view deals in stage: ${row.label}`}
-                  >
-                    <div className="w-56 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
-                      {row.label}
-                    </div>
-                    <div className="flex-grow flex items-center">
-                      <div
-                        className="h-3 flex overflow-hidden rounded-xs group-hover:ring-2 group-hover:ring-blue-400 transition"
-                        style={{ width: `${(row.total / maxRowVal) * 100}%` }}
-                      >
-                        <div
-                          style={{ width: '100%', backgroundColor: [C_ANYA, C_SEAN, C_AMBER, C_TEAL][idx % 4] }}
-                          className="h-full"
-                          title={`${row.label}: ${row.total}`}
-                        />
+              {activePoliciesObNotDoneAca.length === 0 ? (
+                <div className="text-center text-slate-400 text-xs py-4">No active policies found</div>
+              ) : (
+                activePoliciesObNotDoneAca.map((row, idx) => {
+                  const maxRowVal = Math.max(...activePoliciesObNotDoneAca.map((r) => r.total), 1);
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => onSelectTab && onSelectTab('deals')}
+                      className="flex items-center gap-3 relative z-10 hover:bg-blue-50/70 p-1 rounded cursor-pointer transition group"
+                      title={`Click to view deals in stage: ${row.label}`}
+                    >
+                      <div className="w-56 text-right text-[11px] text-slate-600 font-medium shrink-0 truncate group-hover:text-blue-700">
+                        {row.label}
                       </div>
-                      <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
-                        {row.total}
-                      </span>
+                      <div className="flex-grow flex items-center">
+                        <div
+                          className="h-3 flex overflow-hidden rounded-xs group-hover:ring-2 group-hover:ring-blue-400 transition"
+                          style={{ width: `${(row.total / maxRowVal) * 100}%` }}
+                        >
+                          <div
+                            style={{
+                              width: '100%',
+                              backgroundColor: [C_ANYA, C_SEAN, C_AMBER, C_TEAL][idx % 4],
+                            }}
+                            className="h-full"
+                            title={`${row.label}: ${row.total}`}
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-700 font-bold ml-2 group-hover:text-blue-700">
+                          {row.total}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
 
               <div className="pt-2 border-t border-slate-300 mt-2">
                 <div className="text-center text-[10px] text-slate-500 font-medium mt-1">
@@ -2359,24 +2257,17 @@ export default function StaffCrmDashboard({
               </div>
             </div>
 
-            {/* Legend */}
+            {/* Dynamic Legend */}
             <div className="flex items-center justify-center gap-4 text-[10px] text-slate-600 mb-6 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#5271ff' }} />
-                <span>Ivy Le</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#84cc16' }} />
-                <span>Sarah Thai</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#e89547' }} />
-                <span>Sean Ngo</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-2 rounded-xs" style={{ backgroundColor: '#38bdf8' }} />
-                <span>Anya Nguyen</span>
-              </div>
+              {medUniqueAgents.map((ag, idx) => (
+                <div key={ag} className="flex items-center gap-1.5">
+                  <span
+                    className="w-3 h-2 rounded-xs"
+                    style={{ backgroundColor: getAgentColor(ag, idx) }}
+                  />
+                  <span>{ag}</span>
+                </div>
+              ))}
             </div>
 
             {/* Chart Area */}
@@ -2389,7 +2280,7 @@ export default function StaffCrmDashboard({
 
               <div className="flex-grow flex flex-col justify-between space-y-3 py-1 border-l border-slate-300 relative">
                 {soaStatusData.map((row, idx) => {
-                  const maxSoa = Math.max(...soaStatusData.map((s) => s.total), 3);
+                  const maxSoa = Math.max(...soaStatusData.map((s) => s.total), 1);
                   return (
                     <div
                       key={idx}
