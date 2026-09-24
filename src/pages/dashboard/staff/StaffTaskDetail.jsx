@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function StaffTaskDetail({ task, onBack, onSelectContact, onSelectDeal, onSelectTicket }) {
   const [currentTask, setCurrentTask] = useState(task || {
@@ -24,6 +24,13 @@ export default function StaffTaskDetail({ task, onBack, onSelectContact, onSelec
   const [newActivity, setNewActivity] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(currentTask.title);
+
+  useEffect(() => {
+    if (task) {
+      setCurrentTask(task);
+      setEditedTitle(task.title || '');
+    }
+  }, [task]);
 
   const handleStatusChange = (newStatus) => {
     setCurrentTask({ ...currentTask, status: newStatus });
