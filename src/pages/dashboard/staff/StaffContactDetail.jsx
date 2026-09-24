@@ -1,12 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CONTACT_DETAIL_DATA } from '../../../data/mockCrmData';
 
+export const ACA_ACCOUNT_STATUS_OPTIONS = [
+  'Need Create ACA Account',
+  'Pending - Waiting for Document',
+  'Uploaded - Waiting for Verification',
+  'VERIFIED',
+  'Unverified - Can not Create',
+  'DONE',
+  'Plan Cancelled',
+];
+
 export default function StaffContactDetail({
   contact,
   onBack,
   onSelectDeal,
   onSelectCustomerDocument,
   onSelectTicket,
+  onSelectTask,
+  onUpdateContact,
 }) {
   const [activeTab, setActiveTab] = useState('activity');
   // Accordion states: mở ra mở vô được
@@ -55,6 +67,92 @@ export default function StaffContactDetail({
   const [taskAttachments, setTaskAttachments] = useState([]);
   const [isTaskFullscreen, setIsTaskFullscreen] = useState(false);
   const taskFileInputRef = useRef(null);
+
+  // ACA Account fields & Status sync state (matching Image 1 & 3)
+  const [theBestRateEmail, setTheBestRateEmail] = useState(
+    contact?.acaAccount?.theBestRateEmail || ''
+  );
+  const [acaAccountStatus, setAcaAccountStatus] = useState(
+    contact?.acaAccountStatus ||
+      contact?.acaAccount?.acaAccountStatus ||
+      contact?.acaAccount?.status ||
+      'DONE'
+  );
+  const [acaAccount, setAcaAccount] = useState(
+    contact?.acaAccount?.acaAccount || 'frankdang641@gmail.com'
+  );
+  const [acaPass, setAcaPass] = useState(
+    contact?.acaAccount?.acaPass || 'Thebest@2026'
+  );
+  const [isAcaStatusDropdownOpen, setIsAcaStatusDropdownOpen] = useState(false);
+  const acaStatusDropdownRef = useRef(null);
+
+  // Toast feedback
+  const [toastMessage, setToastMessage] = useState('');
+  function showToast(msg) {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  }
+
+  // Close ACA status dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        acaStatusDropdownRef.current &&
+        !acaStatusDropdownRef.current.contains(event.target)
+      ) {
+        setIsAcaStatusDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  function handleAcaAccountStatusChange(newStatus) {
+    if (!newStatus || newStatus === acaAccountStatus) {
+      setIsAcaStatusDropdownOpen(false);
+      return;
+    }
+    setAcaAccountStatus(newStatus);
+    setIsAcaStatusDropdownOpen(false);
+
+    // 1. Add activity entry to timeline matching Image 3:
+    // "Ticket Activity
+    //  Anya Nguyen (anya42@9) moved ticket stage to ${newStatus}."
+    const now = new Date();
+    const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
+      now.getDate()
+    ).padStart(2, '0')}/${now.getFullYear()}, ${String(now.getHours()).padStart(
+      2,
+      '0'
+    )}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const newAct = {
+      id: `ticket-act-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      type: 'Ticket Activity',
+      time: timeStr,
+      actor: 'Anya Nguyen (anya42@9)',
+      summary: `moved ticket stage to ${newStatus}.`,
+      linkText: 'View Details',
+      ticketId: 'TC2600101',
+    };
+    setActivitiesList((prev) => [newAct, ...(prev || [])]);
+
+    // 2. Notify parent to persist contact changes
+    if (onUpdateContact) {
+      onUpdateContact({
+        ...contact,
+        acaAccountStatus: newStatus,
+        acaAccount: {
+          ...(contact?.acaAccount || {}),
+          acaAccountStatus: newStatus,
+          status: newStatus,
+        },
+      });
+    }
+
+    showToast(`ACA Account & Ticket status updated to: ${newStatus}`);
+  }
 
   function logActivity(type, summary, linkText = '', dealId = null) {
     const now = new Date();
@@ -148,6 +246,9 @@ export default function StaffContactDetail({
         contact.contactOwner?.name || contact.contactOwner || 'The Best Rate Insurance'
       );
       setLeadSupportAgent(contact.supportAgent || 'Anya Nguyen (anya42@9)');
+
+      const s = contact.acaAccountStatus || contact.acaAccount?.acaAccountStatus || contact.acaAccount?.status;
+      if (s) setAcaAccountStatus(s);
 
       setActivitiesList(contact.activities || []);
       setNotesList(contact.notes || []);
@@ -352,6 +453,14 @@ export default function StaffContactDetail({
 
   return (
     <div className="flex flex-col h-full bg-[#F8FAFC]">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#0F2962] text-white px-4 py-2 rounded-lg shadow-xl text-xs font-medium flex items-center gap-2 animate-bounce">
+          <span className="material-symbols-outlined text-sm text-emerald-400">check_circle</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* ── Top Bar Breadcrumbs & Actions (Image 2) ───────────────────────── */}
       <div className="h-11 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
@@ -742,24 +851,81 @@ export default function StaffContactDetail({
                         />
                       </div>
 
-                      {/* ACA Account Status - Normal state */}
+                      {/* ACA Account Status - Normal state (Matching Image 3) */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">ACA Account Status - Normal state</label>
-                        <div className="relative">
-                          <select
-                            defaultValue="Uploaded - Waiting for Verification"
-                            className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-slate-800 font-semibold text-[11px]">
+                            ACA Account Status - Normal state
+                          </label>
+                          <span
+                            title="Status History"
+                            className="material-symbols-outlined text-[13px] text-slate-400 hover:text-blue-600 cursor-pointer transition"
+                            onClick={() => showToast(`Current ACA Account Status: ${acaAccountStatus}`)}
                           >
-                            <option value="Uploaded - Waiting for Verification">Uploaded - Waiting for Verificati...</option>
-                            <option value="VERIFIED">VERIFIED</option>
-                            <option value="DONE">DONE</option>
-                            <option value="Pending - Waiting for Document">Pending - Waiting for Document</option>
-                          </select>
-                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400 pointer-events-none">
-                            <span className="text-[12px]">✕</span>
-                            <span className="h-3 w-px bg-slate-200 mx-0.5" />
-                            <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                            history
+                          </span>
+                        </div>
+
+                        <div className="relative" ref={acaStatusDropdownRef}>
+                          <div
+                            onClick={() => setIsAcaStatusDropdownOpen(!isAcaStatusDropdownOpen)}
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded border ${
+                              isAcaStatusDropdownOpen
+                                ? 'border-blue-500 ring-1 ring-blue-500/20'
+                                : 'border-slate-200'
+                            } bg-white text-xs text-slate-800 hover:border-slate-300 cursor-pointer transition select-none shadow-2xs`}
+                          >
+                            <span className="truncate font-medium text-slate-800">
+                              {acaAccountStatus || 'Need Create ACA Account'}
+                            </span>
+                            <div className="flex items-center gap-1 text-slate-400 shrink-0 ml-1">
+                              {acaAccountStatus && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAcaAccountStatusChange('Need Create ACA Account');
+                                  }}
+                                  className="text-[12px] hover:text-slate-600 p-0.5 cursor-pointer leading-none"
+                                  title="Reset to default"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                              <span className="h-3 w-px bg-slate-200" />
+                              <span className="material-symbols-outlined text-[16px] text-slate-500">
+                                {isAcaStatusDropdownOpen ? 'expand_less' : 'expand_more'}
+                              </span>
+                            </div>
                           </div>
+
+                          {/* Dropdown Menu matching Image 3 */}
+                          {isAcaStatusDropdownOpen && (
+                            <div className="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50 text-xs">
+                              {ACA_ACCOUNT_STATUS_OPTIONS.map((opt) => {
+                                const isSelected = opt === acaAccountStatus;
+                                return (
+                                  <button
+                                    key={opt}
+                                    type="button"
+                                    onClick={() => handleAcaAccountStatusChange(opt)}
+                                    className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition cursor-pointer ${
+                                      isSelected
+                                        ? 'bg-[#EBF3FC] text-blue-900 font-bold'
+                                        : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                                    }`}
+                                  >
+                                    <span>{opt}</span>
+                                    {isSelected && (
+                                      <span className="material-symbols-outlined text-xs text-blue-600 font-bold">
+                                        check
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -1635,8 +1801,8 @@ export default function StaffContactDetail({
                     avatar: 'A2',
                     avatarBg: 'bg-[#E05638]',
                     pipeline: 'ACA account',
-                    status: 'DONE',
-                    rawStatus: 'DONE',
+                    status: acaAccountStatus || 'DONE',
+                    rawStatus: acaAccountStatus || 'DONE',
                     priority: 'High',
                     closeDate: '07/20/2026',
                     dueDate: '07/15/2026',

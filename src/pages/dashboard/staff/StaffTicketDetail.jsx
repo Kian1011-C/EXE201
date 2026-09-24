@@ -177,6 +177,16 @@ const STATUS_OPTIONS_DEFAULT = [
   'Closed',
 ];
 
+export const STATUS_OPTIONS_ACA = [
+  'Need Create ACA Account',
+  'Pending - Waiting for Document',
+  'Uploaded - Waiting for Verification',
+  'VERIFIED',
+  'Unverified - Can not Create',
+  'DONE',
+  'Plan Cancelled',
+];
+
 const PAYMENT_STATUS_OPTIONS = [
   'Company Pay',
   'Client Pay',
@@ -194,6 +204,7 @@ export default function StaffTicketDetail({
   onBack,
   onSelectContact,
   onSelectDeal,
+  onUpdateTicket,
 }) {
   const isPayment =
     ticket?.pipeline === 'Payment' ||
@@ -426,6 +437,34 @@ export default function StaffTicketDetail({
     }
     setStatus(st);
     setIsStatusOpen(false);
+
+    // Timeline item
+    const newAct = {
+      id: `act-${Date.now()}`,
+      month: 'Aug 2026',
+      type: 'activity',
+      title: 'Ticket Activity',
+      timestamp: new Date().toLocaleString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }),
+      actor: serviceAgent || 'Anya Nguyen (anya42@9)',
+      content: `${serviceAgent || 'Anya Nguyen (anya42@9)'} moved ticket stage to ${st}.`,
+    };
+    setTimelineItems((prev) => [newAct, ...prev]);
+
+    if (onUpdateTicket) {
+      onUpdateTicket({
+        ...ticket,
+        status: st,
+        pipeline,
+      });
+    }
+
     showToast(`Status updated to ${st}`);
   };
 
@@ -542,7 +581,14 @@ export default function StaffTicketDetail({
     setTimelineItems((prev) => prev.map((item) => ({ ...item, isExpanded: true })));
   };
 
-  const statusOptions = isPayment ? STATUS_OPTIONS_PAYMENT : STATUS_OPTIONS_DEFAULT;
+  const isAca =
+    pipeline === 'ACA account' ||
+    (ticket?.title && ticket.title.toLowerCase().includes('aca'));
+  const statusOptions = isPayment
+    ? STATUS_OPTIONS_PAYMENT
+    : isAca
+    ? STATUS_OPTIONS_ACA
+    : STATUS_OPTIONS_DEFAULT;
 
   // Group timeline items by month
   const filteredTimeline = timelineItems.filter((item) => {

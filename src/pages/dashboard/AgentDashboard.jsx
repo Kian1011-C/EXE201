@@ -549,6 +549,9 @@ export default function AgentDashboard() {
           onSelectCustomerDocument={handleSelectCustomerDocument}
           onSelectTicket={handleSelectTicket}
           onSelectTask={handleSelectTask}
+          onUpdateContact={(updated) => {
+            setSelectedContact((prev) => ({ ...prev, ...updated }));
+          }}
         />
       )}
 

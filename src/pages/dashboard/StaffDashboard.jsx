@@ -285,6 +285,9 @@ export default function StaffDashboard() {
           onSelectCustomerDocument={handleSelectCustomerDocument}
           onSelectTicket={handleSelectTicket}
           onSelectTask={handleSelectTask}
+          onUpdateContact={(updated) => {
+            setSelectedContact((prev) => ({ ...prev, ...updated }));
+          }}
         />
       )}
 
@@ -331,6 +334,20 @@ export default function StaffDashboard() {
           onBack={handleBackFromTicket}
           onSelectContact={handleSelectContact}
           onSelectDeal={handleSelectDeal}
+          onUpdateTicket={(updated) => {
+            setSelectedTicket((prev) => ({ ...prev, ...updated }));
+            if (updated?.pipeline === 'ACA account' && updated?.status) {
+              setSelectedContact((prev) => ({
+                ...prev,
+                acaAccountStatus: updated.status,
+                acaAccount: {
+                  ...(prev?.acaAccount || {}),
+                  acaAccountStatus: updated.status,
+                  status: updated.status,
+                },
+              }));
+            }
+          }}
         />
       )}
 

@@ -20,7 +20,7 @@ export const SAMPLE_CONTACTS = [
     language: 'Vietnamese',
     contactOwner: { name: 'Jay Ly', avatar: 'JL', bg: 'bg-emerald-600 text-white' },
     howDoYouKnowUs: 'Referral',
-    acaAccountStatus: 'Active',
+    acaAccountStatus: 'DONE',
     status: 'Active',
     lastModifiedBy: { name: 'Jay Ly', avatar: 'JL', bg: 'bg-emerald-600 text-white' },
     lastModifiedTime: '07/22/2026, 10:38',
