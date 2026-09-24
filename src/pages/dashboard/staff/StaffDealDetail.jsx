@@ -48,16 +48,20 @@ export default function StaffDealDetail({
   ]);
   const [activitiesList, setActivitiesList] = useState(dealInfo.activities || []);
 
+  const currentDealIdRef = useRef(deal?.id || dealInfo.id);
+
   useEffect(() => {
-    if (deal) {
-      if (deal.title) setDealTitle(deal.title);
-      if (deal.pipeline) setPipeline(deal.pipeline);
-      if (deal.stage) setStage(deal.stage);
-      if (deal.amount) setAmount(deal.amount);
-      if (deal.closeDate) setCloseDate(deal.closeDate);
-      if (deal.activities) setActivitiesList(deal.activities);
-      if (deal.notes) setNotesList(deal.notes);
-      if (deal.tasks) setTasksList(deal.tasks);
+    const nextId = deal?.id || dealInfo.id;
+    if (nextId !== currentDealIdRef.current) {
+      currentDealIdRef.current = nextId;
+      if (deal?.title) setDealTitle(deal.title);
+      if (deal?.pipeline) setPipeline(deal.pipeline);
+      if (deal?.stage) setStage(deal.stage);
+      if (deal?.amount) setAmount(deal.amount);
+      if (deal?.closeDate) setCloseDate(deal.closeDate);
+      if (deal?.activities) setActivitiesList(deal.activities);
+      if (deal?.notes) setNotesList(deal.notes);
+      if (deal?.tasks) setTasksList(deal.tasks);
     }
   }, [deal]);
 
@@ -94,6 +98,11 @@ export default function StaffDealDetail({
   );
 
   function handleSelectStage(newStage) {
+    if (newStage === stage) {
+      setIsStageDropdownOpen(false);
+      setStageSearchQuery('');
+      return;
+    }
     const oldStage = stage;
     setStage(newStage);
     setIsStageDropdownOpen(false);
@@ -129,7 +138,8 @@ export default function StaffDealDetail({
       dealTitle: dealTitle,
       linkText: 'View Details',
     };
-    setActivitiesList((prev) => [newAct, ...prev]);
+    const updatedActivities = [newAct, ...(activitiesList || [])];
+    setActivitiesList(updatedActivities);
 
     if (onUpdateDeal) {
       onUpdateDeal({
@@ -137,6 +147,9 @@ export default function StaffDealDetail({
         title: dealTitle,
         pipeline,
         stage: newStage,
+        activities: updatedActivities,
+        notes: notesList,
+        tasks: tasksList,
       });
     }
 
@@ -278,7 +291,20 @@ export default function StaffDealDetail({
       linkText,
       contactId,
     };
-    setActivitiesList((prev) => [newAct, ...prev]);
+    const updatedActivities = [newAct, ...(activitiesList || [])];
+    setActivitiesList(updatedActivities);
+
+    if (onUpdateDeal) {
+      onUpdateDeal({
+        ...dealInfo,
+        title: dealTitle,
+        pipeline,
+        stage,
+        activities: updatedActivities,
+        notes: notesList,
+        tasks: tasksList,
+      });
+    }
   }
 
   function handleFileAttach(e) {

@@ -143,12 +143,40 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
 
   // Handle stage change from Kanban drag and drop
   async function handleUpdateDealStage(dealId, newStage) {
+    const now = new Date();
+    const dateStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
+      now.getDate()
+    ).padStart(2, '0')}/${now.getFullYear()}, ${String(now.getHours()).padStart(
+      2,
+      '0'
+    )}:${String(now.getMinutes()).padStart(2, '0')}`;
+
     setDealsList((prev) =>
-      prev.map((d) => (d.id === dealId ? { ...d, stage: newStage } : d))
+      prev.map((d) => {
+        if (d.id === dealId) {
+          const oldStage = d.stage || 'Ready to Enroll';
+          const newAct = {
+            id: 'deal-act-' + Date.now(),
+            type: 'Deal Activity',
+            time: dateStr,
+            actor: 'Anya Nguyen (anya42@9)',
+            summary: `moved deal stage from "${oldStage}" to "${newStage}"`,
+            dealId: d.id,
+            dealTitle: d.title,
+            linkText: 'View Details',
+          };
+          return {
+            ...d,
+            stage: newStage,
+            activities: [newAct, ...(d.activities || [])],
+          };
+        }
+        return d;
+      })
     );
     try {
       await updateDeal(dealId, { stage: newStage });
-      showToast(`Đã chuyển trạng thái deal`);
+      showToast(`Đã chuyển trạng thái deal sang: ${newStage}`);
     } catch (err) {
       console.warn('[StaffDealsList] Error updating deal stage:', err);
       loadDealsData();
