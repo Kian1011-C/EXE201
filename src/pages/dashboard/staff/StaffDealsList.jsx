@@ -685,6 +685,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
       {viewMode === 'kanban' ? (
         <StaffDealsKanban
           deals={filteredDeals}
+          pipeline={pipelineFilter}
           onSelectDeal={onSelectDeal}
           onUpdateDealStage={handleUpdateDealStage}
           collapsedColumns={collapsedColumns}
