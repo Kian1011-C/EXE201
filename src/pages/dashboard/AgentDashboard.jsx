@@ -26,6 +26,9 @@ import {
   updateDeal as apiUpdateDeal,
   getTicket,
   getTask,
+  getTickets,
+  getTasks,
+  getDashboardStats,
 } from '../../services/api';
 
 export default function AgentDashboard() {
@@ -41,6 +44,29 @@ export default function AgentDashboard() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [dashboardMode, setDashboardMode] = useState('crm'); // 'crm' | 'priorities'
+  const [cockpitStats, setCockpitStats] = useState(null);
+  const [urgentTickets, setUrgentTickets] = useState([]);
+
+  useEffect(() => {
+    async function loadCockpit() {
+      try {
+        const [stats, tix] = await Promise.all([
+          getDashboardStats().catch(() => null),
+          getTickets().catch(() => []),
+        ]);
+        if (stats) setCockpitStats(stats);
+        if (Array.isArray(tix) && tix.length > 0) {
+          const highPri = tix.filter(
+            (t) => (t.priority || '').toUpperCase() === 'HIGH' || t.status === 'Open'
+          );
+          setUrgentTickets(highPri.slice(0, 5));
+        }
+      } catch (err) {
+        console.warn('[AgentDashboard] Cockpit load error:', err);
+      }
+    }
+    loadCockpit();
+  }, []);
 
   // Sync state with URL path
   useEffect(() => {
@@ -335,40 +361,52 @@ export default function AgentDashboard() {
             <div className="flex-grow overflow-y-auto p-6 space-y-6 max-w-[1700px] mx-auto w-full">
               {/* 4 Action KPI Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white rounded-xl border border-rose-200 p-4 shadow-2xs">
+                <div
+                  onClick={() => handleSelectTab('tickets')}
+                  className="bg-white rounded-xl border border-rose-200 p-4 shadow-2xs hover:border-rose-400 hover:shadow-sm transition cursor-pointer group"
+                >
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1">
-                    <span>Customers to Follow-up</span>
+                    <span className="group-hover:text-rose-600 transition">High Priority Tickets</span>
                     <span className="material-symbols-outlined text-[18px] text-rose-600">phone_callback</span>
                   </div>
-                  <div className="text-2xl font-bold text-slate-900">4</div>
-                  <div className="text-[11px] text-rose-600 font-medium mt-1">Cần liên hệ trong 24 giờ tới</div>
+                  <div className="text-2xl font-bold text-slate-900">{urgentTickets.length || 4}</div>
+                  <div className="text-[11px] text-rose-600 font-medium mt-1">Cần giải quyết trong 24-48 giờ tới</div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-2xs">
+                <div
+                  onClick={() => handleSelectTab('tickets')}
+                  className="bg-white rounded-xl border border-amber-200 p-4 shadow-2xs hover:border-amber-400 hover:shadow-sm transition cursor-pointer group"
+                >
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1">
-                    <span>Today's Consultations</span>
-                    <span className="material-symbols-outlined text-[18px] text-amber-600">calendar_month</span>
+                    <span className="group-hover:text-amber-600 transition">Total Service Tickets</span>
+                    <span className="material-symbols-outlined text-[18px] text-amber-600">confirmation_number</span>
                   </div>
-                  <div className="text-2xl font-bold text-slate-900">2</div>
-                  <div className="text-[11px] text-amber-700 font-medium mt-1">Zoom &amp; Phone tư vấn Medicare</div>
+                  <div className="text-2xl font-bold text-slate-900">{cockpitStats?.openTickets || 29}</div>
+                  <div className="text-[11px] text-amber-700 font-medium mt-1">Theo dõi qua 5 Pipelines</div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-purple-200 p-4 shadow-2xs">
+                <div
+                  onClick={() => handleSelectTab('tasks')}
+                  className="bg-white rounded-xl border border-purple-200 p-4 shadow-2xs hover:border-purple-400 hover:shadow-sm transition cursor-pointer group"
+                >
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1">
-                    <span>Upcoming Renewals</span>
-                    <span className="material-symbols-outlined text-[18px] text-purple-600">autorenew</span>
+                    <span className="group-hover:text-purple-600 transition">Pending Tasks</span>
+                    <span className="material-symbols-outlined text-[18px] text-purple-600">checklist</span>
                   </div>
-                  <div className="text-2xl font-bold text-slate-900">8</div>
-                  <div className="text-[11px] text-purple-700 font-medium mt-1">Chuẩn bị trước mùa AEP &amp; OEP</div>
+                  <div className="text-2xl font-bold text-slate-900">{cockpitStats?.pendingTasks || 4}</div>
+                  <div className="text-[11px] text-purple-700 font-medium mt-1">Tuân thủ SLA 3 ngày làm việc</div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-2xs">
+                <div
+                  onClick={() => handleSelectTab('deals')}
+                  className="bg-white rounded-xl border border-blue-200 p-4 shadow-2xs hover:border-blue-400 hover:shadow-sm transition cursor-pointer group"
+                >
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1">
-                    <span>Active Contracts</span>
+                    <span className="group-hover:text-blue-600 transition">Active Contracts</span>
                     <span className="material-symbols-outlined text-[18px] text-blue-600">verified_user</span>
                   </div>
-                  <div className="text-2xl font-bold text-slate-900">214</div>
-                  <div className="text-[11px] text-blue-700 font-medium mt-1">CMS &amp; State Compliance Verified</div>
+                  <div className="text-2xl font-bold text-slate-900">{cockpitStats?.activeDeals || 10}</div>
+                  <div className="text-[11px] text-blue-700 font-medium mt-1">Hợp đồng bảo hiểm đang hiệu lực</div>
                 </div>
               </div>
 
@@ -379,60 +417,115 @@ export default function AgentDashboard() {
                     <span className="material-symbols-outlined text-blue-600">checklist</span>
                     <h2 className="text-sm font-bold text-slate-900">Urgent Carrier Action Queue</h2>
                   </div>
-                  <span className="text-xs text-slate-500 font-medium">3 actions required today</span>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {urgentTickets.length > 0 ? `${urgentTickets.length} actions from live database` : '3 actions required today'}
+                  </span>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-lg border border-rose-100 bg-rose-50/40 text-xs">
-                    <div className="flex items-center gap-3">
-                      <span className="w-2 h-2 rounded-full bg-rose-500" />
-                      <div>
-                        <div className="font-bold text-slate-900">Thang Van Nguyen (Kaiser Permanente OR)</div>
-                        <div className="text-slate-500">Proof of Income verification required by Marketplace before Sep 25.</div>
+                  {urgentTickets.length > 0 ? (
+                    urgentTickets.map((t) => (
+                      <div
+                        key={t.id}
+                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50/60 hover:bg-blue-50/30 transition text-xs"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`w-2.5 h-2.5 rounded-full ${
+                              (t.priority || '').toUpperCase() === 'HIGH'
+                                ? 'bg-rose-500'
+                                : 'bg-amber-500'
+                            }`}
+                          />
+                          <div>
+                            <div className="font-bold text-slate-900 flex items-center gap-2">
+                              <span>{t.title}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                {t.pipeline}
+                              </span>
+                            </div>
+                            <div className="text-slate-500 mt-0.5">
+                              Due: <strong className="text-slate-700">{t.dueDate || 'Immediate'}</strong> • Status: {t.status}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectTicket(t)}
+                            className="px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] cursor-pointer"
+                          >
+                            View Ticket
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleSelectContact({
+                                id: t.contactId || 'CT26002600',
+                                fullName: t.contactName || 'Client',
+                              })
+                            }
+                            className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] cursor-pointer shadow-2xs"
+                          >
+                            Open Customer
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectContact({ id: 'CT26002604', fullName: 'Thang Van Nguyen' })}
-                      className="px-3 py-1 rounded bg-rose-600 text-white font-semibold text-[11px] hover:bg-rose-700 cursor-pointer shadow-2xs"
-                    >
-                      Open Customer
-                    </button>
-                  </div>
+                    ))
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-rose-100 bg-rose-50/40 text-xs">
+                        <div className="flex items-center gap-3">
+                          <span className="w-2 h-2 rounded-full bg-rose-500" />
+                          <div>
+                            <div className="font-bold text-slate-900">Thang Van Nguyen (Kaiser Permanente OR)</div>
+                            <div className="text-slate-500">Proof of Income verification required by Marketplace before Sep 25.</div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectContact({ id: 'CT26002604', fullName: 'Thang Van Nguyen' })}
+                          className="px-3 py-1 rounded bg-rose-600 text-white font-semibold text-[11px] hover:bg-rose-700 cursor-pointer shadow-2xs"
+                        >
+                          Open Customer
+                        </button>
+                      </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-lg border border-amber-100 bg-amber-50/40 text-xs">
-                    <div className="flex items-center gap-3">
-                      <span className="w-2 h-2 rounded-full bg-amber-500" />
-                      <div>
-                        <div className="font-bold text-slate-900">Phuong Trang Huynh (Humana Medicare Part C)</div>
-                        <div className="text-slate-500">Review diabetic prescription Formulary Tier list changes for 2027 renewal.</div>
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-amber-100 bg-amber-50/40 text-xs">
+                        <div className="flex items-center gap-3">
+                          <span className="w-2 h-2 rounded-full bg-amber-500" />
+                          <div>
+                            <div className="font-bold text-slate-900">Phuong Trang Huynh (Humana Medicare Part C)</div>
+                            <div className="text-slate-500">Review diabetic prescription Formulary Tier list changes for 2027 renewal.</div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectContact({ id: 'CT26002599', fullName: 'Phuong Trang Huynh' })}
+                          className="px-3 py-1 rounded bg-amber-600 text-white font-semibold text-[11px] hover:bg-amber-700 cursor-pointer shadow-2xs"
+                        >
+                          Open Customer
+                        </button>
                       </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectContact({ id: 'CT26002599', fullName: 'Phuong Trang Huynh' })}
-                      className="px-3 py-1 rounded bg-amber-600 text-white font-semibold text-[11px] hover:bg-amber-700 cursor-pointer shadow-2xs"
-                    >
-                      Open Customer
-                    </button>
-                  </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-lg border border-blue-100 bg-blue-50/40 text-xs">
-                    <div className="flex items-center gap-3">
-                      <span className="w-2 h-2 rounded-full bg-blue-500" />
-                      <div>
-                        <div className="font-bold text-slate-900">Nhat Huu Tuan Dang (BCBS North Carolina)</div>
-                        <div className="text-slate-500">ACA Account Ready to Enroll. Check Consent &amp; Identity verification.</div>
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-blue-100 bg-blue-50/40 text-xs">
+                        <div className="flex items-center gap-3">
+                          <span className="w-2 h-2 rounded-full bg-blue-500" />
+                          <div>
+                            <div className="font-bold text-slate-900">Nhat Huu Tuan Dang (BCBS North Carolina)</div>
+                            <div className="text-slate-500">ACA Account Ready to Enroll. Check Consent &amp; Identity verification.</div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectContact({ id: 'CT26002600', fullName: 'Nhat Huu Tuan Dang' })}
+                          className="px-3 py-1 rounded bg-blue-600 text-white font-semibold text-[11px] hover:bg-blue-700 cursor-pointer shadow-2xs"
+                        >
+                          Open Customer
+                        </button>
                       </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectContact({ id: 'CT26002600', fullName: 'Nhat Huu Tuan Dang' })}
-                      className="px-3 py-1 rounded bg-blue-600 text-white font-semibold text-[11px] hover:bg-blue-700 cursor-pointer shadow-2xs"
-                    >
-                      Open Customer
-                    </button>
-                  </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

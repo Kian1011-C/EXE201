@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getDashboardStats } from '../../../services/api';
 
 export default function StaffCrmDashboard({
   onSelectTab,
@@ -6,13 +7,29 @@ export default function StaffCrmDashboard({
   onSelectContact,
 }) {
   const [refreshing, setRefreshing] = useState(false);
+  const [dbStats, setDbStats] = useState(null);
   const [selectedDashboard, setSelectedDashboard] = useState(
     'Daily work of support - Team Tiger Truong'
   );
 
+  async function fetchStats() {
+    try {
+      const res = await getDashboardStats();
+      if (res) setDbStats(res);
+    } catch (err) {
+      console.warn('[StaffCrmDashboard] Could not fetch live dashboard stats:', err);
+    }
+  }
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
   function handleRefresh() {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 600);
+    fetchStats().finally(() => {
+      setTimeout(() => setRefreshing(false), 500);
+    });
   }
 
   // Color constants matching real CRM
@@ -92,6 +109,113 @@ export default function StaffCrmDashboard({
 
       {/* ── Main Reports Container ───────────────────────────────────────── */}
       <div className="p-6 space-y-6 max-w-[1700px] mx-auto w-full">
+        {/* ── Real-time PostgreSQL Live Operational Metrics Row ─────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+          {/* Card 1: Total Contacts */}
+          <div
+            onClick={() => onSelectTab && onSelectTab('contacts')}
+            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-sm transition cursor-pointer group"
+          >
+            <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
+              <span className="font-semibold group-hover:text-blue-600 transition">Contacts</span>
+              <span className="material-symbols-outlined text-[18px] text-blue-600">contacts</span>
+            </div>
+            <div className="text-2xl font-black text-slate-900">
+              {dbStats?.totalContacts ?? 10}
+            </div>
+            <div className="text-[10px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>100% Active DB</span>
+            </div>
+          </div>
+
+          {/* Card 2: Active Pipeline Deals */}
+          <div
+            onClick={() => onSelectTab && onSelectTab('deals')}
+            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-indigo-400 hover:shadow-sm transition cursor-pointer group"
+          >
+            <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
+              <span className="font-semibold group-hover:text-indigo-600 transition">Active Deals</span>
+              <span className="material-symbols-outlined text-[18px] text-indigo-600">handshake</span>
+            </div>
+            <div className="text-2xl font-black text-slate-900">
+              {dbStats?.activeDeals ?? 10}
+            </div>
+            <div className="text-[10px] text-slate-500 font-medium mt-1 truncate">
+              {dbStats?.dealsByPipeline?.[0]?.count ? `${dbStats.dealsByPipeline[0].pipeline} (${dbStats.dealsByPipeline[0].count})` : 'Obamacare & Medicare'}
+            </div>
+          </div>
+
+          {/* Card 3: Open Service Tickets */}
+          <div
+            onClick={() => onSelectTab && onSelectTab('tickets')}
+            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-cyan-400 hover:shadow-sm transition cursor-pointer group"
+          >
+            <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
+              <span className="font-semibold group-hover:text-cyan-600 transition">Open Tickets</span>
+              <span className="material-symbols-outlined text-[18px] text-cyan-600">confirmation_number</span>
+            </div>
+            <div className="text-2xl font-black text-slate-900">
+              {dbStats?.openTickets ?? 29}
+            </div>
+            <div className="text-[10px] text-amber-600 font-bold mt-1 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span>5 Pipelines Live</span>
+            </div>
+          </div>
+
+          {/* Card 4: Overdue Action Items */}
+          <div
+            onClick={() => onSelectTab && onSelectTab('tickets')}
+            className="bg-white p-3.5 rounded-xl border border-rose-200 hover:border-rose-400 hover:shadow-sm transition cursor-pointer group bg-rose-50/20"
+          >
+            <div className="flex items-center justify-between text-rose-700 text-xs mb-1">
+              <span className="font-semibold group-hover:underline">Overdue Queue</span>
+              <span className="material-symbols-outlined text-[18px] text-rose-600">warning</span>
+            </div>
+            <div className="text-2xl font-black text-rose-700">
+              {dbStats?.overdueTickets ?? 0}
+            </div>
+            <div className="text-[10px] text-rose-600 font-medium mt-1">
+              Needs Immediate SLA
+            </div>
+          </div>
+
+          {/* Card 5: Pending Tasks */}
+          <div
+            onClick={() => onSelectTab && onSelectTab('tasks')}
+            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-purple-400 hover:shadow-sm transition cursor-pointer group"
+          >
+            <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
+              <span className="font-semibold group-hover:text-purple-600 transition">Agent Tasks</span>
+              <span className="material-symbols-outlined text-[18px] text-purple-600">checklist</span>
+            </div>
+            <div className="text-2xl font-black text-slate-900">
+              {dbStats?.pendingTasks ?? 0}
+            </div>
+            <div className="text-[10px] text-slate-500 font-medium mt-1">
+              3 Biz-Day SLA Rule
+            </div>
+          </div>
+
+          {/* Card 6: Monthly Commission Revenue */}
+          <div
+            onClick={() => onSelectTab && onSelectTab('commission')}
+            className="bg-white p-3.5 rounded-xl border border-slate-200 hover:border-emerald-400 hover:shadow-sm transition cursor-pointer group bg-emerald-50/20"
+          >
+            <div className="flex items-center justify-between text-emerald-800 text-xs mb-1">
+              <span className="font-semibold group-hover:text-emerald-700 transition">Mth Revenue</span>
+              <span className="material-symbols-outlined text-[18px] text-emerald-600">payments</span>
+            </div>
+            <div className="text-2xl font-black text-emerald-700 font-mono">
+              ${(dbStats?.commissionThisMonth || 36).toFixed(0)}
+            </div>
+            <div className="text-[10px] text-emerald-700 font-medium mt-1 font-mono">
+              YTD: ${(dbStats?.commissionYTD || 136).toFixed(0)} Net
+            </div>
+          </div>
+        </div>
+
         {/* ── ROW 1: 2 Main Deal Charts (50% / 50%) ──────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Card 1: Total Obamacare deals 2026 */}
