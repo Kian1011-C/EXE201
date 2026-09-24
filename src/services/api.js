@@ -208,6 +208,10 @@ export async function updateCommission(id, data) {
   return await request(`/commissions/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
 }
 
+export async function calculateCommissions(data = {}) {
+  return await request('/commissions/calculate', { method: 'POST', body: JSON.stringify(data) });
+}
+
 // ── Dashboard Stats ──────────────────────────────────────────────────────────
 export async function getDashboardStats() {
   return await request('/dashboard/stats');

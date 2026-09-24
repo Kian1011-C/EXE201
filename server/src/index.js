@@ -895,6 +895,124 @@ app.post('/api/commissions', async (req, res) => {
   }
 });
 
+// POST /api/commissions/calculate - SSS Commission Rules Engine
+app.post('/api/commissions/calculate', async (req, res) => {
+  try {
+    const { agentName = 'Khanh Nguyen', period, isNewAgent = false } = req.body;
+    const now = new Date();
+    const currentPeriod = period || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    const whereDeal = {};
+    if (agentName && agentName !== 'all') {
+      whereDeal.dealOwnerName = { contains: agentName, mode: 'insensitive' };
+    }
+
+    const deals = await prisma.deal.findMany({
+      where: whereDeal,
+      include: { contact: true },
+    });
+
+    const calculated = [];
+
+    for (const deal of deals) {
+      const members = deal.numberMember || 1;
+      let grossPerMonth = 0;
+      let commissionType = 'ACA_PMPM';
+
+      if ((deal.pipeline || '').toLowerCase().includes('medicare')) {
+        commissionType = 'MEDICARE';
+        grossPerMonth = 51.0; // CMS Initial rate ($612/yr / 12)
+      } else if ((deal.pipeline || '').toLowerCase().includes('presidio')) {
+        commissionType = 'PRESIDIO';
+        const numAmt = parseFloat((deal.amount || '').replace(/[^0-9.]/g, '')) || 350;
+        grossPerMonth = numAmt * 0.15;
+      } else {
+        commissionType = 'ACA_PMPM';
+        grossPerMonth = 30.0 * members; // $30 PMPM
+      }
+
+      // SSS (Sale Support Status) Logic from SOP:
+      // NONE: 0% support deduction (Agent quotes + Agent enrolls)
+      // PARTIAL: 40% support deduction (Agent quotes + Support enrolls)
+      // FULL: 75% support deduction (Support quotes + Support enrolls)
+      let sss = (deal.saleSupportStatus || '').toUpperCase();
+      if (!['NONE', 'PARTIAL', 'FULL'].includes(sss)) {
+        sss = deal.stage.includes('Active') ? 'NONE' : 'PARTIAL';
+      }
+
+      let deductionRate = 0;
+      if (sss === 'PARTIAL') deductionRate = 0.40;
+      else if (sss === 'FULL') deductionRate = 0.75;
+      else deductionRate = 0.0;
+
+      // New Agent Grace: First 20 deals or tenure <= 3 months get 100% (NONE)
+      if (isNewAgent) {
+        deductionRate = 0.0;
+        sss = 'NONE (Grace)';
+      }
+
+      const netAmount = Math.round(grossPerMonth * (1 - deductionRate) * 100) / 100;
+
+      // Check for existing
+      const existing = await prisma.commission.findFirst({
+        where: {
+          dealId: deal.id,
+          period: currentPeriod,
+        },
+      });
+
+      let record;
+      if (existing) {
+        record = await prisma.commission.update({
+          where: { id: existing.id },
+          data: {
+            grossAmount: grossPerMonth,
+            supportDeduction: deductionRate,
+            netAmount,
+            saleSupportStatus: sss,
+            commissionType,
+            carrier: deal.carrier || 'BCBS',
+            memberCount: members,
+            policyId: deal.primaryMemberId || deal.code,
+            status: 'SETTLED',
+          },
+        });
+      } else {
+        record = await prisma.commission.create({
+          data: {
+            dealId: deal.id,
+            agentName: deal.dealOwnerName || agentName,
+            agentNpn: deal.enrolledNpn || '#1984210',
+            carrier: deal.carrier || 'BCBS',
+            planName: deal.title || 'Standard Plan',
+            policyId: deal.primaryMemberId || deal.code,
+            memberCount: members,
+            grossAmount: grossPerMonth,
+            supportDeduction: deductionRate,
+            netAmount,
+            commissionType,
+            saleSupportStatus: sss,
+            period: currentPeriod,
+            status: 'SETTLED',
+            settledAt: new Date(),
+          },
+        });
+      }
+      calculated.push(record);
+    }
+
+    res.json({
+      success: true,
+      message: `Calculated ${calculated.length} commissions for period ${currentPeriod}`,
+      count: calculated.length,
+      records: calculated,
+    });
+  } catch (error) {
+    console.error('Commission calculation error:', error);
+    res.status(500).json({ error: 'Failed to calculate commissions', details: error.message });
+  }
+});
+
 app.put('/api/commissions/:id', async (req, res) => {
   try {
     const { id } = req.params;
