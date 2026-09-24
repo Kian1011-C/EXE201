@@ -56,6 +56,8 @@ export default function StaffDealDetail({
       if (deal.amount) setAmount(deal.amount);
       if (deal.closeDate) setCloseDate(deal.closeDate);
       if (deal.activities) setActivitiesList(deal.activities);
+      if (deal.notes) setNotesList(deal.notes);
+      if (deal.tasks) setTasksList(deal.tasks);
     }
   }, [deal]);
 
@@ -220,12 +222,31 @@ export default function StaffDealDetail({
 
   // Middle tab state
   const [activeTab, setActiveTab] = useState('activity');
-  const [notes, setNotes] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [newNoteText, setNewNoteText] = useState('');
-  const [isAddingNote, setIsAddingNote] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [notesList, setNotesList] = useState(dealInfo.notes || []);
+  const [tasksList, setTasksList] = useState(dealInfo.tasks || []);
+
+  // Modals for Note & Task creation (Matching StaffContactDetail 100%)
+  const [showCreateNoteModal, setShowCreateNoteModal] = useState(false);
+  const [noteTitle, setNoteTitle] = useState('');
+  const [noteBody, setNoteBody] = useState('');
+  const [noteAttachments, setNoteAttachments] = useState([]);
+  const [createFollowUpTask, setCreateFollowUpTask] = useState(false);
+  const [followUpDateTime, setFollowUpDateTime] = useState('09/18/2026, 08:00');
+  const [isNoteFullscreen, setIsNoteFullscreen] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskDueDate, setTaskDueDate] = useState('09/18/2026');
+  const [taskDueTime, setTaskDueTime] = useState('8:00 AM');
+  const [taskRemind, setTaskRemind] = useState('No remind');
+  const [taskAssignee, setTaskAssignee] = useState('');
+  const [taskPriority, setTaskPriority] = useState('None');
+  const [taskType, setTaskType] = useState('');
+  const [taskContent, setTaskContent] = useState('');
+  const [taskAttachments, setTaskAttachments] = useState([]);
+  const [isTaskFullscreen, setIsTaskFullscreen] = useState(false);
+  const taskFileInputRef = useRef(null);
 
   // Right column accordion states
   const [rightContactsOpen, setRightContactsOpen] = useState(true);
@@ -239,33 +260,171 @@ export default function StaffDealDetail({
     setTimeout(() => setToastMsg(null), 2500);
   }
 
-  function handleCreateNote() {
-    if (!newNoteText.trim()) return;
-    const note = {
-      id: 'note-' + Date.now(),
-      text: newNoteText,
-      author: 'Anya Nguyen',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+  function logActivity(type, summary, linkText = '', contactId = null) {
+    const now = new Date();
+    const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
+      now.getDate()
+    ).padStart(2, '0')}/${now.getFullYear()}, ${String(now.getHours()).padStart(
+      2,
+      '0'
+    )}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const newAct = {
+      id: `deal-act-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      type,
+      time: timeStr,
+      actor: 'Anya Nguyen (anya42@9)',
+      summary,
+      linkText,
+      contactId,
     };
-    setNotes([note, ...notes]);
-    setNewNoteText('');
-    setIsAddingNote(false);
+    setActivitiesList((prev) => [newAct, ...prev]);
+  }
+
+  function handleFileAttach(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const newAttach = files.map((file) => ({
+      id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: file.name,
+      size:
+        file.size > 1024 * 1024
+          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+          : `${Math.round(file.size / 1024)} KB`,
+    }));
+    setNoteAttachments((prev) => [...prev, ...newAttach]);
+    e.target.value = '';
+  }
+
+  function handleRemoveAttachment(id) {
+    setNoteAttachments((prev) => prev.filter((a) => a.id !== id));
+  }
+
+  function handleAddNoteSubmit(e) {
+    if (e) e.preventDefault();
+    if (!noteBody.trim() && noteAttachments.length === 0) return;
+    const now = new Date();
+    const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
+      now.getDate()
+    ).padStart(2, '0')}/${now.getFullYear()}, ${String(now.getHours()).padStart(
+      2,
+      '0'
+    )}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const title =
+      noteTitle.trim() ||
+      (noteBody.trim() ? noteBody.trim().split('\n')[0].slice(0, 60) : '') ||
+      (noteAttachments.length > 0 ? `Attachment: ${noteAttachments[0].name}` : 'Deal Note');
+
+    const newNote = {
+      id: `note-${Date.now()}`,
+      title,
+      body: noteBody.trim(),
+      attachments: [...noteAttachments],
+      author: 'Anya Nguyen (anya42@9)',
+      time: timeStr,
+    };
+    setNotesList((prev) => [newNote, ...prev]);
+
+    const attachSuffix =
+      noteAttachments.length > 0
+        ? ` with ${noteAttachments.length} file(s) attached`
+        : '';
+    logActivity('Note Added', `added note: "${title}"${attachSuffix}`);
+
+    // If "Create a To Do task to follow up" is checked
+    if (createFollowUpTask) {
+      const newTask = {
+        id: `task-${Date.now()}`,
+        title: `Follow up on note: ${title}`,
+        dueDate: followUpDateTime || '09/18/2026, 08:00',
+        priority: 'Medium',
+        status: 'Pending',
+        author: 'Anya Nguyen (anya42@9)',
+        createdAt: timeStr,
+      };
+      setTasksList((prev) => [newTask, ...prev]);
+      logActivity('Task Created', `created follow-up task: "${newTask.title}" (Due: ${newTask.dueDate})`);
+    }
+
+    setNoteTitle('');
+    setNoteBody('');
+    setNoteAttachments([]);
+    setCreateFollowUpTask(false);
+    setIsNoteFullscreen(false);
+    setShowCreateNoteModal(false);
     showToast('Note added successfully');
   }
 
-  function handleCreateTask() {
-    if (!newTaskTitle.trim()) return;
-    const task = {
-      id: 'task-' + Date.now(),
-      title: newTaskTitle,
-      assignedTo: 'Anya Nguyen',
+  function handleTaskFileAttach(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const newAttach = files.map((file) => ({
+      id: `att-t-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: file.name,
+      size:
+        file.size > 1024 * 1024
+          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+          : `${Math.round(file.size / 1024)} KB`,
+    }));
+    setTaskAttachments((prev) => [...prev, ...newAttach]);
+    e.target.value = '';
+  }
+
+  function handleRemoveTaskAttachment(id) {
+    setTaskAttachments((prev) => prev.filter((a) => a.id !== id));
+  }
+
+  function handleAddTaskSubmit(e) {
+    if (e) e.preventDefault();
+    const title =
+      taskTitle.trim() ||
+      (taskContent.trim() ? taskContent.trim().split('\n')[0].slice(0, 60) : '') ||
+      'Follow-up Task';
+
+    const now = new Date();
+    const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
+      now.getDate()
+    ).padStart(2, '0')}/${now.getFullYear()}`;
+
+    const dueFormatted = `${taskDueDate} ${taskDueTime}`.trim();
+
+    const newTask = {
+      id: `task-${Date.now()}`,
+      title,
+      content: taskContent.trim(),
+      dueDate: dueFormatted || '09/18/2026, 8:00 AM',
+      sendRemind: taskRemind,
+      assignee: taskAssignee || 'Khanh Nguyen (khanhnguyen31@7)',
+      priority: taskPriority || 'None',
+      taskType: taskType || 'To Do',
+      attachments: [...taskAttachments],
       status: 'Pending',
-      dueDate: 'Tomorrow',
+      author: 'Anya Nguyen (anya42@9)',
+      createdAt: timeStr,
     };
-    setTasks([task, ...tasks]);
-    setNewTaskTitle('');
-    setIsAddingTask(false);
+    setTasksList((prev) => [newTask, ...prev]);
+
+    const attachSuffix =
+      taskAttachments.length > 0
+        ? ` with ${taskAttachments.length} file(s) attached`
+        : '';
+    logActivity(
+      'Task Created',
+      `created task: "${newTask.title}" (Due: ${newTask.dueDate})${attachSuffix}`
+    );
+
+    setTaskTitle('');
+    setTaskContent('');
+    setTaskDueDate('09/18/2026');
+    setTaskDueTime('8:00 AM');
+    setTaskRemind('No remind');
+    setTaskAssignee('');
+    setTaskPriority('None');
+    setTaskType('');
+    setTaskAttachments([]);
+    setIsTaskFullscreen(false);
+    setShowCreateTaskModal(false);
     showToast('Task created successfully');
   }
 
@@ -1077,9 +1236,10 @@ export default function StaffDealDetail({
         )}
 
         {/* ── COLUMN 2: Middle Timeline & Activity Feed ────────────────────── */}
-        <div className="flex-grow bg-white p-4 overflow-y-auto flex flex-col gap-3">
-          {/* Tabs + Quick Action Buttons */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2">
+        <div className="flex-1 bg-white p-4 flex flex-col gap-4 overflow-y-auto min-w-[340px]">
+          {/* Tabs + Dynamic Action Button (Activity: none, Notes: Create Note, Tasks: Create Task) */}
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            {/* 3 Nav Tabs: Activity, Notes, Tasks */}
             <div className="flex items-center gap-1 text-xs">
               {[
                 { key: 'activity', label: 'Activity', icon: 'history' },
@@ -1095,206 +1255,286 @@ export default function StaffDealDetail({
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[16px]">
-                    {tab.icon}
-                  </span>
+                  <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
                   <span>{tab.label}</span>
                 </button>
               ))}
             </div>
 
-            {/* Actions: + Note, + Task */}
-            <div className="flex items-center gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => setIsAddingNote(true)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 font-medium transition cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[15px] text-blue-600">
-                  edit_note
-                </span>
-                <span>Note</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsAddingTask(true)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 font-medium transition cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[15px] text-blue-600">
-                  check_circle
-                </span>
-                <span>Task</span>
-              </button>
+            {/* Top Right Action Button: Only visible in Notes or Tasks */}
+            <div>
+              {activeTab === 'notes' && (
+                <button
+                  type="button"
+                  onClick={() => setShowCreateNoteModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[15px]">add</span>
+                  <span>Create Note</span>
+                </button>
+              )}
+              {activeTab === 'tasks' && (
+                <button
+                  type="button"
+                  onClick={() => setShowCreateTaskModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[15px]">add</span>
+                  <span>Create Task</span>
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Quick Note Editor */}
-          {isAddingNote && (
-            <div className="p-3 bg-blue-50/50 border border-blue-200 rounded-xl space-y-2 animate-fade-in text-xs">
-              <label className="font-bold text-slate-800">Add Deal Note</label>
-              <textarea
-                rows={2}
-                value={newNoteText}
-                onChange={(e) => setNewNoteText(e.target.value)}
-                placeholder="Enter your note about this deal..."
-                className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
-              />
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddingNote(false)}
-                  className="px-2.5 py-1 text-slate-500 hover:bg-slate-100 rounded cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateNote}
-                  className="px-3 py-1 bg-[#104882] text-white font-semibold rounded cursor-pointer hover:bg-blue-700"
-                >
-                  Save Note
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Quick Task Editor */}
-          {isAddingTask && (
-            <div className="p-3 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-2 animate-fade-in text-xs">
-              <label className="font-bold text-slate-800">Add Deal Task</label>
-              <input
-                type="text"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                placeholder="Task description (e.g. Call client for payment verification)..."
-                className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-emerald-500"
-              />
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddingTask(false)}
-                  className="px-2.5 py-1 text-slate-500 hover:bg-slate-100 rounded cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateTask}
-                  className="px-3 py-1 bg-emerald-600 text-white font-semibold rounded cursor-pointer hover:bg-emerald-700"
-                >
-                  Save Task
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Tab Content: Activities */}
+          {/* ── TAB 1: ACTIVITY ────────────────────────────────────────────── */}
           {activeTab === 'activity' && (
-            <div className="space-y-3">
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Timeline Activities
-              </div>
-
-              {activitiesList && activitiesList.length > 0 ? (
-                activitiesList.map((act) => (
-                  <div
-                    key={act.id}
-                    className="p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition shadow-2xs flex flex-col gap-1 text-xs animate-fade-in"
-                  >
-                    <div className="flex items-center justify-between text-slate-500 text-[11px]">
-                      <span className="font-semibold text-slate-700">{act.type}</span>
-                      <span>{act.time}</span>
-                    </div>
-                    <div className="text-slate-800 leading-relaxed">
-                      <span className="font-semibold text-slate-900">{act.actor}</span>{' '}
-                      <span>{act.summary}</span>
-                    </div>
+            <div className="flex flex-col gap-3">
+              {activitiesList.length === 0 ? (
+                /* Empty state when no activity yet */
+                <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                    <span className="material-symbols-outlined text-[28px] text-slate-400">history</span>
                   </div>
-                ))
-              ) : (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  No activity recorded yet
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Tab Content: Notes */}
-          {activeTab === 'notes' && (
-            <div className="space-y-3">
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Deal Notes ({notes.length})
-              </div>
-
-              {notes.length === 0 ? (
-                <div className="py-12 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
-                  <span className="material-symbols-outlined text-[32px] text-slate-300">
-                    note_stack
-                  </span>
-                  <p>No notes for this deal yet.</p>
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingNote(true)}
-                    className="text-blue-600 hover:underline font-semibold"
-                  >
-                    + Add first note
-                  </button>
-                </div>
-              ) : (
-                notes.map((n) => (
-                  <div
-                    key={n.id}
-                    className="p-3 rounded-lg border border-slate-200 bg-white shadow-2xs space-y-1 text-xs"
-                  >
-                    <div className="flex items-center justify-between text-[11px] text-slate-400">
-                      <span className="font-semibold text-slate-700">{n.author}</span>
-                      <span>{n.date} at {n.time}</span>
-                    </div>
-                    <p className="text-slate-800">{n.text}</p>
+                  <div className="text-sm font-semibold text-slate-700">No activity yet</div>
+                  <div className="text-xs text-slate-400 mt-1 max-w-sm">
+                    Changes to deal information, notes, tasks, or stage updates will be logged here automatically.
                   </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {/* Tab Content: Tasks */}
-          {activeTab === 'tasks' && (
-            <div className="space-y-3">
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Deal Tasks ({tasks.length})
-              </div>
-
-              {tasks.length === 0 ? (
-                <div className="py-12 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
-                  <span className="material-symbols-outlined text-[32px] text-slate-300">
-                    checklist
-                  </span>
-                  <p>No tasks created for this deal yet.</p>
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingTask(true)}
-                    className="text-blue-600 hover:underline font-semibold"
-                  >
-                    + Create a task
-                  </button>
                 </div>
               ) : (
-                tasks.map((t) => (
-                  <div
-                    key={t.id}
-                    className="p-3 rounded-lg border border-slate-200 bg-white shadow-2xs flex items-center justify-between text-xs"
-                  >
+                <>
+                  {/* Filter / Search within Activity */}
+                  <div className="flex items-center justify-between gap-2 py-1 text-xs text-slate-500">
                     <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px] text-slate-400">
-                        radio_button_unchecked
-                      </span>
-                      <span className="font-medium text-slate-800">{t.title}</span>
+                      <span>Filters:</span>
+                      <div className="relative">
+                        <select className="appearance-none pl-2 pr-6 py-1 rounded border border-slate-200 bg-white text-xs text-slate-700">
+                          <option>Search by created by...</option>
+                        </select>
+                        <span className="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+                          expand_more
+                        </span>
+                      </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700">
-                      {t.status}
-                    </span>
+
+                    <div className="flex items-center gap-3">
+                      <button type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
+                        <span>+ Collapse all</span>
+                      </button>
+                      <button type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
+                        <span>+ Expand all</span>
+                      </button>
+                      <button type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
+                        <span className="material-symbols-outlined text-[14px]">refresh</span>
+                        <span>Refresh</span>
+                      </button>
+                    </div>
                   </div>
-                ))
+
+                  {/* Timeline Feed Group */}
+                  <div className="mt-1">
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      Recent Activity
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {activitiesList.map((act) => (
+                        <div
+                          key={act.id}
+                          className="p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition shadow-xs flex flex-col gap-1 text-xs"
+                        >
+                          <div className="flex items-center justify-between text-slate-500 text-[11px]">
+                            <span className="font-semibold text-slate-700">{act.type}</span>
+                            <span>{act.time}</span>
+                          </div>
+
+                          <div className="text-slate-800 leading-relaxed">
+                            <span className="font-semibold text-slate-900">{act.actor}</span>{' '}
+                            <span>{act.summary}</span>{' '}
+                            {act.linkText && (
+                              <span className="text-blue-600 hover:underline cursor-pointer inline-flex items-center gap-0.5 ml-1">
+                                {act.linkText}
+                                <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── TAB 2: NOTES ───────────────────────────────────────────────── */}
+          {activeTab === 'notes' && (
+            <div className="flex flex-col gap-3">
+              {notesList.length === 0 ? (
+                /* Empty state when no notes yet */
+                <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                    <span className="material-symbols-outlined text-[28px] text-slate-400">edit_note</span>
+                  </div>
+                  <div className="text-sm font-semibold text-slate-700">No notes yet</div>
+                  <div className="text-xs text-slate-400 mt-1 max-w-sm mb-4">
+                    There are no notes recorded for this deal yet. Add notes to keep track of calls or special requests.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateNoteModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add</span>
+                    <span>Create Note</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3 mt-1">
+                  {notesList.map((note) => (
+                    <div key={note.id} className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-xs">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                        <div className="font-semibold text-slate-900 text-xs flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-blue-600 text-[16px]">description</span>
+                          <span>{note.title}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400">{note.time}</div>
+                      </div>
+                      <div className="mt-2 text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+                        {note.body}
+                      </div>
+                      {/* Attached files */}
+                      {note.attachments && note.attachments.length > 0 && (
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
+                          {note.attachments.map((att) => (
+                            <span
+                              key={att.id}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[11px]"
+                            >
+                              <span className="material-symbols-outlined text-[13px] text-blue-600">attach_file</span>
+                              <span className="font-medium truncate max-w-[200px]">{att.name}</span>
+                              <span className="text-[10px] text-slate-400">({att.size})</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="mt-2 text-[10px] text-slate-400 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">person</span>
+                        <span>By {note.author}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── TAB 3: TASKS ───────────────────────────────────────────────── */}
+          {activeTab === 'tasks' && (
+            <div className="flex flex-col gap-3">
+              {tasksList.length === 0 ? (
+                /* Empty state when no tasks yet */
+                <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                    <span className="material-symbols-outlined text-[28px] text-slate-400">task_alt</span>
+                  </div>
+                  <div className="text-sm font-semibold text-slate-700">No tasks yet</div>
+                  <div className="text-xs text-slate-400 mt-1 max-w-sm mb-4">
+                    Keep track of follow-ups and action items for this deal by creating your first task.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateTaskModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add</span>
+                    <span>Create Task</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3 mt-1">
+                  {tasksList.map((task) => (
+                    <div
+                      key={task.id}
+                      className="p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition shadow-xs flex items-start justify-between gap-3 text-xs"
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={task.status === 'Completed'}
+                          onChange={() => {
+                            const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
+                            setTasksList(tasksList.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)));
+                            logActivity('Task Status', `marked task "${task.title}" as ${newStatus}`);
+                          }}
+                          className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                        <div>
+                          <div
+                            onClick={() => onSelectTask && onSelectTask(task)}
+                            className={`font-semibold text-slate-900 hover:text-blue-600 cursor-pointer ${
+                              task.status === 'Completed' ? 'line-through text-slate-400' : ''
+                            }`}
+                          >
+                            {task.title}
+                          </div>
+                          {task.content && (
+                            <div className="text-slate-600 text-xs mt-1 whitespace-pre-wrap leading-relaxed">
+                              {task.content}
+                            </div>
+                          )}
+                          {task.attachments && task.attachments.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {task.attachments.map((att) => (
+                                <span
+                                  key={att.id}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[11px]"
+                                >
+                                  <span className="material-symbols-outlined text-[13px] text-blue-600">attach_file</span>
+                                  <span className="font-medium truncate max-w-[180px]">{att.name}</span>
+                                  <span className="text-[10px] text-slate-400">({att.size})</span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <div className="text-[11px] text-slate-400 mt-1.5 flex flex-wrap items-center gap-2">
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[13px]">calendar_today</span>
+                              <span>Due: {task.dueDate}</span>
+                            </span>
+                            {task.taskType && task.taskType !== '--' && (
+                              <>
+                                <span>•</span>
+                                <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-medium">
+                                  {task.taskType}
+                                </span>
+                              </>
+                            )}
+                            {task.assignee && (
+                              <>
+                                <span>•</span>
+                                <span className="flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[13px]">person</span>
+                                  <span>{task.assignee}</span>
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                          task.priority === 'High'
+                            ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                            : task.priority === 'Medium'
+                            ? 'bg-amber-50 text-amber-600 border border-amber-200'
+                            : 'bg-slate-50 text-slate-600 border border-slate-200'
+                        }`}
+                      >
+                        {task.priority}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -1596,6 +1836,707 @@ export default function StaffDealDetail({
           </div>
         </div>
       </div>
+
+      {/* ── Create Note Modal (Exact match to uploaded image & Contact Detail) ────────────── */}
+      {showCreateNoteModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div
+            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 ${
+              isNoteFullscreen
+                ? 'fixed inset-2 max-w-none w-auto h-auto'
+                : 'max-w-3xl w-full'
+            }`}
+          >
+            {/* Header: Dark Navy Blue with CREATE NOTE and actions */}
+            <div className="bg-[#173A75] px-4 py-2.5 flex items-center justify-between text-white shrink-0">
+              <div className="flex items-center gap-2 text-xs font-bold tracking-wider">
+                <span className="material-symbols-outlined text-[17px]">edit</span>
+                <span>CREATE NOTE</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsNoteFullscreen(!isNoteFullscreen)}
+                  title={isNoteFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                  className="text-white/80 hover:text-white p-1 rounded transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {isNoteFullscreen ? 'close_fullscreen' : 'crop_free'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateNoteModal(false);
+                    setIsNoteFullscreen(false);
+                  }}
+                  title="Close"
+                  className="text-white/80 hover:text-white p-1 rounded transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleAddNoteSubmit} className="p-5 flex flex-col gap-3.5 overflow-y-auto">
+              {/* Content Label */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                  Content <span className="text-rose-500">*</span>
+                </label>
+
+                {/* Editor Container with full toolbar */}
+                <div className="border border-slate-300 rounded-lg overflow-hidden bg-white shadow-2xs focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-400/30 transition">
+                  {/* Toolbar Row */}
+                  <div className="bg-[#F8FAFC] border-b border-slate-200 px-2 py-1.5 flex flex-wrap items-center gap-1 text-slate-700 text-xs select-none">
+                    {/* Undo / Redo */}
+                    <button
+                      type="button"
+                      title="Undo"
+                      className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">undo</span>
+                    </button>
+                    <button
+                      type="button"
+                      title="Redo"
+                      className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">redo</span>
+                    </button>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                    {/* Font Dropdown */}
+                    <div className="relative">
+                      <select className="appearance-none bg-white border border-slate-200 rounded px-2 pr-5 py-0.5 text-xs text-slate-700 hover:border-slate-300 cursor-pointer focus:outline-none">
+                        <option>Helvetica</option>
+                        <option>Arial</option>
+                        <option>Times New Roman</option>
+                        <option>Courier New</option>
+                      </select>
+                      <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+                        expand_more
+                      </span>
+                    </div>
+
+                    {/* Paragraph Dropdown */}
+                    <div className="relative">
+                      <select className="appearance-none bg-white border border-slate-200 rounded px-2 pr-5 py-0.5 text-xs text-slate-700 hover:border-slate-300 cursor-pointer focus:outline-none">
+                        <option>Paragraph</option>
+                        <option>Heading 1</option>
+                        <option>Heading 2</option>
+                        <option>Heading 3</option>
+                      </select>
+                      <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+                        expand_more
+                      </span>
+                    </div>
+
+                    {/* Font Size */}
+                    <div className="relative">
+                      <select className="appearance-none bg-white border border-slate-200 rounded px-2 pr-5 py-0.5 text-xs text-slate-700 hover:border-slate-300 cursor-pointer focus:outline-none">
+                        <option>10pt</option>
+                        <option>11pt</option>
+                        <option>12pt</option>
+                        <option>14pt</option>
+                      </select>
+                      <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+                        expand_more
+                      </span>
+                    </div>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                    {/* Bold, Italic, Underline */}
+                    <button
+                      type="button"
+                      title="Bold"
+                      className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer"
+                    >
+                      B
+                    </button>
+                    <button
+                      type="button"
+                      title="Italic"
+                      className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer"
+                    >
+                      I
+                    </button>
+                    <button
+                      type="button"
+                      title="Underline"
+                      className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer"
+                    >
+                      U
+                    </button>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                    {/* Lists */}
+                    <button
+                      type="button"
+                      title="Bullet List"
+                      className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">format_list_bulleted</span>
+                    </button>
+                    <button
+                      type="button"
+                      title="Numbered List"
+                      className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">format_list_numbered</span>
+                    </button>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                    {/* Alignments */}
+                    <button
+                      type="button"
+                      title="Align Left"
+                      className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">format_align_left</span>
+                    </button>
+                    <button
+                      type="button"
+                      title="Align Center"
+                      className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">format_align_center</span>
+                    </button>
+                    <button
+                      type="button"
+                      title="Align Right"
+                      className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">format_align_right</span>
+                    </button>
+                    <button
+                      type="button"
+                      title="Justify"
+                      className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">format_align_justify</span>
+                    </button>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                    {/* Color dropdowns */}
+                    <div className="flex items-center px-1 py-0.5 rounded hover:bg-slate-200 cursor-pointer">
+                      <span className="font-bold underline text-xs decoration-red-500">A</span>
+                      <span className="material-symbols-outlined text-[13px] text-slate-400 ml-0.5">expand_more</span>
+                    </div>
+                    <div className="flex items-center px-1 py-0.5 rounded hover:bg-slate-200 cursor-pointer">
+                      <span className="material-symbols-outlined text-[15px] text-amber-500">edit</span>
+                      <span className="material-symbols-outlined text-[13px] text-slate-400 ml-0.5">expand_more</span>
+                    </div>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                    {/* More */}
+                    <button
+                      type="button"
+                      title="More options"
+                      className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                    </button>
+                  </div>
+
+                  {/* Textarea */}
+                  <textarea
+                    rows={isNoteFullscreen ? 16 : 8}
+                    required
+                    value={noteBody}
+                    onChange={(e) => setNoteBody(e.target.value)}
+                    placeholder=""
+                    className="w-full p-4 focus:outline-none text-slate-800 text-xs sm:text-sm resize-y leading-relaxed bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Follow-up task & Associated record row */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs">
+                {/* Left: Create To Do task */}
+                <label className="flex items-center gap-2 cursor-pointer select-none text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={createFollowUpTask}
+                    onChange={(e) => setCreateFollowUpTask(e.target.checked)}
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                  <span>
+                    Create a <strong className="text-slate-900 font-semibold">To Do</strong> task to follow up
+                  </span>
+                  <span className="font-bold text-[#0F2962] ml-1">{followUpDateTime}</span>
+                </label>
+
+                {/* Right: Associated record */}
+                <div className="flex items-center gap-1 text-slate-700 font-medium cursor-pointer hover:text-blue-700">
+                  <span>
+                    Associated with 1 record <span className="text-rose-500">*</span>
+                  </span>
+                  <span className="material-symbols-outlined text-[16px] text-slate-500">expand_more</span>
+                </div>
+              </div>
+
+              {/* Attach File Row */}
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="font-bold text-slate-800">Attach</span>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-semibold cursor-pointer transition"
+                  >
+                    <span className="material-symbols-outlined text-[16px] -rotate-45">attach_file</span>
+                    <span>Add new</span>
+                  </button>
+                  {/* Hidden file input supporting multiple files */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={handleFileAttach}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* List of Attached Files (if any) */}
+                {noteAttachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                    {noteAttachments.map((file) => (
+                      <div
+                        key={file.id}
+                        className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs"
+                      >
+                        <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
+                        <span className="font-medium max-w-[220px] truncate">{file.name}</span>
+                        <span className="text-[10px] text-slate-400">({file.size})</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAttachment(file.id)}
+                          className="text-slate-400 hover:text-rose-500 transition cursor-pointer ml-1 text-xs"
+                          title="Remove file"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom Action Buttons (Centered as in Image) */}
+              <div className="flex items-center justify-center gap-3 pt-3 mt-1">
+                <button
+                  type="submit"
+                  className="px-6 py-1.5 rounded-md bg-[#74879E] hover:bg-[#63768c] text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">save</span>
+                  <span>Save</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateNoteModal(false);
+                    setIsNoteFullscreen(false);
+                  }}
+                  className="px-6 py-1.5 rounded-md bg-[#626F7D] hover:bg-[#525e6c] text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                  <span>Cancel</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Create Task Modal (Exact match to uploaded image & Contact Detail) ────────────── */}
+      {showCreateTaskModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div
+            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 ${
+              isTaskFullscreen
+                ? 'fixed inset-2 max-w-none w-auto h-auto'
+                : 'max-w-3xl w-full max-h-[92vh]'
+            }`}
+          >
+            {/* Header: Dark Navy Blue with CREATE TASK and actions */}
+            <div className="bg-[#173A75] px-4 py-2.5 flex items-center justify-between text-white shrink-0">
+              <div className="flex items-center gap-2 text-xs font-bold tracking-wider">
+                <span className="material-symbols-outlined text-[17px]">edit</span>
+                <span>CREATE TASK</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsTaskFullscreen(!isTaskFullscreen)}
+                  title={isTaskFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                  className="text-white/80 hover:text-white p-1 rounded transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {isTaskFullscreen ? 'close_fullscreen' : 'crop_free'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateTaskModal(false);
+                    setIsTaskFullscreen(false);
+                  }}
+                  title="Close"
+                  className="text-white/80 hover:text-white p-1 rounded transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body Form */}
+            <form onSubmit={handleAddTaskSubmit} className="p-5 flex flex-col gap-3.5 overflow-y-auto">
+              {/* Field 1: Name * */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Name <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={taskTitle}
+                    onChange={(e) => setTaskTitle(e.target.value)}
+                    placeholder="--"
+                    className="w-full px-3 py-2 pr-9 rounded-lg border border-slate-300 focus:outline-none focus:border-blue-500 text-xs text-slate-800"
+                  />
+                  <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
+                    edit
+                  </span>
+                </div>
+              </div>
+
+              {/* Row 2: Due Date * & Send remind */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Left: Due Date * */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">
+                    Due Date <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={taskDueDate}
+                        onChange={(e) => setTaskDueDate(e.target.value)}
+                        placeholder="09/18/2026"
+                        className="w-full px-2.5 py-1.5 pr-8 rounded-lg border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      />
+                      <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
+                        calendar_month
+                      </span>
+                    </div>
+                    <div className="relative w-28">
+                      <input
+                        type="text"
+                        value={taskDueTime}
+                        onChange={(e) => setTaskDueTime(e.target.value)}
+                        placeholder="8:00 AM"
+                        className="w-full px-2.5 py-1.5 pr-8 rounded-lg border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      />
+                      <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
+                        schedule
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Send remind */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Send remind</label>
+                  <div className="relative">
+                    <select
+                      value={taskRemind}
+                      onChange={(e) => setTaskRemind(e.target.value)}
+                      className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                    >
+                      <option value="No remind">No remind</option>
+                      <option value="At time of due date">At time of due date</option>
+                      <option value="15 minutes before">15 minutes before</option>
+                      <option value="30 minutes before">30 minutes before</option>
+                      <option value="1 hour before">1 hour before</option>
+                      <option value="1 day before">1 day before</option>
+                    </select>
+                    <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
+                      expand_more
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 3: Assignee * & Priority */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Left: Assignee * */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">
+                    Assignee <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={taskAssignee}
+                      onChange={(e) => setTaskAssignee(e.target.value)}
+                      className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                    >
+                      <option value="">--</option>
+                      <option value="Khanh Nguyen (khanhnguyen31@7)">Khanh Nguyen (khanhnguyen31@7)</option>
+                      <option value="Anya Nguyen (anya42@9)">Anya Nguyen (anya42@9)</option>
+                      <option value="The Best Rate Insurance">The Best Rate Insurance</option>
+                    </select>
+                    <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
+                      expand_more
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right: Priority */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Priority</label>
+                  <div className="relative flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs">
+                    <span
+                      className={`w-2 h-2 rounded-full mr-2 shrink-0 ${
+                        taskPriority === 'High'
+                          ? 'bg-rose-500'
+                          : taskPriority === 'Medium'
+                          ? 'bg-amber-500'
+                          : taskPriority === 'Low'
+                          ? 'bg-blue-500'
+                          : 'bg-slate-400'
+                      }`}
+                    />
+                    <select
+                      value={taskPriority}
+                      onChange={(e) => setTaskPriority(e.target.value)}
+                      className="w-full appearance-none bg-transparent focus:outline-none text-xs text-slate-800 cursor-pointer"
+                    >
+                      <option value="None">None</option>
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setTaskPriority('None')}
+                      className="text-slate-400 hover:text-slate-600 px-1 cursor-pointer"
+                      title="Clear priority"
+                    >
+                      ✕
+                    </button>
+                    <span className="text-slate-300 mx-1">|</span>
+                    <span className="material-symbols-outlined text-[16px] text-slate-400 pointer-events-none">
+                      expand_more
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 4: Task type */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">Task type</label>
+                <div className="relative">
+                  <select
+                    value={taskType}
+                    onChange={(e) => setTaskType(e.target.value)}
+                    className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                  >
+                    <option value="">--</option>
+                    <option value="To Do">To Do</option>
+                    <option value="Call">Call</option>
+                    <option value="Email">Email</option>
+                    <option value="Meeting">Meeting</option>
+                    <option value="Follow-up">Follow-up</option>
+                    <option value="Review ACA">Review ACA</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
+                    expand_more
+                  </span>
+                </div>
+              </div>
+
+              {/* Row 5: Attach & Associated with 1 record */}
+              <div className="flex flex-col gap-2 pt-0.5">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-800">Attach</span>
+                    <button
+                      type="button"
+                      onClick={() => taskFileInputRef.current?.click()}
+                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-semibold cursor-pointer transition"
+                    >
+                      <span className="material-symbols-outlined text-[16px] -rotate-45">attach_file</span>
+                      <span>Add new</span>
+                    </button>
+                    <input
+                      ref={taskFileInputRef}
+                      type="file"
+                      multiple
+                      onChange={handleTaskFileAttach}
+                      className="hidden"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1 text-slate-700 font-medium cursor-pointer hover:text-blue-700">
+                    <span>
+                      Associated with 1 record <span className="text-rose-500">*</span>
+                    </span>
+                    <span className="material-symbols-outlined text-[16px] text-slate-500">expand_more</span>
+                  </div>
+                </div>
+
+                {/* Attached Files List */}
+                {taskAttachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                    {taskAttachments.map((file) => (
+                      <div
+                        key={file.id}
+                        className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs"
+                      >
+                        <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
+                        <span className="font-medium max-w-[220px] truncate">{file.name}</span>
+                        <span className="text-[10px] text-slate-400">({file.size})</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTaskAttachment(file.id)}
+                          className="text-slate-400 hover:text-rose-500 transition cursor-pointer ml-1 text-xs"
+                          title="Remove file"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Row 6: Content * */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                  Content <span className="text-rose-500">*</span>
+                </label>
+
+                {/* Editor Container with toolbar */}
+                <div className="border border-slate-300 rounded-lg overflow-hidden bg-white shadow-2xs focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-400/30 transition">
+                  {/* Toolbar Row */}
+                  <div className="bg-[#F8FAFC] border-b border-slate-200 px-2 py-1.5 flex flex-wrap items-center gap-1 text-slate-700 text-xs select-none">
+                    {/* Undo / Redo */}
+                    <button type="button" title="Undo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
+                      <span className="material-symbols-outlined text-[16px]">undo</span>
+                    </button>
+                    <button type="button" title="Redo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
+                      <span className="material-symbols-outlined text-[16px]">redo</span>
+                    </button>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                    {/* Font Dropdown */}
+                    <div className="relative">
+                      <select className="appearance-none bg-white border border-slate-200 rounded px-2 pr-5 py-0.5 text-xs text-slate-700 hover:border-slate-300 cursor-pointer focus:outline-none">
+                        <option>Helvetica</option>
+                        <option>Arial</option>
+                        <option>Times New Roman</option>
+                        <option>Courier New</option>
+                      </select>
+                      <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+                        expand_more
+                      </span>
+                    </div>
+
+                    {/* Paragraph Dropdown */}
+                    <div className="relative">
+                      <select className="appearance-none bg-white border border-slate-200 rounded px-2 pr-5 py-0.5 text-xs text-slate-700 hover:border-slate-300 cursor-pointer focus:outline-none">
+                        <option>Paragraph</option>
+                        <option>Heading 1</option>
+                        <option>Heading 2</option>
+                        <option>Heading 3</option>
+                      </select>
+                      <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+                        expand_more
+                      </span>
+                    </div>
+
+                    {/* Font Size */}
+                    <div className="relative">
+                      <select className="appearance-none bg-white border border-slate-200 rounded px-2 pr-5 py-0.5 text-xs text-slate-700 hover:border-slate-300 cursor-pointer focus:outline-none">
+                        <option>10pt</option>
+                        <option>11pt</option>
+                        <option>12pt</option>
+                        <option>14pt</option>
+                      </select>
+                      <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+                        expand_more
+                      </span>
+                    </div>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                    {/* Bold, Italic, Underline */}
+                    <button type="button" title="Bold" className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer">
+                      B
+                    </button>
+                    <button type="button" title="Italic" className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer">
+                      I
+                    </button>
+                    <button type="button" title="Underline" className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer">
+                      U
+                    </button>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1" />
+
+                    {/* More */}
+                    <button type="button" title="More options" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
+                      <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                    </button>
+                  </div>
+
+                  {/* Textarea */}
+                  <textarea
+                    rows={isTaskFullscreen ? 14 : 6}
+                    value={taskContent}
+                    onChange={(e) => setTaskContent(e.target.value)}
+                    placeholder=""
+                    className="w-full p-4 focus:outline-none text-slate-800 text-xs sm:text-sm resize-y leading-relaxed bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Bottom Action Buttons (Centered as in Image) */}
+              <div className="flex items-center justify-center gap-3 pt-2 mt-1">
+                <button
+                  type="submit"
+                  className="px-6 py-1.5 rounded-md bg-[#74879E] hover:bg-[#63768c] text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">save</span>
+                  <span>Save</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateTaskModal(false);
+                    setIsTaskFullscreen(false);
+                  }}
+                  className="px-6 py-1.5 rounded-md bg-[#626F7D] hover:bg-[#525e6c] text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                  <span>Cancel</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ── Stage Change History Modal ────────────────────────────────────── */}
       {showStageHistoryModal && (
