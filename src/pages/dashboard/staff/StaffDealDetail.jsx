@@ -1381,109 +1381,130 @@ export default function StaffDealDetail({
               </div>
             </div>
 
-            {rightTicketsOpen && (
-              <div className="p-3">
-                <div
-                  onClick={() => {
-                    if (onSelectTicket) {
-                      onSelectTicket({
-                        id: 'TC2600101',
-                        title: 'ACA account 2026',
-                        pipeline: 'ACA account',
-                        status: 'DONE',
-                        rawStatus: 'Uploaded - Waiting for Verification',
-                        priority: 'High',
-                        closeDate: '05/27/2026',
-                        dueDate: '05/14/2026',
-                        serviceAgent: 'Sean Ngo (sean75@8)',
-                        ticketOwner: 'Tri Tran (tritran92@5)',
-                        ticketResult: '',
-                        changeDueDateReason: '',
-                        carrier: dealInfo.carrier || 'UHC - RMHP',
-                        contactName: dealInfo.contactName || 'Minh trang Tran',
-                        contactPhone: dealInfo.contactPhone || '3462158034',
-                        contactEmail: dealInfo.contactEmail || 'dungnguyen20041960@gmail.com',
-                        leadOwner: 'Tri Tran',
-                        dealTitle: dealInfo.title || 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
-                        dealPipeline: dealInfo.pipeline || 'Obamacare 2026',
-                        dealStage: dealInfo.stage || 'Enrolled - Active',
-                        dealOwner: dealInfo.dealOwner || 'Tri Tran',
-                        dealCarrier: dealInfo.carrier || 'UHC - RMHP',
-                      });
-                    }
-                  }}
-                  className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
-                >
-                  {/* Title row with badge */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition">
-                      <span className="material-symbols-outlined text-[15px]">confirmation_number</span>
+            {rightTicketsOpen && (() => {
+              const isPaymentDeal =
+                (dealInfo.pipeline || '').toLowerCase().includes('payment') ||
+                (dealInfo.title || '').toLowerCase().includes('pay') ||
+                (dealInfo.title || '').toLowerCase().includes('hoai thanh');
+
+              const isKenHoDeal =
+                (dealInfo.title || '').toLowerCase().includes('ken ho') ||
+                (dealInfo.contactName || '').toLowerCase().includes('ken');
+
+              const associatedTicket = isPaymentDeal
+                ? {
+                    id: 'TC2600201',
+                    title: 'Oct/26 Company Pay ticket',
+                    avatar: 'OT',
+                    avatarBg: 'bg-[#B25E3B]',
+                    pipeline: 'Payment',
+                    status: 'Make payment',
+                    priority: 'None',
+                    openDays: 9,
+                    dueDate: '09/20/2026',
+                    serviceAgent: 'Anya Nguyen (anya42@9)',
+                    serviceAgentAvatar: 'AN',
+                    ticketOwner: 'Khanh Nguyen (khanhnguyen31@7)',
+                    ticketOwnerAvatar: 'KN',
+                    paymentStatus: 'Company Pay',
+                    carrier: dealInfo.carrier || 'Kaiser Permanente',
+                    contactName: dealInfo.contactName || 'Hoai thanh Nguyen',
+                    contactPhone: dealInfo.contactPhone || '+1 (838) 776-1434',
+                    contactEmail: dealInfo.contactEmail || 'nguyenleminhquang1215@gmail.com',
+                    leadOwner: 'Khanh Nguyen',
+                    dealTitle: dealInfo.title || 'Non Commission - Hoai thanh Nguyen - OB 2026',
+                    dealShortTitle: dealInfo.shortTitle || 'Non Commission - Hoai thanh...',
+                    dealPipeline: dealInfo.pipeline || 'Obamacare 2026',
+                    dealStage: dealInfo.stage || 'Non-Commission - Active',
+                    dealOwner: dealInfo.dealOwner?.name || dealInfo.dealOwner || 'Khanh Nguyen',
+                    dealCarrier: dealInfo.carrier || 'Kaiser Permanente',
+                  }
+                : {
+                    id: 'TC2600101',
+                    title: 'ACA account 2026',
+                    avatar: 'A2',
+                    avatarBg: 'bg-[#E05638]',
+                    pipeline: 'ACA account',
+                    status: 'DONE',
+                    rawStatus: 'DONE',
+                    priority: 'High',
+                    closeDate: isKenHoDeal ? '07/20/2026' : (dealInfo.closeDate || '07/20/2026'),
+                    dueDate: isKenHoDeal ? '07/15/2026' : (dealInfo.dueDate || '07/15/2026'),
+                    serviceAgent: isKenHoDeal ? 'Ivy Lu (ivy)' : (dealInfo.serviceAgent || 'Ivy Lu (ivy)'),
+                    serviceAgentAvatar: 'IL',
+                    ticketOwner: isKenHoDeal ? 'Jay Ly (trichauly24@7)' : (dealInfo.dealOwner?.name || dealInfo.dealOwner || 'Jay Ly (trichauly24@7)'),
+                    ticketOwnerAvatar: 'JL',
+                    carrier: dealInfo.carrier || (isKenHoDeal ? 'BCBS' : ''),
+                    contactName: dealInfo.contactName || (isKenHoDeal ? 'Ken xington Ho' : 'Ken xington Ho'),
+                    contactPhone: dealInfo.contactPhone || (isKenHoDeal ? '+1 (832) 998-9804' : '+1 (832) 998-9804'),
+                    contactEmail: dealInfo.contactEmail || (isKenHoDeal ? 'kylieho@thesuperiorskilledlearners.com' : 'kylieho@thesuperiorskilledlearners.com'),
+                    leadOwner: isKenHoDeal ? 'Jay Ly' : (dealInfo.dealOwner?.name || dealInfo.dealOwner || 'Jay Ly'),
+                    dealTitle: dealInfo.title || 'Ken Ho + Kylie Ho + Kaylee Ho - OB 08/2026',
+                    dealShortTitle: dealInfo.shortTitle || 'Ken Ho + Kylie Ho + Kaylee Ho - ...',
+                    dealPipeline: dealInfo.pipeline || 'Obamacare 2026',
+                    dealStage: dealInfo.stage || 'Enrolled - Active',
+                    dealOwner: isKenHoDeal ? 'Jay Ly' : (dealInfo.dealOwner?.name || dealInfo.dealOwner || 'Jay Ly'),
+                    dealCarrier: dealInfo.carrier || (isKenHoDeal ? 'BCBS' : 'BCBS'),
+                  };
+
+              return (
+                <div className="p-3">
+                  <div
+                    onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                    className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
+                  >
+                    {/* Title row with badge */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition">
+                        <span className="material-symbols-outlined text-[15px]">confirmation_number</span>
+                      </div>
+                      <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
+                        {associatedTicket.title}
+                      </span>
                     </div>
-                    <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">ACA account 2026</span>
+
+                    {/* Properties list with icons matching screenshot */}
+                    <div className="space-y-1.5 pt-0.5 text-[11px] text-slate-600 pl-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400">bar_chart</span>
+                        <span className="text-slate-500">Pipeline:</span>
+                        <span className="font-semibold text-slate-800">{associatedTicket.pipeline}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400">trending_up</span>
+                        <span className="text-slate-500">Ticket Status:</span>
+                        <span className="font-semibold text-slate-800">{associatedTicket.status}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
+                        <span className="text-slate-500">Ticket Owner:</span>
+                        <span className="font-semibold text-slate-800">
+                          {associatedTicket.ticketOwner.split(' ')[0]} {associatedTicket.ticketOwner.split(' ')[1] || ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                        <span className="text-slate-500">{associatedTicket.openDays ? 'Open:' : 'Close Date:'}</span>
+                        <span className="text-slate-600 font-medium">
+                          {associatedTicket.openDays
+                            ? `${associatedTicket.openDays} Day(s)`
+                            : (associatedTicket.closeDate || '----------')}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Properties list with icons matching screenshot */}
-                  <div className="space-y-1.5 pt-0.5 text-[11px] text-slate-600 pl-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-slate-400">bar_chart</span>
-                      <span className="text-slate-500">Pipeline:</span>
-                      <span className="font-semibold text-slate-800">ACA account</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-slate-400">trending_up</span>
-                      <span className="text-slate-500">Ticket Status:</span>
-                      <span className="font-semibold text-slate-800">Uploaded - Waiting for...</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
-                      <span className="text-slate-500">Ticket Owner:</span>
-                      <span className="font-semibold text-slate-800">Khanh Nguyen</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
-                      <span className="text-slate-500">Close Date:</span>
-                      <span className="text-slate-400 tracking-wider">----------</span>
-                    </div>
-                  </div>
+                  {/* Footer Link */}
+                  <button
+                    type="button"
+                    onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                    className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    » View Associated Ticket
+                  </button>
                 </div>
-
-                {/* Footer Link */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onSelectTicket) {
-                      onSelectTicket({
-                        id: 'TC2600101',
-                        title: 'ACA account 2026',
-                        pipeline: 'ACA account',
-                        status: 'DONE',
-                        rawStatus: 'Uploaded - Waiting for Verification',
-                        priority: 'High',
-                        closeDate: '05/27/2026',
-                        dueDate: '05/14/2026',
-                        serviceAgent: 'Sean Ngo (sean75@8)',
-                        ticketOwner: 'Tri Tran (tritran92@5)',
-                        ticketResult: '',
-                        changeDueDateReason: '',
-                        carrier: dealInfo.carrier || 'UHC - RMHP',
-                        contactName: dealInfo.contactName || 'Minh trang Tran',
-                        contactPhone: dealInfo.contactPhone || '3462158034',
-                        contactEmail: dealInfo.contactEmail || 'dungnguyen20041960@gmail.com',
-                        leadOwner: 'Tri Tran',
-                        dealTitle: dealInfo.title || 'Tien Dung Nguyen + Minh Trang Tran- OB 6/26',
-                        dealPipeline: dealInfo.pipeline || 'Obamacare 2026',
-                        dealStage: dealInfo.stage || 'Enrolled - Active',
-                        dealOwner: dealInfo.dealOwner || 'Tri Tran',
-                        dealCarrier: dealInfo.carrier || 'UHC - RMHP',
-                      });
-                    }
-                  }}
-                  className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  » View Associated Ticket
-                </button>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {/* Card 3: Customer Documents (1) */}

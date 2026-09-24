@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { SAMPLE_TICKETS } from '../../../data/mockCrmData';
 
 export const ACA_TICKET_DEFAULTS = {
   id: 'TC2600101',
@@ -287,6 +288,64 @@ export default function StaffTicketDetail({
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3000);
   };
+
+  // Synchronize state dynamically whenever ticket prop updates
+  useEffect(() => {
+    const rawTicket =
+      typeof ticket === 'object' && ticket !== null
+        ? ticket
+        : (SAMPLE_TICKETS.find((t) => t.id === ticket) || {});
+
+    const isPaymentTicket =
+      rawTicket?.pipeline === 'Payment' ||
+      (rawTicket?.title && rawTicket.title.toLowerCase().includes('pay'));
+    const base = isPaymentTicket ? PAYMENT_TICKET_DEFAULTS : ACA_TICKET_DEFAULTS;
+    const current = {
+      ...base,
+      ...rawTicket,
+    };
+
+    setTicketTitle(current.title);
+    setTempTitle(current.title);
+    setAvatar(current.avatar || (isPaymentTicket ? 'OT' : 'A2'));
+    setPriority(current.priority || (isPaymentTicket ? 'None' : 'High'));
+    setOpenDays(current.openDays);
+    setCloseDate(current.closeDate);
+    setPipeline(current.pipeline);
+    setStatus(current.status);
+    setDueDate(current.dueDate);
+    setTempDueDate(current.dueDate);
+
+    setServiceAgent(current.serviceAgent);
+    setTicketOwner(current.ticketOwner);
+    setTicketResult(current.ticketResult || '');
+    setPaymentStatus(current.paymentStatus || '');
+    setChangeDueDateReason(current.changeDueDateReason || '');
+    setCarrier(current.carrier || '');
+    setDeadlineDate(current.deadlineDate || '');
+    setPaidThroughDate(current.paidThroughDate || '');
+
+    setFilesList(current.files || []);
+    setProofList(current.proof || []);
+
+    setContactName(current.contactName);
+    setContactPhone(current.contactPhone);
+    setContactEmail(current.contactEmail);
+    setLeadOwner(current.leadOwner);
+
+    setDealTitle(current.dealTitle);
+    setDealShortTitle(current.dealShortTitle || current.dealTitle);
+    setDealPipeline(current.dealPipeline || 'Obamacare 2026');
+    setDealStage(current.dealStage || 'Enrolled - Active');
+    setDealOwner(current.dealOwner || (isPaymentTicket ? 'Khanh Nguyen' : 'Jay Ly'));
+    setDealCarrier(current.dealCarrier || (isPaymentTicket ? 'Kaiser Permanente' : 'BCBS'));
+
+    if (current.timeline && current.timeline.length > 0) {
+      setTimelineItems(current.timeline);
+    } else {
+      setTimelineItems(base.timeline || []);
+    }
+  }, [ticket]);
 
   // Close dropdowns on outside click
   const dropdownRef = useRef(null);
