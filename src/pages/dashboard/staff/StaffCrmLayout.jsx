@@ -98,6 +98,30 @@ export default function StaffCrmLayout({
       desc: 'Báo cáo & Tổng quan điều hành nền tảng',
     },
     {
+      id: 'contacts',
+      label: 'Contacts',
+      icon: 'person_search',
+      desc: 'Danh bạ khách hàng tiềm năng & Hợp đồng',
+    },
+    {
+      id: 'deals',
+      label: 'Deals',
+      icon: 'handshake',
+      desc: 'Hồ sơ bảo hiểm đang xử lý & Master Deals AOR',
+    },
+    {
+      id: 'tickets',
+      label: 'Tickets',
+      icon: 'confirmation_number',
+      desc: 'Hỗ trợ dịch vụ sau bán & SLA',
+    },
+    {
+      id: 'tasks',
+      label: 'Tasks',
+      icon: 'checklist',
+      desc: 'Quản lý công việc & Kanban',
+    },
+    {
       id: 'quotes',
       label: 'Match Queue',
       icon: 'contact_support',
@@ -112,16 +136,10 @@ export default function StaffCrmLayout({
       desc: 'Tài khoản & Thẩm định NPN',
     },
     {
-      id: 'deals',
-      label: 'Master Deals',
-      icon: 'handshake',
-      desc: 'Hồ sơ bảo hiểm & Quyền AOR',
-    },
-    {
       id: 'commissions',
       label: 'Commission',
       icon: 'payments',
-      desc: 'Bảng kê đối soát hoa hồng SSS',
+      desc: 'Bảng kê đối soát hoa hồng toàn hệ thống (All Agents)',
     },
     {
       id: 'system',
@@ -454,7 +472,7 @@ export default function StaffCrmLayout({
                 {isAdmin ? (
                   <>
                     <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                      Admin Quick Actions
+                      Administrative Actions
                     </div>
                     <button
                       type="button"
@@ -482,17 +500,6 @@ export default function StaffCrmLayout({
                       type="button"
                       onClick={() => {
                         setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('deals');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-blue-600">handshake</span>
-                      <span>Master Deals &amp; AOR</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
                         onSelectTab && onSelectTab('commissions');
                       }}
                       className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer text-left font-medium"
@@ -510,6 +517,53 @@ export default function StaffCrmLayout({
                     >
                       <span className="material-symbols-outlined text-[17px] text-purple-600">dns</span>
                       <span>System &amp; Audit Trail</span>
+                    </button>
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-t border-b border-slate-100 mt-1">
+                      Quick Create Record
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowQuickCreate(false);
+                        onSelectTab && onSelectTab('contacts');
+                      }}
+                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer text-left font-medium"
+                    >
+                      <span className="material-symbols-outlined text-[17px] text-blue-600">person_add</span>
+                      <span>New Contact</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowQuickCreate(false);
+                        onSelectTab && onSelectTab('deals');
+                      }}
+                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer text-left font-medium"
+                    >
+                      <span className="material-symbols-outlined text-[17px] text-emerald-600">add_business</span>
+                      <span>New Deal / Policy</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowQuickCreate(false);
+                        onSelectTab && onSelectTab('tickets');
+                      }}
+                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition cursor-pointer text-left font-medium"
+                    >
+                      <span className="material-symbols-outlined text-[17px] text-amber-600">confirmation_number</span>
+                      <span>New Ticket</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowQuickCreate(false);
+                        onSelectTab && onSelectTab('tasks');
+                      }}
+                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition cursor-pointer text-left font-medium"
+                    >
+                      <span className="material-symbols-outlined text-[17px] text-purple-600">add_task</span>
+                      <span>New Task</span>
                     </button>
                   </>
                 ) : (

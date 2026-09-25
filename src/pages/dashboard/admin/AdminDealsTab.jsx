@@ -4,6 +4,7 @@ import { updateDealAdmin } from '../../../services/api';
 export default function AdminDealsTab({
   deals = [],
   onRefresh,
+  onSelectDeal,
 }) {
   const [search, setSearch] = useState('');
   const [pipelineFilter, setPipelineFilter] = useState('all');
@@ -403,13 +404,25 @@ export default function AdminDealsTab({
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 {!isEditing ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold hover:bg-blue-600 transition cursor-pointer text-xs"
-                  >
-                    Edit Admin Fields ✏️
-                  </button>
+                  <>
+                    {onSelectDeal && (
+                      <button
+                        type="button"
+                        onClick={() => onSelectDeal(selectedDeal)}
+                        className="px-3.5 py-2 rounded-xl border border-blue-200 text-blue-700 bg-blue-50 font-bold hover:bg-blue-100 transition cursor-pointer text-xs flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-[15px]">open_in_new</span>
+                        <span>Full Deal Workspace</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(true)}
+                      className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold hover:bg-blue-600 transition cursor-pointer text-xs"
+                    >
+                      Edit Admin Fields ✏️
+                    </button>
+                  </>
                 ) : (
                   <>
                     <button
