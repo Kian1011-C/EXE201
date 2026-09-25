@@ -151,7 +151,10 @@ export default function CommandPaletteModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-slate-950/45 backdrop-blur-md animate-fade-in-up">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-slate-950/45 backdrop-blur-md animate-fade-in-up"
+    >
       <div
         className="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}

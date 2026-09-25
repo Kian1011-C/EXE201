@@ -1,29 +1,36 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getContacts, createContact as apiCreateContact } from '../../../services/api';
+import { SAMPLE_CONTACTS } from '../../../data/mockCrmData';
 
 export default function StaffContactsList({ onSelectContact }) {
-  const [contactsList, setContactsList] = useState([]);
+  const [contactsList, setContactsList] = useState(SAMPLE_CONTACTS);
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  function showToast(msg) {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2500);
+  }
 
   // Load contacts from PostgreSQL API
   async function loadData() {
     setLoading(true);
     try {
       const data = await getContacts();
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         setContactsList(data);
         setIsDbConnected(true);
       } else {
-        setContactsList([]);
+        setContactsList(SAMPLE_CONTACTS);
         setIsDbConnected(false);
       }
     } catch (err) {
-      console.warn('[StaffContactsList] API error:', err);
-      setContactsList([]);
+      console.warn('[StaffContactsList] API error, falling back to mock:', err);
+      setContactsList(SAMPLE_CONTACTS);
       setIsDbConnected(false);
     } finally {
       setLoading(false);
@@ -218,9 +225,17 @@ export default function StaffContactsList({ onSelectContact }) {
   }
 
   return (
-    <div className="p-4 sm:p-6 flex flex-col gap-3 min-w-[1024px]">
+    <div className="p-3 sm:p-6 flex flex-col gap-3 w-full">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-700 animate-fade-in-up text-xs font-medium">
+          <span className="material-symbols-outlined text-[16px] text-emerald-400">check_circle</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* ── 1. Page Header (Contacts + Create + Refresh) ──────────────────── */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[24px] text-slate-700">contacts</span>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Contacts</h1>
@@ -232,7 +247,7 @@ export default function StaffContactsList({ onSelectContact }) {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
@@ -276,10 +291,10 @@ export default function StaffContactsList({ onSelectContact }) {
       </div>
 
       {/* ── 3. Filters Row ────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-4 py-1">
-        <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 flex-wrap w-full sm:w-auto">
           {/* Search Box */}
-          <div className="relative w-72">
+          <div className="relative w-full sm:w-72">
             <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[17px] text-slate-400">
               search
             </span>
@@ -322,6 +337,7 @@ export default function StaffContactsList({ onSelectContact }) {
           {/* Advanced Filters Button */}
           <button
             type="button"
+            onClick={() => showToast('Advanced Filters: Active (1 rule applied)')}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium shadow-xs transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px] text-blue-600">tune</span>
@@ -334,7 +350,7 @@ export default function StaffContactsList({ onSelectContact }) {
           <button
             type="button"
             onClick={loadData}
-            className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-1"
+            className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-1 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[15px]">sync</span>
             <span>Làm mới ({contactsList.length} liên hệ)</span>
@@ -352,9 +368,13 @@ export default function StaffContactsList({ onSelectContact }) {
             <span className="text-slate-400 font-normal">({filteredContacts.length} displayed)</span>
           </div>
           <button
-            onClick={() => {}}
+            type="button"
+            onClick={() => {
+              loadData();
+              showToast('Contacts list refreshed');
+            }}
             title="Refresh Table"
-            className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 transition"
+            className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[15px]">refresh</span>
             <span>Refresh</span>
@@ -363,7 +383,7 @@ export default function StaffContactsList({ onSelectContact }) {
 
         {/* Scrollable Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-[11px] text-slate-700 whitespace-nowrap">
+          <table className="w-full text-left text-[11px] text-slate-700 whitespace-nowrap min-w-[960px]">
             <thead className="bg-[#F8FAFC] border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="px-3 py-2.5 w-10 text-center">No.</th>

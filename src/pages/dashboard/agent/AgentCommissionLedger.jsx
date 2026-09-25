@@ -453,7 +453,7 @@ export default function AgentCommissionLedger({ onSelectContact }) {
   }
 
   return (
-    <div className="p-4 sm:p-6 flex flex-col gap-5 min-w-[1024px] bg-[#F8FAFC]">
+    <div className="p-3 sm:p-6 flex flex-col gap-5 w-full bg-[#F8FAFC]">
       {/* ── Toast Notification ────────────────────────────────────────────── */}
       {toastMessage && (
         <div className="fixed top-14 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 text-white shadow-xl text-xs font-medium animate-in fade-in slide-in-from-top-2 duration-200">
@@ -676,7 +676,7 @@ export default function AgentCommissionLedger({ onSelectContact }) {
       {/* ── 4. Main Commission Ledger Table ──────────────────────────────── */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-xs min-w-[860px]">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
                 <th className="py-3 px-3.5">Policy / Member ID</th>

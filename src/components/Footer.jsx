@@ -63,7 +63,7 @@ export default function Footer() {
               </h4>
               <ul className="space-y-2 text-xs text-ivory/70">
                 <li><Link to="/about" className="hover:text-ivory transition-colors">About InsurMatch</Link></li>
-                <li><a href="#how-it-works" className="hover:text-ivory transition-colors">How It Works</a></li>
+                <li><a href="/#how-it-works" className="hover:text-ivory transition-colors">How It Works</a></li>
                 <li><Link to="/about#team" className="hover:text-ivory transition-colors">Our Leadership Team</Link></li>
                 <li><Link to="/locations" className="hover:text-ivory transition-colors">Regional Partner Hubs</Link></li>
                 <li><Link to="/careers" className="hover:text-ivory transition-colors">Agent Partner Network</Link></li>
@@ -79,7 +79,7 @@ export default function Footer() {
               </h4>
               <ul className="space-y-2 text-xs text-ivory/70">
                 <li><Link to="/get-quote" className="hover:text-ivory transition-colors">Agent Matching Flow</Link></li>
-                <li><a href="#blog" className="hover:text-ivory transition-colors">Insurance Guides</a></li>
+                <li><Link to="/insurance-services" className="hover:text-ivory transition-colors">Insurance Guides</Link></li>
                 <li><Link to="/contact" className="hover:text-ivory transition-colors">Consumer Support</Link></li>
                 <li><Link to="/contact" className="hover:text-ivory transition-colors">Frequently Asked Questions</Link></li>
                 <li><Link to="/locations" className="hover:text-ivory transition-colors">Regional Coverage</Link></li>

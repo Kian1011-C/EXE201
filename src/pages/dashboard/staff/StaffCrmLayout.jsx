@@ -165,7 +165,7 @@ export default function StaffCrmLayout({
                   {isAgent ? 'Licensed Agent' : 'Staff CRM'}
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 font-medium tracking-tight">
+              <span className="text-[10px] text-slate-400 font-medium tracking-tight hidden sm:block">
                 {isAgent ? 'CMS Compliant Agent Portal' : 'Enterprise Policy & Lead Hub'}
               </span>
             </div>
@@ -460,8 +460,8 @@ export default function StaffCrmLayout({
 
       {/* ── Main Body with Left Slim Rail ──────────────────────────────────── */}
       <div className="flex-grow flex overflow-hidden">
-        {/* Leftmost Dark Navy Navigation Rail */}
-        <aside className="w-14 bg-[#0A1628] shrink-0 flex flex-col items-center py-3.5 gap-2 z-30 shadow-lg border-r border-slate-800/50">
+        {/* Leftmost Dark Navy Navigation Rail (hidden on mobile, visible on md+) */}
+        <aside className="hidden md:flex w-14 bg-[#0A1628] shrink-0 flex-col items-center py-3.5 gap-2 z-30 shadow-lg border-r border-slate-800/50">
           {/* Top Home Button */}
           <Link
             to="/"
@@ -513,6 +513,7 @@ export default function StaffCrmLayout({
             <button
               type="button"
               title="Settings"
+              onClick={() => setShowCommandPalette(true)}
               className="w-9 h-9 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">settings</span>
@@ -524,10 +525,42 @@ export default function StaffCrmLayout({
         </aside>
 
         {/* Dynamic CRM Page Content */}
-        <main className="flex-grow overflow-auto bg-[#F8FAFC] flex flex-col animate-fade-in-up">
+        <main className="flex-grow overflow-auto bg-[#F8FAFC] flex flex-col pb-16 md:pb-0 animate-fade-in-up">
           {children}
         </main>
       </div>
+
+      {/* ── Mobile Bottom Navigation Bar (Visible only on < md) ───────────── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0A1628]/95 backdrop-blur-md border-t border-slate-800/80 px-2 py-1 flex items-center justify-around shadow-2xl">
+        {navItems.map((item) => {
+          const active = currentTab === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onSelectTab && onSelectTab(item.id)}
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all relative ${
+                active
+                  ? 'text-[#00B4D8] font-bold'
+                  : 'text-slate-400 hover:text-white font-medium'
+              }`}
+            >
+              <div className="relative">
+                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                {item.badge && (
+                  <span className="absolute -top-1 -right-2 px-1 py-0.2 rounded-full text-[8px] font-bold bg-cyan-500 text-slate-950">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] tracking-tight mt-0.5">{item.label}</span>
+              {active && (
+                <span className="w-1 h-1 rounded-full bg-[#00B4D8] mt-0.5" />
+              )}
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Global Command Palette Modal (Ctrl+K / Cmd+K) */}
       <CommandPaletteModal

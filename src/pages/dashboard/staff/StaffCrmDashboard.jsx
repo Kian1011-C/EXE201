@@ -723,7 +723,7 @@ export default function StaffCrmDashboard({
       </div>
 
       {/* ── Main Reports Container ───────────────────────────────────────── */}
-      <div className="p-6 space-y-6 max-w-[1700px] mx-auto w-full">
+      <div className="p-3.5 sm:p-6 space-y-6 max-w-[1700px] mx-auto w-full">
 
 
         {/* ── ROW 1: 2 Main Deal Charts (50% / 50%) ──────────────────────── */}

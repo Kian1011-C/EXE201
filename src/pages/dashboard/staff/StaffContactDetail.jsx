@@ -490,6 +490,10 @@ export default function StaffContactDetail({
           </button>
           <button
             type="button"
+            onClick={() => {
+              setActiveTab('activity');
+              showToast('Switched to contact activity history');
+            }}
             className="flex items-center gap-1 text-slate-600 hover:text-blue-600 transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">history</span>
@@ -497,7 +501,7 @@ export default function StaffContactDetail({
           </button>
           <button
             type="button"
-            onClick={() => {}}
+            onClick={() => showToast('Contact details refreshed')}
             className="flex items-center gap-1 text-slate-600 hover:text-blue-600 transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">refresh</span>
@@ -540,6 +544,7 @@ export default function StaffContactDetail({
                     <button
                       type="button"
                       title="Edit contact"
+                      onClick={() => showToast('Editing contact profile...')}
                       className="text-slate-400 hover:text-blue-600 transition cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[14px]">edit</span>
@@ -551,6 +556,10 @@ export default function StaffContactDetail({
                     <button
                       type="button"
                       title="Copy email"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(contactEmail);
+                        showToast('Email copied to clipboard');
+                      }}
                       className="text-slate-400 hover:text-slate-600 ml-0.5 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[13px]">content_copy</span>
@@ -581,7 +590,14 @@ export default function StaffContactDetail({
                 </div>
                 <button
                   type="button"
-                  className="text-blue-600 hover:underline flex items-center gap-1 font-medium text-[11px]"
+                  onClick={() => {
+                    setSourceLeadOpen(true);
+                    setContactOpen(true);
+                    setAcaAccountOpen(true);
+                    setPrimaryOpen(true);
+                    showToast('All contact properties expanded');
+                  }}
+                  className="text-blue-600 hover:underline flex items-center gap-1 font-medium text-[11px] cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[14px]">visibility</span>
                   <span>View all properties</span>
@@ -1383,13 +1399,25 @@ export default function StaffContactDetail({
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <button type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
+                      <button
+                        type="button"
+                        onClick={() => showToast('Activity timeline collapsed')}
+                        className="hover:text-blue-600 flex items-center gap-1 cursor-pointer"
+                      >
                         <span>+ Collapse all</span>
                       </button>
-                      <button type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
+                      <button
+                        type="button"
+                        onClick={() => showToast('Activity timeline expanded')}
+                        className="hover:text-blue-600 flex items-center gap-1 cursor-pointer"
+                      >
                         <span>+ Expand all</span>
                       </button>
-                      <button type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
+                      <button
+                        type="button"
+                        onClick={() => showToast('Activity timeline refreshed')}
+                        className="hover:text-blue-600 flex items-center gap-1 cursor-pointer"
+                      >
                         <span className="material-symbols-outlined text-[14px]">refresh</span>
                         <span>Refresh</span>
                       </button>

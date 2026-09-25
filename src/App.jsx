@@ -42,27 +42,51 @@ function ScrollToTop() {
 }
 
 // Layout wrapper for public pages (with Navbar/Footer)
-function PublicLayout({ children }) {
-  const [isQuoteOpen, setIsQuoteOpen] = useState(false);
-
+function PublicLayout({ onOpenQuote, children }) {
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-800 font-sans selection:bg-amber-500 selection:text-slate-950">
-      <Navbar onOpenQuote={() => setIsQuoteOpen(true)} />
-
+      <Navbar onOpenQuote={onOpenQuote} />
       <main className="flex-grow pb-16 sm:pb-0">
-        {React.Children.map(children, (child) =>
-          React.isValidElement(child)
-            ? React.cloneElement(child, { onOpenQuote: () => setIsQuoteOpen(true) })
-            : child
-        )}
+        {children}
       </main>
-
       <Footer />
-
-      <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} />
-      <MobileBottomBar onOpenQuote={() => setIsQuoteOpen(true)} />
+      <MobileBottomBar onOpenQuote={onOpenQuote} />
       <CookieBanner />
     </div>
+  );
+}
+
+function PublicRoutes() {
+  const [isQuoteOpen, setIsQuoteOpen] = useState(false);
+  const handleOpenQuote = () => setIsQuoteOpen(true);
+  const handleCloseQuote = () => setIsQuoteOpen(false);
+
+  return (
+    <>
+      <PublicLayout onOpenQuote={handleOpenQuote}>
+        <Routes>
+          <Route path="/" element={<HomePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/about" element={<AboutPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/about-us" element={<AboutPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/insurance-services" element={<ServicesPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/insurance-services/medicare" element={<MedicarePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/insurance-services/health-insurance" element={<HealthPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/insurance-services/life-insurance" element={<LifePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/insurance-services/group-benefits" element={<ServicesPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/locations" element={<LocationsPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/locations/:officeId" element={<LocationsPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/careers" element={<CareersPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/contact" element={<ContactPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/secure-contact-form" element={<ContactPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/get-quote" element={<QuotePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/secure-quote-request" element={<QuotePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/privacy" element={<HomePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/terms" element={<HomePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="*" element={<HomePage onOpenQuote={handleOpenQuote} />} />
+        </Routes>
+      </PublicLayout>
+      <QuoteModal isOpen={isQuoteOpen} onClose={handleCloseQuote} />
+    </>
   );
 }
 
@@ -77,7 +101,7 @@ export default function App() {
 
           {/* ── Dashboards (protected) ───────────────────── */}
           <Route
-            path="/dashboard/admin"
+            path="/dashboard/admin/*"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
@@ -104,31 +128,7 @@ export default function App() {
           <Route path="/dashboard" element={<Navigate to="/login" replace />} />
 
           {/* ── Public Pages ─────────────────────────────── */}
-          <Route
-            path="/*"
-            element={
-              <PublicLayout>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/about-us" element={<AboutPage />} />
-                  <Route path="/insurance-services" element={<ServicesPage />} />
-                  <Route path="/insurance-services/medicare" element={<MedicarePage />} />
-                  <Route path="/insurance-services/health-insurance" element={<HealthPage />} />
-                  <Route path="/insurance-services/life-insurance" element={<LifePage />} />
-                  <Route path="/insurance-services/group-benefits" element={<ServicesPage />} />
-                  <Route path="/locations" element={<LocationsPage />} />
-                  <Route path="/locations/:officeId" element={<LocationsPage />} />
-                  <Route path="/careers" element={<CareersPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/secure-contact-form" element={<ContactPage />} />
-                  <Route path="/get-quote" element={<QuotePage />} />
-                  <Route path="/secure-quote-request" element={<QuotePage />} />
-                  <Route path="*" element={<HomePage />} />
-                </Routes>
-              </PublicLayout>
-            }
-          />
+          <Route path="/*" element={<PublicRoutes />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

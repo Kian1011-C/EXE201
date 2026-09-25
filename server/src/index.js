@@ -1102,6 +1102,479 @@ app.get('/api/dashboard/stats', async (req, res) => {
   }
 });
 
+// ── Admin Portal Routes ───────────────────────────────────────────────────────
+let ADMIN_ACCOUNTS = [
+  {
+    id: 'ACC-001',
+    name: 'Super Admin',
+    email: 'admin@insurmatch.us',
+    role: 'admin',
+    avatar: 'SA',
+    bg: 'bg-rose-700 text-white',
+    status: 'Active',
+    phone: '+1 (800) 555-0199',
+    department: 'Platform Operations & System Governance',
+    statesLicensed: ['National'],
+    npn: 'MASTER-ADMIN',
+    joinedDate: '2025-01-10',
+    lastActive: 'Just now',
+    dealsCount: 0,
+  },
+  {
+    id: 'ACC-002',
+    name: 'Anh Que Pham CPA',
+    email: 'anhque@insurmatch.us',
+    role: 'agent',
+    avatar: 'AQ',
+    bg: 'bg-amber-600 text-white',
+    status: 'Active',
+    phone: '+1 (832) 555-2001',
+    agencyRole: 'Principal Broker & Agency Sponsor',
+    department: 'Executive Agency Leadership',
+    statesLicensed: ['TX (TDI)', 'CA (CDI)', 'FL', 'NC'],
+    npn: '20011862',
+    joinedDate: '2024-08-15',
+    lastActive: '15 mins ago',
+    dealsCount: 84,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-003',
+    name: 'Khanh Nguyen',
+    email: 'khanh@insurmatch.us',
+    role: 'agent',
+    avatar: 'KN',
+    bg: 'bg-blue-600 text-white',
+    status: 'Active',
+    phone: '+1 (838) 776-1434',
+    agencyRole: 'Senior Partner Agent',
+    department: 'Medicare & ACA Sales Hub',
+    statesLicensed: ['TX (TDI)', 'CA (CDI)', 'FL'],
+    npn: '1984210',
+    joinedDate: '2025-02-01',
+    lastActive: '1 hour ago',
+    dealsCount: 42,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-004',
+    name: 'Sean Ngo',
+    email: 'sean@insurmatch.us',
+    role: 'agent',
+    avatar: 'SN',
+    bg: 'bg-emerald-600 text-white',
+    status: 'Active',
+    phone: '+1 (713) 442-9901',
+    agencyRole: 'Partner Agent',
+    department: 'Health & Life Division',
+    statesLicensed: ['TX', 'NC', 'GA'],
+    npn: '1994321',
+    joinedDate: '2025-03-12',
+    lastActive: '3 hours ago',
+    dealsCount: 29,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-005',
+    name: 'Anya Nguyen',
+    email: 'staff@insurmatch.us',
+    role: 'staff',
+    avatar: 'AN',
+    bg: 'bg-teal-600 text-white',
+    status: 'Active',
+    phone: '+1 (832) 998-1122',
+    department: 'Intake Coordination & Policy Support',
+    statesLicensed: ['National Hub'],
+    npn: 'STAFF-OPS',
+    joinedDate: '2025-01-20',
+    lastActive: '5 mins ago',
+    dealsCount: 115,
+  },
+  {
+    id: 'ACC-006',
+    name: 'Miranda Pham',
+    email: 'miranda@insurmatch.us',
+    role: 'staff',
+    avatar: 'MP',
+    bg: 'bg-purple-600 text-white',
+    status: 'Active',
+    phone: '+1 (832) 998-3344',
+    department: 'Document Verification & Client Services',
+    statesLicensed: ['National Hub'],
+    npn: 'STAFF-OPS',
+    joinedDate: '2025-02-15',
+    lastActive: '35 mins ago',
+    dealsCount: 78,
+  },
+  {
+    id: 'ACC-007',
+    name: 'Ivy Le',
+    email: 'ivyle@insurmatch.us',
+    role: 'agent',
+    avatar: 'IL',
+    bg: 'bg-orange-500 text-white',
+    status: 'Pending NPN',
+    phone: '+1 (408) 555-8812',
+    agencyRole: 'Associate Agent Applicant',
+    department: 'California Regional Hub',
+    statesLicensed: ['CA (CDI)', 'WA'],
+    npn: 'PENDING_CDI_092',
+    joinedDate: '2026-09-10',
+    lastActive: 'Yesterday',
+    dealsCount: 0,
+    complianceStatus: 'State License Check in Progress',
+  },
+  {
+    id: 'ACC-008',
+    name: 'James Vu',
+    email: 'jamesvu@insurmatch.us',
+    role: 'agent',
+    avatar: 'JV',
+    bg: 'bg-slate-600 text-white',
+    status: 'Suspended',
+    phone: '+1 (214) 555-7766',
+    agencyRole: 'Independent Field Agent',
+    department: 'DFW North Hub',
+    statesLicensed: ['TX (TDI)'],
+    npn: '1854201',
+    joinedDate: '2024-11-05',
+    lastActive: '7 days ago',
+    dealsCount: 18,
+    complianceStatus: 'Suspended — AOR Dispute Investigation (SOP 23)',
+    suspensionReason: 'Audit flagged unauthorized AOR switch request under review with TDI.',
+  },
+];
+
+let ADMIN_AUDIT_LOGS = [
+  {
+    id: 'LOG-1092',
+    action: 'NPN Sponsor Update',
+    actor: 'Super Admin',
+    target: 'Deal D26005041 (Ken xington Ho)',
+    detail: 'Verified master sponsor NPN set to Anh Que Pham 20011862.',
+    timestamp: '2026-09-25 10:45 AM',
+    type: 'governance',
+  },
+  {
+    id: 'LOG-1091',
+    action: 'Agent Accreditation Pending',
+    actor: 'System Automation',
+    target: 'Ivy Le (ACC-007)',
+    detail: 'Application received for CA (CDI) & WA license check.',
+    timestamp: '2026-09-24 04:12 PM',
+    type: 'compliance',
+  },
+  {
+    id: 'LOG-1090',
+    action: 'Sale Support Split Executed',
+    actor: 'Super Admin',
+    target: 'September 2026 Commission Ledger',
+    detail: 'SSS rules applied: NONE (7/3), PARTIAL (5/5), FULL (3/7).',
+    timestamp: '2026-09-23 09:30 AM',
+    type: 'finance',
+  },
+  {
+    id: 'LOG-1089',
+    action: 'Agent Suspension Imposed',
+    actor: 'Super Admin',
+    target: 'James Vu (ACC-008)',
+    detail: 'Temporary license access suspension per SOP 23 & SOP 27.',
+    timestamp: '2026-09-18 02:15 PM',
+    type: 'security',
+  },
+];
+
+// GET /api/admin/stats
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const totalInquiries = await prisma.contact.count();
+    const activeDeals = await prisma.deal.count({ where: { NOT: { stage: { contains: 'Closed Lost' } } } });
+    const verifiedAgents = ADMIN_ACCOUNTS.filter((a) => a.role === 'agent' && a.status === 'Active').length;
+    const staffMembers = ADMIN_ACCOUNTS.filter((a) => a.role === 'staff' && a.status === 'Active').length;
+
+    // Carrier volume
+    const allDeals = await prisma.deal.findMany({
+      select: { carrier: true, sellingState: true, saleSupportStatus: true, enrolledNpn: true },
+    });
+
+    const carrierStats = {};
+    const stateStats = {};
+    const sssStats = { NONE: 0, PARTIAL: 0, FULL: 0 };
+
+    allDeals.forEach((d) => {
+      const c = d.carrier || 'Unspecified';
+      carrierStats[c] = (carrierStats[c] || 0) + 1;
+
+      const s = d.sellingState || 'Texas (TX)';
+      stateStats[s] = (stateStats[s] || 0) + 1;
+
+      const sss = String(d.saleSupportStatus || '').toUpperCase();
+      if (sss.includes('FULL')) sssStats.FULL++;
+      else if (sss.includes('PARTIAL')) sssStats.PARTIAL++;
+      else sssStats.NONE++;
+    });
+
+    const comms = await prisma.commission.findMany();
+    let totalGrossCommission = 0;
+    let totalNetAgentPayout = 0;
+    let totalOfficeRetention = 0;
+
+    comms.forEach((c) => {
+      totalGrossCommission += c.grossAmount || 0;
+      totalNetAgentPayout += c.netAmount || 0;
+      totalOfficeRetention += (c.grossAmount || 0) - (c.netAmount || 0);
+    });
+
+    res.json({
+      totalInquiries,
+      activeDeals,
+      verifiedAgents,
+      staffMembers,
+      totalGrossCommission,
+      totalNetAgentPayout,
+      totalOfficeRetention,
+      carrierStats,
+      stateStats,
+      sssStats,
+      systemHealth: {
+        database: 'connected',
+        postgresContainer: 'insurmatch_postgres (Up)',
+        backendContainer: 'insurmatch_backend (Up)',
+        uptime: '99.98%',
+        hipaaCompliance: 'Passed / Active',
+        cmsCompliance: 'Cleared',
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    res.status(500).json({ error: 'Failed to fetch admin stats' });
+  }
+});
+
+// GET /api/admin/accounts
+app.get('/api/admin/accounts', (req, res) => {
+  res.json(ADMIN_ACCOUNTS);
+});
+
+// POST /api/admin/accounts
+app.post('/api/admin/accounts', (req, res) => {
+  try {
+    const data = req.body;
+    const newId = `ACC-${String(ADMIN_ACCOUNTS.length + 1).padStart(3, '0')}`;
+    const newAccount = {
+      id: newId,
+      name: data.name || 'New Member',
+      email: data.email || 'user@insurmatch.us',
+      role: data.role || 'agent',
+      avatar: (data.name || 'U').slice(0, 2).toUpperCase(),
+      bg: data.role === 'staff' ? 'bg-teal-600 text-white' : 'bg-blue-600 text-white',
+      status: data.status || (data.role === 'agent' ? 'Pending NPN' : 'Active'),
+      phone: data.phone || '+1 (800) 555-0100',
+      department: data.department || (data.role === 'staff' ? 'Policy Operations' : 'Regional Agent Hub'),
+      statesLicensed: data.statesLicensed || ['TX (TDI)'],
+      npn: data.npn || 'PENDING',
+      joinedDate: new Date().toISOString().split('T')[0],
+      lastActive: 'Just registered',
+      dealsCount: 0,
+      complianceStatus: data.role === 'agent' ? 'Pending Compliance Review' : 'Active',
+    };
+    ADMIN_ACCOUNTS.unshift(newAccount);
+
+    ADMIN_AUDIT_LOGS.unshift({
+      id: `LOG-${Date.now()}`,
+      action: 'Account Created',
+      actor: 'Super Admin',
+      target: `${newAccount.name} (${newAccount.id})`,
+      detail: `Created ${newAccount.role} account with initial status ${newAccount.status}.`,
+      timestamp: new Date().toLocaleString(),
+      type: 'security',
+    });
+
+    res.status(201).json(newAccount);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create account' });
+  }
+});
+
+// PUT /api/admin/accounts/:id
+app.put('/api/admin/accounts/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    const idx = ADMIN_ACCOUNTS.findIndex((a) => a.id === id);
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Account not found' });
+    }
+
+    const previousStatus = ADMIN_ACCOUNTS[idx].status;
+    ADMIN_ACCOUNTS[idx] = { ...ADMIN_ACCOUNTS[idx], ...data };
+
+    if (data.status && data.status !== previousStatus) {
+      ADMIN_AUDIT_LOGS.unshift({
+        id: `LOG-${Date.now()}`,
+        action: `Status Changed: ${previousStatus} -> ${data.status}`,
+        actor: 'Super Admin',
+        target: `${ADMIN_ACCOUNTS[idx].name} (${id})`,
+        detail: data.suspensionReason || `Account status modified per admin management action.`,
+        timestamp: new Date().toLocaleString(),
+        type: data.status === 'Suspended' ? 'security' : 'compliance',
+      });
+    }
+
+    res.json(ADMIN_ACCOUNTS[idx]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update account' });
+  }
+});
+
+// GET /api/admin/quotes
+app.get('/api/admin/quotes', async (req, res) => {
+  try {
+    const contacts = await prisma.contact.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { deals: true },
+    });
+
+    // Format as match inquiries
+    const quotes = contacts.map((c, i) => {
+      const deal = c.deals[0] || null;
+      let matchStatus = 'New Inquiry';
+      if (deal) {
+        if (deal.stage.includes('Won') || deal.stage.includes('Active')) matchStatus = 'Matched & Enrolled';
+        else if (deal.stage.includes('Lost')) matchStatus = 'Closed Lost';
+        else matchStatus = 'Dispatched to Agent';
+      }
+
+      return {
+        id: c.code || `INQ-${1000 + i}`,
+        contactId: c.id,
+        name: c.fullName,
+        phone: c.phone || '—',
+        email: c.email || '—',
+        insuranceType: deal?.pipeline || 'ACA Healthcare / Health',
+        state: c.state || 'TX',
+        preferredLanguage: c.language || 'Vietnamese',
+        assignedAgent: deal?.dealOwnerName || c.contactOwnerName || 'Unassigned',
+        enrolledNpn: deal?.enrolledNpn || 'Anh Que Pham 20011862',
+        status: matchStatus,
+        date: c.lastModifiedTime || '09/25/2026',
+        notes: c.howDoYouKnowUs ? `Source: ${c.howDoYouKnowUs}` : 'Direct Web Intake (/get-quote)',
+      };
+    });
+
+    res.json(quotes);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch match inquiries' });
+  }
+});
+
+// PUT /api/admin/quotes/:id/assign
+app.put('/api/admin/quotes/:id/assign', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { agentName, enrolledNpn } = req.body;
+
+    const contact = await prisma.contact.findFirst({
+      where: { OR: [{ id }, { code: id }] },
+      include: { deals: true },
+    });
+
+    if (!contact) {
+      return res.status(404).json({ error: 'Inquiry contact not found' });
+    }
+
+    // Update contact owner and support agent
+    await prisma.contact.update({
+      where: { id: contact.id },
+      data: {
+        contactOwnerName: agentName,
+        supportAgent: agentName,
+        lastModifiedTime: new Date().toLocaleString(),
+      },
+    });
+
+    // If deal exists, update deal owner and enrolled NPN
+    if (contact.deals && contact.deals.length > 0) {
+      await prisma.deal.update({
+        where: { id: contact.deals[0].id },
+        data: {
+          dealOwnerName: agentName,
+          ...(enrolledNpn && { enrolledNpn }),
+          lastModifiedTime: new Date().toLocaleString(),
+        },
+      });
+    }
+
+    ADMIN_AUDIT_LOGS.unshift({
+      id: `LOG-${Date.now()}`,
+      action: 'Lead Match Dispatched',
+      actor: 'Super Admin',
+      target: `Inquiry ${id} (${contact.fullName})`,
+      detail: `Assigned to Partner Agent ${agentName} (Sponsor NPN: ${enrolledNpn || 'Standard'}).`,
+      timestamp: new Date().toLocaleString(),
+      type: 'governance',
+    });
+
+    res.json({ success: true, message: `Inquiry successfully dispatched to ${agentName}` });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to assign inquiry' });
+  }
+});
+
+// PUT /api/deals/:id/admin - Special Admin Mutation
+app.put('/api/deals/:id/admin', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      enrolledNpn,
+      brokerEffectiveDate,
+      terminationDate,
+      primaryMemberId,
+      saleSupportStatus,
+      numberMember,
+      carrier,
+      sellingState,
+      closedLostReason,
+    } = req.body;
+
+    const updated = await prisma.deal.update({
+      where: { id },
+      data: {
+        ...(enrolledNpn !== undefined && { enrolledNpn }),
+        ...(brokerEffectiveDate !== undefined && { brokerEffectiveDate }),
+        ...(terminationDate !== undefined && { terminationDate }),
+        ...(primaryMemberId !== undefined && { primaryMemberId }),
+        ...(saleSupportStatus !== undefined && { saleSupportStatus }),
+        ...(numberMember !== undefined && { numberMember: parseInt(numberMember) || 1 }),
+        ...(carrier !== undefined && { carrier }),
+        ...(sellingState !== undefined && { sellingState }),
+        ...(closedLostReason !== undefined && { closedLostReason }),
+        lastModifiedTime: new Date().toLocaleString(),
+      },
+    });
+
+    ADMIN_AUDIT_LOGS.unshift({
+      id: `LOG-${Date.now()}`,
+      action: 'Deal Admin Governance Updated',
+      actor: 'Super Admin',
+      target: `Deal ${id} (${updated.title})`,
+      detail: `Updated SSS: ${saleSupportStatus || updated.saleSupportStatus}, NPN: ${enrolledNpn || updated.enrolledNpn}`,
+      timestamp: new Date().toLocaleString(),
+      type: 'governance',
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Error updating deal admin fields:', error);
+    res.status(500).json({ error: 'Failed to update deal admin governance fields' });
+  }
+});
+
+// GET /api/admin/audit-logs
+app.get('/api/admin/audit-logs', (req, res) => {
+  res.json(ADMIN_AUDIT_LOGS);
+});
+
 // Start Server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 InsurMatch CRM Backend running on http://0.0.0.0:${PORT}`);

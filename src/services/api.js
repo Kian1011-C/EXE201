@@ -216,3 +216,64 @@ export async function calculateCommissions(data = {}) {
 export async function getDashboardStats() {
   return await request('/dashboard/stats');
 }
+
+// ── Admin Portal Operations ──────────────────────────────────────────────────
+export async function getAdminStats() {
+  try {
+    return await request('/admin/stats');
+  } catch {
+    return null;
+  }
+}
+
+export async function getAdminAccounts() {
+  try {
+    return await request('/admin/accounts');
+  } catch {
+    return null;
+  }
+}
+
+export async function createAdminAccount(data) {
+  return await request('/admin/accounts', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAdminAccount(id, data) {
+  return await request(`/admin/accounts/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getAdminQuotes() {
+  try {
+    return await request('/admin/quotes');
+  } catch {
+    return null;
+  }
+}
+
+export async function assignAdminQuote(id, data) {
+  return await request(`/admin/quotes/${encodeURIComponent(id)}/assign`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateDealAdmin(id, adminData) {
+  return await request(`/deals/${encodeURIComponent(id)}/admin`, {
+    method: 'PUT',
+    body: JSON.stringify(adminData),
+  });
+}
+
+export async function getAdminAuditLogs() {
+  try {
+    return await request('/admin/audit-logs');
+  } catch {
+    return null;
+  }
+}

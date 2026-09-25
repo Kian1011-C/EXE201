@@ -87,7 +87,7 @@ export default function Navbar({ onOpenQuote }) {
             </Link>
             <a 
               className="hover:text-navy-deep transition-colors" 
-              href="#how-it-works"
+              href="/#how-it-works"
             >
               How It Works
             </a>
@@ -160,7 +160,7 @@ export default function Navbar({ onOpenQuote }) {
                 <Link to="/insurance-services" className="py-2 border-b border-sand hover:text-navy-deep">
                   Insurance Types (Medicare, ACA, Life)
                 </Link>
-                <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
+                <a href="/#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
                   How It Works
                 </a>
                 <Link to="/get-quote" className="py-2 border-b border-sand hover:text-navy-deep">
