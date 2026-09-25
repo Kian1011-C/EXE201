@@ -5,6 +5,7 @@ export default function CommandPaletteModal({
   onClose,
   onNavigate,
   onQuickAction,
+  isAdmin = false,
 }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -18,7 +19,112 @@ export default function CommandPaletteModal({
     }
   }, [isOpen]);
 
-  const defaultCommands = [
+  const adminCommands = [
+    {
+      id: 'admin-nav-overview',
+      category: 'Admin Navigation',
+      title: 'Admin Overview & Platform Cockpit',
+      subtitle: 'View overall production volume, KPIs & live status',
+      icon: 'dashboard',
+      iconColor: 'text-rose-500 bg-rose-50',
+      action: () => onNavigate('overview'),
+    },
+    {
+      id: 'admin-nav-quotes',
+      category: 'Admin Navigation',
+      title: 'Match Queue & Lead Inquiries',
+      subtitle: 'Review incoming quote requests & dispatch to agents',
+      icon: 'contact_support',
+      iconColor: 'text-rose-500 bg-rose-50',
+      action: () => onNavigate('quotes'),
+    },
+    {
+      id: 'admin-nav-accounts',
+      category: 'Admin Navigation',
+      title: 'Accounts & NPN Accreditation',
+      subtitle: 'Manage agency staff and licensed agent roster & states',
+      icon: 'manage_accounts',
+      iconColor: 'text-amber-500 bg-amber-50',
+      action: () => onNavigate('accounts'),
+    },
+    {
+      id: 'admin-nav-deals',
+      category: 'Admin Navigation',
+      title: 'Master Deals & AOR Governance',
+      subtitle: 'Inspect protected agency policies and override AORs',
+      icon: 'handshake',
+      iconColor: 'text-blue-500 bg-blue-50',
+      action: () => onNavigate('deals'),
+    },
+    {
+      id: 'admin-nav-commissions',
+      category: 'Admin Navigation',
+      title: 'Master Commission Ledger (SSS)',
+      subtitle: 'Calculate and reconcile 7/3, 5/5, 3/7 split ledger',
+      icon: 'payments',
+      iconColor: 'text-emerald-500 bg-emerald-50',
+      action: () => onNavigate('commissions'),
+    },
+    {
+      id: 'admin-nav-system',
+      category: 'Admin Navigation',
+      title: 'System Health & Audit Logs',
+      subtitle: 'PostgreSQL, Docker containers, Carrier Webhooks & HIPAA audit',
+      icon: 'dns',
+      iconColor: 'text-purple-500 bg-purple-50',
+      action: () => onNavigate('system'),
+    },
+    {
+      id: 'admin-action-dispatch',
+      category: 'Admin Actions',
+      title: 'Dispatch Next Unassigned Lead',
+      subtitle: 'Open Match Queue to assign pending inquiry',
+      icon: 'send',
+      iconColor: 'text-rose-600 bg-rose-100',
+      action: () => {
+        onNavigate('quotes');
+        if (onQuickAction) onQuickAction('dispatch-lead');
+      },
+    },
+    {
+      id: 'admin-action-add-account',
+      category: 'Admin Actions',
+      title: 'Register New Staff / Agent',
+      subtitle: 'Create accredited account with NPN and state license',
+      icon: 'person_add',
+      iconColor: 'text-amber-600 bg-amber-100',
+      action: () => {
+        onNavigate('accounts');
+        if (onQuickAction) onQuickAction('add-account');
+      },
+    },
+    {
+      id: 'admin-action-settle-sss',
+      category: 'Admin Actions',
+      title: 'Trigger SSS Commission Reconcile',
+      subtitle: 'Run instant calculation on active month ledger',
+      icon: 'calculate',
+      iconColor: 'text-emerald-600 bg-emerald-100',
+      action: () => {
+        onNavigate('commissions');
+        if (onQuickAction) onQuickAction('settle-sss');
+      },
+    },
+    {
+      id: 'admin-action-system-audit',
+      category: 'Admin Actions',
+      title: 'Inspect Infrastructure & Audit Trail',
+      subtitle: 'Review recent database transactions and security logs',
+      icon: 'terminal',
+      iconColor: 'text-slate-600 bg-slate-100',
+      action: () => {
+        onNavigate('system');
+        if (onQuickAction) onQuickAction('audit-logs');
+      },
+    },
+  ];
+
+  const defaultCommands = isAdmin ? adminCommands : [
     {
       id: 'nav-dashboard',
       category: 'Navigation',
