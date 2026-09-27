@@ -151,7 +151,7 @@ export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
               </span>
             </div>
             <p className="text-xs text-slate-300 mt-0.5">
-              Simulate exact payout formulas: NONE, PARTIAL, FULL based on quote, enrollment &amp; carrier terms.
+              Independent Agent Policy Remittance Calculator • InsurMatch Software Tool. Models gross carrier payouts ($30 PMPM ACA, CMS Medicare) and optional agency support splits.
             </p>
           </div>
         </div>

@@ -535,6 +535,19 @@ export default function AgentCommissionLedger({ onSelectContact }) {
         </div>
       </div>
 
+      {/* ── B2B SaaS Provider Notice ─────────────────────────────────────── */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-start sm:items-center gap-2.5">
+          <span className="material-symbols-outlined text-blue-600 text-[20px] shrink-0 mt-0.5 sm:mt-0">info</span>
+          <div>
+            <span className="font-bold text-blue-900 block sm:inline mr-1">InsurMatch Software Platform Notice:</span>
+            <span className="text-blue-800">
+              InsurMatch operates strictly as a B2B SaaS CRM provider ($39 / $79 / $199/mo). InsurMatch does not touch policy premiums or retain carrier cuts. 100% of your insurance carrier commissions are paid directly to your licensed NPN from clearinghouses. Use this ledger to audit remittances and track internal agency co-enrollment assistance splits.
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* ── 2. KPI Summary Cards ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Settled Current Month */}

@@ -1,479 +1,317 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useInView } from 'motion/react';
+import { motion } from 'motion/react';
+import { 
+  Check, 
+  ArrowRight, 
+  Shield, 
+  Sparkles, 
+  Users, 
+  UserCheck, 
+  Calendar, 
+  Clock, 
+  TrendingUp, 
+  FileText, 
+  Bell, 
+  Layers, 
+  Laptop, 
+  CheckCircle2, 
+  HelpCircle,
+  Building2,
+  DollarSign
+} from 'lucide-react';
 import CarrierLogosStrip from '../components/CarrierLogos';
-import { locations } from '../data/locationsData';
-
-// ── The Converging Beam Animation Component (Section 6 Match Signature) ──
-function ConvergingBeamGraphic() {
-  const containerRef = useRef(null);
-  const isInView = useInView(containerRef, { once: false, margin: '-40px' });
-
-  // Desktop Bezier Curves (Converging horizontally into center y=88)
-  const pathTopDesktop = "M 0 44 C 95 44, 115 88, 200 88";
-  const pathBottomDesktop = "M 0 132 C 95 132, 115 88, 200 88";
-
-  // Mobile Bezier Curves (Converging vertically into bottom center x=100, y=68)
-  const pathLeftMobile = "M 50 0 C 50 35, 95 42, 100 68";
-  const pathRightMobile = "M 150 0 C 150 35, 105 42, 100 68";
-
-  return (
-    <div 
-      ref={containerRef} 
-      className="py-10 sm:py-12 px-5 sm:px-10 border border-stroke-subtle rounded-2xl bg-sand/20 relative overflow-hidden"
-    >
-      {/* Ambient subtle warm champagne glow background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(200,169,107,0.1),transparent_70%)] pointer-events-none" />
-
-      {/* ── DESKTOP & TABLET VIEW (md and up) ── */}
-      <div className="hidden md:grid md:grid-cols-12 gap-4 items-center max-w-2xl mx-auto relative z-10">
-        
-        {/* Left Column: 01 YOU & 02 AGENTS */}
-        <div className="md:col-span-4 flex flex-col justify-between gap-5 text-left">
-          {/* 01 / CONSUMER */}
-          <motion.div 
-            initial={{ opacity: 0, x: -16 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="p-4 rounded-xl bg-ivory/95 border border-stroke-subtle shadow-xs space-y-1 hover:border-champagne/50 transition-colors"
-          >
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-muted flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-champagne" />
-              <span>01 / CONSUMER</span>
-            </div>
-            <div className="text-xl font-black text-navy-deep tracking-tight">YOU</div>
-            <div className="text-xs text-charcoal/70">State, language &amp; needs</div>
-          </motion.div>
-
-          {/* 02 / NETWORK */}
-          <motion.div 
-            initial={{ opacity: 0, x: -16 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="p-4 rounded-xl bg-ivory/95 border border-stroke-subtle shadow-xs space-y-1 hover:border-champagne/50 transition-colors"
-          >
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-muted flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-champagne" />
-              <span>02 / NETWORK</span>
-            </div>
-            <div className="text-xl font-black text-navy-deep tracking-tight">AGENTS</div>
-            <div className="text-xs text-charcoal/70">Verified state licenses</div>
-          </motion.div>
-        </div>
-
-        {/* Center Column: Converging SVG Bezier Beams */}
-        <div className="md:col-span-4 flex items-center justify-center relative px-2">
-          <svg viewBox="0 0 200 176" className="w-full h-44 overflow-visible" fill="none">
-            <defs>
-              {/* Cinematic Golden Glow Filter */}
-              <filter id="desktop-beam-glow" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="3.5" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-
-              {/* High-intensity Gold Beam Gradient */}
-              <linearGradient id="desktop-gold-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#C8A96B" stopOpacity="0.3" />
-                <stop offset="60%" stopColor="#DFCAA0" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="1" />
-              </linearGradient>
-            </defs>
-
-            {/* 1. Subtle Background Guide Tracks */}
-            <path
-              d={pathTopDesktop}
-              stroke="#C8A96B"
-              strokeOpacity="0.22"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-            />
-            <path
-              d={pathBottomDesktop}
-              stroke="#C8A96B"
-              strokeOpacity="0.22"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-            />
-
-            {/* 2. Animated Drawing Paths (Path Drawing on Scroll) */}
-            <motion.path
-              d={pathTopDesktop}
-              stroke="#C8A96B"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={isInView ? { pathLength: 1, opacity: 0.85 } : { pathLength: 0, opacity: 0 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            />
-            <motion.path
-              d={pathBottomDesktop}
-              stroke="#C8A96B"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={isInView ? { pathLength: 1, opacity: 0.85 } : { pathLength: 0, opacity: 0 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            />
-
-            {/* 3. Traveling Energy Beam Streak (Moving Dash) */}
-            <motion.path
-              d={pathTopDesktop}
-              stroke="url(#desktop-gold-gradient)"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              filter="url(#desktop-beam-glow)"
-              initial={{ strokeDasharray: "30 220", strokeDashoffset: 220, opacity: 0 }}
-              animate={isInView ? {
-                strokeDashoffset: [-30, -250],
-                opacity: [0, 1, 1, 0]
-              } : {}}
-              transition={{
-                duration: 2.4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.2
-              }}
-            />
-            <motion.path
-              d={pathBottomDesktop}
-              stroke="url(#desktop-gold-gradient)"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              filter="url(#desktop-beam-glow)"
-              initial={{ strokeDasharray: "30 220", strokeDashoffset: 220, opacity: 0 }}
-              animate={isInView ? {
-                strokeDashoffset: [-30, -250],
-                opacity: [0, 1, 1, 0]
-              } : {}}
-              transition={{
-                duration: 2.4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.2
-              }}
-            />
-
-            {/* 4. Energy Beam Pulse Photons (Moving dots along Bezier lines) */}
-            {isInView && (
-              <>
-                {/* Top Photon */}
-                <g>
-                  <animateMotion
-                    path={pathTopDesktop}
-                    dur="2.4s"
-                    repeatCount="indefinite"
-                    keyPoints="0; 1"
-                    keyTimes="0; 1"
-                    calcMode="spline"
-                    keySplines="0.4 0 0.2 1"
-                  />
-                  <circle r="7" fill="#C8A96B" opacity="0.65" filter="url(#desktop-beam-glow)" />
-                  <circle r="3.5" fill="#FFFFFF" stroke="#C8A96B" strokeWidth="1.5" />
-                </g>
-
-                {/* Bottom Photon */}
-                <g>
-                  <animateMotion
-                    path={pathBottomDesktop}
-                    dur="2.4s"
-                    repeatCount="indefinite"
-                    keyPoints="0; 1"
-                    keyTimes="0; 1"
-                    calcMode="spline"
-                    keySplines="0.4 0 0.2 1"
-                  />
-                  <circle r="7" fill="#C8A96B" opacity="0.65" filter="url(#desktop-beam-glow)" />
-                  <circle r="3.5" fill="#FFFFFF" stroke="#C8A96B" strokeWidth="1.5" />
-                </g>
-              </>
-            )}
-
-            {/* 5. Convergence Focal Point & Impact Ripple */}
-            <circle cx="200" cy="88" r="4.5" fill="#C8A96B" />
-            <motion.circle
-              cx="200"
-              cy="88"
-              r="4.5"
-              stroke="#C8A96B"
-              strokeWidth="1.5"
-              fill="none"
-              filter="url(#desktop-beam-glow)"
-              animate={isInView ? {
-                r: [4.5, 18],
-                opacity: [1, 0]
-              } : {}}
-              transition={{
-                duration: 2.4,
-                repeat: Infinity,
-                ease: "easeOut",
-                times: [0.75, 1]
-              }}
-            />
-          </svg>
-        </div>
-
-        {/* Right Column: RESULT: MATCH with Subtle Glow Bloom */}
-        <div className="md:col-span-4 flex items-center justify-center">
-          <motion.div
-            animate={isInView ? {
-              boxShadow: [
-                "0 4px 14px rgba(11, 23, 42, 0.12)",
-                "0 0 36px rgba(200, 169, 107, 0.7), 0 0 70px rgba(200, 169, 107, 0.3)",
-                "0 4px 14px rgba(11, 23, 42, 0.12)"
-              ],
-              borderColor: [
-                "rgba(255, 255, 255, 0.1)",
-                "rgba(200, 169, 107, 0.95)",
-                "rgba(255, 255, 255, 0.1)"
-              ],
-              scale: [1, 1.038, 1]
-            } : {}}
-            transition={{
-              duration: 2.4,
-              repeat: Infinity,
-              times: [0, 0.78, 1],
-              ease: "easeInOut"
-            }}
-            className="w-full p-5 sm:p-6 rounded-2xl bg-navy-deep text-ivory border border-white/10 text-center relative overflow-hidden group shadow-md"
-          >
-            {/* Ambient golden sheen */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-champagne/15 via-transparent to-transparent pointer-events-none" />
-
-            <div className="text-[10px] font-bold uppercase tracking-widest text-champagne flex items-center justify-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-champagne animate-pulse" />
-              <span>RESULT</span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-ivory tracking-widest mt-1">
-              MATCH
-            </div>
-            <div className="text-[10px] text-ivory/70 tracking-wider mt-1 font-semibold uppercase">
-              INSURMATCH 1-ON-1
-            </div>
-          </motion.div>
-        </div>
-
-      </div>
-
-      {/* ── MOBILE VIEW (< md) ── */}
-      <div className="md:hidden flex flex-col items-center gap-2 max-w-sm mx-auto relative z-10">
-        
-        {/* Top: 2 Cards Side-by-Side */}
-        <div className="grid grid-cols-2 gap-3 w-full text-left">
-          <div className="p-3 rounded-xl bg-ivory/95 border border-stroke-subtle shadow-xs space-y-0.5">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-muted flex items-center gap-1">
-              <span className="w-1 h-1 rounded-full bg-champagne" />
-              <span>01 / YOU</span>
-            </div>
-            <div className="text-base font-black text-navy-deep">YOU</div>
-            <div className="text-[11px] text-charcoal/60 truncate">State &amp; needs</div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-ivory/95 border border-stroke-subtle shadow-xs space-y-0.5">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-muted flex items-center gap-1.5">
-              <span className="w-1 h-1 rounded-full bg-champagne" />
-              <span>02 / AGENTS</span>
-            </div>
-            <div className="text-base font-black text-navy-deep">AGENTS</div>
-            <div className="text-[11px] text-charcoal/60 truncate">Verified licenses</div>
-          </div>
-        </div>
-
-        {/* Center: Mobile Converging SVG Bezier Beams */}
-        <div className="w-full flex items-center justify-center py-1">
-          <svg viewBox="0 0 200 70" className="w-full h-16 overflow-visible" fill="none">
-            <defs>
-              <filter id="mobile-beam-glow" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="2.5" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-
-            {/* Guide tracks */}
-            <path d={pathLeftMobile} stroke="#C8A96B" strokeOpacity="0.22" strokeWidth="2" strokeDasharray="3 3" />
-            <path d={pathRightMobile} stroke="#C8A96B" strokeOpacity="0.22" strokeWidth="2" strokeDasharray="3 3" />
-
-            {/* Animated drawing */}
-            <motion.path
-              d={pathLeftMobile}
-              stroke="#C8A96B"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={isInView ? { pathLength: 1 } : { pathLength: 0 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-            />
-            <motion.path
-              d={pathRightMobile}
-              stroke="#C8A96B"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={isInView ? { pathLength: 1 } : { pathLength: 0 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-            />
-
-            {/* Moving Photons */}
-            {isInView && (
-              <>
-                <g>
-                  <animateMotion path={pathLeftMobile} dur="2.4s" repeatCount="indefinite" />
-                  <circle r="6" fill="#C8A96B" opacity="0.65" filter="url(#mobile-beam-glow)" />
-                  <circle r="3" fill="#FFFFFF" stroke="#C8A96B" strokeWidth="1.5" />
-                </g>
-                <g>
-                  <animateMotion path={pathRightMobile} dur="2.4s" repeatCount="indefinite" />
-                  <circle r="6" fill="#C8A96B" opacity="0.65" filter="url(#mobile-beam-glow)" />
-                  <circle r="3" fill="#FFFFFF" stroke="#C8A96B" strokeWidth="1.5" />
-                </g>
-              </>
-            )}
-
-            {/* Bottom convergence node */}
-            <circle cx="100" cy="68" r="4" fill="#C8A96B" />
-          </svg>
-        </div>
-
-        {/* Bottom: RESULT: MATCH */}
-        <motion.div
-          animate={isInView ? {
-            boxShadow: [
-              "0 4px 14px rgba(11, 23, 42, 0.12)",
-              "0 0 30px rgba(200, 169, 107, 0.65), 0 0 54px rgba(200, 169, 107, 0.22)",
-              "0 4px 14px rgba(11, 23, 42, 0.12)"
-            ],
-            borderColor: [
-              "rgba(255, 255, 255, 0.1)",
-              "rgba(200, 169, 107, 0.9)",
-              "rgba(255, 255, 255, 0.1)"
-            ],
-            scale: [1, 1.03, 1]
-          } : {}}
-          transition={{
-            duration: 2.4,
-            repeat: Infinity,
-            times: [0, 0.78, 1],
-            ease: "easeInOut"
-          }}
-          className="w-full p-4 rounded-xl bg-navy-deep text-ivory border border-white/10 text-center shadow-md relative"
-        >
-          <div className="text-[10px] font-bold uppercase tracking-widest text-champagne flex items-center justify-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-champagne animate-pulse" />
-            <span>RESULT</span>
-          </div>
-          <div className="text-xl font-black text-ivory tracking-widest mt-0.5">
-            MATCH
-          </div>
-          <div className="text-[9px] text-ivory/70 tracking-wider mt-0.5 uppercase font-medium">
-            INSURMATCH 1-ON-1
-          </div>
-        </motion.div>
-
-      </div>
-
-      {/* Explanatory Caption */}
-      <div className="mt-8 pt-6 border-t border-stroke-subtle text-xs text-charcoal/60 text-center relative z-10">
-        An intelligent matching engine connecting consumers directly with independent licensed agents — no telemarketing blasts, no spam.
-      </div>
-    </div>
-  );
-}
 
 export default function HomePage({ onOpenQuote }) {
-  const [activeLocationId, setActiveLocationId] = useState('katy');
-  const selectedLocation = locations.find((l) => l.id === activeLocationId) || locations[0];
+  const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annual'
+
+  const dailyQuestions = [
+    {
+      num: '01',
+      question: 'Who needs attention today?',
+      answer: 'Instant prioritized queue of follow-up tasks, new inbound leads, and client requests needing same-day response.',
+      icon: 'priority_high',
+    },
+    {
+      num: '02',
+      question: 'What client or contract requires action?',
+      answer: 'Track document upload deadlines, Marketplace verifications, PCP selections, and carrier policy status.',
+      icon: 'rule',
+    },
+    {
+      num: '03',
+      question: 'When is a renewal or deadline approaching?',
+      answer: 'Automated 30/60/90-day renewal alerts so you retain policyholders before Open Enrollment or Annual Election periods.',
+      icon: 'event_repeat',
+    },
+    {
+      num: '04',
+      question: 'How is your agency performing operationally?',
+      answer: 'Real-time pipeline analytics, lead conversion velocity, agent productivity metrics, and commission visibility.',
+      icon: 'monitoring',
+    },
+  ];
+
+  const coreFeatures = [
+    {
+      title: 'Customer & Contact Management',
+      desc: 'Centralized profiles with complete contact details, policy numbers, household member counts, and notes in one place.',
+      icon: Users,
+    },
+    {
+      title: 'Structured CRM Pipelines',
+      desc: 'Pre-built and customizable stage workflows for ACA Obamacare, Medicare Initial/Renewal, and special enrollment periods.',
+      icon: Layers,
+    },
+    {
+      title: 'Renewal & Appointment Tracking',
+      desc: 'Never let a client lapse. Calendar reminders and automated renewal alerts built directly around health insurance cycles.',
+      icon: Calendar,
+    },
+    {
+      title: 'Smart Follow-up Sequences',
+      desc: 'Automate post-sale follow-ups: binder payments, document collection, doctor selection, and customer check-ins.',
+      icon: Clock,
+    },
+    {
+      title: 'Compliant Email & SMS Communication',
+      desc: 'Use pre-approved compliant templates and communication histories so your team maintains consistent client touchpoints.',
+      icon: Bell,
+    },
+    {
+      title: 'Commission Visibility & Reporting',
+      desc: 'Track expected carrier payouts and policy volume in one place without handling payments or giving up a percentage.',
+      icon: TrendingUp,
+    },
+  ];
+
+  const workflowSteps = [
+    { step: '01', title: 'Log in', desc: 'Secure agent access from any browser' },
+    { step: '02', title: "View Today's Priorities", desc: 'Clear task list and urgent deadlines' },
+    { step: '03', title: 'Identify Pending Leads & Renewals', desc: 'Pipeline status with color badges' },
+    { step: '04', title: 'Search & Update Records', desc: 'Fast client lookup and SOP-guided notes' },
+    { step: '05', title: 'Complete Follow-up Activities', desc: 'Close tickets, send texts, log calls' },
+    { step: '06', title: 'Review Pipeline Dashboard', desc: 'Real-time visibility for agents & managers' },
+  ];
+
+  const plans = [
+    {
+      id: 'starter',
+      name: 'Starter',
+      target: 'Individual Agent',
+      monthlyPrice: 39,
+      annualPrice: 32,
+      users: '1 User included',
+      popular: false,
+      description: 'Ideal for independent licensed agents replacing spreadsheets and organizing their client book.',
+      features: [
+        'Centralized customer profiles',
+        'Basic lead capture & tracking',
+        'Standard ACA & Medicare pipelines',
+        'Calendar, tasks & renewal reminders',
+        'Basic compliant email templates',
+        'Individual activity overview',
+        '14-day free trial included',
+      ],
+    },
+    {
+      id: 'professional',
+      name: 'Professional',
+      target: 'Growing Agent or Small Team',
+      monthlyPrice: 79,
+      annualPrice: 65,
+      users: 'Up to 3 Users',
+      popular: true,
+      description: 'For growing agents needing customizable pipelines, automation, and deeper visibility.',
+      features: [
+        'Everything in Starter, plus:',
+        'Up to 3 team member seats',
+        'Advanced lead management & custom tags',
+        'Customizable CRM pipeline stages',
+        'Shared calendar & automated follow-ups',
+        'Email automation & limited SMS workflows',
+        'Pipeline, deal & productivity analytics',
+        'Commission visibility & policy tracking',
+        'Priority email & ticket support',
+      ],
+    },
+    {
+      id: 'agency',
+      name: 'Agency',
+      target: 'Multi-Agent Agency',
+      monthlyPrice: 199,
+      annualPrice: 165,
+      users: 'Up to 10 Users',
+      popular: false,
+      description: 'For agency principals managing multiple agents, staff coordinators, and team lead routing.',
+      features: [
+        'Everything in Professional, plus:',
+        'Up to 10 team seats (agents & staff)',
+        'Shared team lead routing & assignment',
+        'Multiple team pipelines across lines',
+        'Team task oversight, deadlines & audit logs',
+        'Advanced team automation & sequences',
+        'Agency-wide & agent-level operational reporting',
+        'Master commission visibility & ledger',
+        'Full role-based permissions & compliance',
+      ],
+    },
+  ];
 
   return (
     <div className="w-full bg-ivory text-charcoal selection:bg-champagne selection:text-navy-deep">
       
       {/* ─────────────────────────────────────────────────────────────
-          1. HERO — Asymmetric Editorial Split Layout (Section 6 & 7)
+          1. HERO — B2B SaaS CRM Value Proposition
          ───────────────────────────────────────────────────────────── */}
-      <section className="relative pt-12 pb-20 lg:pt-24 lg:pb-32 border-b border-stroke-subtle overflow-hidden">
+      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-stroke-subtle overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
             
             {/* Left Content Column */}
             <motion.div 
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="lg:col-span-7 space-y-7 text-left"
+              className="lg:col-span-7 space-y-6 text-left"
             >
               {/* Eyebrow */}
-              <div className="inline-flex items-center gap-2.5 text-[11px] font-bold tracking-widest uppercase text-slate-muted">
-                <span className="w-1.5 h-1.5 rounded-full bg-champagne" />
-                <span>INSURMATCH / DIGITAL LEAD &amp; AGENT MATCHING PLATFORM</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sand/80 border border-stroke-subtle text-[11px] font-bold tracking-widest uppercase text-navy-deep">
+                <Sparkles className="w-3.5 h-3.5 text-champagne" />
+                <span>B2B SaaS CRM for Independent Insurance Agents</span>
               </div>
 
               {/* Headline */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-navy-deep tracking-tight leading-[1.08]">
-                Find the right <br />
-                insurance agent <span className="font-serif italic font-normal text-navy-midnight">for your needs.</span>
+                Replace Spreadsheets.{' '}
+                <span className="block font-serif italic font-normal text-navy-midnight">
+                  Never Miss a Policy Renewal.
+                </span>
               </h1>
 
               {/* Subhead */}
               <p className="text-base sm:text-lg text-charcoal/75 max-w-xl leading-relaxed">
-                InsurMatch connects Vietnamese customers across the United States with verified independent insurance agents licensed in their state. Tell us what coverage you need, and we match you with an agent who understands your language, budget, and requirements.
+                InsurMatch is the web-based CRM purpose-built for licensed independent insurance agents and small agencies in the United States. Centralize customer data, manage ACA &amp; Medicare pipelines, automate follow-ups, and keep 100% of your carrier commissions.
               </p>
 
               {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center gap-3.5 pt-2">
                 <button
+                  type="button"
                   onClick={onOpenQuote}
-                  className="px-7 py-3.5 rounded-lg bg-navy-deep text-ivory hover:bg-navy-midnight transition-colors duration-200 font-semibold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-xs group"
+                  className="px-7 py-3.5 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight transition-colors duration-200 font-bold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-xs group"
                 >
-                  <span>Get Matched</span>
-                  <span className="material-symbols-outlined text-[16px] text-champagne group-hover:translate-x-1 transition-transform">
-                    arrow_forward
-                  </span>
+                  <span>Start 14-Day Free Trial</span>
+                  <ArrowRight className="w-4 h-4 text-champagne group-hover:translate-x-1 transition-transform" />
                 </button>
 
-                <a
-                  href="#how-it-works"
-                  className="px-6 py-3.5 rounded-lg border border-stroke-subtle bg-sand/30 hover:bg-sand text-charcoal font-semibold text-xs tracking-wider uppercase transition-colors duration-200"
+                <button
+                  type="button"
+                  onClick={onOpenQuote}
+                  className="px-6 py-3.5 rounded-xl border border-navy-deep bg-white hover:bg-sand/60 text-navy-deep font-semibold text-xs tracking-wider uppercase transition-colors duration-200 cursor-pointer"
                 >
-                  How It Works
-                </a>
+                  Book a Free Demo
+                </button>
+
+                <Link
+                  to="/pricing"
+                  className="text-xs font-bold text-charcoal/70 hover:text-navy-deep underline underline-offset-4 py-2 px-1"
+                >
+                  View Plans ($39 – $199/mo)
+                </Link>
               </div>
 
               {/* Fine Signature Subline */}
-              <div className="pt-6 border-t border-stroke-subtle flex items-center gap-6 text-xs text-charcoal/60">
-                <span>State-Based Matching</span>
-                <span className="text-champagne font-bold">•</span>
-                <span>Verified Licensed Agents</span>
-                <span className="text-champagne font-bold">•</span>
-                <span>Bilingual: Tiếng Việt &amp; English</span>
+              <div className="pt-4 flex flex-wrap items-center gap-5 text-xs text-charcoal/70">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  No Credit Card Required
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  Keep 100% Carrier Commissions
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  Cancel Anytime
+                </span>
               </div>
             </motion.div>
 
-            {/* Right Large Cinematic Photograph (Section 7) */}
+            {/* Right Column: Interactive CRM Workspace Mockup Preview */}
             <motion.div 
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
               className="lg:col-span-5 relative"
             >
-              <div className="relative rounded-2xl overflow-hidden border border-stroke-subtle bg-sand/30 p-2 shadow-xs">
-                <div className="relative h-80 sm:h-[420px] rounded-xl overflow-hidden">
-                  <img 
-                    src="/images/advisor-counselor.jpg" 
-                    alt="InsurMatch advisor in conversation with family" 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/60 via-transparent to-transparent" />
+              <div className="relative rounded-3xl bg-white border border-stroke-subtle shadow-2xl p-5 sm:p-6 space-y-4">
+                {/* Mock CRM Window Header */}
+                <div className="flex items-center justify-between border-b border-sand pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-rose-400" />
+                    <span className="w-3 h-3 rounded-full bg-amber-400" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-400" />
+                    <span className="text-[11px] font-bold text-navy-deep ml-2 font-mono">
+                      app.insurmatch.us/dashboard
+                    </span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold uppercase">
+                    Live Demo
+                  </span>
                 </div>
 
-                {/* Single understated overlay (Prompt #7) */}
-                <div className="absolute bottom-6 left-6 right-6 py-3 px-4 bg-navy-deep/90 backdrop-blur-md rounded-lg border border-white/10 text-ivory flex items-center justify-between text-[11px] font-bold tracking-wider uppercase">
-                  <span className="text-ivory/80">YOUR REQUIREMENTS</span>
-                  <span className="text-champagne font-serif text-sm">→</span>
-                  <span className="text-champagne">LICENSED AGENT MATCH</span>
+                {/* Mini Stat Cards */}
+                <div className="grid grid-cols-2 gap-3 text-left">
+                  <div className="p-3 rounded-xl bg-sand/40 border border-stroke-subtle">
+                    <div className="text-[10px] font-bold uppercase text-slate-muted">Open Deals</div>
+                    <div className="text-xl font-extrabold text-navy-deep font-mono">42 Active</div>
+                    <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">ACA &amp; Medicare</div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-sand/40 border border-stroke-subtle">
+                    <div className="text-[10px] font-bold uppercase text-slate-muted">Renewal Window</div>
+                    <div className="text-xl font-extrabold text-navy-deep font-mono">18 Upcoming</div>
+                    <div className="text-[10px] text-amber-600 font-semibold mt-0.5">Within 30 Days</div>
+                  </div>
+                </div>
+
+                {/* Mock Queue Items */}
+                <div className="space-y-2 text-left text-xs">
+                  <div className="text-[11px] font-bold text-navy-deep uppercase tracking-wider">
+                    Today&apos;s Priority Queue:
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-sand/30 border border-stroke-subtle flex items-center justify-between">
+                    <div>
+                      <div className="font-bold text-slate-900">Nguyen Van An — BCBS Silver 2026</div>
+                      <div className="text-[10px] text-slate-500">Collect Document deadline: Tomorrow</div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700">
+                      High
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-sand/30 border border-stroke-subtle flex items-center justify-between">
+                    <div>
+                      <div className="font-bold text-slate-900">Le Thi Mai — Medicare Advantage</div>
+                      <div className="text-[10px] text-slate-500">Choose PCP Confirmation call scheduled</div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700">
+                      In Progress
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bottom Quick Action Link */}
+                <div className="pt-2 border-t border-sand flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-slate-500">Pricing from $39/mo</span>
+                  <Link
+                    to="/login"
+                    className="font-bold text-navy-deep hover:underline flex items-center gap-1"
+                  >
+                    <span>Try Agent Workspace</span>
+                    <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                  </Link>
                 </div>
               </div>
             </motion.div>
@@ -483,538 +321,303 @@ export default function HomePage({ onOpenQuote }) {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          2. BRAND STATEMENT & PHILOSOPHY — No Cards, Pure Typography (Section 8)
+          CARRIER COMPATIBILITY STRIP
          ───────────────────────────────────────────────────────────── */}
-      <section className="py-24 lg:py-32 border-b border-stroke-subtle bg-ivory">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          
-          <div className="max-w-3xl mb-16 text-left">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-deep tracking-tight leading-tight">
-              Insurance can be complicated. <br />
-              <span className="font-serif italic font-normal text-navy-midnight">Finding the right licensed agent shouldn't be.</span>
-            </h2>
-          </div>
-
-          {/* Three concepts with thin dividers and pure typography — NO CARDS */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 pt-8 border-t border-stroke-subtle">
-            
-            <div className="space-y-3 text-left">
-              <span className="text-xs font-bold uppercase tracking-widest text-champagne block">
-                01 — LANGUAGE &amp; TRUST
-              </span>
-              <h3 className="text-xl font-bold text-navy-deep tracking-tight">
-                Guidance in your language.
-              </h3>
-              <p className="text-sm text-charcoal/70 leading-relaxed">
-                Connect with independent agents who speak Vietnamese and understand your specific situation, eliminating language barriers and confusion.
-              </p>
-            </div>
-
-            <div className="space-y-3 text-left">
-              <span className="text-xs font-bold uppercase tracking-widest text-champagne block">
-                02 — VERIFICATION
-              </span>
-              <h3 className="text-xl font-bold text-navy-deep tracking-tight">
-                Properly licensed professionals.
-              </h3>
-              <p className="text-sm text-charcoal/70 leading-relaxed">
-                Every agent in our partner network is independently verified with state insurance departments (such as Texas TDI or California CDI) to ensure compliance.
-              </p>
-            </div>
-
-            <div className="space-y-3 text-left">
-              <span className="text-xs font-bold uppercase tracking-widest text-champagne block">
-                03 — RIGHT-FIT MATCH
-              </span>
-              <h3 className="text-xl font-bold text-navy-deep tracking-tight">
-                Matched to your specific needs.
-              </h3>
-              <p className="text-sm text-charcoal/70 leading-relaxed">
-                We route your request to agents who specialize in the exact category you need — Medicare, ACA Health, or Life protection. Free for customers, with zero spam.
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────
-          3. CARRIER LOGOS
-         ───────────────────────────────────────────────────────────── */}
-      <section className="py-7 bg-sand/30 border-b border-stroke-subtle">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <p className="text-center text-[10px] font-bold text-slate-muted uppercase tracking-widest mb-3">
-            ACCESS TO TOP-RATED INSURANCE CARRIERS THROUGH INDEPENDENT LICENSED AGENTS
+      <section className="py-8 bg-sand/30 border-b border-stroke-subtle">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-muted mb-4">
+            Supports All Major Health, Medicare &amp; Life Carriers in the US
           </p>
           <CarrierLogosStrip />
         </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          4. HOW IT WORKS — Premium Editorial Timeline, No Cards (Section 13)
+          2. THE 4 DAILY QUESTIONS (Page 3 of Proposal)
          ───────────────────────────────────────────────────────────── */}
-      <section className="py-24 lg:py-32 border-b border-stroke-subtle" id="how-it-works">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          
-          <div className="max-w-2xl mb-16 text-left">
-            <span className="text-[11px] font-bold tracking-widest uppercase text-slate-muted block mb-2">
-              THE MATCHMAKING WORKFLOW
-            </span>
+      <section id="workflow" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sand text-navy-deep text-xs font-bold uppercase tracking-wider mb-3">
+            <span>Built Around Daily Agent Reality</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
+            Designed to Answer Four Practical Questions Every Day
+          </h2>
+          <p className="mt-3 text-xs sm:text-sm text-charcoal/70 leading-relaxed">
+            Independent agents don&apos;t just need a place to store names. They need a structured workflow that turns customer chaos into clear daily actions.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {dailyQuestions.map((q, idx) => (
+            <div
+              key={idx}
+              className="p-6 rounded-3xl bg-white border border-stroke-subtle shadow-xs hover:shadow-md transition-shadow relative text-left flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-3xl font-extrabold text-champagne/80 font-mono block mb-2">
+                  {q.num}
+                </span>
+                <h3 className="text-base font-bold text-navy-deep mb-2.5 leading-snug">
+                  {q.question}
+                </h3>
+                <p className="text-xs text-charcoal/70 leading-relaxed">
+                  {q.answer}
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-sand flex items-center gap-1.5 text-xs font-bold text-navy-deep">
+                <span className="material-symbols-outlined text-[18px] text-champagne">{q.icon}</span>
+                <span>Structured in InsurMatch</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          3. CORE PRODUCT CAPABILITIES (Page 3-4 of Proposal)
+         ───────────────────────────────────────────────────────────── */}
+      <section id="features" className="py-20 bg-sand/30 border-y border-stroke-subtle px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-14">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
-              A smarter way <br />
-              <span className="font-serif italic font-normal text-navy-midnight">to connect with licensed agents.</span>
+              One Workspace. Complete Control.
             </h2>
-          </div>
-
-          {/* Connected Steps Timeline */}
-          <div className="relative">
-            {/* Thin connecting line across steps on desktop */}
-            <div className="hidden md:block absolute top-4 left-0 right-0 h-[1px] bg-stroke-subtle" />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 pt-8 md:pt-12">
-              
-              <div className="space-y-3 text-left relative">
-                <div className="inline-block px-3 py-1 bg-ivory border border-stroke-subtle rounded-md font-serif text-xs font-bold text-champagne mb-2">
-                  01
-                </div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-navy-deep">
-                  TELL US WHAT YOU NEED
-                </h3>
-                <p className="text-sm text-charcoal/70 leading-relaxed">
-                  Select your insurance category (Medicare, ACA Health, Life) and share your location, budget preferences, and language needs.
-                </p>
-              </div>
-
-              <div className="space-y-3 text-left relative">
-                <div className="inline-block px-3 py-1 bg-ivory border border-stroke-subtle rounded-md font-serif text-xs font-bold text-champagne mb-2">
-                  02
-                </div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-navy-deep">
-                  VERIFY &amp; MATCH
-                </h3>
-                <p className="text-sm text-charcoal/70 leading-relaxed">
-                  Our platform validates your request details to intelligently pair you with qualified independent agents licensed in your specific state.
-                </p>
-              </div>
-
-              <div className="space-y-3 text-left relative">
-                <div className="inline-block px-3 py-1 bg-ivory border border-stroke-subtle rounded-md font-serif text-xs font-bold text-champagne mb-2">
-                  03
-                </div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-navy-deep">
-                  CONNECT &amp; DECIDE
-                </h3>
-                <p className="text-sm text-charcoal/70 leading-relaxed">
-                  A verified licensed agent reaches out with personalized plan options. Review at your own pace with zero obligation and zero pressure.
-                </p>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────
-          5. SERVICES — Differentiated Editorial Rhythms (Section 10, 11, 12)
-         ───────────────────────────────────────────────────────────── */}
-      <section id="services" className="border-b border-stroke-subtle">
-        
-        {/* Service 01: MEDICARE (Text Left, Large Image Right) */}
-        <div className="py-24 lg:py-32 max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            
-            <div className="lg:col-span-6 space-y-6 text-left">
-              <div className="flex items-center gap-3">
-                <span className="font-serif text-3xl text-champagne font-bold">01</span>
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-muted">MEDICARE SPECIALISTS</span>
-              </div>
-
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight leading-tight">
-                Connect with agents <br />
-                <span className="font-serif italic font-normal text-navy-midnight">specializing in Medicare.</span>
-              </h2>
-
-              <p className="text-base text-charcoal/75 leading-relaxed">
-                Medicare choices can feel overwhelming. InsurMatch connects seniors and eligible individuals with verified independent agents who evaluate Medicare Advantage (Part C), Medigap, and Part D drug plans tailored to your doctors and prescriptions.
-              </p>
-
-              <div className="pt-2">
-                <Link
-                  to="/insurance-services/medicare"
-                  className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy-deep hover:text-champagne transition-colors border-b-2 border-navy-deep hover:border-champagne pb-1"
-                >
-                  <span>Find A Medicare Agent</span>
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                </Link>
-              </div>
-            </div>
-
-            <div className="lg:col-span-6">
-              <div className="rounded-xl overflow-hidden border border-stroke-subtle bg-sand/30 p-2 shadow-xs">
-                <img 
-                  src="/images/service-medicare.jpg" 
-                  alt="Senior client reviewing Medicare plans with advisor" 
-                  className="w-full h-80 sm:h-[400px] object-cover rounded-lg"
-                />
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Service 02: ACA (REVERSED: Image Left, Text Right) */}
-        <div className="py-24 lg:py-32 bg-sand/30 border-y border-stroke-subtle">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-              
-              <div className="lg:col-span-6 order-2 lg:order-1">
-                <div className="rounded-xl overflow-hidden border border-stroke-subtle bg-ivory p-2 shadow-xs">
-                  <img 
-                    src="/images/service-aca.jpg" 
-                    alt="Individual and family healthcare coverage" 
-                    className="w-full h-80 sm:h-[400px] object-cover rounded-lg"
-                  />
-                </div>
-              </div>
-
-              <div className="lg:col-span-6 space-y-6 text-left order-1 lg:order-2">
-                <div className="flex items-center gap-3">
-                  <span className="font-serif text-3xl text-champagne font-bold">02</span>
-                  <span className="text-xs font-bold uppercase tracking-widest text-slate-muted">ACA HEALTHCARE</span>
-                </div>
-
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight leading-tight">
-                  Marketplace health plans <br />
-                  <span className="font-serif italic font-normal text-navy-midnight">with expert subsidy guidance.</span>
-                </h2>
-
-                <p className="text-base text-charcoal/75 leading-relaxed">
-                  Find licensed independent agents who help determine your eligibility for federal advance premium tax credits (subsidies) under the ACA and guide you through individual and family health coverage that fits your family's budget.
-                </p>
-
-                <div className="pt-2">
-                  <Link
-                    to="/insurance-services/health-insurance"
-                    className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy-deep hover:text-champagne transition-colors border-b-2 border-navy-deep hover:border-champagne pb-1"
-                  >
-                    <span>Find An ACA Agent</span>
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </Link>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        {/* Service 03: LIFE & ASSET PROTECTION (Full-Width Deep Navy Climax Section) */}
-        <div className="py-28 lg:py-36 bg-navy-deep text-ivory">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-              
-              <div className="lg:col-span-6 space-y-6 text-left">
-                <div className="flex items-center gap-3">
-                  <span className="font-serif text-3xl text-champagne font-bold">03</span>
-                  <span className="text-xs font-bold uppercase tracking-widest text-champagne">LIFE &amp; ASSET PROTECTION</span>
-                </div>
-
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ivory tracking-tight leading-tight">
-                  Protect what matters <br />
-                  <span className="font-serif italic font-normal text-champagne">with experienced guidance.</span>
-                </h2>
-
-                <p className="text-base text-ivory/75 leading-relaxed">
-                  Match with verified independent agents experienced in personal and family financial protection — from term life with living benefits to permanent cash-value policies and fixed indexed annuities for retirement security.
-                </p>
-
-                <div className="pt-2">
-                  <Link
-                    to="/insurance-services/life-insurance"
-                    className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ivory hover:text-champagne transition-colors border-b-2 border-champagne pb-1"
-                  >
-                    <span>Find A Life Insurance Agent</span>
-                    <span className="material-symbols-outlined text-[16px] text-champagne">arrow_forward</span>
-                  </Link>
-                </div>
-              </div>
-
-              <div className="lg:col-span-6">
-                <div className="rounded-xl overflow-hidden border border-white/10 bg-navy-midnight p-2 shadow-2xl">
-                  <img 
-                    src="/images/service-life.jpg" 
-                    alt="Multigenerational family protected by Life Insurance" 
-                    className="w-full h-80 sm:h-[400px] object-cover rounded-lg opacity-90"
-                  />
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────
-          6. SIGNATURE "MATCH" SECTION (Section 14)
-         ───────────────────────────────────────────────────────────── */}
-      <section className="py-28 lg:py-36 border-b border-stroke-subtle bg-ivory text-center overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 lg:px-8 space-y-12">
-          
-          <div className="space-y-3">
-            <span className="text-[11px] font-bold tracking-widest uppercase text-slate-muted block">
-              THE MATCH SIGNATURE
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-deep tracking-tight">
-              Your requirements. Verified agents. <br />
-              <span className="font-serif italic font-normal text-navy-midnight">One trusted connection.</span>
-            </h2>
-          </div>
-
-          {/* Converging Typography Graphic — The Converging Beam Animation (Section 14) */}
-          <ConvergingBeamGraphic />
-
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────
-          7. HUMAN GUIDANCE SECTION (Section 15)
-         ───────────────────────────────────────────────────────────── */}
-      <section className="py-24 lg:py-32 bg-sand/30 border-b border-stroke-subtle" id="advisors">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            
-            <div className="lg:col-span-6 space-y-6 text-left">
-              <span className="text-[11px] font-bold tracking-widest uppercase text-slate-muted block">
-                INDEPENDENT LICENSED PROFESSIONALS
-              </span>
-
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight leading-tight">
-                Technology matches. <br />
-                <span className="font-serif italic font-normal text-navy-midnight">Licensed agents guide.</span>
-              </h2>
-
-              <p className="text-base text-charcoal/75 leading-relaxed">
-                Insurance decisions require human understanding and cultural empathy. When you need clear explanations about coverage limits, doctor networks, or policy terms, our network of verified independent agents provides one-on-one personal guidance in your language.
-              </p>
-
-              <div className="pt-2">
-                <button
-                  onClick={onOpenQuote}
-                  className="px-7 py-3.5 rounded-lg bg-navy-deep text-ivory hover:bg-navy-midnight transition-colors duration-200 font-semibold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-xs group"
-                >
-                  <span>Get Matched With An Agent</span>
-                  <span className="material-symbols-outlined text-[16px] text-champagne group-hover:translate-x-1 transition-transform">
-                    arrow_forward
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <div className="lg:col-span-6">
-              <div className="rounded-xl overflow-hidden border border-stroke-subtle bg-ivory p-2 shadow-xs">
-                <img 
-                  src="/images/team-retreat.jpg" 
-                  alt="InsurMatch verified independent insurance advisor meeting with clients" 
-                  className="w-full h-80 sm:h-[400px] object-cover rounded-lg"
-                />
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────
-          8. TEXAS LOCATIONS — Minimalist Map & Interactive Selector (Section 16)
-         ───────────────────────────────────────────────────────────── */}
-      <section className="py-24 lg:py-32 border-b border-stroke-subtle bg-ivory" id="locations">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          
-          <div className="max-w-3xl mb-14 text-left">
-            <span className="text-[11px] font-bold tracking-widest uppercase text-slate-muted block mb-2">
-              REGIONAL AGENT NETWORK
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
-              Licensed agent partners. <br />
-              <span className="font-serif italic font-normal text-navy-midnight">Active across Texas &amp; beyond.</span>
-            </h2>
-            <p className="text-sm text-charcoal/70 mt-2">
-              Select a regional coverage hub on the Texas map or list below to view partner agent network presence, consultation hours, and licensing information.
+            <p className="mt-3 text-xs sm:text-sm text-charcoal/70 leading-relaxed">
+              Everything independent insurance agents and agencies need to run daily operations smoothly.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            
-            {/* Minimalist Texas SVG Map with Location Points (Prompt #16) */}
-            <div className="lg:col-span-6 p-6 sm:p-10 rounded-2xl border border-stroke-subtle bg-sand/20 flex flex-col items-center justify-center relative min-h-[380px]">
-              
-              <div className="w-full max-w-sm relative">
-                {/* Clean stylized SVG Outline of Texas */}
-                <svg viewBox="0 0 300 280" className="w-full h-auto text-sand fill-current stroke-stroke-subtle stroke-1">
-                  {/* Simplified geometry of Texas outline */}
-                  <path d="M 60 10 L 130 10 L 130 90 L 220 90 L 220 160 L 290 160 L 285 190 L 250 205 L 225 240 L 195 270 L 160 270 L 140 230 L 110 200 L 95 190 L 80 150 L 50 150 L 10 110 L 60 110 Z" />
-                </svg>
-
-                {/* Garland Point (North-East TX: ~x:62%, y:38%) */}
-                <button
-                  onClick={() => setActiveLocationId('garland')}
-                  className={`absolute top-[38%] left-[62%] -translate-x-1/2 -translate-y-1/2 p-2 group cursor-pointer`}
-                  title="Garland Hub (DFW Area)"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {coreFeatures.map((feat, idx) => {
+              const Icon = feat.icon;
+              return (
+                <div
+                  key={idx}
+                  className="p-7 rounded-3xl bg-white border border-stroke-subtle shadow-xs hover:border-champagne/60 transition-all text-left space-y-3"
                 >
-                  <span className={`w-3.5 h-3.5 rounded-full block transition-all ${activeLocationId === 'garland' ? 'bg-navy-deep ring-4 ring-champagne scale-125' : 'bg-champagne hover:scale-110'}`} />
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-navy-deep whitespace-nowrap bg-ivory/90 px-1.5 py-0.5 rounded border border-stroke-subtle shadow-xs">
-                    Garland (DFW)
-                  </span>
-                </button>
-
-                {/* Houston Point (South-East TX: ~x:75%, y:68%) */}
-                <button
-                  onClick={() => setActiveLocationId('houston')}
-                  className={`absolute top-[68%] left-[75%] -translate-x-1/2 -translate-y-1/2 p-2 group cursor-pointer`}
-                  title="Houston Hub"
-                >
-                  <span className={`w-3.5 h-3.5 rounded-full block transition-all ${activeLocationId === 'houston' ? 'bg-navy-deep ring-4 ring-champagne scale-125' : 'bg-champagne hover:scale-110'}`} />
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-navy-deep whitespace-nowrap bg-ivory/90 px-1.5 py-0.5 rounded border border-stroke-subtle shadow-xs">
-                    Houston
-                  </span>
-                </button>
-
-                {/* Katy Point (HQ, West of Houston: ~x:65%, y:72%) */}
-                <button
-                  onClick={() => setActiveLocationId('katy')}
-                  className={`absolute top-[72%] left-[64%] -translate-x-1/2 -translate-y-1/2 p-2 group cursor-pointer`}
-                  title="Katy Regional Hub"
-                >
-                  <span className={`w-4 h-4 rounded-full block transition-all ${activeLocationId === 'katy' ? 'bg-navy-deep ring-4 ring-champagne scale-125' : 'bg-navy-deep hover:scale-110'}`} />
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-navy-deep whitespace-nowrap bg-ivory/90 px-1.5 py-0.5 rounded border border-stroke-subtle shadow-xs">
-                    Katy Hub
-                  </span>
-                </button>
-
-              </div>
-
-              <div className="text-[11px] text-slate-muted mt-4">
-                Click map marker or hub below to inspect partner coverage
-              </div>
-            </div>
-
-            {/* Selected Location Information Card */}
-            <div className="lg:col-span-6 space-y-6 text-left">
-              
-              {/* Location tabs */}
-              <div className="flex items-center gap-2 border-b border-stroke-subtle pb-3">
-                {locations.map((loc) => (
-                  <button
-                    key={loc.id}
-                    onClick={() => setActiveLocationId(loc.id)}
-                    className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded transition-colors cursor-pointer ${
-                      loc.id === selectedLocation.id 
-                        ? 'bg-navy-deep text-ivory' 
-                        : 'text-charcoal/60 hover:text-navy-deep'
-                    }`}
-                  >
-                    {loc.name.split(' ')[0]} {loc.isHQ ? '(Primary)' : ''}
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-champagne">
-                    {selectedLocation.isHQ ? 'Primary Regional Hub' : 'Partner Coverage Hub'}
-                  </span>
-                  <h3 className="text-2xl font-black text-navy-deep mt-0.5">{selectedLocation.name}</h3>
-                  <p className="text-sm text-charcoal/75 mt-1">{selectedLocation.address}, {selectedLocation.city}</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-stroke-subtle text-xs">
-                  <div>
-                    <span className="font-bold uppercase tracking-wider text-slate-muted block mb-1">Support &amp; Inquiries</span>
-                    <a href={`mailto:${selectedLocation.email}`} className="text-sm font-bold text-navy-deep hover:underline">
-                      {selectedLocation.email}
-                    </a>
+                  <div className="w-12 h-12 rounded-2xl bg-sand/70 text-navy-deep flex items-center justify-center">
+                    <Icon className="w-6 h-6 text-champagne stroke-[2]" />
                   </div>
-                  <div>
-                    <span className="font-bold uppercase tracking-wider text-slate-muted block mb-1">Consultation Hours</span>
-                    <p className="text-charcoal/80">{selectedLocation.hours}</p>
-                    <p className="text-champagne font-medium mt-0.5">{selectedLocation.specialHours}</p>
-                  </div>
+                  <h3 className="text-base font-bold text-navy-deep">{feat.title}</h3>
+                  <p className="text-xs text-charcoal/70 leading-relaxed">{feat.desc}</p>
                 </div>
-
-                <div className="pt-3 flex flex-wrap items-center gap-3">
-                  <a
-                    href={selectedLocation.mapLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-5 py-2.5 rounded-lg bg-navy-deep text-ivory text-xs font-bold tracking-wider uppercase hover:bg-navy-midnight transition-colors inline-flex items-center gap-1.5"
-                  >
-                    <span>Coverage Area</span>
-                    <span className="material-symbols-outlined text-[15px] text-champagne">directions</span>
-                  </a>
-                  <button
-                    onClick={onOpenQuote}
-                    className="px-5 py-2.5 rounded-lg border border-stroke-subtle hover:border-navy-deep text-charcoal text-xs font-bold tracking-wider uppercase transition-colors cursor-pointer"
-                  >
-                    Get Matched
-                  </button>
-                </div>
-              </div>
-
-            </div>
-
+              );
+            })}
           </div>
-
         </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          9. FINAL DRAMATIC CLOSING CTA (Section 21)
+          4. CORE USER WORKFLOW TIMELINE (Page 4 of Proposal)
          ───────────────────────────────────────────────────────────── */}
-      <section className="py-24 lg:py-36 bg-navy-deep text-ivory relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 lg:px-8 text-center space-y-8 relative z-10">
-          
-          <div className="inline-flex items-center gap-2 text-[11px] font-bold tracking-widest uppercase text-champagne">
-            <span className="w-1.5 h-1.5 rounded-full bg-champagne" />
-            <span>INSURMATCH / GET STARTED TODAY</span>
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sand text-navy-deep text-xs font-bold uppercase tracking-wider mb-3">
+            <span>Seamless Daily Workflow</span>
           </div>
-
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-ivory tracking-tight leading-[1.08]">
-            Ready to find <br />
-            <span className="font-serif italic font-normal text-champagne">your licensed agent?</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
+            How Independent Agents Use InsurMatch Daily
           </h2>
-
-          <p className="text-base sm:text-lg text-ivory/70 max-w-xl mx-auto leading-relaxed">
-            Tell us what you need. Our matchmaking engine pairs you with a verified independent agent licensed in your state who speaks your language and understands your priorities.
+          <p className="mt-3 text-xs sm:text-sm text-charcoal/70">
+            Reducing the distance between finding client information and taking immediate action.
           </p>
+        </div>
 
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-            <button
-              onClick={onOpenQuote}
-              className="px-8 py-4 rounded-lg bg-champagne text-navy-deep hover:bg-champagne-light transition-colors duration-200 font-bold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-md group"
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {workflowSteps.map((step, idx) => (
+            <div
+              key={idx}
+              className="p-5 rounded-2xl bg-white border border-stroke-subtle shadow-2xs text-left relative flex flex-col justify-between"
             >
-              <span>Get Matched</span>
-              <span className="material-symbols-outlined text-[16px] text-navy-deep group-hover:translate-x-1 transition-transform">
-                arrow_forward
-              </span>
-            </button>
-
-            <Link
-              to="/careers"
-              className="px-7 py-4 rounded-lg border border-white/20 text-ivory hover:border-champagne hover:text-champagne transition-colors duration-200 font-semibold text-xs tracking-wider uppercase"
-            >
-              Join Agent Network
-            </Link>
-          </div>
-
-          <div className="pt-8 text-xs text-ivory/50">
-            Free for consumers • Zero spam guarantee • Direct independent licensed agent matching
-          </div>
-
+              <div>
+                <span className="text-xs font-mono font-bold text-champagne bg-sand/60 px-2 py-0.5 rounded">
+                  {step.step}
+                </span>
+                <h4 className="font-bold text-xs text-navy-deep mt-3 mb-1">{step.title}</h4>
+                <p className="text-[11px] text-charcoal/70 leading-snug">{step.desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
+      {/* ─────────────────────────────────────────────────────────────
+          5. PRICING SECTION (Page 6 of Proposal)
+         ───────────────────────────────────────────────────────────── */}
+      <section id="pricing" className="py-20 bg-sand/20 border-t border-stroke-subtle px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sand/80 border border-stroke-subtle text-xs font-semibold text-navy-deep mb-4">
+            <Sparkles className="w-3.5 h-3.5 text-champagne" />
+            <span>Transparent SaaS Packages</span>
+          </div>
+
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
+            Predictable Pricing. Zero Commission Cuts.
+          </h2>
+          <p className="mt-3 text-xs sm:text-sm text-charcoal/70 max-w-2xl mx-auto">
+            All plans include a 14-day free trial with no credit card required. Keep 100% of your carrier commission payouts.
+          </p>
+
+          {/* Toggle */}
+          <div className="mt-8 mb-12 inline-flex items-center gap-3 p-1.5 rounded-2xl bg-sand/60 border border-stroke-subtle">
+            <button
+              type="button"
+              onClick={() => setBillingCycle('monthly')}
+              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                billingCycle === 'monthly' ? 'bg-navy-deep text-ivory shadow-xs' : 'text-charcoal/70 hover:text-navy-deep'
+              }`}
+            >
+              Monthly Billing
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingCycle('annual')}
+              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                billingCycle === 'annual' ? 'bg-navy-deep text-ivory shadow-xs' : 'text-charcoal/70 hover:text-navy-deep'
+              }`}
+            >
+              <span>Annual Billing</span>
+              <span className="px-2 py-0.5 rounded-full bg-champagne text-navy-deep font-extrabold text-[10px]">
+                Save 15%
+              </span>
+            </button>
+          </div>
+
+          {/* Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-6xl mx-auto">
+            {plans.map((plan) => {
+              const price = billingCycle === 'annual' ? plan.annualPrice : plan.monthlyPrice;
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative flex flex-col rounded-3xl p-7 lg:p-8 transition-all text-left ${
+                    plan.popular
+                      ? 'bg-white border-2 border-navy-deep shadow-xl ring-4 ring-navy-deep/5 md:-translate-y-2'
+                      : 'bg-white/80 border border-stroke-subtle shadow-xs'
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-navy-deep text-champagne text-[11px] font-bold tracking-wider uppercase shadow-xs">
+                      Most Popular
+                    </div>
+                  )}
+
+                  <div className="border-b border-sand pb-5">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-bold text-navy-deep">{plan.name}</h3>
+                      <span className="text-[11px] font-semibold text-slate-muted uppercase">
+                        {plan.target}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 flex items-baseline gap-1.5">
+                      <span className="text-4xl font-extrabold text-navy-deep font-mono tracking-tight">
+                        ${price}
+                      </span>
+                      <span className="text-xs font-semibold text-charcoal/60">
+                        / mo {billingCycle === 'annual' && '(billed annually)'}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 text-xs font-semibold text-champagne-light bg-navy-deep inline-block px-2.5 py-1 rounded-md">
+                      {plan.users}
+                    </div>
+
+                    <p className="mt-3 text-xs text-charcoal/70 leading-relaxed min-h-[36px]">
+                      {plan.description}
+                    </p>
+                  </div>
+
+                  <div className="py-6 flex-grow space-y-2.5 text-xs text-charcoal/85">
+                    {plan.features.map((feat, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5 leading-snug">
+                        <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
+                        </div>
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-4 border-t border-sand">
+                    <button
+                      type="button"
+                      onClick={onOpenQuote}
+                      className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                        plan.popular
+                          ? 'bg-navy-deep hover:bg-navy-midnight text-ivory shadow-xs'
+                          : 'bg-sand hover:bg-sand/80 text-navy-deep'
+                      }`}
+                    >
+                      <span>Start 14-Day Free Trial</span>
+                      <ArrowRight className="w-4 h-4 text-champagne" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 text-center">
+            <Link
+              to="/pricing"
+              className="text-xs font-bold text-navy-deep hover:underline inline-flex items-center gap-1.5"
+            >
+              <span>See full feature-by-feature comparison table</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          6. BUSINESS BOUNDARY & COMPLIANCE (Page 13 of Proposal)
+         ───────────────────────────────────────────────────────────── */}
+      <section className="py-14 bg-navy-deep text-ivory px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne/15 text-champagne text-xs font-bold uppercase tracking-widest">
+            <Shield className="w-3.5 h-3.5" />
+            <span>B2B Software Boundary &amp; Compliance Commitment</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            InsurMatch is a CRM Software Provider
+          </h2>
+          <p className="text-xs sm:text-sm text-ivory/80 leading-relaxed max-w-2xl mx-auto">
+            InsurMatch does not sell insurance, provide insurance advice, collect insurance premiums, or receive carrier commissions. All carrier compensation remains 100% between licensed agents, authorized clearinghouses, and carriers.
+          </p>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          7. BOTTOM CTA
+         ───────────────────────────────────────────────────────────── */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="rounded-3xl bg-sand/60 border border-stroke-subtle p-8 sm:p-12 text-center space-y-4 shadow-sm">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
+            Start Your 14-Day Free Trial
+          </h2>
+          <p className="text-xs sm:text-sm text-charcoal/75 max-w-xl mx-auto">
+            Set up your CRM workspace in under 3 minutes. No credit card required. Experience why independent agents choose InsurMatch.
+          </p>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={onOpenQuote}
+              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-navy-deep text-ivory font-bold text-xs hover:bg-navy-midnight transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span>Get Started Free</span>
+              <ArrowRight className="w-4 h-4 text-champagne" />
+            </button>
+            <Link
+              to="/login"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-navy-deep text-navy-deep font-bold text-xs hover:bg-sand transition-colors text-center"
+            >
+              Log In to Portal
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

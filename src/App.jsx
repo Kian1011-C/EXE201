@@ -23,6 +23,7 @@ import LocationsPage from './pages/LocationsPage';
 import CareersPage from './pages/CareersPage';
 import ContactPage from './pages/ContactPage';
 import QuotePage from './pages/QuotePage';
+import PricingPage from './pages/PricingPage';
 
 // Auth Pages
 import LoginPage from './pages/LoginPage';
@@ -78,8 +79,9 @@ function PublicRoutes() {
           <Route path="/careers" element={<CareersPage onOpenQuote={handleOpenQuote} />} />
           <Route path="/contact" element={<ContactPage onOpenQuote={handleOpenQuote} />} />
           <Route path="/secure-contact-form" element={<ContactPage onOpenQuote={handleOpenQuote} />} />
-          <Route path="/get-quote" element={<QuotePage onOpenQuote={handleOpenQuote} />} />
-          <Route path="/secure-quote-request" element={<QuotePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/pricing" element={<PricingPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/get-quote" element={<PricingPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/secure-quote-request" element={<PricingPage onOpenQuote={handleOpenQuote} />} />
           <Route path="/privacy" element={<HomePage onOpenQuote={handleOpenQuote} />} />
           <Route path="/terms" element={<HomePage onOpenQuote={handleOpenQuote} />} />
           <Route path="*" element={<HomePage onOpenQuote={handleOpenQuote} />} />

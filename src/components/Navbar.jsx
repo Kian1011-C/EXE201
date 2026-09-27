@@ -26,11 +26,11 @@ export default function Navbar({ onOpenQuote }) {
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center space-x-3 lg:space-x-4 min-w-0">
             <span className="tracking-widest uppercase text-[10px] text-champagne font-semibold whitespace-nowrap">
-              Licensed Agent Matching Platform
+              B2B SaaS CRM Platform
             </span>
             <span className="text-white/20 hidden lg:inline">|</span>
             <span className="text-ivory/80 text-[11px] hidden lg:inline whitespace-nowrap">
-              Connecting Vietnamese Consumers With Verified Agents
+              Built for Independent Insurance Agents &amp; Agencies in the United States
             </span>
           </div>
 
@@ -42,6 +42,10 @@ export default function Navbar({ onOpenQuote }) {
               <span className="text-champagne font-medium">Support:</span>
               <span className="font-semibold tracking-wider">support@insurmatch.us</span>
             </a>
+            <span className="text-white/20">|</span>
+            <Link to="/pricing" className="text-champagne hover:text-white transition-colors font-bold whitespace-nowrap">
+              Plans from $39/mo
+            </Link>
             <span className="text-white/20">|</span>
             <Link to="/login" className="text-ivory/80 hover:text-champagne transition-colors font-medium whitespace-nowrap">
               Agent &amp; Staff Portal
@@ -72,19 +76,19 @@ export default function Navbar({ onOpenQuote }) {
                 INSUR<span className="text-slate-muted font-normal">MATCH</span>
               </span>
               <span className="text-[10px] tracking-widest text-slate-muted uppercase mt-0.5 font-medium">
-                Digital Lead &amp; Agent Matching Platform
+                B2B SaaS CRM for Insurance Agents
               </span>
             </div>
           </Link>
 
           {/* CENTER: Clean Editorial Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-8 text-[13px] font-medium tracking-wide text-charcoal/80">
-            <Link 
-              className={`hover:text-navy-deep transition-colors ${location.pathname.startsWith('/insurance-services') ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
-              to="/insurance-services"
+          <nav className="hidden lg:flex items-center space-x-7 text-[13px] font-medium tracking-wide text-charcoal/80">
+            <a 
+              className="hover:text-navy-deep transition-colors" 
+              href="/#features"
             >
-              Insurance Types
-            </Link>
+              CRM Features
+            </a>
             <a 
               className="hover:text-navy-deep transition-colors" 
               href="/#how-it-works"
@@ -92,40 +96,47 @@ export default function Navbar({ onOpenQuote }) {
               How It Works
             </a>
             <Link 
-              className={`hover:text-navy-deep transition-colors ${location.pathname === '/get-quote' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
-              to="/get-quote"
+              className={`hover:text-navy-deep transition-colors ${location.pathname === '/pricing' ? 'text-navy-deep font-bold border-b-2 border-navy-deep pb-1' : ''}`} 
+              to="/pricing"
             >
-              Get Matched
+              Pricing Plans
             </Link>
             <Link 
               className={`hover:text-navy-deep transition-colors ${location.pathname === '/about' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
               to="/about"
             >
-              About Us
+              About
             </Link>
             <Link 
               className={`hover:text-navy-deep transition-colors ${location.pathname === '/contact' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
               to="/contact"
             >
-              Contact Support
+              Contact
             </Link>
           </nav>
 
           {/* RIGHT: Actions (Sign In, Primary CTA & Mobile Toggle) */}
           <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className="hidden sm:flex items-center space-x-4 sm:space-x-5">
+            <div className="hidden sm:flex items-center space-x-3 sm:space-x-4">
               <Link 
                 to="/login"
-                className="text-xs font-semibold text-charcoal/80 hover:text-navy-deep transition-colors"
+                className="text-xs font-semibold text-charcoal/80 hover:text-navy-deep transition-colors px-2 py-1"
               >
                 Sign In
               </Link>
 
               <button 
                 onClick={onOpenQuote}
-                className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-navy-deep text-ivory hover:bg-navy-midnight shadow-xs hover:shadow-sm transition-all duration-200 font-semibold text-xs tracking-wide group cursor-pointer border border-navy-deep"
+                className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-navy-deep text-navy-deep hover:bg-sand/60 transition-all font-semibold text-xs tracking-wide cursor-pointer"
               >
-                <span>Get Matched</span>
+                <span>Book Demo</span>
+              </button>
+
+              <button 
+                onClick={onOpenQuote}
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight shadow-xs hover:shadow-sm transition-all duration-200 font-bold text-xs tracking-wide group cursor-pointer border border-navy-deep"
+              >
+                <span>14-Day Free Trial</span>
                 <span className="material-symbols-outlined ml-1.5 text-[16px] text-champagne group-hover:translate-x-1 transition-transform">
                   arrow_forward
                 </span>
@@ -157,22 +168,23 @@ export default function Navbar({ onOpenQuote }) {
               className="lg:hidden bg-ivory border-t border-stroke-subtle px-6 py-6 space-y-4 shadow-xl overflow-hidden"
             >
               <nav className="flex flex-col space-y-3 font-medium text-sm text-charcoal">
-                <Link to="/insurance-services" className="py-2 border-b border-sand hover:text-navy-deep">
-                  Insurance Types (Medicare, ACA, Life)
-                </Link>
+                <a href="/#features" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
+                  CRM Features
+                </a>
                 <a href="/#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
                   How It Works
                 </a>
-                <Link to="/get-quote" className="py-2 border-b border-sand hover:text-navy-deep">
-                  Get Matched
+                <Link to="/pricing" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand text-navy-deep font-bold flex items-center justify-between">
+                  <span>Pricing Plans</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-champagne text-navy-deep">From $39/mo</span>
                 </Link>
-                <Link to="/about" className="py-2 border-b border-sand hover:text-navy-deep">
-                  About InsurMatch
+                <Link to="/about" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
+                  About InsurMatch CRM
                 </Link>
-                <Link to="/contact" className="py-2 border-b border-sand hover:text-navy-deep">
+                <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
                   Contact Support
                 </Link>
-                <Link to="/login" className="py-2 text-navy-deep font-semibold flex items-center gap-1.5">
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="py-2 text-navy-deep font-semibold flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[17px] text-champagne">lock</span>
                   <span>Agent &amp; Staff Portal</span>
                 </Link>
@@ -184,16 +196,25 @@ export default function Navbar({ onOpenQuote }) {
                     setMobileMenuOpen(false);
                     onOpenQuote();
                   }}
-                  className="w-full py-3 rounded-lg bg-navy-deep text-ivory font-semibold text-xs tracking-wide text-center flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-navy-deep text-ivory font-bold text-xs tracking-wide text-center flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                 >
-                  <span>Get Matched</span>
+                  <span>Start 14-Day Free Trial</span>
                   <span className="material-symbols-outlined text-[16px] text-champagne">arrow_forward</span>
+                </button>
+                <button 
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenQuote();
+                  }}
+                  className="w-full py-2.5 rounded-xl border border-navy-deep text-navy-deep font-semibold text-xs tracking-wide text-center block cursor-pointer"
+                >
+                  Book a Free Demo
                 </button>
                 <a 
                   href="mailto:support@insurmatch.us"
-                  className="w-full py-2.5 rounded-lg border border-stroke-subtle text-charcoal font-medium text-center block text-xs"
+                  className="w-full py-2 rounded-lg border border-stroke-subtle text-charcoal/80 font-medium text-center block text-xs"
                 >
-                  Platform Support: support@insurmatch.us
+                  Support: support@insurmatch.us
                 </a>
               </div>
             </motion.div>

@@ -40,49 +40,48 @@ export default function Footer() {
           {/* Nav Links Grid */}
           <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-8">
             
-            {/* Column 1: Insurance */}
+            {/* Column 1: CRM Capabilities */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-widest text-champagne">
-                Coverage Needs
+                CRM Capabilities
               </h4>
               <ul className="space-y-2 text-xs text-ivory/70">
-                <li><Link to="/insurance-services/medicare" className="hover:text-ivory transition-colors">Medicare Guidance</Link></li>
-                <li><Link to="/insurance-services/medicare" className="hover:text-ivory transition-colors">Medicare Advantage (Part C)</Link></li>
-                <li><Link to="/insurance-services/medicare" className="hover:text-ivory transition-colors">Medigap Supplements</Link></li>
-                <li><Link to="/insurance-services/health-insurance" className="hover:text-ivory transition-colors">ACA Marketplace (Obamacare)</Link></li>
-                <li><Link to="/insurance-services/life-insurance" className="hover:text-ivory transition-colors">Life &amp; Living Benefits</Link></li>
-                <li><Link to="/insurance-services/life-insurance" className="hover:text-ivory transition-colors">Fixed Indexed Annuities</Link></li>
-                <li><Link to="/insurance-services" className="hover:text-ivory transition-colors">All Coverage Categories</Link></li>
+                <li><a href="/#features" className="hover:text-ivory transition-colors">Customer &amp; Contact Management</a></li>
+                <li><a href="/#features" className="hover:text-ivory transition-colors">ACA &amp; Medicare Pipelines</a></li>
+                <li><a href="/#features" className="hover:text-ivory transition-colors">Renewal &amp; Task Reminders</a></li>
+                <li><a href="/#features" className="hover:text-ivory transition-colors">Post-Sale Follow-up Automation</a></li>
+                <li><a href="/#features" className="hover:text-ivory transition-colors">Carrier Statement Visibility</a></li>
+                <li><a href="/#workflow" className="hover:text-ivory transition-colors">Daily Agent Workflow</a></li>
               </ul>
             </div>
 
-            {/* Column 2: Company */}
+            {/* Column 2: Pricing & Plans */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-widest text-champagne">
-                Company
+                SaaS Packages
+              </h4>
+              <ul className="space-y-2 text-xs text-ivory/70">
+                <li><Link to="/pricing" className="hover:text-ivory transition-colors">Starter ($39 / mo)</Link></li>
+                <li><Link to="/pricing" className="hover:text-ivory transition-colors">Professional ($79 / mo)</Link></li>
+                <li><Link to="/pricing" className="hover:text-ivory transition-colors">Agency ($199 / mo)</Link></li>
+                <li><Link to="/pricing" className="hover:text-ivory transition-colors">Annual Discount (Save 15%)</Link></li>
+                <li><Link to="/pricing" className="hover:text-ivory transition-colors">14-Day Free Trial</Link></li>
+                <li><Link to="/login" className="hover:text-champagne transition-colors font-semibold">Agent &amp; Staff Portal</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 3: Company */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-champagne">
+                Company &amp; Support
               </h4>
               <ul className="space-y-2 text-xs text-ivory/70">
                 <li><Link to="/about" className="hover:text-ivory transition-colors">About InsurMatch</Link></li>
                 <li><a href="/#how-it-works" className="hover:text-ivory transition-colors">How It Works</a></li>
-                <li><Link to="/about#team" className="hover:text-ivory transition-colors">Our Leadership Team</Link></li>
-                <li><Link to="/locations" className="hover:text-ivory transition-colors">Regional Partner Hubs</Link></li>
-                <li><Link to="/careers" className="hover:text-ivory transition-colors">Agent Partner Network</Link></li>
                 <li><Link to="/contact" className="hover:text-ivory transition-colors">Contact Support</Link></li>
-                <li><Link to="/login" className="hover:text-champagne transition-colors">Agent &amp; Staff Portal</Link></li>
-              </ul>
-            </div>
-
-            {/* Column 3: Resources */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-champagne">
-                Resources
-              </h4>
-              <ul className="space-y-2 text-xs text-ivory/70">
-                <li><Link to="/get-quote" className="hover:text-ivory transition-colors">Agent Matching Flow</Link></li>
-                <li><Link to="/insurance-services" className="hover:text-ivory transition-colors">Insurance Guides</Link></li>
-                <li><Link to="/contact" className="hover:text-ivory transition-colors">Consumer Support</Link></li>
-                <li><Link to="/contact" className="hover:text-ivory transition-colors">Frequently Asked Questions</Link></li>
-                <li><Link to="/locations" className="hover:text-ivory transition-colors">Regional Coverage</Link></li>
+                <li><a href="mailto:support@insurmatch.us" className="hover:text-ivory transition-colors">support@insurmatch.us</a></li>
+                <li><Link to="/privacy" className="hover:text-ivory transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-ivory transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
 
@@ -90,25 +89,25 @@ export default function Footer() {
 
         </div>
 
-        {/* Regulatory Disclaimers (Preserving CMS Medicare & ACA Compliance) */}
+        {/* Regulatory Disclaimers (Strict B2B SaaS Boundary per Coms.pdf Page 13) */}
         <div className="py-8 border-b border-white/10 text-[11px] text-ivory/50 leading-relaxed space-y-2">
           <p>
-            <strong>Disclaimer:</strong> InsurMatch is a technology and lead-generation platform, not an insurance agency or carrier. InsurMatch does not sell insurance, provide insurance advice, underwrite policies, or collect insurance premiums. All insurance quotes, consultations, and policies are provided solely by independent, properly licensed insurance agents. Not connected with or endorsed by the US government or the federal Medicare program.
+            <strong>B2B Software Provider Notice:</strong> InsurMatch is a technology service provider delivering a cloud-based Customer Relationship Management (CRM) platform for licensed independent insurance agents and agencies. InsurMatch does not sell, bind, quote, or underwrite insurance products, provide insurance advice, collect or hold insurance premiums, or receive carrier commissions.
           </p>
           <p>
-            <strong>General Information:</strong> Information submitted by users is matched with verified independent agents licensed in the user's state. Premium calculations and tax credit estimates are subject to carrier underwriting approval and official marketplace verification.
+            <strong>License &amp; Ownership:</strong> Licensed agents remain solely responsible for their own licensing, insurance recommendations, and client service disclosures. All customer data and policyholder relationships remain the exclusive property of the subscribing agent or agency.
           </p>
         </div>
 
         {/* Bottom Copyright & Legal Links */}
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-ivory/60">
           <div>
-            © {new Date().getFullYear()} INSURMATCH. All rights reserved. Digital Insurance Lead-Generation &amp; Matchmaking Platform.
+            © {new Date().getFullYear()} INSURMATCH. All rights reserved. B2B SaaS CRM for Independent Insurance Agents.
           </div>
           <div className="flex flex-wrap items-center gap-6">
             <Link to="/privacy" className="hover:text-champagne transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-champagne transition-colors">Terms of Service</Link>
-            <Link to="/contact" className="hover:text-champagne transition-colors">Legal &amp; Licensing</Link>
+            <Link to="/contact" className="hover:text-champagne transition-colors">Compliance &amp; Security</Link>
           </div>
         </div>
 
