@@ -165,8 +165,6 @@ export default function StaffDealsKanban({
   collapsedColumns = {},
   onToggleCollapse,
 }) {
-  const [draggedDealId, setDraggedDealId] = useState(null);
-  const [dragOverColId, setDragOverColId] = useState(null);
   const [filterMode, setFilterMode] = useState('all'); // 'all' (all stages) | 'active' (only stages with deals)
 
   // Dynamically assemble all columns based on pipeline + deal stages
@@ -216,37 +214,6 @@ export default function StaffDealsKanban({
     return mapped;
   }, [deals, pipeline, filterMode]);
 
-  function handleDragStart(e, deal) {
-    setDraggedDealId(deal.id);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', deal.id);
-  }
-
-  function handleDragOver(e, colId) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragOverColId !== colId) {
-      setDragOverColId(colId);
-    }
-  }
-
-  function handleDragLeave(e, colId) {
-    if (dragOverColId === colId) {
-      setDragOverColId(null);
-    }
-  }
-
-  function handleDrop(e, col) {
-    e.preventDefault();
-    setDragOverColId(null);
-    const dealId = e.dataTransfer.getData('text/plain') || draggedDealId;
-    setDraggedDealId(null);
-
-    if (dealId && onUpdateDealStage) {
-      onUpdateDealStage(dealId, col.canonicalStage);
-    }
-  }
-
   const activeColumnsCount = useMemo(() => {
     return columns.filter((c) => c.count > 0).length;
   }, [columns]);
@@ -284,7 +251,7 @@ export default function StaffDealsKanban({
         </div>
 
         <div className="text-[11px] text-slate-400">
-          Kéo thả thẻ giữa các cột để chuyển Stage trực tiếp
+          Nhấn vào thẻ deal để xem thông tin (tự mở tab mới)
         </div>
       </div>
 
@@ -292,7 +259,6 @@ export default function StaffDealsKanban({
       <div className="flex-grow flex gap-3 overflow-x-auto pb-4 pt-1 px-1 min-h-[580px] scrollbar-thin">
         {columns.map((col) => {
           const isCollapsed = Boolean(collapsedColumns[col.id]);
-          const isDragOver = dragOverColId === col.id;
 
           if (isCollapsed) {
             return (
@@ -333,14 +299,7 @@ export default function StaffDealsKanban({
           return (
             <div
               key={col.id}
-              onDragOver={(e) => handleDragOver(e, col.id)}
-              onDragLeave={(e) => handleDragLeave(e, col.id)}
-              onDrop={(e) => handleDrop(e, col)}
-              className={`w-[290px] sm:w-[315px] bg-slate-50/80 rounded-xl border flex flex-col shrink-0 shadow-2xs transition-all duration-200 ${
-                isDragOver
-                  ? 'border-blue-400 ring-2 ring-blue-300/40 bg-blue-50/30'
-                  : 'border-slate-200/80'
-              }`}
+              className="w-[290px] sm:w-[315px] bg-slate-50/80 rounded-xl border border-slate-200/80 flex flex-col shrink-0 shadow-2xs transition-all duration-200"
             >
               {/* ── Column Header ──────────────────────────────────────────── */}
               <div className="p-3 bg-white/95 rounded-t-xl border-b border-slate-200/70 flex items-center justify-between shrink-0">
@@ -371,39 +330,34 @@ export default function StaffDealsKanban({
               {/* ── Deals Cards Container ──────────────────────────────────── */}
               <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 max-h-[calc(100vh-320px)] min-h-[380px]">
                 {col.deals.length === 0 ? (
-                  <div
-                    className={`h-36 rounded-lg border-2 border-dashed flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center transition ${
-                      isDragOver
-                        ? 'border-blue-400 bg-blue-50/50 text-blue-600'
-                        : 'border-slate-200 bg-white/40'
-                    }`}
-                  >
+                  <div className="h-36 rounded-lg border-2 border-dashed border-slate-200 bg-white/40 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center">
                     <span className="material-symbols-outlined text-[24px] mb-1 opacity-60">
-                      move_to_inbox
+                      inbox
                     </span>
-                    <span className="font-medium text-[11px]">Kéo deal vào đây</span>
+                    <span className="font-medium text-[11px]">Không có deal nào</span>
                   </div>
                 ) : (
                   col.deals.map((deal) => {
-                    const isBeingDragged = draggedDealId === deal.id;
                     const formattedTime = deal.lastModifiedTime || '09/18/2026, 15:39';
+                    const dealUrl = `/dashboard/staff/deals/${deal.id || deal.code || 'D26005033'}`;
 
                     return (
-                      <div
+                      <a
                         key={deal.id}
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, deal)}
-                        onClick={() => onSelectDeal && onSelectDeal(deal)}
-                        className={`bg-white rounded-lg border border-slate-200/90 p-3 shadow-2xs hover:shadow-md ${col.borderHover} transition-all duration-150 cursor-grab active:cursor-grabbing relative group ${
-                          isBeingDragged ? 'opacity-40 scale-95 border-blue-400' : ''
-                        }`}
+                        href={dealUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`block bg-white rounded-lg border border-slate-200/90 p-3 shadow-2xs hover:shadow-md ${col.borderHover} transition-all duration-150 cursor-pointer relative group text-inherit no-underline`}
                       >
                         {/* Deal Title */}
                         <div className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition truncate mb-1.5 flex items-center justify-between gap-1">
                           <span className="truncate" title={deal.title}>
                             {deal.shortTitle || deal.title}
                           </span>
-                          <span className="material-symbols-outlined text-[14px] text-slate-300 opacity-0 group-hover:opacity-100 transition shrink-0">
+                          <span
+                            title="Mở trong tab mới"
+                            className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-blue-600 opacity-60 group-hover:opacity-100 transition shrink-0"
+                          >
                             open_in_new
                           </span>
                         </div>
@@ -440,7 +394,7 @@ export default function StaffDealsKanban({
                             {formattedTime}
                           </span>
                         </div>
-                      </div>
+                      </a>
                     );
                   })
                 )}

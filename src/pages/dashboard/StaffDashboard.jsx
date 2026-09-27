@@ -15,6 +15,7 @@ import StaffCommissionView from './staff/StaffCommissionView';
 import {
   MOCK_CONTACTS,
   SAMPLE_CONTACTS,
+  SAMPLE_DEALS,
   CONTACT_DETAIL_DATA,
   DEAL_DETAIL_DATA,
   CUSTOMER_DOCUMENT_DATA,
@@ -88,8 +89,12 @@ export default function StaffDashboard() {
       const parts = path.split('/dashboard/staff/deals/');
       const dealId = parts[1];
       if (dealId) {
+        const localFound = SAMPLE_DEALS.find((d) => d.id === dealId || d.code === dealId);
+        if (localFound) {
+          setSelectedDeal({ ...DEAL_DETAIL_DATA, ...localFound });
+        }
         getDeal(dealId)
-          .then((res) => { if (res) setSelectedDeal((prev) => ({ ...prev, ...res })); })
+          .then((res) => { if (res) setSelectedDeal((prev) => ({ ...DEAL_DETAIL_DATA, ...res })); })
           .catch(() => {});
       }
       setCurrentTab('deals');
