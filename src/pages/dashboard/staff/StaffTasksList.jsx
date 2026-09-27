@@ -95,31 +95,35 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
     try {
       const data = await getTasks();
       if (Array.isArray(data) && data.length > 0) {
-        const dbTasks = data.map((t, idx) => ({
-          id: t.id || `TSK-DB-${idx}`,
-          no: SAMPLE_TASKS.length + idx + 1,
-          title: t.title || 'Support task',
-          completed: t.status === 'Completed',
-          assignee: {
-            name: t.assignedTo || 'Jessica Nguyen',
-            handle: 'agent',
-            avatar: (t.assignedTo || 'JN').slice(0, 2).toUpperCase(),
-            bg: 'bg-blue-600',
-          },
-          dueDate: t.dueDate || '09/30/2026',
-          taskType: t.type || '',
-          typeIcon: t.type === 'Call' ? 'call' : t.type === 'To Do' ? 'checklist' : '',
-          priority: t.priority || 'None',
-          lastModifiedBy: {
-            name: t.assignedTo || 'Jessica Nguyen',
-            avatar: (t.assignedTo || 'JN').slice(0, 2).toUpperCase(),
-            bg: 'bg-blue-600',
-          },
-          lastModifiedTime: t.updatedAt
-            ? new Date(t.updatedAt).toLocaleString()
-            : '09/23/2026, 11:21',
-          rawTask: t,
-        }));
+        const dbTasks = data.map((t, idx) => {
+          const assignedName = typeof t.assignedTo === 'object' ? (t.assignedTo?.name || 'Jessica Nguyen') : (t.assignedToName || t.assignedTo || 'Jessica Nguyen');
+          const assignedAvatar = (typeof assignedName === 'string' ? assignedName : 'JN').slice(0, 2).toUpperCase();
+          return {
+            id: t.id || `TSK-DB-${idx}`,
+            no: SAMPLE_TASKS.length + idx + 1,
+            title: t.title || 'Support task',
+            completed: t.status === 'Completed',
+            assignee: {
+              name: assignedName,
+              handle: 'agent',
+              avatar: assignedAvatar,
+              bg: 'bg-blue-600',
+            },
+            dueDate: t.dueDate || '09/30/2026',
+            taskType: t.type || '',
+            typeIcon: t.type === 'Call' ? 'call' : t.type === 'To Do' ? 'checklist' : '',
+            priority: t.priority || 'None',
+            lastModifiedBy: {
+              name: assignedName,
+              avatar: assignedAvatar,
+              bg: 'bg-blue-600',
+            },
+            lastModifiedTime: t.updatedAt
+              ? new Date(t.updatedAt).toLocaleString()
+              : '09/23/2026, 11:21',
+            rawTask: t,
+          };
+        });
         setTasksList([...SAMPLE_TASKS, ...dbTasks]);
       } else {
         setTasksList(SAMPLE_TASKS);

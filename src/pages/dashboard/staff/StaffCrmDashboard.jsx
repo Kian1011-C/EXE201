@@ -96,6 +96,22 @@ export default function StaffCrmDashboard({
     );
   };
 
+  // Helper to extract person name from string or object safely
+  function getPersonName(val) {
+    if (!val) return 'Unassigned';
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object') {
+      return (
+        val.name ||
+        [val.firstName, val.lastName].filter(Boolean).join(' ') ||
+        val.fullName ||
+        val.email ||
+        'Unassigned'
+      );
+    }
+    return String(val);
+  }
+
   // Helper date formatter
   function formatDate(d) {
     if (!d) return '';
@@ -187,7 +203,7 @@ export default function StaffCrmDashboard({
         stageMap[st] = { stage: st, count: 0, agents: {} };
       }
       stageMap[st].count += 1;
-      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
+      const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       stageMap[st].agents[agent] = (stageMap[st].agents[agent] || 0) + 1;
     });
 
@@ -208,7 +224,7 @@ export default function StaffCrmDashboard({
         stageMap[st] = { stage: st, count: 0, agents: {} };
       }
       stageMap[st].count += 1;
-      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
+      const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       stageMap[st].agents[agent] = (stageMap[st].agents[agent] || 0) + 1;
     });
 
@@ -223,8 +239,8 @@ export default function StaffCrmDashboard({
   const medUniqueAgents = useMemo(() => {
     const set = new Set();
     medDeals.forEach((d) => {
-      const ag = d.dealOwnerName || d.dealOwner?.name;
-      if (ag) set.add(ag);
+      const ag = d.dealOwnerName || getPersonName(d.dealOwner);
+      if (ag && ag !== 'Unassigned') set.add(ag);
     });
     return Array.from(set);
   }, [medDeals]);
@@ -234,7 +250,7 @@ export default function StaffCrmDashboard({
     const activeOB = obDeals.filter((d) => (d.stage || '').toLowerCase().includes('active'));
     const map = {};
     activeOB.forEach((d) => {
-      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
+      const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       map[agent] = (map[agent] || 0) + 1;
     });
     return Object.entries(map)
@@ -251,7 +267,7 @@ export default function StaffCrmDashboard({
   const medDealsByAgent = useMemo(() => {
     const map = {};
     medDeals.forEach((d) => {
-      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
+      const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       map[agent] = (map[agent] || 0) + 1;
     });
     return Object.entries(map)
@@ -268,7 +284,13 @@ export default function StaffCrmDashboard({
   const contactsByOwner = useMemo(() => {
     const map = {};
     liveContacts.forEach((c) => {
-      const owner = c.contactOwnerName || c.supportAgent || 'Unassigned';
+      const owner =
+        c.contactOwnerName ||
+        (c.contactOwner
+          ? getPersonName(c.contactOwner)
+          : c.supportAgent
+          ? getPersonName(c.supportAgent)
+          : 'Unassigned');
       if (!map[owner]) map[owner] = { agent: owner, active: 0, inactive: 0, total: 0 };
       if (c.status === 'Active') {
         map[owner].active += 1;
@@ -289,7 +311,7 @@ export default function StaffCrmDashboard({
   const dealsByAgentChart = useMemo(() => {
     const map = {};
     activeDealsList.forEach((d) => {
-      const owner = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
+      const owner = d.dealOwnerName || getPersonName(d.dealOwner);
       if (!map[owner]) map[owner] = { name: owner, ob: 0, med: 0, total: 0 };
       if ((d.pipeline || '').toLowerCase().includes('medicare')) {
         map[owner].med += 1;
@@ -310,7 +332,7 @@ export default function StaffCrmDashboard({
   const openTasksByAgent = useMemo(() => {
     const map = {};
     openTasksList.forEach((t) => {
-      const agent = t.assignedTo || 'Unassigned';
+      const agent = t.assignedToName || getPersonName(t.assignedTo);
       map[agent] = (map[agent] || 0) + 1;
     });
     return Object.entries(map)
@@ -321,7 +343,7 @@ export default function StaffCrmDashboard({
   const overdueTasksByAgent = useMemo(() => {
     const map = {};
     overdueTasksList.forEach((t) => {
-      const agent = t.assignedTo || 'Unassigned';
+      const agent = t.assignedToName || getPersonName(t.assignedTo);
       map[agent] = (map[agent] || 0) + 1;
     });
     return Object.entries(map)
@@ -342,7 +364,7 @@ export default function StaffCrmDashboard({
 
     const combos = {};
     overdueTicketsList.forEach((t) => {
-      const ag = t.serviceAgent || t.assignedTo || 'Unassigned';
+      const ag = t.serviceAgentName || t.assignedToName || getPersonName(t.serviceAgent || t.assignedTo);
       const st = t.stage || t.status || 'Waiting on verification';
       const key = `${ag}:::${st}`;
       if (!combos[key]) {
@@ -389,7 +411,7 @@ export default function StaffCrmDashboard({
   const openTicketsByAgent = useMemo(() => {
     const map = {};
     openTicketsList.forEach((t) => {
-      const agent = t.serviceAgent || t.assignedTo || 'Unassigned';
+      const agent = t.serviceAgentName || t.assignedToName || getPersonName(t.serviceAgent || t.assignedTo);
       if (!map[agent]) map[agent] = { agent, count: 0 };
       map[agent].count += 1;
     });
@@ -400,7 +422,7 @@ export default function StaffCrmDashboard({
   const overdueTicketsByAgent = useMemo(() => {
     const map = {};
     overdueTicketsList.forEach((t) => {
-      const agent = t.serviceAgent || t.assignedTo || 'Unassigned';
+      const agent = t.serviceAgentName || t.assignedToName || getPersonName(t.serviceAgent || t.assignedTo);
       if (!map[agent]) map[agent] = { agent, count: 0 };
       map[agent].count += 1;
     });
@@ -423,7 +445,7 @@ export default function StaffCrmDashboard({
     );
     const map = {};
     missing.forEach((d) => {
-      const agent = d.dealOwnerName || d.dealOwner?.name || 'Unassigned';
+      const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       map[agent] = (map[agent] || 0) + 1;
     });
     const maxVal = Math.max(...Object.values(map), 1);
@@ -444,7 +466,10 @@ export default function StaffCrmDashboard({
     );
     const map = {};
     needAccount.forEach((c) => {
-      const agent = c.supportAgent || c.contactOwnerName || 'Unassigned';
+      const agent =
+        c.supportAgentName ||
+        c.contactOwnerName ||
+        getPersonName(c.supportAgent || c.contactOwner);
       map[agent] = (map[agent] || 0) + 1;
     });
     const maxVal = Math.max(...Object.values(map), 1);
@@ -466,14 +491,18 @@ export default function StaffCrmDashboard({
     );
     return docTix.map((t, idx) => ({
       no: idx + 1,
-      ticketId: t.title || `Collect Document #${t.id?.slice(-4)}`,
+      ticketId: t.title || `Collect Document #${String(t.id || '').slice(-4)}`,
       due: formatDate(t.dueDate),
-      owner: t.contact?.fullName || t.ticketOwner || 'Customer',
+      owner:
+        t.contact?.fullName ||
+        (t.contact ? [t.contact.firstName, t.contact.lastName].filter(Boolean).join(' ') : '') ||
+        getPersonName(t.ticketOwner || t.owner) ||
+        'Customer',
       stage:
         t.status === 'WAITING_ON_CLIENT'
           ? 'Waiting on contact'
           : t.stage || t.status || 'Waiting on verification',
-      agent: t.serviceAgent || t.assignedTo || 'Unassigned',
+      agent: t.serviceAgentName || t.assignedToName || getPersonName(t.serviceAgent || t.assignedTo),
       rawTicket: t,
       contact: t.contact,
     }));
@@ -486,7 +515,7 @@ export default function StaffCrmDashboard({
       const st = d.consentFormStatus || 'Collected';
       if (!map[st]) map[st] = { label: st, count: 0, agents: {} };
       map[st].count += 1;
-      const agent = d.dealOwnerName || 'Unassigned';
+      const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       map[st].agents[agent] = (map[st].agents[agent] || 0) + 1;
     });
     return Object.values(map).sort((a, b) => b.count - a.count);
@@ -500,7 +529,7 @@ export default function StaffCrmDashboard({
       const st = d.contact?.acaAccountStatus || d.stageAca || 'Pending - Waiting for Document';
       if (!map[st]) map[st] = { label: st, total: 0, agents: {} };
       map[st].total += 1;
-      const agent = d.dealOwnerName || 'Unassigned';
+      const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       map[st].agents[agent] = (map[st].agents[agent] || 0) + 1;
     });
     return Object.values(map).sort((a, b) => b.total - a.total);
@@ -520,8 +549,8 @@ export default function StaffCrmDashboard({
   const ticketDistinctAgents = useMemo(() => {
     const set = new Set();
     liveTickets.forEach((t) => {
-      const ag = t.serviceAgent || t.assignedTo;
-      if (ag) set.add(ag);
+      const ag = t.serviceAgentName || t.assignedToName || getPersonName(t.serviceAgent || t.assignedTo);
+      if (ag && ag !== 'Unassigned') set.add(ag);
     });
     const arr = Array.from(set);
     return arr.length > 0 ? arr : ['Anya Nguyen', 'Sean Ngo', 'Sarah Thai', 'Ivy Le'];
@@ -533,7 +562,10 @@ export default function StaffCrmDashboard({
       const vals = ticketDateColumns.map((dt) => {
         return completed.filter(
           (t) =>
-            (t.serviceAgent === agent || t.assignedTo === agent) &&
+            (t.serviceAgentName === agent ||
+              t.assignedToName === agent ||
+              getPersonName(t.serviceAgent) === agent ||
+              getPersonName(t.assignedTo) === agent) &&
             formatDate(t.dueDate || t.updatedAt) === dt
         ).length;
       });
@@ -551,7 +583,10 @@ export default function StaffCrmDashboard({
       const vals = ticketDateColumns.map((dt) => {
         return newTix.filter(
           (t) =>
-            (t.serviceAgent === agent || t.assignedTo === agent) &&
+            (t.serviceAgentName === agent ||
+              t.assignedToName === agent ||
+              getPersonName(t.serviceAgent) === agent ||
+              getPersonName(t.assignedTo) === agent) &&
             formatDate(t.createdAt) === dt
         ).length;
       });
@@ -590,7 +625,7 @@ export default function StaffCrmDashboard({
       const st = d.consentFormStatus || 'Collected';
       if (!map[st]) map[st] = { label: st, total: 0, agents: {} };
       map[st].total += 1;
-      const agent = d.dealOwnerName || 'Unassigned';
+      const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       map[st].agents[agent] = (map[st].agents[agent] || 0) + 1;
     });
     return Object.values(map).sort((a, b) => b.total - a.total);

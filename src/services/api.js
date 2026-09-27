@@ -87,6 +87,8 @@ function normalizeContact(c) {
     code: c.code || `CT2600${String(c.id || 1).padStart(4, '0')}`,
     fullName,
     name: fullName,
+    contactOwnerName: ownerName,
+    supportAgentName: supportName,
     phone: c.phone || '—',
     email: c.email || '—',
     language: c.language || 'Vietnamese',
@@ -152,6 +154,7 @@ function normalizeDeal(d) {
     dealName: title,
     code: d.code || `DL2600${String(d.id || 1).padStart(4, '0')}`,
     contactName,
+    dealOwnerName: ownerName,
     dealOwner: {
       name: ownerName,
       avatar: d.dealOwner?.avatar || getUserAvatar(ownerName),
@@ -175,7 +178,7 @@ function normalizeDeal(d) {
 function normalizeTicket(t) {
   if (!t) return t;
   const title = t.title || t.ticketName || `Ticket #${t.id}`;
-  const ownerName = formatUserName(t.ticketOwner) || 'Agent';
+  const ownerName = formatUserName(t.ticketOwner) || formatUserName(t.owner) || 'Agent';
   const serviceName = formatUserName(t.serviceAgent) || 'Support Staff';
   const contactName = t.contactName || (t.contact ? [t.contact.firstName, t.contact.lastName].filter(Boolean).join(' ') : '') || 'Client';
   const dealTitle = t.dealTitle || t.deal?.dealName || t.deal?.title || '';
@@ -193,6 +196,8 @@ function normalizeTicket(t) {
     description: t.description || t.ticketDescription || '',
     contactName,
     dealTitle,
+    ticketOwnerName: ownerName,
+    serviceAgentName: serviceName,
     owner: {
       name: ownerName,
       avatar: t.owner?.avatar || getUserAvatar(ownerName),
@@ -222,6 +227,7 @@ function normalizeTask(t) {
     code: t.code || `TSK2600${String(t.id || 1).padStart(4, '0')}`,
     status: t.status || 'Not Started',
     priority: t.priority || 'Medium',
+    assignedToName: assignedName,
     assignedTo: {
       name: assignedName,
       avatar: t.assignedTo?.avatar || getUserAvatar(assignedName),
