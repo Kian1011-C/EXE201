@@ -1,18 +1,25 @@
 // ============================================================
 // src/services/api.js — InsurMatch CRM Backend API Client
-// Connected to PostgreSQL via Docker Compose Express Server
+// Connected to Spring Boot 3 + PostgreSQL via Docker Compose
 // ============================================================
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 /**
- * Helper to handle fetch responses with proper JSON parsing and error messages
+ * Helper to handle fetch responses with proper JSON parsing and error messages.
+ * Automatically injects JWT Bearer token from localStorage if available.
  */
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
   const defaultHeaders = {
     'Content-Type': 'application/json',
   };
+
+  // Inject JWT Bearer token if stored in localStorage
+  const token = localStorage.getItem('tbri_token');
+  if (token && !token.startsWith('mock-token-')) {
+    defaultHeaders['Authorization'] = `Bearer ${token}`;
+  }
 
   try {
     const response = await fetch(url, {
@@ -25,10 +32,15 @@ async function request(endpoint, options = {}) {
 
     if (!response.ok) {
       const errBody = await response.json().catch(() => ({}));
-      throw new Error(errBody.error || `HTTP error ${response.status}: ${response.statusText}`);
+      throw new Error(errBody.message || errBody.error || `HTTP error ${response.status}: ${response.statusText}`);
     }
 
-    return await response.json();
+    const json = await response.json();
+    // Auto-unwrap Spring Boot ApiResponse wrapper: { success: true, data: ... }
+    if (json && typeof json === 'object' && 'data' in json && 'success' in json) {
+      return json.data;
+    }
+    return json;
   } catch (error) {
     console.warn(`[CRM API] Call to ${endpoint} failed:`, error.message);
     throw error;

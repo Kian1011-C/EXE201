@@ -1,6 +1,7 @@
 // ============================================================
-// authService.js — Mock Auth Service
-// Để gắn API thật sau này: chỉ cần sửa hàm login() và logout()
+// authService.js — InsurMatch Auth Service
+// Kết nối real API Spring Boot: POST /api/auth/login
+// Fallback to demo accounts khi backend offline
 // ============================================================
 
 const DEMO_ACCOUNTS = [
@@ -28,25 +29,101 @@ const DEMO_ACCOUNTS = [
     name: 'Licensed Agent Partner',
     avatar: 'IA',
   },
+  {
+    id: 4,
+    email: 'manager@insurmatch.us',
+    password: 'Manager@123',
+    role: 'staff',
+    name: 'Manager',
+    avatar: 'MG',
+  },
 ];
 
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
 // ─────────────────────────────────────────────
-// LOGIN
-// TODO: Replace mock logic with real API call:
-//   const res = await fetch('/api/auth/login', {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify({ email, password }),
-//   });
-//   const data = await res.json();
-//   if (!res.ok) throw new Error(data.message || 'Login failed');
-//   return data; // { token, user: { id, name, email, role, avatar } }
+// LOGIN — Try real Spring Boot API first, fallback to demo accounts
 // ─────────────────────────────────────────────
 export async function login(email, password) {
-  // Simulate network delay
-  await new Promise((r) => setTimeout(r, 700));
-
   const normalizedEmail = email?.trim().toLowerCase();
+
+  // ── Attempt 1: Call real Spring Boot API ──────────────────
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: normalizedEmail, password }),
+    });
+
+    if (res.ok) {
+      const resp = await res.json();
+      // Handle Spring Boot ApiResponse wrapper: { success: true, data: { token, user } }
+      const data = (resp && resp.data) ? resp.data : resp;
+      const token = data.token || data.accessToken;
+      const user = data.user || {
+        id: data.userId || data.id,
+        name: data.name || normalizedEmail.split('@')[0],
+        email: data.email || normalizedEmail,
+        role: (data.role || 'staff').toLowerCase(),
+        avatar: (data.name || 'U').substring(0, 2).toUpperCase(),
+      };
+
+      // Normalize role to lowercase for frontend routing
+      if (user.role) {
+        user.role = user.role.toLowerCase();
+        // Map ROLE_ADMIN -> admin, ROLE_STAFF -> staff, etc.
+        if (user.role.startsWith('role_')) {
+          user.role = user.role.replace('role_', '');
+        }
+      }
+
+      // Generate avatar initials if missing
+      if (!user.avatar && user.name) {
+        user.avatar = user.name
+          .split(' ')
+          .map((w) => w[0])
+          .slice(0, 2)
+          .join('')
+          .toUpperCase();
+      }
+
+      // Persist session
+      localStorage.setItem('tbri_token', token);
+      localStorage.setItem('tbri_user', JSON.stringify(user));
+
+      // Store refresh token if available
+      if (data.refreshToken) {
+        localStorage.setItem('tbri_refresh_token', data.refreshToken);
+      }
+
+      console.log('[Auth] Successfully logged in via Spring Boot API');
+      return { token, user };
+    }
+
+    // If API returned error, extract error message
+    const errBody = await res.json().catch(() => ({}));
+    const errMsg = errBody.message || errBody.error || `Login failed (${res.status})`;
+
+    // If it's a genuine auth failure (401/403), throw immediately — don't fallback
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(errMsg);
+    }
+
+    // For other errors (500, etc.), fall through to demo accounts
+    console.warn('[Auth] API returned error, trying demo accounts:', errMsg);
+  } catch (fetchError) {
+    // Network error or CORS issue — fall through to demo accounts
+    if (fetchError.message?.includes('Login failed') ||
+        fetchError.message?.includes('Invalid') ||
+        fetchError.message?.includes('not activated') ||
+        fetchError.message?.includes('credentials')) {
+      // This is a real auth error from the server, don't fallback
+      throw fetchError;
+    }
+    console.warn('[Auth] Backend offline, using demo accounts:', fetchError.message);
+  }
+
+  // ── Attempt 2: Fallback to local demo accounts ────────────
   const account = DEMO_ACCOUNTS.find(
     (a) =>
       (a.email.toLowerCase() === normalizedEmail ||
@@ -66,20 +143,31 @@ export async function login(email, password) {
   localStorage.setItem('tbri_token', token);
   localStorage.setItem('tbri_user', JSON.stringify(user));
 
+  console.log('[Auth] Logged in via demo accounts (backend offline)');
   return { token, user };
 }
 
 // ─────────────────────────────────────────────
-// LOGOUT
-// TODO: Optionally call POST /api/auth/logout to invalidate token on server
+// LOGOUT — Clear local storage + optionally call backend
 // ─────────────────────────────────────────────
 export function logout() {
+  // Try to call backend logout (fire-and-forget)
+  const token = localStorage.getItem('tbri_token');
+  if (token && !token.startsWith('mock-token-')) {
+    fetch(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+    }).catch(() => {});
+  }
+
   localStorage.removeItem('tbri_token');
   localStorage.removeItem('tbri_user');
+  localStorage.removeItem('tbri_refresh_token');
 }
 
 // ─────────────────────────────────────────────
 // RESTORE SESSION from localStorage
+// Optionally validate token with GET /api/auth/me
 // ─────────────────────────────────────────────
 export function restoreSession() {
   const token = localStorage.getItem('tbri_token');
