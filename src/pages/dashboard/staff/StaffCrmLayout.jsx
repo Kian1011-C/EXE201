@@ -139,7 +139,7 @@ export default function StaffCrmLayout({
       id: 'commissions',
       label: 'Commission',
       icon: 'payments',
-      desc: 'Bảng kê đối soát hoa hồng toàn hệ thống (All Agents)',
+      desc: 'Doanh thu thuê bao SaaS & Hoa hồng Sales nội bộ (Coms.pdf)',
     },
     {
       id: 'system',
@@ -187,7 +187,7 @@ export default function StaffCrmLayout({
             id: 'commission',
             label: 'Commission',
             icon: 'payments',
-            desc: 'Bảng kê đối soát hoa hồng',
+            desc: 'Doanh thu thuê bao SaaS & Hoa hồng Sales nội bộ (Coms.pdf)',
           },
         ]
       : []),
