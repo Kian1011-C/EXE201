@@ -10,10 +10,10 @@ export default function AdminOverviewTab({
   dbStatus,
   onNavigateTab,
 }) {
-  const verifiedAgentsCount = accounts.filter((a) => a.role === 'agent' && a.status === 'Active').length;
-  const pendingAgentsCount = accounts.filter((a) => a.role === 'agent' && a.status.includes('Pending')).length;
-  const staffCount = accounts.filter((a) => a.role === 'staff' && a.status === 'Active').length;
-  const activeDealsCount = deals.filter((d) => !(d.stage || '').includes('Closed Lost')).length;
+  const verifiedAgentsCount = accounts.filter((a) => (a.role === 'agent' || a.role === 'AGENT') && (a.status === 'Active' || a.active !== false)).length;
+  const pendingAgentsCount = accounts.filter((a) => (a.role === 'agent' || a.role === 'AGENT') && (a.status ? a.status.includes('Pending') : a.active === false)).length;
+  const staffCount = accounts.filter((a) => (a.role === 'staff' || a.role === 'support' || a.role === 'SUPPORT') && (a.status === 'Active' || a.active !== false)).length;
+  const activeDealsCount = deals.filter((d) => !(d.stage || d.dealStage || '').includes('Closed Lost')).length;
 
   // Carrier distribution
   const carrierCounts = {};

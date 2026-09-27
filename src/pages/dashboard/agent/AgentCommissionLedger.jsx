@@ -272,10 +272,10 @@ export default function AgentCommissionLedger({ onSelectContact }) {
       if (summary) setDbSummary(summary);
 
       if (Array.isArray(comms) && comms.length > 0) {
-        // Map backend Prisma model to Ledger shape
+        // Map backend Prisma/Spring Boot model to Ledger shape
         const formatted = comms.map((c) => ({
           id: c.id,
-          policyNumber: c.policyId || `POL-${c.id.slice(-6)}`,
+          policyNumber: c.policyId || `POL-${String(c.id).slice(-6)}`,
           memberId: c.policyId || 'MID-UNKNOWN',
           clientName: c.deal?.title?.split('–')[0]?.trim() || c.agentName || 'Client Name',
           clientCode: c.deal?.contactId || 'CT26002600',
@@ -294,7 +294,7 @@ export default function AgentCommissionLedger({ onSelectContact }) {
           status: c.status === 'SETTLED' ? 'Settled' : c.status === 'PENDING' ? 'Pending Carrier Review' : c.status,
           cycle: c.period || '2026-09',
           payoutDate: c.status === 'SETTLED' ? '09/15/2026' : 'Pending (Next Cycle)',
-          directDepositRef: c.status === 'SETTLED' ? `ACH-${c.id.slice(0, 6).toUpperCase()}` : '---',
+          directDepositRef: c.status === 'SETTLED' ? `ACH-${String(c.id).slice(0, 6).toUpperCase()}` : '---',
         }));
         setCommissionList(formatted);
       }

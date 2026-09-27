@@ -50,7 +50,12 @@ async function request(endpoint, options = {}) {
 // ── Health Check ─────────────────────────────────────────────────────────────
 export async function checkBackendHealth() {
   try {
-    return await request('/health');
+    const res = await request('/health');
+    return {
+      ...res,
+      status: (res?.status === 'online' || res?.status === 'ok') ? 'ok' : (res?.status || 'offline'),
+      database: res?.database || 'disconnected',
+    };
   } catch (err) {
     return { status: 'offline', database: 'disconnected', error: err.message };
   }
@@ -223,6 +228,28 @@ function normalizeTask(t) {
     },
     contactName,
     dealTitle,
+  };
+}
+
+function normalizeAccount(u) {
+  if (!u) return u;
+  const name = u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'User';
+  const role = (u.role || 'staff').toLowerCase();
+  const normalizedRole = (role === 'support' || role === 'telesales') ? 'staff' : (role === 'manager' ? 'admin' : role);
+  const status = u.status || (u.active !== false ? 'Active' : 'Suspended');
+  return {
+    ...u,
+    id: String(u.id),
+    name,
+    role: normalizedRole,
+    originalRole: role,
+    status,
+    phone: u.phone || '—',
+    npn: u.npn || '—',
+    avatar: u.avatar || getUserAvatar(name),
+    statesLicensed: u.statesLicensed || 'Texas (TDI)',
+    department: u.department || (normalizedRole === 'admin' ? 'Executive' : (normalizedRole === 'agent' ? 'Sales Agency' : 'Operations')),
+    joinedDate: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recent',
   };
 }
 
@@ -416,7 +443,14 @@ export async function getDashboardStats() {
 // ── Admin Portal Operations ──────────────────────────────────────────────────
 export async function getAdminStats() {
   try {
-    return await request('/admin/stats');
+    const data = await request('/admin/stats');
+    if (!data) return null;
+    return {
+      ...data,
+      totalInquiries: data.totalQuotes || data.totalInquiries || 0,
+      verifiedAgents: data.totalUsers || data.verifiedAgents || 0,
+      activeDeals: data.totalDeals || data.activeDeals || 0,
+    };
   } catch {
     return null;
   }
@@ -424,7 +458,8 @@ export async function getAdminStats() {
 
 export async function getAdminAccounts() {
   try {
-    return await request('/admin/accounts');
+    const data = await request('/admin/accounts');
+    return Array.isArray(data) ? data.map(normalizeAccount) : data;
   } catch {
     return null;
   }
@@ -444,9 +479,28 @@ export async function updateAdminAccount(id, data) {
   });
 }
 
+function normalizeQuote(q) {
+  if (!q) return q;
+  const name = q.name || q.fullName || 'Lead Customer';
+  return {
+    ...q,
+    id: String(q.id),
+    name,
+    fullName: name,
+    code: q.code || `QT2600${String(q.id || 1).padStart(4, '0')}`,
+    phone: q.phone || '—',
+    email: q.email || '—',
+    status: q.status || 'New Inquiry',
+    insuranceType: q.insuranceType || 'ACA Health',
+    state: q.state || 'TX',
+    dateSubmitted: q.createdAt ? new Date(q.createdAt).toLocaleDateString() : 'Today',
+  };
+}
+
 export async function getAdminQuotes() {
   try {
-    return await request('/admin/quotes');
+    const data = await request('/admin/quotes');
+    return Array.isArray(data) ? data.map(normalizeQuote) : data;
   } catch {
     return null;
   }

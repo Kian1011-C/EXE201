@@ -33,17 +33,29 @@ export default function AdminAccountsTab({
 
   const filteredAccounts = useMemo(() => {
     return localAccounts.filter((a) => {
+      const aName = a.name || `${a.firstName || ''} ${a.lastName || ''}`.trim() || '';
+      const aEmail = a.email || '';
+      const aNpn = a.npn || '';
+      const aId = String(a.id || '');
+      const aStatus = a.status || (a.active !== false ? 'Active' : 'Suspended');
+      const aRole = (a.role || '').toLowerCase();
+
       const matchSearch =
         !search ||
-        (a.name || '').toLowerCase().includes(search.toLowerCase()) ||
-        (a.email || '').toLowerCase().includes(search.toLowerCase()) ||
-        (a.npn || '').toLowerCase().includes(search.toLowerCase()) ||
-        (a.id || '').toLowerCase().includes(search.toLowerCase());
+        aName.toLowerCase().includes(search.toLowerCase()) ||
+        aEmail.toLowerCase().includes(search.toLowerCase()) ||
+        aNpn.toLowerCase().includes(search.toLowerCase()) ||
+        aId.toLowerCase().includes(search.toLowerCase());
 
-      const matchRole = roleFilter === 'all' || a.role === roleFilter;
+      const matchRole =
+        roleFilter === 'all' ||
+        aRole === roleFilter.toLowerCase() ||
+        (roleFilter === 'staff' && (aRole === 'support' || aRole === 'telesales')) ||
+        (roleFilter === 'admin' && aRole === 'manager');
+
       const matchStatus =
         statusFilter === 'all' ||
-        (a.status || '').toLowerCase().includes(statusFilter.toLowerCase());
+        aStatus.toLowerCase().includes(statusFilter.toLowerCase());
 
       return matchSearch && matchRole && matchStatus;
     });

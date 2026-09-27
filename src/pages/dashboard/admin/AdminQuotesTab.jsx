@@ -28,12 +28,17 @@ export default function AdminQuotesTab({
 
   const filteredQuotes = useMemo(() => {
     return localQuotes.filter((q) => {
+      const qName = q.name || q.fullName || '';
+      const qPhone = q.phone || '';
+      const qEmail = q.email || '';
+      const qId = String(q.id || '');
+
       const matchSearch =
         !search ||
-        (q.name || '').toLowerCase().includes(search.toLowerCase()) ||
-        (q.phone || '').includes(search) ||
-        (q.email || '').toLowerCase().includes(search.toLowerCase()) ||
-        (q.id || '').toLowerCase().includes(search.toLowerCase());
+        qName.toLowerCase().includes(search.toLowerCase()) ||
+        qPhone.includes(search) ||
+        qEmail.toLowerCase().includes(search.toLowerCase()) ||
+        qId.toLowerCase().includes(search.toLowerCase());
 
       const matchType =
         filterType === 'all' ||
