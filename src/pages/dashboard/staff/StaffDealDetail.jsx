@@ -1774,7 +1774,9 @@ export default function StaffDealDetail({
                         <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
                         <span className="text-slate-500">Ticket Owner:</span>
                         <span className="font-semibold text-slate-800">
-                          {associatedTicket.ticketOwner.split(' ')[0]} {associatedTicket.ticketOwner.split(' ')[1] || ''}
+                          {typeof associatedTicket.ticketOwner === 'object'
+                            ? associatedTicket.ticketOwner?.name || 'Agent'
+                            : (associatedTicket.ticketOwner ? associatedTicket.ticketOwner.split(' ')[0] + ' ' + (associatedTicket.ticketOwner.split(' ')[1] || '') : 'Agent')}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">

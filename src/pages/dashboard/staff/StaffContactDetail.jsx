@@ -11,6 +11,32 @@ export const ACA_ACCOUNT_STATUS_OPTIONS = [
   'Plan Cancelled',
 ];
 
+export function getPersonName(val, fallback = 'Unassigned') {
+  if (!val) return fallback;
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') {
+    return (
+      val.name ||
+      [val.firstName, val.lastName].filter(Boolean).join(' ') ||
+      val.fullName ||
+      val.email ||
+      fallback
+    );
+  }
+  return String(val);
+}
+
+export const AGENT_OPTIONS = [
+  'The Best Rate Insurance',
+  'Platform Staff',
+  'Khanh Nguyen (khanhnguyen31@7)',
+  'Anya Nguyen (anya42@9)',
+  'Sean Ngo (sean75@8)',
+  'Sarah Thai (sarahthai20@1)',
+  'Ivy Le (ivyle15@3)',
+  'Jay Ly (trichauly24@7)',
+];
+
 export default function StaffContactDetail({
   contact,
   onBack,
@@ -207,10 +233,10 @@ export default function StaffContactDetail({
   const [leadHowDoYouKnowUs, setLeadHowDoYouKnowUs] = useState(contact?.howDoYouKnowUs || '---');
   const [leadWhoRefer, setLeadWhoRefer] = useState(contact?.whoReferClient || '');
   const [leadContactOwner, setLeadContactOwner] = useState(
-    contact?.contactOwner?.name || contact?.contactOwner || 'Khanh Nguyen (khanhnguyen31@7)'
+    getPersonName(contact?.contactOwner, 'The Best Rate Insurance')
   );
   const [leadSupportAgent, setLeadSupportAgent] = useState(
-    contact?.supportAgent || 'Anya Nguyen (anya42@9)'
+    getPersonName(contact?.supportAgent, 'Platform Staff')
   );
 
   // Sync state whenever selected contact changes
@@ -243,9 +269,11 @@ export default function StaffContactDetail({
       setLeadHowDoYouKnowUs(contact.howDoYouKnowUs || '---');
       setLeadWhoRefer(contact.whoReferClient || '');
       setLeadContactOwner(
-        contact.contactOwner?.name || contact.contactOwner || 'The Best Rate Insurance'
+        getPersonName(contact.contactOwner, 'The Best Rate Insurance')
       );
-      setLeadSupportAgent(contact.supportAgent || 'Anya Nguyen (anya42@9)');
+      setLeadSupportAgent(
+        getPersonName(contact.supportAgent, 'Platform Staff')
+      );
 
       const s = contact.acaAccountStatus || contact.acaAccount?.acaAccountStatus || contact.acaAccount?.status;
       if (s) setAcaAccountStatus(s);
@@ -625,23 +653,17 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Contact Owner</label>
                         <div className="relative flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5 focus-within:border-blue-500 hover:border-slate-300 transition">
                           <div className="w-5 h-5 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
-                            {(leadContactOwner || 'KN').slice(0, 2).toUpperCase()}
+                            {String(getPersonName(leadContactOwner, 'TB')).slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="flex-grow text-xs text-slate-800 truncate font-medium">
-                            {leadContactOwner || 'Khanh Nguyen (khanhnguyen31@7)'}
-                          </span>
-                          <div className="flex items-center gap-1 text-slate-400 shrink-0 ml-1">
-                            <span
-                              onClick={() => setLeadContactOwner('')}
-                              className="text-[12px] text-rose-500 hover:text-rose-700 cursor-pointer font-bold px-0.5"
-                            >
-                              ✕
-                            </span>
-                            <span className="h-3 w-px bg-slate-200 mx-0.5" />
-                            <span className="material-symbols-outlined text-[16px] text-slate-600 pointer-events-none">
-                              expand_more
-                            </span>
-                          </div>
+                          <select
+                            value={getPersonName(leadContactOwner, 'The Best Rate Insurance')}
+                            onChange={(e) => setLeadContactOwner(e.target.value)}
+                            className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer"
+                          >
+                            {AGENT_OPTIONS.map((opt) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
 
@@ -650,10 +672,10 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Lead Owner</label>
                         <div className="flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5">
                           <div className="w-5 h-5 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
-                            {(leadContactOwner || 'KN').slice(0, 2).toUpperCase()}
+                            {String(getPersonName(leadContactOwner, 'TB')).slice(0, 2).toUpperCase()}
                           </div>
                           <span className="flex-grow text-xs text-slate-800 truncate font-medium">
-                            {leadContactOwner || 'Khanh Nguyen (khanhnguyen...'}
+                            {getPersonName(leadContactOwner, 'The Best Rate Insurance')}
                           </span>
                         </div>
                       </div>
@@ -663,24 +685,54 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Support Agent</label>
                         <div className="relative flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5 focus-within:border-blue-500 hover:border-slate-300 transition">
                           <div className="w-5 h-5 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
-                            {(leadSupportAgent || 'AN').slice(0, 2).toUpperCase()}
+                            {String(getPersonName(leadSupportAgent, 'PS')).slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="flex-grow text-xs text-slate-800 truncate font-medium">
-                            {leadSupportAgent || 'Anya Nguyen (anya42@9)'}
-                          </span>
-                          <div className="flex items-center gap-1 text-slate-400 shrink-0 ml-1">
-                            <span
-                              onClick={() => setLeadSupportAgent('')}
-                              className="text-[12px] text-rose-500 hover:text-rose-700 cursor-pointer font-bold px-0.5"
-                            >
-                              ✕
-                            </span>
-                            <span className="h-3 w-px bg-slate-200 mx-0.5" />
-                            <span className="material-symbols-outlined text-[16px] text-slate-600 pointer-events-none">
-                              expand_more
-                            </span>
-                          </div>
+                          <select
+                            value={getPersonName(leadSupportAgent, 'Platform Staff')}
+                            onChange={(e) => setLeadSupportAgent(e.target.value)}
+                            className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer"
+                          >
+                            {AGENT_OPTIONS.map((opt) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
                         </div>
+                      </div>
+
+                      {/* 4. How do you know us */}
+                      <div>
+                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">How do you know us</label>
+                        <div className="relative">
+                          <select
+                            value={leadHowDoYouKnowUs || '---'}
+                            onChange={(e) => setLeadHowDoYouKnowUs(e.target.value)}
+                            className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                          >
+                            <option value="---">---</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Refer">Refer (Giới thiệu)</option>
+                            <option value="Google">Google Search</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="Walk-in">Walk-in</option>
+                            <option value="Cold Call">Cold Call</option>
+                            <option value="Website">Website</option>
+                          </select>
+                          <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
+                            expand_more
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 5. Who refer client */}
+                      <div>
+                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Who refer client</label>
+                        <input
+                          type="text"
+                          value={leadWhoRefer}
+                          onChange={(e) => setLeadWhoRefer(e.target.value)}
+                          placeholder="Referral name or note..."
+                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                        />
                       </div>
                     </div>
                   )}
@@ -1719,7 +1771,7 @@ export default function StaffContactDetail({
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
                         <span className="text-slate-500">Deal Owner:</span>
-                        <span className="font-semibold text-slate-800">{dealItem?.dealOwner || 'Khanh Nguyen'}</span>
+                        <span className="font-semibold text-slate-800">{getPersonName(dealItem?.dealOwner, 'Khanh Nguyen')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-[15px] text-slate-400">public</span>
@@ -1887,7 +1939,7 @@ export default function StaffContactDetail({
                         <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
                         <span className="text-slate-500">Ticket Owner:</span>
                         <span className="font-semibold text-slate-800">
-                          {associatedTicket.ticketOwner.split(' ')[0]} {associatedTicket.ticketOwner.split(' ')[1] || ''}
+                          {getPersonName(associatedTicket.ticketOwner, 'Agent')}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
