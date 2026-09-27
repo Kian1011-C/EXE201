@@ -204,16 +204,33 @@ export default function StaffDealDetail({
     dealInfo.adminOnly?.closedLostReason || '---'
   );
 
-  // Form states for READY-TO-ENROLL & AFTER-SALE
-  const [appId, setAppId] = useState('APP-2026-9812');
-  const [policyNumber, setPolicyNumber] = useState('POL-BCBS-84920');
-  const [planSelected, setPlanSelected] = useState(
-    'Blue Cross Blue Shield Silver 2026'
+  // Form states for READY TO ENROLL (Matching media_1790520741199.png & media_1790520762566.png)
+  const [appId, setAppId] = useState(dealInfo.applicationId || '8282407051');
+  const [estimateHouseholdIncome, setEstimateHouseholdIncome] = useState(
+    dealInfo.estimateHouseholdIncome || '$17k'
   );
-  const [afterSaleStatus, setAfterSaleStatus] = useState(
-    'Enrolled - Pending First Premium'
+  const [householdMember, setHouseholdMember] = useState(
+    dealInfo.householdMember || dealInfo.householdSize || '1'
   );
-  const [memberLanguage, setMemberLanguage] = useState('Vietnamese');
+  const [enrollNumberMember, setEnrollNumberMember] = useState(
+    dealInfo.numberMember || '1'
+  );
+  const [enrolledAddress, setEnrolledAddress] = useState(
+    dealInfo.enrolledAddress || dealInfo.address || '6300 Chickasaw, Midland, TX, 79705'
+  );
+  const [quotedCounty, setQuotedCounty] = useState(dealInfo.quotedCounty || '');
+  const [isBackdateDeal, setIsBackdateDeal] = useState(
+    dealInfo.isBackdateDeal || 'No'
+  );
+  const [planName, setPlanName] = useState(
+    dealInfo.planName || 'BCBS Advantage Silver 205 HMO'
+  );
+  const [enrollAmount, setEnrollAmount] = useState(
+    dealInfo.amount ? String(dealInfo.amount).replace('$', '') : '36.55'
+  );
+  const [needUpload, setNeedUpload] = useState(
+    dealInfo.uploadRequest ? 'Yes' : 'No'
+  );
 
   // Form states for FEE, BONUS, PAYMENT
   const [monthlyPremium, setMonthlyPremium] = useState('$0.00');
@@ -970,7 +987,7 @@ export default function StaffDealDetail({
 
 
 
-            {/* 3. READY-TO-ENROLL & AFTER-SALE */}
+            {/* 3. READY TO ENROLL */}
             <div>
               <button
                 type="button"
@@ -980,71 +997,201 @@ export default function StaffDealDetail({
                 <span className="material-symbols-outlined text-[16px] text-[#0F2962]">
                   {readyToEnrollOpen ? 'expand_more' : 'chevron_right'}
                 </span>
-                <span>READY-TO-ENROLL & AFTER-SALE</span>
+                <span>Ready to Enroll</span>
               </button>
 
               {readyToEnrollOpen && (
                 <div className="p-3.5 bg-slate-50/60 border-t border-slate-100 space-y-3 text-xs">
+                  {/* 1. Application ID */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Application ID
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Application ID <span className="text-rose-500 font-bold ml-0.5">*</span>
                     </label>
                     <input
                       type="text"
                       value={appId}
                       onChange={(e) => setAppId(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800"
+                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
                     />
                   </div>
+
+                  {/* 2. Estimate Household Income */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Policy Number
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Estimate Household Income <span className="text-rose-500 font-bold ml-0.5">*</span>
                     </label>
                     <input
                       type="text"
-                      value={policyNumber}
-                      onChange={(e) => setPolicyNumber(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800"
+                      value={estimateHouseholdIncome}
+                      onChange={(e) => setEstimateHouseholdIncome(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
                     />
                   </div>
+
+                  {/* 3. Household Member */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Plan Selected
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Household Member <span className="text-rose-500 font-bold ml-0.5">*</span>
                     </label>
                     <input
                       type="text"
-                      value={planSelected}
-                      onChange={(e) => setPlanSelected(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800"
+                      value={householdMember}
+                      onChange={(e) => setHouseholdMember(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
                     />
                   </div>
+
+                  {/* 4. Number Member */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      After-Sale Status
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Number Member <span className="text-rose-500 font-bold ml-0.5">*</span>
                     </label>
-                    <select
-                      value={afterSaleStatus}
-                      onChange={(e) => setAfterSaleStatus(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-medium"
-                    >
-                      <option>Enrolled - Pending First Premium</option>
-                      <option>Active - Card Received</option>
-                      <option>Needs Customer Support</option>
-                    </select>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={enrollNumberMember}
+                        onChange={(e) => setEnrollNumberMember(e.target.value)}
+                        className="w-full pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400">
+                        <span className="h-3.5 w-px bg-slate-200 mr-2" />
+                        <span className="text-[12px] font-bold text-slate-600 font-mono">#</span>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* 5. Enrolled Address */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Language Preference
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Enrolled Address <span className="text-rose-500 font-bold ml-0.5">*</span>
                     </label>
-                    <select
-                      value={memberLanguage}
-                      onChange={(e) => setMemberLanguage(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700"
-                    >
-                      <option>Vietnamese</option>
-                      <option>English</option>
-                      <option>Spanish</option>
-                    </select>
+                    <input
+                      type="text"
+                      value={enrolledAddress}
+                      onChange={(e) => setEnrolledAddress(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                    />
+                  </div>
+
+                  {/* 6. Quoted county */}
+                  <div>
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Quoted county
+                    </label>
+                    <input
+                      type="text"
+                      value={quotedCounty}
+                      onChange={(e) => setQuotedCounty(e.target.value)}
+                      placeholder=""
+                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                    />
+                  </div>
+
+                  {/* 7. Is this a backdate deal? */}
+                  <div>
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Is this a backdate deal? <span className="text-rose-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={isBackdateDeal}
+                        onChange={(e) => setIsBackdateDeal(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer font-medium"
+                      >
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                        <span className="h-3.5 w-px bg-slate-200 mr-1.5" />
+                        <span className="material-symbols-outlined text-[15px] text-[#0F2962]">
+                          expand_more
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 8. Carrier */}
+                  <div>
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Carrier <span className="text-rose-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={carrier}
+                        onChange={(e) => setCarrier(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
+                      >
+                        <option value="BCBS">BCBS</option>
+                        <option value="Ambetter">Ambetter</option>
+                        <option value="Oscar">Oscar</option>
+                        <option value="UnitedHealthcare">UnitedHealthcare</option>
+                        <option value="Molina Healthcare">Molina Healthcare</option>
+                        <option value="Aetna">Aetna</option>
+                        <option value="Cigna">Cigna</option>
+                        <option value="Kaiser">Kaiser</option>
+                      </select>
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                        <span className="h-3.5 w-px bg-slate-200 mr-1.5" />
+                        <span className="material-symbols-outlined text-[15px] text-[#0F2962]">
+                          expand_more
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 9. Plan Name */}
+                  <div>
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Plan Name <span className="text-rose-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={planName}
+                      onChange={(e) => setPlanName(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                    />
+                  </div>
+
+                  {/* 10. Amount */}
+                  <div>
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Amount <span className="text-rose-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={enrollAmount}
+                        onChange={(e) => setEnrollAmount(e.target.value)}
+                        className="w-full pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400">
+                        <span className="h-3.5 w-px bg-slate-200 mr-2" />
+                        <span className="text-[12px] font-bold text-slate-600 font-mono">#</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 11. Need Upload */}
+                  <div>
+                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
+                      Need Upload <span className="text-rose-500 font-bold ml-0.5">*</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={needUpload}
+                        onChange={(e) => setNeedUpload(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer font-medium"
+                      >
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                        <span className="h-3.5 w-px bg-slate-200 mr-1.5" />
+                        <span className="material-symbols-outlined text-[15px] text-[#0F2962]">
+                          expand_more
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
