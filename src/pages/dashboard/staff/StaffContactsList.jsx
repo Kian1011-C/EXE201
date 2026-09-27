@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getContacts, createContact as apiCreateContact } from '../../../services/api';
 import { SAMPLE_CONTACTS } from '../../../data/mockCrmData';
+import { useAuth } from '../../../auth/AuthContext';
+import { filterContactsForAgent, getAgentIdentity } from '../../../utils/rbac';
 
-export default function StaffContactsList({ onSelectContact }) {
+export default function StaffContactsList({ onSelectContact, isAgent = false, agentName = '' }) {
   const [contactsList, setContactsList] = useState(SAMPLE_CONTACTS);
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
@@ -54,9 +56,21 @@ export default function StaffContactsList({ onSelectContact }) {
   const [contactOwner, setContactOwner] = useState('The Best Rate Insurance');
   const [supportAgent, setSupportAgent] = useState('Anya Nguyen (anya42@9)');
 
+  const { user } = useAuth();
+  const activeIsAgent = isAgent || user?.role === 'agent';
+  const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
+
+  // Scoped list: if agent, only records assigned to this agent
+  const scopedContacts = useMemo(() => {
+    if (activeIsAgent) {
+      return filterContactsForAgent(contactsList, user || { role: 'agent', name: effectiveAgent.name });
+    }
+    return contactsList;
+  }, [contactsList, activeIsAgent, user, effectiveAgent.name]);
+
   // Filtered contacts
   const filteredContacts = useMemo(() => {
-    return contactsList.filter((c) => {
+    return scopedContacts.filter((c) => {
       const q = searchQuery.toLowerCase().trim();
       const cName = c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || '';
       const cCode = c.code || `CT2600${c.id || ''}`;
@@ -77,12 +91,12 @@ export default function StaffContactsList({ onSelectContact }) {
 
       return matchesSearch && matchesOwner;
     });
-  }, [contactsList, searchQuery, ownerFilter]);
+  }, [scopedContacts, searchQuery, ownerFilter]);
 
   // Unique owners for filter
   const ownerOptions = useMemo(() => {
     const set = new Set(
-      contactsList
+      scopedContacts
         .map((c) => {
           if (typeof c.contactOwner === 'object') {
             return c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`.trim();
@@ -92,7 +106,7 @@ export default function StaffContactsList({ onSelectContact }) {
         .filter(Boolean)
     );
     return Array.from(set);
-  }, [contactsList]);
+  }, [scopedContacts]);
 
   // Handle Quick Create
   function handleCreateSubmit(e) {
@@ -284,14 +298,27 @@ export default function StaffContactsList({ onSelectContact }) {
         </div>
       </div>
 
+      {/* ── Agent Scope Indicator Banner ─────────────────────────────────── */}
+      {activeIsAgent && (
+        <div className="bg-blue-50 border border-blue-200/90 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
+          <div className="flex items-center gap-2 text-blue-900 font-semibold">
+            <span className="material-symbols-outlined text-[18px] text-blue-600">badge</span>
+            <span>Chế độ Agent: Chỉ hiển thị các Contact được phân công cho <strong>{effectiveAgent.name}</strong></span>
+          </div>
+          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">
+            {filteredContacts.length} hồ sơ phụ trách
+          </span>
+        </div>
+      )}
+
       {/* ── 2. View Tabs (Only All Contacts as requested: "phần này chỉ cần all contact thôi") ── */}
       <div className="flex items-center gap-1 border-b border-slate-200 pt-1 text-xs">
         <div className="flex items-center gap-2 px-3 py-2 font-semibold border-b-2 border-blue-600 text-blue-600">
           <span className="material-symbols-outlined text-[16px]">menu</span>
-          <span>All Contacts</span>
-          {contactsList.length > 0 ? (
+          <span>{activeIsAgent ? 'My Assigned Contacts' : 'All Contacts'}</span>
+          {scopedContacts.length > 0 ? (
             <span className="px-1.5 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-bold">
-              {contactsList.length}
+              {scopedContacts.length}
             </span>
           ) : (
             <span className="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold">

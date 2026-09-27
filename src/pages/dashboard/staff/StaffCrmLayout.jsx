@@ -181,16 +181,6 @@ export default function StaffCrmLayout({
       icon: 'checklist',
       desc: 'Quản lý công việc & Kanban',
     },
-    ...((showCommission || isAgent)
-      ? [
-          {
-            id: 'commission',
-            label: 'Commission',
-            icon: 'payments',
-            desc: 'Doanh thu thuê bao SaaS & Hoa hồng Sales nội bộ (Coms.pdf)',
-          },
-        ]
-      : []),
   ];
 
   const navItems = isAdmin ? adminNavItems : standardNavItems;

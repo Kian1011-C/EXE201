@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getTickets, createTicket } from '../../../services/api';
 import { FULL_SAMPLE_TICKETS, SAMPLE_ACA_TICKET, SAMPLE_PAYMENT_TICKET } from '../../../data/mockCrmData';
+import { useAuth } from '../../../auth/AuthContext';
+import { filterTicketsForAgent, getAgentIdentity } from '../../../utils/rbac';
 
 // ── Dropdown Data matching user screenshots ──────────────────────────────────
 const PIPELINE_OPTIONS = [
@@ -48,7 +50,7 @@ const PRIORITY_OPTIONS = [
   { label: 'High', dotColor: 'bg-rose-500' },
 ];
 
-export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSelectDeal }) {
+export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSelectDeal, isAgent = false, agentName = '' }) {
   const [ticketsList, setTicketsList] = useState(FULL_SAMPLE_TICKETS);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -164,9 +166,21 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
     }
   }
 
+  const { user } = useAuth();
+  const activeIsAgent = isAgent || user?.role === 'agent';
+  const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
+
+  // Scoped tickets by RBAC
+  const scopedTickets = useMemo(() => {
+    if (activeIsAgent) {
+      return filterTicketsForAgent(ticketsList, user || { role: 'agent', name: effectiveAgent.name });
+    }
+    return ticketsList;
+  }, [ticketsList, activeIsAgent, user, effectiveAgent.name]);
+
   // Filtered Tickets
   const filteredTickets = useMemo(() => {
-    return ticketsList.filter((t) => {
+    return scopedTickets.filter((t) => {
       // 1. Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -413,6 +427,11 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
             confirmation_number
           </span>
           <h1 className="text-sm font-bold text-slate-900 tracking-tight">Tickets</h1>
+          {activeIsAgent && (
+            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">
+              Agent: {effectiveAgent.name} ({scopedTickets.length} tickets)
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -462,13 +481,26 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
         </div>
       </div>
 
-      {/* ── 2. VIEW TABS ROW (All Tickets 99.2k, + Add View) ────────────────── */}
+      {/* ── Agent Scope Indicator Banner ─────────────────────────────────── */}
+      {activeIsAgent && (
+        <div className="bg-blue-50 border-b border-blue-200/90 px-6 py-2 flex items-center justify-between gap-3 text-xs shrink-0">
+          <div className="flex items-center gap-2 text-blue-900 font-semibold">
+            <span className="material-symbols-outlined text-[18px] text-blue-600">confirmation_number</span>
+            <span>Chế độ Agent: Chỉ hiển thị các Tickets được phân công cho <strong>{effectiveAgent.name}</strong></span>
+          </div>
+          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">
+            {filteredTickets.length} tickets phụ trách
+          </span>
+        </div>
+      )}
+
+      {/* ── 2. VIEW TABS ROW (All Tickets, + Add View) ────────────────── */}
       <div className="bg-white border-b border-slate-200 px-6 pt-2.5 pb-2 flex items-center gap-3 shrink-0">
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0F2962] text-white font-semibold text-xs shadow-2xs cursor-pointer">
           <span className="material-symbols-outlined text-[14px]">grid_view</span>
-          <span>All Tickets</span>
+          <span>{activeIsAgent ? 'My Assigned Tickets' : 'All Tickets'}</span>
           <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-bold">
-            99.2k
+            {scopedTickets.length}
           </span>
         </div>
 

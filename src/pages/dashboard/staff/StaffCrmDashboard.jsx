@@ -7,6 +7,15 @@ import {
   getTasks,
   getCommissions,
 } from '../../../services/api';
+import { useAuth } from '../../../auth/AuthContext';
+import {
+  filterContactsForAgent,
+  filterDealsForAgent,
+  filterTicketsForAgent,
+  filterTasksForAgent,
+  canViewSaaSPackages,
+  getAgentIdentity,
+} from '../../../utils/rbac';
 
 export default function StaffCrmDashboard({
   onSelectTab,
@@ -14,7 +23,15 @@ export default function StaffCrmDashboard({
   onSelectContact,
   onSelectTicket,
   onSelectTask,
+  isAgent = false,
+  agentName = '',
 }) {
+  const { user } = useAuth();
+  const effectiveAgent = getAgentIdentity(user);
+  const effectiveUser = user || (isAgent ? { role: 'agent', name: agentName || effectiveAgent.name } : null);
+  const isAgentUser = isAgent || effectiveUser?.role === 'agent';
+  const canSeeCommissions = canViewSaaSPackages(effectiveUser);
+
   const [refreshing, setRefreshing] = useState(false);
   const [dbStats, setDbStats] = useState(null);
   const [liveDeals, setLiveDeals] = useState([]);
@@ -52,6 +69,12 @@ export default function StaffCrmDashboard({
   useEffect(() => {
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    if (!canSeeCommissions && categoryFilter === 'commissions') {
+      setCategoryFilter('all');
+    }
+  }, [canSeeCommissions, categoryFilter]);
 
   function handleRefresh() {
     setRefreshing(true);
@@ -128,53 +151,71 @@ export default function StaffCrmDashboard({
     }
   }
 
-  // ── Dynamic Aggregations from Live Database Records ─────────────────────────
+  // ── Scoped Datasets (Agent Ownership Scoping) ──────────────────────────────
+  const scopedDeals = useMemo(
+    () => (isAgentUser ? filterDealsForAgent(liveDeals, effectiveUser) : liveDeals),
+    [liveDeals, isAgentUser, effectiveUser]
+  );
+  const scopedContacts = useMemo(
+    () => (isAgentUser ? filterContactsForAgent(liveContacts, effectiveUser) : liveContacts),
+    [liveContacts, isAgentUser, effectiveUser]
+  );
+  const scopedTickets = useMemo(
+    () => (isAgentUser ? filterTicketsForAgent(liveTickets, effectiveUser) : liveTickets),
+    [liveTickets, isAgentUser, effectiveUser]
+  );
+  const scopedTasks = useMemo(
+    () => (isAgentUser ? filterTasksForAgent(liveTasks, effectiveUser) : liveTasks),
+    [liveTasks, isAgentUser, effectiveUser]
+  );
+
+  // ── Dynamic Aggregations from Scoped Database Records ───────────────────────
 
   // 1. Deals breakdowns
   const obDeals = useMemo(
-    () => liveDeals.filter((d) => (d.pipeline || '').toLowerCase().includes('obamacare')),
-    [liveDeals]
+    () => scopedDeals.filter((d) => (d.pipeline || '').toLowerCase().includes('obamacare')),
+    [scopedDeals]
   );
   const medDeals = useMemo(
-    () => liveDeals.filter((d) => (d.pipeline || '').toLowerCase().includes('medicare')),
-    [liveDeals]
+    () => scopedDeals.filter((d) => (d.pipeline || '').toLowerCase().includes('medicare')),
+    [scopedDeals]
   );
   const activeDealsList = useMemo(
     () =>
-      liveDeals.filter(
+      scopedDeals.filter(
         (d) =>
           !d.stage?.toLowerCase().includes('lost') &&
           !d.stage?.toLowerCase().includes('termination')
       ),
-    [liveDeals]
+    [scopedDeals]
   );
 
   // 2. Tickets & Tasks breakdowns
   const openTicketsList = useMemo(
-    () => liveTickets.filter((t) => t.status !== 'Closed' && t.status !== 'Resolved'),
-    [liveTickets]
+    () => scopedTickets.filter((t) => t.status !== 'Closed' && t.status !== 'Resolved'),
+    [scopedTickets]
   );
   const overdueTicketsList = useMemo(
     () =>
-      liveTickets.filter((t) => {
+      scopedTickets.filter((t) => {
         if (t.status === 'Closed' || t.status === 'Resolved') return false;
         if (!t.dueDate) return false;
         return new Date(t.dueDate) < new Date();
       }),
-    [liveTickets]
+    [scopedTickets]
   );
   const openTasksList = useMemo(
-    () => liveTasks.filter((t) => t.status !== 'Completed' && t.status !== 'Done'),
-    [liveTasks]
+    () => scopedTasks.filter((t) => t.status !== 'Completed' && t.status !== 'Done'),
+    [scopedTasks]
   );
   const overdueTasksList = useMemo(
     () =>
-      liveTasks.filter((t) => {
+      scopedTasks.filter((t) => {
         if (t.status === 'Completed' || t.status === 'Done') return false;
         if (!t.dueDate) return false;
         return new Date(t.dueDate) < new Date();
       }),
-    [liveTasks]
+    [scopedTasks]
   );
 
   // 3. Commission revenues
@@ -283,7 +324,7 @@ export default function StaffCrmDashboard({
   // ── Card 5: Total Contact Count by Owner (Active vs Inactive) ───────────────
   const contactsByOwner = useMemo(() => {
     const map = {};
-    liveContacts.forEach((c) => {
+    scopedContacts.forEach((c) => {
       const owner =
         c.contactOwnerName ||
         (c.contactOwner
@@ -300,7 +341,7 @@ export default function StaffCrmDashboard({
       map[owner].total += 1;
     });
     return Object.values(map).sort((a, b) => b.total - a.total);
-  }, [liveContacts]);
+  }, [scopedContacts]);
 
   const maxContactOwner = useMemo(
     () => Math.max(...contactsByOwner.map((c) => c.total), 1),
@@ -431,16 +472,16 @@ export default function StaffCrmDashboard({
 
   // ── Card 12: Need Extend Tickets ────────────────────────────────────────────
   const needExtendTickets = useMemo(() => {
-    return liveTickets.filter(
+    return scopedTickets.filter(
       (t) =>
         (t.title || '').toLowerCase().includes('extend') ||
         t.category === 'Extend'
     );
-  }, [liveTickets]);
+  }, [scopedTickets]);
 
   // ── Card 13: Need Update Member ID ──────────────────────────────────────────
   const needUpdateMemberIdData = useMemo(() => {
-    const missing = liveDeals.filter(
+    const missing = scopedDeals.filter(
       (d) => !d.primaryMemberId || d.primaryMemberId === '---' || d.primaryMemberId === ''
     );
     const map = {};
@@ -454,11 +495,11 @@ export default function StaffCrmDashboard({
       count,
       widthPercent: Math.max((count / maxVal) * 100, 10),
     }));
-  }, [liveDeals]);
+  }, [scopedDeals]);
 
   // ── Card 14: Need Create Member Account ─────────────────────────────────────
   const needCreateMemberAccountData = useMemo(() => {
-    const needAccount = liveContacts.filter(
+    const needAccount = scopedContacts.filter(
       (c) =>
         !c.acaAccount ||
         c.acaAccountStatus?.toLowerCase().includes('need create') ||
@@ -478,11 +519,11 @@ export default function StaffCrmDashboard({
       count,
       widthPercent: Math.max((count / maxVal) * 100, 10),
     }));
-  }, [liveContacts]);
+  }, [scopedContacts]);
 
   // ── Card 15: Open Upload Document Ticket Table (100% Real DB Data) ──────────
   const uploadTicketsDisplay = useMemo(() => {
-    const docTix = liveTickets.filter(
+    const docTix = scopedTickets.filter(
       (t) =>
         t.pipeline === 'COLLECT_DOCUMENT' ||
         t.pipeline === 'Upload documents' ||
@@ -506,7 +547,7 @@ export default function StaffCrmDashboard({
       rawTicket: t,
       contact: t.contact,
     }));
-  }, [liveTickets]);
+  }, [scopedTickets]);
 
   // ── Card 16 & 17: ACA Consent Form Status (100% Real DB Data) ───────────────
   const acaConsentStatusData = useMemo(() => {
@@ -538,26 +579,26 @@ export default function StaffCrmDashboard({
   // ── Card 19 & 20: Daily Complete Tickets & Daily New Tickets ────────────────
   const ticketDateColumns = useMemo(() => {
     const set = new Set();
-    liveTickets.forEach((t) => {
+    scopedTickets.forEach((t) => {
       if (t.createdAt) set.add(formatDate(t.createdAt));
       if (t.dueDate) set.add(formatDate(t.dueDate));
     });
     const arr = Array.from(set).filter(Boolean).sort();
     return arr.slice(0, 9);
-  }, [liveTickets]);
+  }, [scopedTickets]);
 
   const ticketDistinctAgents = useMemo(() => {
     const set = new Set();
-    liveTickets.forEach((t) => {
+    scopedTickets.forEach((t) => {
       const ag = t.serviceAgentName || t.assignedToName || getPersonName(t.serviceAgent || t.assignedTo);
       if (ag && ag !== 'Unassigned') set.add(ag);
     });
     const arr = Array.from(set);
     return arr.length > 0 ? arr : ['Anya Nguyen', 'Sean Ngo', 'Sarah Thai', 'Ivy Le'];
-  }, [liveTickets]);
+  }, [scopedTickets]);
 
   const dailyCompleteTicketsData = useMemo(() => {
-    const completed = liveTickets.filter((t) => t.status === 'Closed' || t.status === 'Resolved');
+    const completed = scopedTickets.filter((t) => t.status === 'Closed' || t.status === 'Resolved');
     const matrix = ticketDistinctAgents.map((agent) => {
       const vals = ticketDateColumns.map((dt) => {
         return completed.filter(
@@ -575,10 +616,10 @@ export default function StaffCrmDashboard({
       return matrix.reduce((sum, r) => sum + r.vals[cIdx], 0);
     });
     return { matrix, colTotals };
-  }, [liveTickets, ticketDateColumns, ticketDistinctAgents]);
+  }, [scopedTickets, ticketDateColumns, ticketDistinctAgents]);
 
   const dailyNewTicketsData = useMemo(() => {
-    const newTix = liveTickets.filter((t) => t.status === 'Open' || t.status === 'In Progress');
+    const newTix = scopedTickets.filter((t) => t.status === 'Open' || t.status === 'In Progress');
     const matrix = ticketDistinctAgents.map((agent) => {
       const vals = ticketDateColumns.map((dt) => {
         return newTix.filter(
@@ -596,11 +637,11 @@ export default function StaffCrmDashboard({
       return matrix.reduce((sum, r) => sum + r.vals[cIdx], 0);
     });
     return { matrix, colTotals };
-  }, [liveTickets, ticketDateColumns, ticketDistinctAgents]);
+  }, [scopedTickets, ticketDateColumns, ticketDistinctAgents]);
 
   // ── Card 21: Need Manager Enroll ────────────────────────────────────────────
   const needManagerEnrollData = useMemo(() => {
-    const waiting = liveDeals.filter(
+    const waiting = scopedDeals.filter(
       (d) =>
         (d.stage || '').toLowerCase().includes('waiting for document') ||
         (d.stage || '').toLowerCase().includes('ready to enroll')
@@ -616,7 +657,7 @@ export default function StaffCrmDashboard({
       waitingDocCount,
       readyEnrollCount,
     };
-  }, [liveDeals]);
+  }, [scopedDeals]);
 
   // ── Card 22: SOA Status - Manager ───────────────────────────────────────────
   const soaStatusData = useMemo(() => {
@@ -712,12 +753,12 @@ export default function StaffCrmDashboard({
       <div className="px-6 py-2.5 bg-white border-b border-slate-200/90 flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs text-slate-600 shrink-0 shadow-2xs">
         <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
           {[
-            { id: 'all', label: 'All Reports', count: 27, icon: 'grid_view' },
+            { id: 'all', label: 'All Reports', count: canSeeCommissions ? 27 : 26, icon: 'grid_view' },
             { id: 'obamacare', label: 'Obamacare Funnel', count: 8, icon: 'health_and_safety' },
             { id: 'medicare', label: 'Medicare Lifecycle', count: 5, icon: 'medical_services' },
             { id: 'tickets', label: 'Tickets & Ops', count: 8, icon: 'confirmation_number' },
             { id: 'tasks', label: 'Tasks & SLA', count: 4, icon: 'checklist' },
-            { id: 'commissions', label: 'Commissions', count: 5, icon: 'payments' },
+            ...(canSeeCommissions ? [{ id: 'commissions', label: 'Commissions', count: 1, icon: 'payments' }] : []),
           ].map((cat) => {
             const active = categoryFilter === cat.id;
             return (
@@ -752,13 +793,48 @@ export default function StaffCrmDashboard({
           </span>
           <span className="font-bold text-emerald-700">100% Real DB Data</span>
           <span className="text-slate-400 font-normal">
-            ({liveDeals.length} deals • {liveTickets.length} tickets • {liveTasks.length} tasks)
+            ({scopedDeals.length} deals • {scopedTickets.length} tickets • {scopedTasks.length} tasks)
           </span>
         </div>
       </div>
 
       {/* ── Main Reports Container ───────────────────────────────────────── */}
       <div className="p-3.5 sm:p-6 space-y-6 max-w-[1700px] mx-auto w-full">
+        {/* ── AGENT RBAC SCOPE BANNER ── */}
+        {isAgentUser && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/90 rounded-2xl p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                <span className="material-symbols-outlined text-[20px]">shield_person</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-blue-950">Chế độ phân quyền Agent độc lập</h4>
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                    RBAC Active
+                  </span>
+                </div>
+                <p className="text-xs text-blue-700/90 mt-0.5">
+                  Đang xem dữ liệu thuộc quyền phụ trách của <strong>{agentName || effectiveUser?.name || 'Khanh Nguyen'}</strong> (Contact, Deal, Ticket, Task được giao).
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-semibold shrink-0">
+              <span className="px-2.5 py-1 rounded-lg bg-white border border-blue-200 text-blue-900 shadow-2xs">
+                {scopedDeals.length} Deals
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-white border border-blue-200 text-blue-900 shadow-2xs">
+                {scopedContacts.length} Contacts
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-white border border-blue-200 text-blue-900 shadow-2xs">
+                {scopedTickets.length} Tickets
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-white border border-blue-200 text-blue-900 shadow-2xs">
+                {scopedTasks.length} Tasks
+              </span>
+            </div>
+          </div>
+        )}
 
 
         {/* ── ROW 1: 2 Main Deal Charts (50% / 50%) ──────────────────────── */}
@@ -1060,7 +1136,7 @@ export default function StaffCrmDashboard({
                     className="text-xs font-bold text-slate-900 truncate hover:text-blue-600 cursor-pointer"
                     title="Click to view all Contacts"
                   >
-                    Total Contact Count ({liveContacts.length} contacts)
+                    Total Contact Count ({scopedContacts.length} contacts)
                   </h3>
                   <div className="flex items-center gap-1 text-slate-400">
                     <button
@@ -2355,7 +2431,7 @@ export default function StaffCrmDashboard({
         )}
 
         {/* ── ROW 14: Carrier Commission Ledger & Financial Summary ────────── */}
-        {['all', 'commissions'].includes(categoryFilter) && (
+        {canSeeCommissions && ['all', 'commissions'].includes(categoryFilter) && (
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-5 flex flex-col">
             <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">

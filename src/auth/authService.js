@@ -26,8 +26,8 @@ const DEMO_ACCOUNTS = [
     email: 'agent@insurmatch.us',
     password: 'Agent@123',
     role: 'agent',
-    name: 'Licensed Agent Partner',
-    avatar: 'IA',
+    name: 'Khanh Nguyen',
+    avatar: 'KN',
   },
   {
     id: 4,

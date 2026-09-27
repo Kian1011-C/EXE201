@@ -12,6 +12,7 @@ import StaffTicketDetail from './staff/StaffTicketDetail';
 import StaffTasksList from './staff/StaffTasksList';
 import StaffTaskDetail from './staff/StaffTaskDetail';
 import StaffCommissionView from './staff/StaffCommissionView';
+import AccessRestrictedCard from '../../components/AccessRestrictedCard';
 import {
   MOCK_CONTACTS,
   SAMPLE_CONTACTS,
@@ -375,11 +376,13 @@ export default function StaffDashboard() {
         />
       )}
 
-      {/* ── Commission View ──────────────────────────────────────────────── */}
+      {/* ── Commission / Package View (Admin Only) ────────────────────── */}
       {currentView === 'commission-ledger' && (
-        <StaffCommissionView
-          onSelectDeal={handleSelectDeal}
-          onSelectContact={handleSelectContact}
+        <AccessRestrictedCard
+          title="Quyền xem thông tin gói mua & Doanh thu bị giới hạn"
+          message="Thông tin gói thuê bao CRM của các agency (Starter $39, Professional $79, Agency $199) và quyết toán hoa hồng chỉ dành riêng cho Quản trị viên (Admin)."
+          onBack={() => handleSelectTab('dashboard')}
+          backLabel="Quay lại Dashboard"
         />
       )}
     </StaffCrmLayout>

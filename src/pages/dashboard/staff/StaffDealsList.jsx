@@ -6,8 +6,10 @@ import {
 } from '../../../data/mockCrmData';
 import { getDeals, updateDeal } from '../../../services/api';
 import StaffDealsKanban from './StaffDealsKanban';
+import { useAuth } from '../../../auth/AuthContext';
+import { filterDealsForAgent, getAgentIdentity } from '../../../utils/rbac';
 
-export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
+export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent = false, agentName = '' }) {
   const [dealsList, setDealsList] = useState(SAMPLE_DEALS);
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
@@ -63,9 +65,21 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
     setTimeout(() => setToastMessage(null), 2500);
   }
 
+  const { user } = useAuth();
+  const activeIsAgent = isAgent || user?.role === 'agent';
+  const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
+
+  // Scoped deals by RBAC
+  const scopedDeals = useMemo(() => {
+    if (activeIsAgent) {
+      return filterDealsForAgent(dealsList, user || { role: 'agent', name: effectiveAgent.name });
+    }
+    return dealsList;
+  }, [dealsList, activeIsAgent, user, effectiveAgent.name]);
+
   // Filtered Deals
   const filteredDeals = useMemo(() => {
-    return dealsList.filter((d) => {
+    return scopedDeals.filter((d) => {
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -98,11 +112,9 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
 
       let matchesTab = true;
       if (activeViewTab === 'my') {
-        matchesTab = d.dealOwner?.name?.includes('Khanh Nguyen');
+        matchesTab = d.dealOwner?.name?.toLowerCase().includes(effectiveAgent.name.toLowerCase());
       } else if (activeViewTab === 'team') {
-        matchesTab = ['khanh nguyen', 'tri chau', 'hao nguyen'].some((name) =>
-          d.dealOwner?.name?.toLowerCase().includes(name)
-        );
+        matchesTab = true;
       } else if (activeViewTab === 'ready') {
         matchesTab = d.stage?.includes('Ready to Enroll');
       } else if (activeViewTab === 'verified') {
@@ -120,7 +132,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
       );
     });
   }, [
-    dealsList,
+    scopedDeals,
     searchQuery,
     ownerFilter,
     pipelineFilter,
@@ -128,13 +140,14 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
     commissionIdQuery,
     stageFilter,
     activeViewTab,
+    effectiveAgent.name,
   ]);
 
   // Unique owners
   const ownerOptions = useMemo(() => {
-    const set = new Set(dealsList.map((d) => d.dealOwner?.name).filter(Boolean));
+    const set = new Set(scopedDeals.map((d) => d.dealOwner?.name).filter(Boolean));
     return Array.from(set);
-  }, [dealsList]);
+  }, [scopedDeals]);
 
   // Unique carriers
   const carrierOptions = useMemo(() => {
@@ -293,7 +306,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
             <h1 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2 mt-0.5">
               <span>Deals</span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 font-semibold border border-purple-200">
-                {dealsList.length} deals
+                {scopedDeals.length} deals
               </span>
             </h1>
           </div>
@@ -347,6 +360,19 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
           </button>
         </div>
       </div>
+
+      {/* ── Agent Scope Indicator Banner ─────────────────────────────────── */}
+      {activeIsAgent && (
+        <div className="bg-purple-50 border border-purple-200/90 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
+          <div className="flex items-center gap-2 text-purple-900 font-semibold">
+            <span className="material-symbols-outlined text-[18px] text-purple-600">handshake</span>
+            <span>Chế độ Agent: Chỉ hiển thị các Deals được phân công cho <strong>{effectiveAgent.name}</strong></span>
+          </div>
+          <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold">
+            {filteredDeals.length} deals phụ trách
+          </span>
+        </div>
+      )}
 
       {/* ── Top View Tabs (Matching Screenshot media_1790228065239.png) ────────── */}
       <div className="flex items-center gap-1 border-b border-slate-200 text-xs font-semibold overflow-x-auto pb-px">

@@ -11,7 +11,13 @@ import StaffTicketsList from './staff/StaffTicketsList';
 import StaffTicketDetail from './staff/StaffTicketDetail';
 import StaffTasksList from './staff/StaffTasksList';
 import StaffTaskDetail from './staff/StaffTaskDetail';
-import AgentCommissionLedger from './agent/AgentCommissionLedger';
+import { useAuth } from '../../auth/AuthContext';
+import {
+  canAgentAccessItem,
+  getAgentIdentity,
+  extractOwnerString,
+} from '../../utils/rbac';
+import AccessRestrictedCard from '../../components/AccessRestrictedCard';
 import {
   MOCK_CONTACTS,
   SAMPLE_CONTACTS,
@@ -34,6 +40,8 @@ import {
 export default function AgentDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const currentAgent = getAgentIdentity(user);
 
   // Current view: 'dashboard' | 'contacts' | 'contact-detail' | 'deals' | 'deal-detail' | 'customer-document-detail' | 'commission' | 'tickets' | 'tasks'
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -57,7 +65,9 @@ export default function AgentDashboard() {
         if (stats) setCockpitStats(stats);
         if (Array.isArray(tix) && tix.length > 0) {
           const highPri = tix.filter(
-            (t) => (t.priority || '').toUpperCase() === 'HIGH' || t.status === 'Open'
+            (t) =>
+              canAgentAccessItem(t, user || { role: 'agent', name: currentAgent.name }, 'ticket') &&
+              ((t.priority || '').toUpperCase() === 'HIGH' || t.status === 'Open')
           );
           setUrgentTickets(highPri.slice(0, 5));
         }
@@ -66,7 +76,7 @@ export default function AgentDashboard() {
       }
     }
     loadCockpit();
-  }, []);
+  }, [user, currentAgent.name]);
 
   // Sync state with URL path
   useEffect(() => {
@@ -304,9 +314,9 @@ export default function AgentDashboard() {
       currentTab={currentTab}
       onSelectTab={handleSelectTab}
       isAgent={true}
-      agentName="Khánh Nguyen"
+      agentName={currentAgent.name}
       agentNpn="#1984210"
-      showCommission={true}
+      showCommission={false}
     >
       {/* ── 1. DASHBOARD VIEW (With CRM & Priorities Toggle) ─────────────── */}
       {currentView === 'dashboard' && (
@@ -356,6 +366,8 @@ export default function AgentDashboard() {
                 onSelectContact={handleSelectContact}
                 onSelectTicket={handleSelectTicket}
                 onSelectTask={handleSelectTask}
+                isAgent={true}
+                agentName={currentAgent.name}
               />
             </div>
           ) : (
@@ -537,22 +549,36 @@ export default function AgentDashboard() {
 
       {/* ── 2. CONTACTS VIEW ────────────────────────────────────────────── */}
       {currentView === 'contacts' && (
-        <StaffContactsList onSelectContact={handleSelectContact} />
+        <StaffContactsList
+          onSelectContact={handleSelectContact}
+          isAgent={true}
+          agentName={currentAgent.name}
+        />
       )}
 
       {/* ── 3. CONTACT DETAIL VIEW ──────────────────────────────────────── */}
       {currentView === 'contact-detail' && (
-        <StaffContactDetail
-          contact={selectedContact}
-          onBack={handleBackToContacts}
-          onSelectDeal={handleSelectDeal}
-          onSelectCustomerDocument={handleSelectCustomerDocument}
-          onSelectTicket={handleSelectTicket}
-          onSelectTask={handleSelectTask}
-          onUpdateContact={(updated) => {
-            setSelectedContact((prev) => ({ ...prev, ...updated }));
-          }}
-        />
+        !canAgentAccessItem(selectedContact, user || { role: 'agent', name: currentAgent.name }, 'contact') ? (
+          <AccessRestrictedCard
+            title="Quyền truy cập thông tin khách hàng bị giới hạn"
+            message="Theo quy định, bạn chỉ có quyền xem và xử lý các hồ sơ khách hàng mà bạn được phân công làm Owner phụ trách."
+            ownerName={extractOwnerString(selectedContact?.contactOwner || selectedContact?.sourceOfLead?.contactOwner)}
+            onBack={handleBackToContacts}
+            backLabel="Quay lại Danh bạ"
+          />
+        ) : (
+          <StaffContactDetail
+            contact={selectedContact}
+            onBack={handleBackToContacts}
+            onSelectDeal={handleSelectDeal}
+            onSelectCustomerDocument={handleSelectCustomerDocument}
+            onSelectTicket={handleSelectTicket}
+            onSelectTask={handleSelectTask}
+            onUpdateContact={(updated) => {
+              setSelectedContact((prev) => ({ ...prev, ...updated }));
+            }}
+          />
+        )
       )}
 
       {/* ── 4. DEALS VIEW ───────────────────────────────────────────────── */}
@@ -560,42 +586,69 @@ export default function AgentDashboard() {
         <StaffDealsList
           onSelectDeal={handleSelectDeal}
           onSelectContact={handleSelectContact}
+          isAgent={true}
+          agentName={currentAgent.name}
         />
       )}
 
       {/* ── 5. DEAL DETAIL VIEW ─────────────────────────────────────────── */}
       {currentView === 'deal-detail' && (
-        <StaffDealDetail
-          deal={selectedDeal}
-          onBack={handleBackFromDeal}
-          onSelectContact={() => handleSelectContact(selectedContact)}
-          onSelectCustomerDocument={handleSelectCustomerDocument}
-          onSelectTicket={handleSelectTicket}
-          onSelectTask={handleSelectTask}
-          onUpdateDeal={(updated) => {
-            setSelectedDeal((prev) => ({ ...prev, ...updated }));
-            if (updated?.id) {
-              apiUpdateDeal(updated.id, updated).catch((err) =>
-                console.warn('[AgentDashboard] Could not update deal:', err)
-              );
-            }
-          }}
-        />
+        !canAgentAccessItem(selectedDeal, user || { role: 'agent', name: currentAgent.name }, 'deal') ? (
+          <AccessRestrictedCard
+            title="Quyền truy cập hồ sơ Deal bị giới hạn"
+            message="Theo quy định, bạn chỉ có quyền xem và thao tác trên các Deals bảo hiểm mà bạn là Owner phụ trách."
+            ownerName={extractOwnerString(selectedDeal?.dealOwner || selectedDeal?.leadOwner)}
+            onBack={handleBackFromDeal}
+            backLabel="Quay lại Danh sách Deals"
+          />
+        ) : (
+          <StaffDealDetail
+            deal={selectedDeal}
+            onBack={handleBackFromDeal}
+            onSelectContact={() => handleSelectContact(selectedContact)}
+            onSelectCustomerDocument={handleSelectCustomerDocument}
+            onSelectTicket={handleSelectTicket}
+            onSelectTask={handleSelectTask}
+            onUpdateDeal={(updated) => {
+              setSelectedDeal((prev) => ({ ...prev, ...updated }));
+              if (updated?.id) {
+                apiUpdateDeal(updated.id, updated).catch((err) =>
+                  console.warn('[AgentDashboard] Could not update deal:', err)
+                );
+              }
+            }}
+          />
+        )
       )}
 
       {/* ── 6. CUSTOMER DOCUMENT DETAIL VIEW ────────────────────────────── */}
       {currentView === 'customer-document-detail' && (
-        <StaffCustomerDocumentDetail
-          documentData={selectedDocument}
-          onBack={handleBackToContactDetail}
-          onSelectContact={() => handleSelectContact(selectedContact)}
-          onSelectDeal={() => handleSelectDeal(selectedDeal)}
-        />
+        !canAgentAccessItem(selectedDocument, user || { role: 'agent', name: currentAgent.name }, 'document') ? (
+          <AccessRestrictedCard
+            title="Quyền truy cập tài liệu khách hàng bị giới hạn"
+            message="Theo quy định, bạn chỉ có quyền xem và tải tài liệu xác thực của khách hàng thuộc quyền quản lý của mình."
+            ownerName={extractOwnerString(selectedDocument?.contactOwner)}
+            onBack={handleBackToContactDetail}
+            backLabel="Quay lại Hồ sơ khách hàng"
+          />
+        ) : (
+          <StaffCustomerDocumentDetail
+            documentData={selectedDocument}
+            onBack={handleBackToContactDetail}
+            onSelectContact={() => handleSelectContact(selectedContact)}
+            onSelectDeal={() => handleSelectDeal(selectedDeal)}
+          />
+        )
       )}
 
-      {/* ── 7. COMMISSION VIEW (Image media_1790171960593.png) ─────────── */}
+      {/* ── 7. COMMISSION / SAAS REVENUE (Admin Only) ─────────────────── */}
       {currentView === 'commission' && (
-        <AgentCommissionLedger onSelectContact={handleSelectContact} />
+        <AccessRestrictedCard
+          title="Quyền xem thông tin gói mua & Doanh thu bị giới hạn"
+          message="Thông tin gói thuê bao CRM của các agency (Starter $39, Professional $79, Agency $199) và quyết toán hoa hồng chỉ dành riêng cho Quản trị viên (Admin)."
+          onBack={() => handleSelectTab('dashboard')}
+          backLabel="Quay lại Dashboard"
+        />
       )}
 
       {/* ── 8. TICKETS LIST VIEW ──────────────────────────────────────── */}
@@ -604,17 +657,29 @@ export default function AgentDashboard() {
           onSelectTicket={handleSelectTicket}
           onSelectContact={handleSelectContact}
           onSelectDeal={handleSelectDeal}
+          isAgent={true}
+          agentName={currentAgent.name}
         />
       )}
 
       {/* ── 8b. TICKET DETAIL VIEW ────────────────────────────────────── */}
       {currentView === 'ticket-detail' && (
-        <StaffTicketDetail
-          ticket={selectedTicket}
-          onBack={handleBackFromTicket}
-          onSelectContact={handleSelectContact}
-          onSelectDeal={handleSelectDeal}
-        />
+        !canAgentAccessItem(selectedTicket, user || { role: 'agent', name: currentAgent.name }, 'ticket') ? (
+          <AccessRestrictedCard
+            title="Quyền truy cập Ticket hỗ trợ bị giới hạn"
+            message="Theo quy định, bạn chỉ có quyền xử lý các Ticket hỗ trợ khách hàng được phân công cho bạn."
+            ownerName={extractOwnerString(selectedTicket?.ticketOwner || selectedTicket?.owner)}
+            onBack={handleBackFromTicket}
+            backLabel="Quay lại Danh sách Tickets"
+          />
+        ) : (
+          <StaffTicketDetail
+            ticket={selectedTicket}
+            onBack={handleBackFromTicket}
+            onSelectContact={handleSelectContact}
+            onSelectDeal={handleSelectDeal}
+          />
+        )
       )}
 
       {/* ── 9. TASKS LIST VIEW ───────────────────────────────────────── */}
@@ -623,18 +688,30 @@ export default function AgentDashboard() {
           onSelectTask={handleSelectTask}
           onSelectContact={handleSelectContact}
           onSelectDeal={handleSelectDeal}
+          isAgent={true}
+          agentName={currentAgent.name}
         />
       )}
 
       {/* ── 9b. TASK DETAIL VIEW ──────────────────────────────────────── */}
       {currentView === 'task-detail' && (
-        <StaffTaskDetail
-          task={selectedTask}
-          onBack={handleBackFromTask}
-          onSelectContact={handleSelectContact}
-          onSelectDeal={handleSelectDeal}
-          onSelectTicket={handleSelectTicket}
-        />
+        !canAgentAccessItem(selectedTask, user || { role: 'agent', name: currentAgent.name }, 'task') ? (
+          <AccessRestrictedCard
+            title="Quyền truy cập công việc (Task) bị giới hạn"
+            message="Theo quy định, bạn chỉ có quyền xem và xử lý các Task công việc được chỉ định cho bạn."
+            ownerName={extractOwnerString(selectedTask?.assignee || selectedTask?.assignedTo)}
+            onBack={handleBackFromTask}
+            backLabel="Quay lại Danh sách Tasks"
+          />
+        ) : (
+          <StaffTaskDetail
+            task={selectedTask}
+            onBack={handleBackFromTask}
+            onSelectContact={handleSelectContact}
+            onSelectDeal={handleSelectDeal}
+            onSelectTicket={handleSelectTicket}
+          />
+        )
       )}
     </StaffCrmLayout>
   );

@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getTasks, createTask, updateTask } from '../../../services/api';
 import { SAMPLE_TASKS } from '../../../data/mockCrmData';
+import { useAuth } from '../../../auth/AuthContext';
+import { filterTasksForAgent, getAgentIdentity } from '../../../utils/rbac';
 
 // ── Dropdown Data matching user screenshots ──────────────────────────────────
 const PRIORITY_OPTIONS = [
@@ -33,7 +35,7 @@ const ASSIGNEE_OPTIONS = [
   { name: 'Ivy Lu', handle: 'ivy', avatar: 'IL', bg: 'bg-[#0EA5E9]' },
 ];
 
-export default function StaffTasksList({ onSelectTask, onSelectContact, onSelectDeal }) {
+export default function StaffTasksList({ onSelectTask, onSelectContact, onSelectDeal, isAgent = false, agentName = '' }) {
   const [tasksList, setTasksList] = useState(SAMPLE_TASKS);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -151,9 +153,21 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
     } catch {}
   };
 
+  const { user } = useAuth();
+  const activeIsAgent = isAgent || user?.role === 'agent';
+  const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
+
+  // Scoped tasks by RBAC
+  const scopedTasks = useMemo(() => {
+    if (activeIsAgent) {
+      return filterTasksForAgent(tasksList, user || { role: 'agent', name: effectiveAgent.name });
+    }
+    return tasksList;
+  }, [tasksList, activeIsAgent, user, effectiveAgent.name]);
+
   // Filtered tasks
   const filteredTasks = useMemo(() => {
-    return tasksList.filter((t) => {
+    return scopedTasks.filter((t) => {
       // 1. Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -304,6 +318,11 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
             check_box
           </span>
           <h1 className="text-sm font-bold text-slate-900 tracking-tight">Tasks</h1>
+          {activeIsAgent && (
+            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">
+              Agent: {effectiveAgent.name} ({scopedTasks.length} tasks)
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -344,13 +363,26 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
         </div>
       </div>
 
-      {/* ── 2. VIEW TABS ROW (All Tasks 14.8k, + Add View) ─────────────────── */}
+      {/* ── Agent Scope Indicator Banner ─────────────────────────────────── */}
+      {activeIsAgent && (
+        <div className="bg-blue-50 border-b border-blue-200/90 px-6 py-2 flex items-center justify-between gap-3 text-xs shrink-0">
+          <div className="flex items-center gap-2 text-blue-900 font-semibold">
+            <span className="material-symbols-outlined text-[18px] text-blue-600">checklist</span>
+            <span>Chế độ Agent: Chỉ hiển thị các Tasks công việc được giao cho <strong>{effectiveAgent.name}</strong></span>
+          </div>
+          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">
+            {filteredTasks.length} tasks phụ trách
+          </span>
+        </div>
+      )}
+
+      {/* ── 2. VIEW TABS ROW (All Tasks, + Add View) ─────────────────── */}
       <div className="bg-white border-b border-slate-200 px-6 pt-2.5 pb-2 flex items-center gap-3 shrink-0">
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0F2962] text-white font-semibold text-xs shadow-2xs cursor-pointer">
           <span className="material-symbols-outlined text-[14px]">grid_view</span>
-          <span>All Tasks</span>
+          <span>{activeIsAgent ? 'My Assigned Tasks' : 'All Tasks'}</span>
           <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-bold">
-            14.8k
+            {scopedTasks.length}
           </span>
         </div>
 
