@@ -175,7 +175,6 @@ export default function StaffDealDetail({
   const [adminOnlyOpen, setAdminOnlyOpen] = useState(false);
   const [readyToEnrollOpen, setReadyToEnrollOpen] = useState(false);
   const [feeBonusPaymentOpen, setFeeBonusPaymentOpen] = useState(false);
-  const [notInCarrierOpen, setNotInCarrierOpen] = useState(false);
 
   // Form states for ADMIN ONLY
   const [primaryMemberId, setPrimaryMemberId] = useState(
@@ -239,13 +238,6 @@ export default function StaffDealDetail({
   const [bonusTier, setBonusTier] = useState('Standard Tier');
   const [paymentOption, setPaymentOption] = useState('EFT Auto-pay');
   const [paymentVerification, setPaymentVerification] = useState('Verified');
-
-  // Form states for Not In Carrier
-  const [carrierSyncStatus, setCarrierSyncStatus] = useState('Not In Carrier');
-  const [carrierErrorCode, setCarrierErrorCode] = useState('---');
-  const [carrierNotes, setCarrierNotes] = useState(
-    'Customer enrolled through Marketplace, awaiting carrier portal confirmation.'
-  );
 
   // Middle tab state
   const [activeTab, setActiveTab] = useState('activity');
@@ -1291,60 +1283,7 @@ export default function StaffDealDetail({
               )}
             </div>
 
-            {/* 5. Not In Carrier */}
-            <div>
-              <button
-                type="button"
-                onClick={() => setNotInCarrierOpen(!notInCarrierOpen)}
-                className="w-full py-2.5 px-4 flex items-center gap-2 text-left font-bold text-xs text-[#0F2962] hover:bg-slate-50 hover:text-blue-700 transition cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px] text-[#0F2962]">
-                  {notInCarrierOpen ? 'expand_more' : 'chevron_right'}
-                </span>
-                <span>Not In Carrier</span>
-              </button>
 
-              {notInCarrierOpen && (
-                <div className="p-3.5 bg-slate-50/60 border-t border-slate-100 space-y-3 text-xs">
-                  <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Carrier Sync Status
-                    </label>
-                    <select
-                      value={carrierSyncStatus}
-                      onChange={(e) => setCarrierSyncStatus(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-medium text-amber-700"
-                    >
-                      <option>Not In Carrier</option>
-                      <option>Synced</option>
-                      <option>Needs Re-submission</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Error Code
-                    </label>
-                    <input
-                      type="text"
-                      value={carrierErrorCode}
-                      onChange={(e) => setCarrierErrorCode(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-700"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Notes & Instructions
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={carrierNotes}
-                      onChange={(e) => setCarrierNotes(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
