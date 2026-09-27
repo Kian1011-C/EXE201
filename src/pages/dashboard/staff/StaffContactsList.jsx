@@ -58,16 +58,22 @@ export default function StaffContactsList({ onSelectContact }) {
   const filteredContacts = useMemo(() => {
     return contactsList.filter((c) => {
       const q = searchQuery.toLowerCase().trim();
+      const cName = c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || '';
+      const cCode = c.code || `CT2600${c.id || ''}`;
+      const cPhone = c.phone || '';
+      const cEmail = c.email || '';
+      const ownerName = (typeof c.contactOwner === 'object' ? (c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`.trim()) : c.contactOwner) || '';
+
       const matchesSearch =
         !q ||
-        c.fullName.toLowerCase().includes(q) ||
-        c.code.toLowerCase().includes(q) ||
-        c.phone.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q);
+        cName.toLowerCase().includes(q) ||
+        cCode.toLowerCase().includes(q) ||
+        cPhone.toLowerCase().includes(q) ||
+        cEmail.toLowerCase().includes(q);
 
       const matchesOwner =
         ownerFilter === 'all' ||
-        c.contactOwner.name.toLowerCase().includes(ownerFilter.toLowerCase());
+        ownerName.toLowerCase().includes(ownerFilter.toLowerCase());
 
       return matchesSearch && matchesOwner;
     });
@@ -77,7 +83,12 @@ export default function StaffContactsList({ onSelectContact }) {
   const ownerOptions = useMemo(() => {
     const set = new Set(
       contactsList
-        .map((c) => (typeof c.contactOwner === 'object' ? c.contactOwner?.name : c.contactOwner))
+        .map((c) => {
+          if (typeof c.contactOwner === 'object') {
+            return c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`.trim();
+          }
+          return c.contactOwner;
+        })
         .filter(Boolean)
     );
     return Array.from(set);
@@ -484,12 +495,12 @@ export default function StaffContactsList({ onSelectContact }) {
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-1.5">
                           <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${contact.contactOwner.bg}`}
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${contact.contactOwner?.bg || 'bg-amber-100 text-amber-800'}`}
                           >
-                            {contact.contactOwner.avatar}
+                            {contact.contactOwner?.avatar || 'TB'}
                           </div>
                           <span className="text-slate-800 truncate max-w-[130px]">
-                            {contact.contactOwner.name}
+                            {contact.contactOwner?.name || 'The Best Rate Insurance'}
                           </span>
                         </div>
                       </td>
@@ -533,7 +544,7 @@ export default function StaffContactsList({ onSelectContact }) {
                                 : 'text-slate-600'
                             }
                           >
-                            {contact.status}
+                            {contact.status || 'Active'}
                           </span>
                         </span>
                       </td>
@@ -542,12 +553,12 @@ export default function StaffContactsList({ onSelectContact }) {
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-1.5">
                           <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${contact.lastModifiedBy.bg}`}
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${contact.lastModifiedBy?.bg || 'bg-slate-100 text-slate-800'}`}
                           >
-                            {contact.lastModifiedBy.avatar}
+                            {contact.lastModifiedBy?.avatar || 'SM'}
                           </div>
                           <span className="text-slate-800 truncate max-w-[110px]">
-                            {contact.lastModifiedBy.name}
+                            {contact.lastModifiedBy?.name || 'Platform Staff'}
                           </span>
                         </div>
                       </td>

@@ -56,24 +56,197 @@ export async function checkBackendHealth() {
   }
 }
 
+// ── Normalization Helpers for Frontend Compatibility ──────────────────────
+function formatUserName(user) {
+  if (!user) return '';
+  if (typeof user === 'string') return user;
+  return user.name || [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email || '';
+}
+
+function getUserAvatar(name) {
+  if (!name) return 'TB';
+  return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'TB';
+}
+
+function normalizeContact(c) {
+  if (!c) return c;
+  const fullName = c.fullName || [c.firstName, c.middleName, c.lastName].filter(Boolean).join(' ') || 'Unknown Contact';
+  const ownerName = formatUserName(c.contactOwner) || 'The Best Rate Insurance';
+  const supportName = formatUserName(c.supportAgent) || 'Platform Staff';
+  const modifiedByName = formatUserName(c.lastModifiedBy) || ownerName;
+
+  return {
+    ...c,
+    id: c.id,
+    no: c.no || c.id,
+    code: c.code || `CT2600${String(c.id || 1).padStart(4, '0')}`,
+    fullName,
+    name: fullName,
+    phone: c.phone || '—',
+    email: c.email || '—',
+    language: c.language || 'Vietnamese',
+    status: c.status || 'Active',
+    howDoYouKnowUs: c.howDoYouKnowUs || c.sourceDetail || c.sourceChannel || '—',
+    acaAccountStatus: c.acaAccountStatus || c.acaStatus || null,
+    contactOwner: {
+      name: ownerName,
+      avatar: c.contactOwner?.avatar || getUserAvatar(ownerName),
+      bg: c.contactOwner?.bg || 'bg-amber-100 text-amber-800',
+    },
+    supportAgent: {
+      name: supportName,
+      avatar: c.supportAgent?.avatar || getUserAvatar(supportName),
+    },
+    lastModifiedBy: {
+      name: modifiedByName,
+      avatar: c.lastModifiedBy?.avatar || getUserAvatar(modifiedByName),
+      bg: c.lastModifiedBy?.bg || 'bg-slate-100 text-slate-800',
+    },
+    lastModifiedTime: c.lastModifiedTime || (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : 'Just now'),
+    primary: c.primary || {
+      firstName: c.firstName || '',
+      middleName: c.middleName || '',
+      lastName: c.lastName || '',
+      dob: c.dateOfBirth || c.dob || '',
+      ssn: c.ssn || '',
+      familyRelationship: c.relationship || '',
+      gender: c.gender || '',
+      immigrationStatus: c.immigrationStatus || '',
+      alienNumber: c.alienNumber || '',
+      certificateNumber: c.certificateNumber || '',
+      dateExpired: c.dateExpired || '',
+      household: c.householdSize || 1,
+    },
+    contactFields: c.contactFields || {
+      phone: c.phone || '',
+      state: c.state || '',
+      city: c.city || '',
+      postalCode: c.zipCode || c.postalCode || '',
+      streetAddress: c.address || c.streetAddress || '',
+      enrolledAddress: c.address || '',
+      mailingAddress: c.address || '',
+      county: c.county || '',
+      language: c.language || 'Vietnamese',
+    },
+    deals: Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : [],
+    tasks: Array.isArray(c.tasks) ? c.tasks.map(normalizeTask) : [],
+    tickets: Array.isArray(c.tickets) ? c.tickets.map(normalizeTicket) : [],
+  };
+}
+
+function normalizeDeal(d) {
+  if (!d) return d;
+  const title = d.title || d.dealName || `Deal #${d.id}`;
+  const ownerName = formatUserName(d.dealOwner) || 'Licensed Agent';
+  const contactName = d.contactName || (d.contact ? [d.contact.firstName, d.contact.lastName].filter(Boolean).join(' ') : '') || 'Client';
+
+  return {
+    ...d,
+    id: d.id,
+    title,
+    dealName: title,
+    code: d.code || `DL2600${String(d.id || 1).padStart(4, '0')}`,
+    contactName,
+    dealOwner: {
+      name: ownerName,
+      avatar: d.dealOwner?.avatar || getUserAvatar(ownerName),
+      bg: d.dealOwner?.bg || 'bg-blue-100 text-blue-800',
+    },
+    carrier: d.carrier || 'Ambetter',
+    stage: d.stage || d.dealStage || 'Ready to Enroll (Obamacare 2026)',
+    dealStage: d.dealStage || d.stage || 'ENROLLED_ACTIVE',
+    pipeline: d.pipeline || 'Obamacare 2026',
+    amount: d.amount != null ? d.amount : 0,
+    policyEffectiveDate: d.policyEffectiveDate || '',
+    policyId: d.policyId || '',
+    memberId: d.memberId || '',
+    paymentStatus: d.paymentStatus || 'No Value',
+    chooseDoctorStatus: d.chooseDoctorStatus || 'Need Choose Doctor',
+    doctorName: d.doctorName || '',
+    stageAca: d.stageAca || '',
+  };
+}
+
+function normalizeTicket(t) {
+  if (!t) return t;
+  const title = t.title || t.ticketName || `Ticket #${t.id}`;
+  const ownerName = formatUserName(t.ticketOwner) || 'Agent';
+  const serviceName = formatUserName(t.serviceAgent) || 'Support Staff';
+  const contactName = t.contactName || (t.contact ? [t.contact.firstName, t.contact.lastName].filter(Boolean).join(' ') : '') || 'Client';
+  const dealTitle = t.dealTitle || t.deal?.dealName || t.deal?.title || '';
+
+  return {
+    ...t,
+    id: t.id,
+    title,
+    ticketName: title,
+    code: t.code || `TK2600${String(t.id || 1).padStart(4, '0')}`,
+    status: t.status || t.ticketStatus || 'Open',
+    ticketStatus: t.ticketStatus || t.status || 'OPEN',
+    priority: t.priority || 'Medium',
+    pipeline: t.pipeline || 'Client Support',
+    description: t.description || t.ticketDescription || '',
+    contactName,
+    dealTitle,
+    owner: {
+      name: ownerName,
+      avatar: t.owner?.avatar || getUserAvatar(ownerName),
+    },
+    serviceAgent: {
+      name: serviceName,
+      avatar: t.serviceAgent?.avatar || getUserAvatar(serviceName),
+    },
+    ticketOwner: {
+      name: ownerName,
+      avatar: t.ticketOwner?.avatar || getUserAvatar(ownerName),
+    },
+  };
+}
+
+function normalizeTask(t) {
+  if (!t) return t;
+  const title = t.title || `Task #${t.id}`;
+  const assignedName = formatUserName(t.assignedTo) || 'Staff User';
+  const contactName = t.contactName || (t.contact ? [t.contact.firstName, t.contact.lastName].filter(Boolean).join(' ') : '') || '';
+  const dealTitle = t.dealTitle || t.deal?.dealName || t.deal?.title || '';
+
+  return {
+    ...t,
+    id: t.id,
+    title,
+    code: t.code || `TSK2600${String(t.id || 1).padStart(4, '0')}`,
+    status: t.status || 'Not Started',
+    priority: t.priority || 'Medium',
+    assignedTo: {
+      name: assignedName,
+      avatar: t.assignedTo?.avatar || getUserAvatar(assignedName),
+    },
+    contactName,
+    dealTitle,
+  };
+}
+
 // ── Contacts ─────────────────────────────────────────────────────────────────
 export async function getContacts(params = {}) {
   const query = new URLSearchParams();
   if (params.search) query.append('search', params.search);
   if (params.owner && params.owner !== 'all') query.append('owner', params.owner);
   const qStr = query.toString() ? `?${query.toString()}` : '';
-  return await request(`/contacts${qStr}`);
+  const data = await request(`/contacts${qStr}`);
+  return Array.isArray(data) ? data.map(normalizeContact) : data;
 }
 
 export async function getContact(id) {
-  return await request(`/contacts/${encodeURIComponent(id)}`);
+  const data = await request(`/contacts/${encodeURIComponent(id)}`);
+  return data ? normalizeContact(data) : data;
 }
 
 export async function createContact(data) {
-  return await request('/contacts', {
+  const res = await request('/contacts', {
     method: 'POST',
     body: JSON.stringify(data),
   });
+  return res ? normalizeContact(res) : res;
 }
 
 // ── Deals ────────────────────────────────────────────────────────────────────
@@ -83,18 +256,21 @@ export async function getDeals(params = {}) {
   if (params.stage) query.append('stage', params.stage);
   if (params.pipeline) query.append('pipeline', params.pipeline);
   const qStr = query.toString() ? `?${query.toString()}` : '';
-  return await request(`/deals${qStr}`);
+  const data = await request(`/deals${qStr}`);
+  return Array.isArray(data) ? data.map(normalizeDeal) : data;
 }
 
 export async function getDeal(id) {
-  return await request(`/deals/${encodeURIComponent(id)}`);
+  const data = await request(`/deals/${encodeURIComponent(id)}`);
+  return data ? normalizeDeal(data) : data;
 }
 
 export async function updateDeal(id, data) {
-  return await request(`/deals/${encodeURIComponent(id)}`, {
+  const res = await request(`/deals/${encodeURIComponent(id)}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
+  return res ? normalizeDeal(res) : res;
 }
 
 // ── Documents ────────────────────────────────────────────────────────────────
@@ -153,19 +329,23 @@ export async function getTickets(params = {}) {
   if (params.contactId) query.append('contactId', params.contactId);
   if (params.dealId) query.append('dealId', params.dealId);
   const qStr = query.toString() ? `?${query.toString()}` : '';
-  return await request(`/tickets${qStr}`);
+  const data = await request(`/tickets${qStr}`);
+  return Array.isArray(data) ? data.map(normalizeTicket) : data;
 }
 
 export async function getTicket(id) {
-  return await request(`/tickets/${encodeURIComponent(id)}`);
+  const data = await request(`/tickets/${encodeURIComponent(id)}`);
+  return data ? normalizeTicket(data) : data;
 }
 
 export async function createTicket(data) {
-  return await request('/tickets', { method: 'POST', body: JSON.stringify(data) });
+  const res = await request('/tickets', { method: 'POST', body: JSON.stringify(data) });
+  return res ? normalizeTicket(res) : res;
 }
 
 export async function updateTicket(id, data) {
-  return await request(`/tickets/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
+  const res = await request(`/tickets/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
+  return res ? normalizeTicket(res) : res;
 }
 
 export async function addTicketComment(ticketId, data) {
@@ -181,19 +361,23 @@ export async function getTasks(params = {}) {
   if (params.contactId) query.append('contactId', params.contactId);
   if (params.dealId) query.append('dealId', params.dealId);
   const qStr = query.toString() ? `?${query.toString()}` : '';
-  return await request(`/tasks${qStr}`);
+  const data = await request(`/tasks${qStr}`);
+  return Array.isArray(data) ? data.map(normalizeTask) : data;
 }
 
 export async function getTask(id) {
-  return await request(`/tasks/${encodeURIComponent(id)}`);
+  const data = await request(`/tasks/${encodeURIComponent(id)}`);
+  return data ? normalizeTask(data) : data;
 }
 
 export async function createTask(data) {
-  return await request('/tasks', { method: 'POST', body: JSON.stringify(data) });
+  const res = await request('/tasks', { method: 'POST', body: JSON.stringify(data) });
+  return res ? normalizeTask(res) : res;
 }
 
 export async function updateTask(id, data) {
-  return await request(`/tasks/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
+  const res = await request(`/tasks/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
+  return res ? normalizeTask(res) : res;
 }
 
 // ── Commissions ──────────────────────────────────────────────────────────────

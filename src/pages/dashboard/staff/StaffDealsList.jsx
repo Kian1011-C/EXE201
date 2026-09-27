@@ -69,8 +69,9 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact }) {
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
-        d.title.toLowerCase().includes(q) ||
-        d.code.toLowerCase().includes(q) ||
+        (d.title && d.title.toLowerCase().includes(q)) ||
+        (d.dealName && d.dealName.toLowerCase().includes(q)) ||
+        (d.code && d.code.toLowerCase().includes(q)) ||
         (d.contactName && d.contactName.toLowerCase().includes(q)) ||
         (d.carrier && d.carrier.toLowerCase().includes(q));
 
