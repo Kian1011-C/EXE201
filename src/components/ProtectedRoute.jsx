@@ -32,10 +32,17 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Role restriction
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Redirect to their own dashboard
-    return <Navigate to={`/dashboard/${user.role}`} replace />;
+  // Role restriction with alias mapping (support/telesales -> staff, manager -> admin)
+  if (allowedRoles) {
+    const effectiveRole =
+      (user?.role === 'support' || user?.role === 'telesales') ? 'staff' :
+      (user?.role === 'manager') ? 'admin' :
+      user?.role;
+
+    if (!allowedRoles.includes(user?.role) && !allowedRoles.includes(effectiveRole)) {
+      // Redirect to their own dashboard
+      return <Navigate to={`/dashboard/${effectiveRole || user?.role || 'staff'}`} replace />;
+    }
   }
 
   return children;

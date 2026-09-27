@@ -75,6 +75,12 @@ export async function login(email, password) {
         if (user.role.startsWith('role_')) {
           user.role = user.role.replace('role_', '');
         }
+        // Map Spring Boot roles: SUPPORT / TELESALES -> staff, MANAGER -> admin
+        if (user.role === 'support' || user.role === 'telesales') {
+          user.role = 'staff';
+        } else if (user.role === 'manager') {
+          user.role = 'admin';
+        }
       }
 
       // Generate avatar initials if missing
@@ -175,6 +181,11 @@ export function restoreSession() {
   if (!token || !userRaw) return null;
   try {
     const user = JSON.parse(userRaw);
+    if (user.role === 'support' || user.role === 'telesales') {
+      user.role = 'staff';
+    } else if (user.role === 'manager') {
+      user.role = 'admin';
+    }
     return { token, user };
   } catch {
     return null;

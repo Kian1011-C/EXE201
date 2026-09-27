@@ -6,7 +6,10 @@ import { useAuth } from '../auth/AuthContext';
 
 const ROLE_REDIRECT = {
   admin: '/dashboard/admin',
+  manager: '/dashboard/admin',
   staff: '/dashboard/staff',
+  support: '/dashboard/staff',
+  telesales: '/dashboard/staff',
   agent: '/dashboard/agent',
 };
 

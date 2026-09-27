@@ -103,7 +103,7 @@ export default function App() {
           <Route
             path="/dashboard/admin/*"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'manager']}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
@@ -111,7 +111,7 @@ export default function App() {
           <Route
             path="/dashboard/staff/*"
             element={
-              <ProtectedRoute allowedRoles={['staff']}>
+              <ProtectedRoute allowedRoles={['staff', 'support', 'telesales']}>
                 <StaffDashboard />
               </ProtectedRoute>
             }
