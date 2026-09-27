@@ -171,9 +171,8 @@ export default function StaffDealDetail({
   // Left sidebar collapse state
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
 
-  // 5 Accordion states (closed by default matching media_1789718765735.png)
+  // Accordion states
   const [adminOnlyOpen, setAdminOnlyOpen] = useState(false);
-  const [generalOpen, setGeneralOpen] = useState(false);
   const [readyToEnrollOpen, setReadyToEnrollOpen] = useState(false);
   const [feeBonusPaymentOpen, setFeeBonusPaymentOpen] = useState(false);
   const [notInCarrierOpen, setNotInCarrierOpen] = useState(false);
@@ -204,10 +203,6 @@ export default function StaffDealDetail({
   const [closedLostReason, setClosedLostReason] = useState(
     dealInfo.adminOnly?.closedLostReason || '---'
   );
-
-  // Form states for GENERAL
-  const [dealType, setDealType] = useState('New Business');
-  const [priority, setPriority] = useState('Medium');
 
   // Form states for READY-TO-ENROLL & AFTER-SALE
   const [appId, setAppId] = useState('APP-2026-9812');
@@ -973,77 +968,7 @@ export default function StaffDealDetail({
               )}
             </div>
 
-            {/* 2. GENERAL */}
-            <div>
-              <button
-                type="button"
-                onClick={() => setGeneralOpen(!generalOpen)}
-                className="w-full py-2.5 px-4 flex items-center gap-2 text-left font-bold text-xs text-[#0F2962] hover:bg-slate-50 hover:text-blue-700 transition cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px] text-[#0F2962]">
-                  {generalOpen ? 'expand_more' : 'chevron_right'}
-                </span>
-                <span>GENERAL</span>
-              </button>
 
-              {generalOpen && (
-                <div className="p-3.5 bg-slate-50/60 border-t border-slate-100 space-y-3 text-xs">
-                  <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Deal Name <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={dealTitle}
-                      onChange={(e) => setDealTitle(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Pipeline <span className="text-rose-500">*</span>
-                    </label>
-                    <select
-                      value={pipeline}
-                      onChange={(e) => setPipeline(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700"
-                    >
-                      <option>Obamacare 2026</option>
-                      <option>Obamacare 2025</option>
-                      <option>Medicare 2026</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Deal Type
-                    </label>
-                    <select
-                      value={dealType}
-                      onChange={(e) => setDealType(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700"
-                    >
-                      <option>New Business</option>
-                      <option>Renewal</option>
-                      <option>Carrier Transfer</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Priority
-                    </label>
-                    <select
-                      value={priority}
-                      onChange={(e) => setPriority(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700"
-                    >
-                      <option>Medium</option>
-                      <option>High</option>
-                      <option>Low</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* 3. READY-TO-ENROLL & AFTER-SALE */}
             <div>
