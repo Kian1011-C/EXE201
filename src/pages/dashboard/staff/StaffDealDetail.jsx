@@ -9,6 +9,8 @@ import {
 } from '../../../data/mockCrmData';
 import { createTicket } from '../../../services/api';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
+import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
+import { recordPropertyUpdate } from '../../../services/propertyHistoryService';
 
 export default function StaffDealDetail({
   deal,
@@ -39,6 +41,13 @@ export default function StaffDealDetail({
   const [isStageDropdownOpen, setIsStageDropdownOpen] = useState(false);
   const [stageSearchQuery, setStageSearchQuery] = useState('');
   const [showStageHistoryModal, setShowStageHistoryModal] = useState(false);
+  const [showPropertyHistoryModal, setShowPropertyHistoryModal] = useState(false);
+  const [selectedHistoryField, setSelectedHistoryField] = useState('Broker Effective Date');
+
+  function handleOpenPropertyHistory(fieldName) {
+    setSelectedHistoryField(fieldName);
+    setShowPropertyHistoryModal(true);
+  }
   const [isPipelineDropdownOpen, setIsPipelineDropdownOpen] = useState(false);
   const [stageHistory, setStageHistory] = useState([
     {
@@ -613,7 +622,8 @@ export default function StaffDealDetail({
         <div className="flex items-center gap-3 text-xs text-slate-600">
           <button
             type="button"
-            className="flex items-center gap-1.5 text-slate-700 hover:text-blue-700 transition cursor-pointer"
+            onClick={() => handleOpenPropertyHistory('All')}
+            className="flex items-center gap-1.5 text-slate-700 hover:text-blue-700 transition cursor-pointer font-medium"
           >
             <span className="material-symbols-outlined text-[16px] text-blue-600">history</span>
             <span>View history</span>
@@ -875,9 +885,11 @@ export default function StaffDealDetail({
                 <div className="p-3.5 bg-slate-50/60 border-t border-slate-100 space-y-3 text-xs">
                   {/* Enrolled NPN* */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Enrolled NPN <span className="text-rose-500">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Enrolled NPN"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <select
                       value={enrolledNpn}
                       onChange={(e) => setEnrolledNpn(e.target.value)}
@@ -891,9 +903,10 @@ export default function StaffDealDetail({
 
                   {/* Broker Effective Date */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Broker Effective Date
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Broker Effective Date"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <div className="relative">
                       <input
                         type="date"
@@ -906,9 +919,10 @@ export default function StaffDealDetail({
 
                   {/* Termination Date */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Termination Date
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Termination Date"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <div className="relative">
                       <input
                         type="date"
@@ -921,9 +935,10 @@ export default function StaffDealDetail({
 
                   {/* Lead Owner */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Lead Owner
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Lead Owner"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-800">
                       <div className="w-4 h-4 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0">
                         KN
@@ -934,9 +949,11 @@ export default function StaffDealDetail({
 
                   {/* Deal Owner* */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Deal Owner <span className="text-rose-500">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Deal Owner"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-800">
                       <div className="w-4 h-4 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0">
                         KN
@@ -952,9 +969,10 @@ export default function StaffDealDetail({
 
                   {/* Code */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Code
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Code"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       readOnly
@@ -965,9 +983,10 @@ export default function StaffDealDetail({
 
                   {/* Primary Member Id */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Primary Member Id
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Primary Member Id"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={primaryMemberId}
@@ -978,10 +997,11 @@ export default function StaffDealDetail({
 
                   {/* Sale Support Status */}
                   <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-slate-700 font-semibold text-[11px]">
-                        Sale Support Status
-                      </label>
+                    <PropertyLabelWithHistory
+                      label="Sale Support Status"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
+                    <div className="flex items-center justify-between mb-1 -mt-0.5">
                       <span className="text-[10px] font-bold text-blue-600">
                         {saleSupportStatus === 'None' || saleSupportStatus === 'NONE'
                           ? '7/3 Split (Agent 70% / Platform 30%)'
@@ -1005,9 +1025,11 @@ export default function StaffDealDetail({
 
                   {/* Number Member* */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Number Member <span className="text-rose-500">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Number Member"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="number"
                       value={numberMember}
@@ -1018,9 +1040,11 @@ export default function StaffDealDetail({
 
                   {/* Selling State* */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Selling State <span className="text-rose-500">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Selling State"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <select
                       value={sellingState}
                       onChange={(e) => setSellingState(e.target.value)}
@@ -1036,9 +1060,11 @@ export default function StaffDealDetail({
 
                   {/* Carrier* */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Carrier <span className="text-rose-500">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Carrier"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <select
                       value={carrier}
                       onChange={(e) => setCarrier(e.target.value)}
@@ -1055,9 +1081,10 @@ export default function StaffDealDetail({
 
                   {/* Closed Lost Reason */}
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Closed Lost Reason
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Closed Lost Reason"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <select
                       value={closedLostReason}
                       onChange={(e) => setClosedLostReason(e.target.value)}
@@ -1092,9 +1119,11 @@ export default function StaffDealDetail({
                 <div className="p-3.5 bg-slate-50/60 border-t border-slate-100 space-y-3 text-xs">
                   {/* 1. Application ID */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Application ID <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Application ID"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={appId}
@@ -1105,9 +1134,11 @@ export default function StaffDealDetail({
 
                   {/* 2. Estimate Household Income */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Estimate Household Income <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Estimate Household Income"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={estimateHouseholdIncome}
@@ -1118,9 +1149,11 @@ export default function StaffDealDetail({
 
                   {/* 3. Household Member */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Household Member <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Household Member"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={householdMember}
@@ -1131,9 +1164,11 @@ export default function StaffDealDetail({
 
                   {/* 4. Number Member */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Number Member <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Number Member"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <div className="relative">
                       <input
                         type="text"
@@ -1150,9 +1185,11 @@ export default function StaffDealDetail({
 
                   {/* 5. Enrolled Address */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Enrolled Address <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Enrolled Address"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={enrolledAddress}
@@ -1163,9 +1200,10 @@ export default function StaffDealDetail({
 
                   {/* 6. Quoted county */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Quoted county
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Quoted county"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={quotedCounty}
@@ -1177,9 +1215,11 @@ export default function StaffDealDetail({
 
                   {/* 7. Is this a backdate deal? */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Is this a backdate deal? <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Is this a backdate deal?"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <div className="relative">
                       <select
                         value={isBackdateDeal}
@@ -1200,9 +1240,11 @@ export default function StaffDealDetail({
 
                   {/* 8. Carrier */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Carrier <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Carrier"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <div className="relative">
                       <select
                         value={carrier}
@@ -1229,9 +1271,11 @@ export default function StaffDealDetail({
 
                   {/* 9. Plan Name */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Plan Name <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Plan Name"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={planName}
@@ -1242,9 +1286,11 @@ export default function StaffDealDetail({
 
                   {/* 10. Amount */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Amount <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Amount"
+                      required
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <div className="relative">
                       <input
                         type="text"
@@ -1262,11 +1308,14 @@ export default function StaffDealDetail({
                   {/* 11. Need Upload */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-[#0F2962] font-semibold text-[11px]">
-                        Need Upload <span className="text-rose-500 font-bold ml-0.5">*</span>
-                      </label>
+                      <PropertyLabelWithHistory
+                        label="Need Upload"
+                        required
+                        onOpenHistory={handleOpenPropertyHistory}
+                        className="flex-1 !mb-0"
+                      />
                       {needUpload === 'Yes' && (
-                        <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300">
+                        <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300 ml-2">
                           ⚡ Đã xuất Ticket Upload
                         </span>
                       )}
@@ -1317,9 +1366,10 @@ export default function StaffDealDetail({
               {feeBonusPaymentOpen && (
                 <div className="p-3.5 bg-slate-50/60 border-t border-slate-100 space-y-3 text-xs">
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Monthly Premium
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Monthly Premium"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={monthlyPremium}
@@ -1328,9 +1378,10 @@ export default function StaffDealDetail({
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Subsidy Amount (APTC)
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Subsidy Amount (APTC)"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={subsidyAmount}
@@ -1339,9 +1390,10 @@ export default function StaffDealDetail({
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Agency Commission
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Agency Commission"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <input
                       type="text"
                       value={agencyCommission}
@@ -1350,9 +1402,10 @@ export default function StaffDealDetail({
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Bonus Tier
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Bonus Tier"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <select
                       value={bonusTier}
                       onChange={(e) => setBonusTier(e.target.value)}
@@ -1364,9 +1417,10 @@ export default function StaffDealDetail({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Payment Option
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Payment Option"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <select
                       value={paymentOption}
                       onChange={(e) => setPaymentOption(e.target.value)}
@@ -1378,9 +1432,10 @@ export default function StaffDealDetail({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Payment Verification
-                    </label>
+                    <PropertyLabelWithHistory
+                      label="Payment Verification"
+                      onOpenHistory={handleOpenPropertyHistory}
+                    />
                     <select
                       value={paymentVerification}
                       onChange={(e) => setPaymentVerification(e.target.value)}
@@ -2741,6 +2796,59 @@ export default function StaffDealDetail({
             });
           }
         }}
+      />
+
+      {/* ── Property History Modal Matching media_1790590629171.png ──────── */}
+      <PropertyHistoryModal
+        isOpen={showPropertyHistoryModal}
+        onClose={() => setShowPropertyHistoryModal(false)}
+        initialFieldName={selectedHistoryField}
+        entityType="deal"
+        entityId={deal?.id || dealInfo.id || 'D26005033'}
+        entityName={dealTitle || 'Deal'}
+        entityData={{
+          ...deal,
+          brokerEffectiveDate,
+          enrolledNpn,
+          terminationDate,
+          carrier,
+          planName,
+          applicationId: appId,
+          estimateIncome: estimateHouseholdIncome,
+          enrolledAddress,
+          amount: enrollAmount,
+          numberMember,
+          sellingState,
+        }}
+        availableFields={[
+          'Enrolled NPN',
+          'Broker Effective Date',
+          'Termination Date',
+          'Lead Owner',
+          'Deal Owner',
+          'Code',
+          'Primary Member Id',
+          'Sale Support Status',
+          'Number Member',
+          'Selling State',
+          'Carrier',
+          'Closed Lost Reason',
+          'Application ID',
+          'Estimate Household Income',
+          'Household Member',
+          'Enrolled Address',
+          'Quoted county',
+          'Is this a backdate deal?',
+          'Plan Name',
+          'Amount',
+          'Need Upload',
+          'Monthly Premium',
+          'Subsidy Amount (APTC)',
+          'Agency Commission',
+          'Bonus Tier',
+          'Payment Option',
+          'Payment Verification',
+        ]}
       />
     </div>
   );

@@ -13,6 +13,8 @@ import {
 import { createTicket, updateContact } from '../../../services/api';
 import AddDealModal from './AddDealModal';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
+import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
+import { recordPropertyUpdate } from '../../../services/propertyHistoryService';
 
 export const ACA_ACCOUNT_STATUS_OPTIONS = [
   'Need Create ACA Account',
@@ -70,6 +72,15 @@ export default function StaffContactDetail({
   const [rightDealsOpen, setRightDealsOpen] = useState(true);
   const [rightTicketsOpen, setRightTicketsOpen] = useState(true);
   const [rightDocsOpen, setRightDocsOpen] = useState(true);
+
+  // Property History Modal State (Matching media_1790590629171.png)
+  const [showPropertyHistoryModal, setShowPropertyHistoryModal] = useState(false);
+  const [selectedHistoryField, setSelectedHistoryField] = useState('Enrolled Address');
+
+  function handleOpenPropertyHistory(fieldName) {
+    setSelectedHistoryField(fieldName);
+    setShowPropertyHistoryModal(true);
+  }
 
   // Add Member Modal State
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
@@ -787,6 +798,50 @@ export default function StaffContactDetail({
     };
 
     addContactToStore(updatedContact);
+
+    // Record property history updates
+    const contactId = contact?.id || contact?.code || 'CT26002600';
+    const oldCF = contact?.contactFields || {};
+    const oldPrimary = contact?.primary || {};
+    const oldAca = contact?.acaAccount || {};
+
+    if (enrolledAddress && enrolledAddress !== oldCF.enrolledAddress) {
+      recordPropertyUpdate('contact', contactId, 'Enrolled Address', oldCF.enrolledAddress || '', enrolledAddress);
+    }
+    if (contactPhone && contactPhone !== (contact?.phone || oldCF.phone)) {
+      recordPropertyUpdate('contact', contactId, 'Phone', contact?.phone || oldCF.phone || '', contactPhone);
+    }
+    if (mailingAddress && mailingAddress !== oldCF.mailingAddress) {
+      recordPropertyUpdate('contact', contactId, 'Mailing Address', oldCF.mailingAddress || '', mailingAddress);
+    }
+    if (contactState && contactState !== oldCF.state) {
+      recordPropertyUpdate('contact', contactId, 'State', oldCF.state || '', contactState);
+    }
+    if (city && city !== oldCF.city) {
+      recordPropertyUpdate('contact', contactId, 'City', oldCF.city || '', city);
+    }
+    if (postalCode && postalCode !== oldCF.postalCode) {
+      recordPropertyUpdate('contact', contactId, 'Postal Code', oldCF.postalCode || '', postalCode);
+    }
+    if (county && county !== oldCF.county) {
+      recordPropertyUpdate('contact', contactId, 'County', oldCF.county || '', county);
+    }
+    if (contactLanguage && contactLanguage !== (contact?.language || 'Vietnamese')) {
+      recordPropertyUpdate('contact', contactId, 'Language', contact?.language || 'Vietnamese', contactLanguage);
+    }
+    if (acaAccountStatus && acaAccountStatus !== (contact?.acaAccountStatus || oldAca.acaAccountStatus)) {
+      recordPropertyUpdate('contact', contactId, 'ACA Account Status', contact?.acaAccountStatus || oldAca.acaAccountStatus || '', acaAccountStatus);
+    }
+    if (primaryDob && primaryDob !== (contact?.dateOfBirth || oldPrimary.dob)) {
+      recordPropertyUpdate('contact', contactId, 'Date Of Birth', contact?.dateOfBirth || oldPrimary.dob || '', primaryDob);
+    }
+    if (primarySsn && primarySsn !== (contact?.ssn || oldPrimary.ssn)) {
+      recordPropertyUpdate('contact', contactId, 'SSN', contact?.ssn || oldPrimary.ssn || '', primarySsn);
+    }
+    if (leadContactOwner && leadContactOwner !== (contact?.contactOwner || '')) {
+      recordPropertyUpdate('contact', contactId, 'Contact Owner', contact?.contactOwner || '', leadContactOwner);
+    }
+
     if (contact?.id) {
       updateContact(contact.id, {
         firstName: primaryFirstName,
@@ -858,10 +913,7 @@ export default function StaffContactDetail({
           </button>
           <button
             type="button"
-            onClick={() => {
-              setActiveTab('activity');
-              showToast('Switched to contact activity history');
-            }}
+            onClick={() => handleOpenPropertyHistory('All')}
             className="flex items-center gap-1 text-slate-600 hover:text-blue-600 transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">history</span>
@@ -1057,7 +1109,10 @@ export default function StaffContactDetail({
                     <div className="p-3 bg-slate-50/70 rounded-lg my-1 space-y-3 text-xs border border-slate-200">
                       {/* 1. Contact Owner */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Contact Owner</label>
+                        <PropertyLabelWithHistory
+                          label="Contact Owner"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5 focus-within:border-blue-500 hover:border-slate-300 transition">
                           <div className="w-5 h-5 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
                             {leadContactOwner ? String(getPersonName(leadContactOwner, 'TB')).slice(0, 2).toUpperCase() : '--'}
@@ -1095,7 +1150,10 @@ export default function StaffContactDetail({
 
                       {/* 2. Lead Owner */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Lead Owner</label>
+                        <PropertyLabelWithHistory
+                          label="Lead Owner"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5">
                           <div className="w-5 h-5 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
                             {leadContactOwner ? String(getPersonName(leadContactOwner, 'TB')).slice(0, 2).toUpperCase() : '--'}
@@ -1121,7 +1179,10 @@ export default function StaffContactDetail({
 
                       {/* 4. How do you know us */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">How do you know us</label>
+                        <PropertyLabelWithHistory
+                          label="How do you know us"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <select
                             value={leadHowDoYouKnowUs || ''}
@@ -1161,7 +1222,10 @@ export default function StaffContactDetail({
 
                       {/* 5. Who refer client */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Who refer client</label>
+                        <PropertyLabelWithHistory
+                          label="Who refer client"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1203,7 +1267,10 @@ export default function StaffContactDetail({
                     <div className="p-3 bg-slate-50/70 rounded-lg my-1 space-y-3 text-xs border border-slate-200">
                       {/* Phone */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Phone</label>
+                        <PropertyLabelWithHistory
+                          label="Phone"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex rounded border border-slate-200 bg-white overflow-hidden focus-within:border-blue-500">
                           <span className="px-3 py-1.5 bg-slate-50 border-r border-slate-200 text-slate-700 font-medium text-xs">
                             +1
@@ -1229,7 +1296,10 @@ export default function StaffContactDetail({
 
                       {/* Enrolled Address */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Enrolled Address</label>
+                        <PropertyLabelWithHistory
+                          label="Enrolled Address"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1253,7 +1323,10 @@ export default function StaffContactDetail({
 
                       {/* Mailing Address */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Mailing Address</label>
+                        <PropertyLabelWithHistory
+                          label="Mailing Address"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1277,7 +1350,10 @@ export default function StaffContactDetail({
 
                       {/* State */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">State</label>
+                        <PropertyLabelWithHistory
+                          label="State"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <select
                             value={contactState}
@@ -1313,7 +1389,10 @@ export default function StaffContactDetail({
 
                       {/* Street Address */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Street Address</label>
+                        <PropertyLabelWithHistory
+                          label="Street Address"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1337,7 +1416,10 @@ export default function StaffContactDetail({
 
                       {/* City */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">City</label>
+                        <PropertyLabelWithHistory
+                          label="City"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1361,7 +1443,10 @@ export default function StaffContactDetail({
 
                       {/* Postal Code */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Postal Code</label>
+                        <PropertyLabelWithHistory
+                          label="Postal Code"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1385,7 +1470,10 @@ export default function StaffContactDetail({
 
                       {/* County */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">County</label>
+                        <PropertyLabelWithHistory
+                          label="County"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1409,9 +1497,11 @@ export default function StaffContactDetail({
 
                       {/* Language* */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">
-                          Language <span className="text-rose-500">*</span>
-                        </label>
+                        <PropertyLabelWithHistory
+                          label="Language"
+                          required
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <select
                             value={contactLanguage}
@@ -1445,7 +1535,10 @@ export default function StaffContactDetail({
 
                       {/* Career */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Career</label>
+                        <PropertyLabelWithHistory
+                          label="Career"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <input
                           type="text"
                           placeholder=""
@@ -1476,7 +1569,10 @@ export default function StaffContactDetail({
 
                       {/* The Best Rate Ins Email */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">The Best Rate Ins Email</label>
+                        <PropertyLabelWithHistory
+                          label="The Best Rate Ins Email"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="email"
@@ -1500,18 +1596,11 @@ export default function StaffContactDetail({
 
                       {/* ACA Account Status - Normal state (Matching Image 3) */}
                       <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="block text-slate-800 font-semibold text-[11px]">
-                            ACA Account Status - Normal state
-                          </label>
-                          <span
-                            title="Status History"
-                            className="material-symbols-outlined text-[13px] text-slate-400 hover:text-blue-600 cursor-pointer transition"
-                            onClick={() => showToast(`Current ACA Account Status: ${acaAccountStatus || '(Trống / Chưa chọn)'}`)}
-                          >
-                            history
-                          </span>
-                        </div>
+                        <PropertyLabelWithHistory
+                          label="ACA Account Status - Normal state"
+                          fieldName="ACA Account Status"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
 
                         <div className="relative" ref={acaStatusDropdownRef}>
                           <div
@@ -1578,7 +1667,10 @@ export default function StaffContactDetail({
 
                       {/* Aca Account */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Aca Account</label>
+                        <PropertyLabelWithHistory
+                          label="Aca Account"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1605,7 +1697,10 @@ export default function StaffContactDetail({
 
                       {/* Aca Pass */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Aca Pass</label>
+                        <PropertyLabelWithHistory
+                          label="Aca Pass"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1632,7 +1727,10 @@ export default function StaffContactDetail({
 
                       {/* ACA Account Status - Special States */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">ACA Account Status - Special States</label>
+                        <PropertyLabelWithHistory
+                          label="ACA Account Status - Special States"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <select
                             value={acaStatusSpecial}
@@ -1666,7 +1764,10 @@ export default function StaffContactDetail({
 
                       {/* ACA Account - Special States */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">ACA Account - Special States</label>
+                        <PropertyLabelWithHistory
+                          label="ACA Account - Special States"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="text"
@@ -1693,7 +1794,10 @@ export default function StaffContactDetail({
 
                       {/* ACA Account Password - Special Stat... */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">ACA Account Password - Special Stat...</label>
+                        <PropertyLabelWithHistory
+                          label="ACA Account Password - Special Stat..."
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative flex items-center">
                           <input
                             type="password"
@@ -1720,7 +1824,10 @@ export default function StaffContactDetail({
 
                       {/* Enroll Call Rep */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Enroll Call Rep</label>
+                        <PropertyLabelWithHistory
+                          label="Enroll Call Rep"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <select
                             value={enrollCallRep}
@@ -1770,7 +1877,10 @@ export default function StaffContactDetail({
                     <div className="p-3 bg-slate-50/70 rounded-lg my-1 space-y-3 text-xs border border-slate-200">
                       {/* First Name */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">First Name</label>
+                        <PropertyLabelWithHistory
+                          label="First Name"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <input
                           type="text"
                           value={primaryFirstName}
@@ -1781,7 +1891,10 @@ export default function StaffContactDetail({
 
                       {/* Middle Name */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Middle Name</label>
+                        <PropertyLabelWithHistory
+                          label="Middle Name"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <input
                           type="text"
                           value={primaryMiddleName}
@@ -1793,7 +1906,10 @@ export default function StaffContactDetail({
 
                       {/* Last Name */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Last Name</label>
+                        <PropertyLabelWithHistory
+                          label="Last Name"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <input
                           type="text"
                           value={primaryLastName}
@@ -1804,7 +1920,10 @@ export default function StaffContactDetail({
 
                       {/* Date Of Birth */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Date Of Birth</label>
+                        <PropertyLabelWithHistory
+                          label="Date Of Birth"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <input
                             type="text"
@@ -1827,7 +1946,10 @@ export default function StaffContactDetail({
 
                       {/* SSN */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">SSN</label>
+                        <PropertyLabelWithHistory
+                          label="SSN"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <input
                             type="text"
@@ -1850,7 +1972,10 @@ export default function StaffContactDetail({
 
                       {/* Family Relationship */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Family Relationship</label>
+                        <PropertyLabelWithHistory
+                          label="Family Relationship"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <select
                             value={primaryRelation}
@@ -1878,7 +2003,10 @@ export default function StaffContactDetail({
 
                       {/* Gender */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Gender</label>
+                        <PropertyLabelWithHistory
+                          label="Gender"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <select
                             value={primaryGender}
@@ -1905,7 +2033,10 @@ export default function StaffContactDetail({
 
                       {/* Immigration Status */}
                       <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Immigration Status</label>
+                        <PropertyLabelWithHistory
+                          label="Immigration Status"
+                          onOpenHistory={handleOpenPropertyHistory}
+                        />
                         <div className="relative">
                           <select
                             value={primaryImmigration}
@@ -3634,6 +3765,49 @@ export default function StaffContactDetail({
             });
           }
         }}
+      />
+
+      {/* ── Property History Modal Matching media_1790590629171.png ──────── */}
+      <PropertyHistoryModal
+        isOpen={showPropertyHistoryModal}
+        onClose={() => setShowPropertyHistoryModal(false)}
+        initialFieldName={selectedHistoryField}
+        entityType="contact"
+        entityId={contact?.id || contact?.code || 'CT26002600'}
+        entityName={currentFullName || 'Contact'}
+        entityData={contact || {}}
+        availableFields={[
+          'Contact Owner',
+          'Lead Owner',
+          'How do you know us',
+          'Who refer client',
+          'Phone',
+          'Enrolled Address',
+          'Mailing Address',
+          'State',
+          'Street Address',
+          'City',
+          'Postal Code',
+          'County',
+          'Language',
+          'Career',
+          'The Best Rate Ins Email',
+          'ACA Account Status - Normal state',
+          'Aca Account',
+          'Aca Pass',
+          'ACA Account Status - Special States',
+          'ACA Account - Special States',
+          'ACA Account Password - Special States',
+          'Enroll Call Rep',
+          'First Name',
+          'Middle Name',
+          'Last Name',
+          'Date Of Birth',
+          'SSN',
+          'Family Relationship',
+          'Gender',
+          'Immigration Status',
+        ]}
       />
     </div>
   );
