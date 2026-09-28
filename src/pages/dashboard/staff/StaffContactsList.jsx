@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getContacts, createContact as apiCreateContact } from '../../../services/api';
-import { SAMPLE_CONTACTS } from '../../../data/mockCrmData';
+import { SAMPLE_CONTACTS, addContactToStore, getDynamicContacts } from '../../../data/mockCrmData';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterContactsForAgent, getAgentIdentity } from '../../../utils/rbac';
 
@@ -23,16 +23,20 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     setLoading(true);
     try {
       const data = await getContacts();
+      const dynamic = getDynamicContacts();
+      const dynamicIds = new Set(dynamic.map((c) => c.id));
       if (Array.isArray(data) && data.length > 0) {
-        setContactsList(data);
+        setContactsList([...dynamic, ...data.filter((c) => !dynamicIds.has(c.id))]);
         setIsDbConnected(true);
       } else {
-        setContactsList(SAMPLE_CONTACTS);
+        setContactsList([...dynamic, ...SAMPLE_CONTACTS.filter((c) => !dynamicIds.has(c.id))]);
         setIsDbConnected(false);
       }
     } catch (err) {
       console.warn('[StaffContactsList] API error, falling back to mock:', err);
-      setContactsList(SAMPLE_CONTACTS);
+      const dynamic = getDynamicContacts();
+      const dynamicIds = new Set(dynamic.map((c) => c.id));
+      setContactsList([...dynamic, ...SAMPLE_CONTACTS.filter((c) => !dynamicIds.has(c.id))]);
       setIsDbConnected(false);
     } finally {
       setLoading(false);
@@ -134,78 +138,80 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       fullName: fullName,
       phone: formattedPhone,
       rawPhone: phone.trim(),
-      email: email.trim() || '—',
+      email: email.trim() || '',
       language: language || 'Vietnamese',
       contactOwner: {
         name: contactOwner || 'The Best Rate Insurance',
         avatar: (contactOwner || 'TB').slice(0, 2).toUpperCase(),
         bg: 'bg-blue-600 text-white',
       },
-      howDoYouKnowUs: howDoYouKnowUs || '—',
+      howDoYouKnowUs: howDoYouKnowUs || '',
       whoReferClient: whoReferClient || '',
-      teleSaleTeam: teleSaleTeam || '—',
+      teleSaleTeam: teleSaleTeam || '',
       supportAgent: supportAgent || 'Anya Nguyen (anya42@9)',
-      acaAccountStatus: 'Uploaded - Waiting for Verification',
+      acaAccountStatus: '', // Trống ban đầu theo quy trình
       status: 'Active',
+      isNew: true,
       lastModifiedBy: {
         name: 'Platform Staff',
         avatar: 'PS',
         bg: 'bg-teal-600 text-white',
       },
       lastModifiedTime: 'Just now',
-      // Primary matches the create contact information
       primary: {
         firstName: fName || fullName,
         middleName: mName,
         lastName: lName || '',
-        dob: '12/28/1995',
-        ssn: '673-73-0055',
+        dob: '',
+        ssn: '',
         familyRelationship: 'Self',
-        gender: 'Male',
-        immigrationStatus: 'Permanent Resident',
-        alienNumber: '219802465',
-        certificateNumber: 'IOE0921776907',
-        dateExpired: '03/31/2036',
+        gender: '',
+        immigrationStatus: '',
+        alienNumber: '',
+        certificateNumber: '',
+        dateExpired: '',
         household: '',
       },
       contactFields: {
-        phone: phone.trim() || '(714) 837-2395',
-        enrolledAddress: '4301 Laurel Pond Way, Raleigh, NC 27616',
-        mailingAddress: '4301 Laurel Pond Way, Raleigh, NC 27616',
-        state: 'North Carolina (NC)',
-        streetAddress: '4301 Laurel Pond Way',
-        city: 'Raleigh',
-        postalCode: '27616',
+        phone: formattedPhone,
+        enrolledAddress: '',
+        mailingAddress: '',
+        state: '',
+        streetAddress: '',
+        city: '',
+        postalCode: '',
         county: '',
         language: language || 'Vietnamese',
         career: '',
       },
       sourceOfLead: {
-        howDoYouKnowUs: howDoYouKnowUs || '---',
+        howDoYouKnowUs: howDoYouKnowUs || '',
         whoReferClient: whoReferClient || '',
         contactOwner: contactOwner || 'The Best Rate Insurance',
         leadOwner: contactOwner || 'The Best Rate Insurance',
         supportAgent: supportAgent || 'Anya Nguyen (anya42@9)',
-        medicareShareOwner: '---',
-        obamacareSharedOwner: '---',
-        lifeSharedOwner: '---',
-        contactType: '---',
+        medicareShareOwner: '',
+        obamacareSharedOwner: '',
+        lifeSharedOwner: '',
+        contactType: '',
       },
-      associatedDeals: [
-        {
-          id: `D2600${Math.floor(5000 + Math.random() * 900)}`,
-          title: `Non-CMS - ${fullName} - OB 10/2026 (NC)`,
-          shortTitle: `Non-CMS - ${fullName.slice(0, 16)}...`,
-          pipeline: 'Obamacare 2026',
-          stage: 'Ready to Enroll',
-          dealOwner: contactOwner || 'The Best Rate Insurance',
-          carrier: 'BCBS',
-          member: fullName,
-        },
-      ],
+      acaAccount: {
+        theBestRateEmail: '',
+        acaAccount: '',
+        acaPass: '',
+        acaAccountStatus: '',
+        status: '',
+      },
+      associatedDeals: [], // Trống ban đầu khi mới tạo contact
+      associatedTickets: [], // Trống ban đầu
+      associatedDocuments: [],
+      activities: [],
+      notes: [],
+      tasks: [],
+      members: [],
     };
 
-    // Call PostgreSQL API to persist contact
+    // Call API to persist contact (without auto-creating deal)
     apiCreateContact({
       code: newCode,
       firstName: fName,
@@ -221,18 +227,12 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       contactOwnerName: contactOwner || 'The Best Rate Insurance',
       supportAgent: supportAgent,
       status: 'Active',
-      deal: {
-        id: `D2600${Math.floor(5000 + Math.random() * 900)}`,
-        title: `Non-CMS - ${fullName} - OB 10/2026 (NC)`,
-        pipeline: 'Obamacare 2026',
-        stage: 'Ready to Enroll (Obamacare 2026)',
-        carrier: 'BCBS',
-        sellingState: 'North Carolina (NC)',
-        dealOwnerName: contactOwner || 'The Best Rate Insurance',
-      },
+      acaAccountStatus: '',
     }).catch((err) => console.warn('Could not save to DB:', err));
 
+    addContactToStore(newRecord);
     setContactsList([newRecord, ...contactsList]);
+    showToast(`Đã tạo liên hệ mới: ${fullName}`);
 
     // Reset form
     setFirstName('');

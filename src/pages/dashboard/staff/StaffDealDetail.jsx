@@ -3,7 +3,9 @@ import {
   DEAL_DETAIL_DATA,
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
+  addTicketToStore,
 } from '../../../data/mockCrmData';
+import { createTicket } from '../../../services/api';
 
 export default function StaffDealDetail({
   deal,
@@ -14,23 +16,20 @@ export default function StaffDealDetail({
   onSelectTask,
   onUpdateDeal,
 }) {
-  const dealInfo = {
-    ...DEAL_DETAIL_DATA,
-    ...(deal || {}),
-  };
+  const dealInfo = deal || DEAL_DETAIL_DATA;
 
   // State for deal editing
   const [dealTitle, setDealTitle] = useState(
-    dealInfo.title || 'Non-CMS - Nhat H Dang - OB 10/2026 (NC)'
+    deal?.title || (deal ? 'Deal mới' : dealInfo.title)
   );
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [pipeline, setPipeline] = useState(dealInfo.pipeline || 'Obamacare 2026');
+  const [pipeline, setPipeline] = useState(deal?.pipeline || dealInfo.pipeline || 'Obamacare 2026');
   const [stage, setStage] = useState(
-    dealInfo.stage || 'Ready to Enroll (Obamacare 2026)'
+    deal?.stage || dealInfo.stage || 'Ready to Enroll (Obamacare 2026)'
   );
-  const [amount, setAmount] = useState(dealInfo.amount || '_ _ _ _ _ _ _ _ _ _');
+  const [amount, setAmount] = useState(deal?.amount !== undefined ? deal.amount : (deal ? '_ _ _ _ _ _ _ _ _ _' : dealInfo.amount));
   const [closeDate, setCloseDate] = useState(
-    dealInfo.closeDate || '_ _ _ _ _ _ _ _ _ _'
+    deal?.closeDate !== undefined ? deal.closeDate : (deal ? '_ _ _ _ _ _ _ _ _ _' : dealInfo.closeDate)
   );
 
   // Stage dropdown & history state (Matching media_1789720398557.png)
@@ -222,14 +221,83 @@ export default function StaffDealDetail({
     dealInfo.isBackdateDeal || 'No'
   );
   const [planName, setPlanName] = useState(
-    dealInfo.planName || 'BCBS Advantage Silver 205 HMO'
+    deal?.planName !== undefined ? deal.planName : (deal ? '' : (dealInfo.planName || ''))
   );
   const [enrollAmount, setEnrollAmount] = useState(
-    dealInfo.amount ? String(dealInfo.amount).replace('$', '') : '36.55'
+    deal?.amount && deal.amount !== '_ _ _ _ _ _ _ _ _ _' ? String(deal.amount).replace('$', '').trim() : (deal ? '' : '36.55')
   );
   const [needUpload, setNeedUpload] = useState(
-    dealInfo.uploadRequest ? 'Yes' : 'No'
+    deal?.needUpload || (deal?.uploadRequest ? 'Yes' : 'No')
   );
+  const [dealTickets, setDealTickets] = useState(
+    deal?.associatedTickets || deal?.tickets || []
+  );
+
+  function handleNeedUploadChange(newVal) {
+    setNeedUpload(newVal);
+    if (newVal === 'Yes') {
+      const uploadTicket = {
+        id: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
+        code: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
+        title: `Upload documents - ${dealTitle}`,
+        pipeline: 'Upload document',
+        stage: 'Waiting on verification',
+        status: 'Open',
+        priority: 'High',
+        category: 'Upload Document',
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+        }),
+        ticketOwner: typeof dealInfo.dealOwner === 'object' ? (dealInfo.dealOwner?.name || 'Khanh Nguyen') : (dealInfo.dealOwner || 'Khanh Nguyen'),
+        serviceAgent: 'Platform Staff',
+        contactName: dealInfo.contactName || 'Client',
+        contactId: dealInfo.contactId || '',
+        dealId: dealInfo.id || dealInfo.code || '',
+        dealTitle: dealTitle,
+        carrier: dealInfo.carrier || 'BCBS',
+        createdAt: new Date().toISOString(),
+        activities: [],
+        comments: [],
+      };
+      createTicket(uploadTicket).catch(() => {});
+      addTicketToStore(uploadTicket);
+      const updated = [uploadTicket, ...dealTickets];
+      setDealTickets(updated);
+
+      const dateStr = new Date().toLocaleString();
+      const newAct = {
+        id: 'deal-act-' + Date.now(),
+        type: 'Ticket Created',
+        time: dateStr,
+        actor: 'Platform Staff',
+        summary: `Tự động xuất ticket: ${uploadTicket.title} (Upload document)`,
+        dealId: dealInfo.id,
+        dealTitle: dealTitle,
+      };
+      setActivitiesList((prev) => [newAct, ...prev]);
+
+      if (onUpdateDeal) {
+        onUpdateDeal({
+          ...deal,
+          needUpload: 'Yes',
+          uploadRequest: true,
+          associatedTickets: updated,
+        });
+      }
+      showToast('Đã chọn Need Upload = Yes: Tự động xuất Ticket Upload document!');
+    } else {
+      if (onUpdateDeal) {
+        onUpdateDeal({
+          ...deal,
+          needUpload: 'No',
+          uploadRequest: false,
+        });
+      }
+      showToast('Đã chuyển Need Upload = No (Không xuất ticket upload)');
+    }
+  }
 
   // Form states for FEE, BONUS, PAYMENT
   const [monthlyPremium, setMonthlyPremium] = useState('$0.00');
@@ -1165,17 +1233,28 @@ export default function StaffDealDetail({
 
                   {/* 11. Need Upload */}
                   <div>
-                    <label className="block text-[#0F2962] font-semibold mb-1 text-[11px]">
-                      Need Upload <span className="text-rose-500 font-bold ml-0.5">*</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[#0F2962] font-semibold text-[11px]">
+                        Need Upload <span className="text-rose-500 font-bold ml-0.5">*</span>
+                      </label>
+                      {needUpload === 'Yes' && (
+                        <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300">
+                          ⚡ Đã xuất Ticket Upload
+                        </span>
+                      )}
+                    </div>
                     <div className="relative">
                       <select
                         value={needUpload}
-                        onChange={(e) => setNeedUpload(e.target.value)}
-                        className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer font-medium"
+                        onChange={(e) => handleNeedUploadChange(e.target.value)}
+                        className={`w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border text-xs cursor-pointer font-medium transition ${
+                          needUpload === 'Yes'
+                            ? 'border-amber-400 bg-amber-50 text-amber-900 font-semibold'
+                            : 'border-slate-200 bg-white text-slate-800'
+                        }`}
                       >
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
+                        <option value="No">No (Không xuất ticket upload)</option>
+                        <option value="Yes">Yes (Tự động xuất ticket Upload document)</option>
                       </select>
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
                         <span className="h-3.5 w-px bg-slate-200 mr-1.5" />
@@ -1184,6 +1263,11 @@ export default function StaffDealDetail({
                         </span>
                       </div>
                     </div>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      {needUpload === 'Yes'
+                        ? '⚡ Khi chọn Yes, hệ thống tự động xuất 1 Ticket Upload document trong danh sách Tickets.'
+                        : '✓ Không xuất ticket upload tài liệu.'}
+                    </p>
                   </div>
                 </div>
               )}
@@ -1656,7 +1740,7 @@ export default function StaffDealDetail({
             )}
           </div>
 
-          {/* Card 2: Tickets (1) ───────────────────────────────────────── */}
+          {/* Card 2: Tickets ───────────────────────────────────────── */}
           <div>
             <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition border-b border-slate-100">
               <button
@@ -1667,18 +1751,20 @@ export default function StaffDealDetail({
                 <span className="material-symbols-outlined text-[17px] text-slate-700">
                   {rightTicketsOpen ? 'expand_more' : 'chevron_right'}
                 </span>
-                <span>Tickets (1)</span>
+                <span>Tickets ({dealTickets.length})</span>
               </button>
               <div className="flex items-center gap-2 text-slate-500">
                 <button
                   type="button"
-                  title="Add ticket"
+                  onClick={() => showToast('Để tạo Ticket Upload: Chọn Need Upload = Yes')}
+                  title="Thêm ticket"
                   className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[17px]">add</span>
                 </button>
                 <button
                   type="button"
+                  onClick={() => showToast('Đang làm mới danh sách Ticket...')}
                   title="Refresh"
                   className="hover:text-blue-600 p-0.5 rounded cursor-pointer text-slate-500"
                 >
@@ -1687,132 +1773,77 @@ export default function StaffDealDetail({
               </div>
             </div>
 
-            {rightTicketsOpen && (() => {
-              const isPaymentDeal =
-                (dealInfo.pipeline || '').toLowerCase().includes('payment') ||
-                (dealInfo.title || '').toLowerCase().includes('pay') ||
-                (dealInfo.title || '').toLowerCase().includes('hoai thanh');
-
-              const isKenHoDeal =
-                (dealInfo.title || '').toLowerCase().includes('ken ho') ||
-                (dealInfo.contactName || '').toLowerCase().includes('ken');
-
-              const associatedTicket = isPaymentDeal
-                ? {
-                    id: 'TC2600201',
-                    title: 'Oct/26 Company Pay ticket',
-                    avatar: 'OT',
-                    avatarBg: 'bg-[#B25E3B]',
-                    pipeline: 'Payment',
-                    status: 'Make payment',
-                    priority: 'None',
-                    openDays: 9,
-                    dueDate: '09/20/2026',
-                    serviceAgent: 'Anya Nguyen (anya42@9)',
-                    serviceAgentAvatar: 'AN',
-                    ticketOwner: 'Khanh Nguyen (khanhnguyen31@7)',
-                    ticketOwnerAvatar: 'KN',
-                    paymentStatus: 'Company Pay',
-                    carrier: dealInfo.carrier || 'Kaiser Permanente',
-                    contactName: dealInfo.contactName || 'Hoai thanh Nguyen',
-                    contactPhone: dealInfo.contactPhone || '+1 (838) 776-1434',
-                    contactEmail: dealInfo.contactEmail || 'nguyenleminhquang1215@gmail.com',
-                    leadOwner: 'Khanh Nguyen',
-                    dealTitle: dealInfo.title || 'Non Commission - Hoai thanh Nguyen - OB 2026',
-                    dealShortTitle: dealInfo.shortTitle || 'Non Commission - Hoai thanh...',
-                    dealPipeline: dealInfo.pipeline || 'Obamacare 2026',
-                    dealStage: dealInfo.stage || 'Non-Commission - Active',
-                    dealOwner: dealInfo.dealOwner?.name || dealInfo.dealOwner || 'Khanh Nguyen',
-                    dealCarrier: dealInfo.carrier || 'Kaiser Permanente',
-                  }
-                : {
-                    id: 'TC2600101',
-                    title: 'ACA account 2026',
-                    avatar: 'A2',
-                    avatarBg: 'bg-[#E05638]',
-                    pipeline: 'ACA account',
-                    status: dealInfo.contact?.acaAccountStatus || dealInfo.acaAccountStatus || 'DONE',
-                    rawStatus: dealInfo.contact?.acaAccountStatus || dealInfo.acaAccountStatus || 'DONE',
-                    priority: 'High',
-                    closeDate: isKenHoDeal ? '07/20/2026' : (dealInfo.closeDate || '07/20/2026'),
-                    dueDate: isKenHoDeal ? '07/15/2026' : (dealInfo.dueDate || '07/15/2026'),
-                    serviceAgent: isKenHoDeal ? 'Ivy Lu (ivy)' : (dealInfo.serviceAgent || 'Ivy Lu (ivy)'),
-                    serviceAgentAvatar: 'IL',
-                    ticketOwner: isKenHoDeal ? 'Jay Ly (trichauly24@7)' : (dealInfo.dealOwner?.name || dealInfo.dealOwner || 'Jay Ly (trichauly24@7)'),
-                    ticketOwnerAvatar: 'JL',
-                    carrier: dealInfo.carrier || (isKenHoDeal ? 'BCBS' : ''),
-                    contactName: dealInfo.contactName || (isKenHoDeal ? 'Ken xington Ho' : 'Ken xington Ho'),
-                    contactPhone: dealInfo.contactPhone || (isKenHoDeal ? '+1 (832) 998-9804' : '+1 (832) 998-9804'),
-                    contactEmail: dealInfo.contactEmail || (isKenHoDeal ? 'kylieho@thesuperiorskilledlearners.com' : 'kylieho@thesuperiorskilledlearners.com'),
-                    leadOwner: isKenHoDeal ? 'Jay Ly' : (dealInfo.dealOwner?.name || dealInfo.dealOwner || 'Jay Ly'),
-                    dealTitle: dealInfo.title || 'Ken Ho + Kylie Ho + Kaylee Ho - OB 08/2026',
-                    dealShortTitle: dealInfo.shortTitle || 'Ken Ho + Kylie Ho + Kaylee Ho - ...',
-                    dealPipeline: dealInfo.pipeline || 'Obamacare 2026',
-                    dealStage: dealInfo.stage || 'Enrolled - Active',
-                    dealOwner: isKenHoDeal ? 'Jay Ly' : (dealInfo.dealOwner?.name || dealInfo.dealOwner || 'Jay Ly'),
-                    dealCarrier: dealInfo.carrier || (isKenHoDeal ? 'BCBS' : 'BCBS'),
-                  };
-
-              return (
-                <div className="p-3">
-                  <div
-                    onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
-                    className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
-                  >
-                    {/* Title row with badge */}
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition">
-                        <span className="material-symbols-outlined text-[15px]">confirmation_number</span>
-                      </div>
-                      <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
-                        {associatedTicket.title}
-                      </span>
-                    </div>
-
-                    {/* Properties list with icons matching screenshot */}
-                    <div className="space-y-1.5 pt-0.5 text-[11px] text-slate-600 pl-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">bar_chart</span>
-                        <span className="text-slate-500">Pipeline:</span>
-                        <span className="font-semibold text-slate-800">{associatedTicket.pipeline}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">trending_up</span>
-                        <span className="text-slate-500">Ticket Status:</span>
-                        <span className="font-semibold text-slate-800">{associatedTicket.status}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
-                        <span className="text-slate-500">Ticket Owner:</span>
-                        <span className="font-semibold text-slate-800">
-                          {typeof associatedTicket.ticketOwner === 'object'
-                            ? associatedTicket.ticketOwner?.name || 'Agent'
-                            : (associatedTicket.ticketOwner ? associatedTicket.ticketOwner.split(' ')[0] + ' ' + (associatedTicket.ticketOwner.split(' ')[1] || '') : 'Agent')}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
-                        <span className="text-slate-500">{associatedTicket.openDays ? 'Open:' : 'Close Date:'}</span>
-                        <span className="text-slate-600 font-medium">
-                          {associatedTicket.openDays
-                            ? `${associatedTicket.openDays} Day(s)`
-                            : (associatedTicket.closeDate || '----------')}
-                        </span>
-                      </div>
-                    </div>
+            {rightTicketsOpen && (
+              <div className="p-3 space-y-3">
+                {dealTickets.length === 0 ? (
+                  <div className="p-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <span className="material-symbols-outlined text-[28px] text-slate-300 block mb-1">confirmation_number</span>
+                    <p className="text-xs font-semibold text-slate-600">Chưa có ticket nào</p>
+                    <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                      ⚡ Chọn mục <strong>Need Upload = Yes</strong> ở cột trái để tự động xuất Ticket Upload document.
+                    </p>
                   </div>
+                ) : (
+                  dealTickets.map((associatedTicket) => (
+                    <div key={associatedTicket.id || associatedTicket.code || Math.random()} className="space-y-1">
+                      <div
+                        onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                        className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
+                      >
+                        {/* Title row with badge */}
+                        <div className="flex items-center gap-2">
+                          <div className={`w-7 h-7 rounded-full ${associatedTicket.pipeline === 'Upload document' ? 'bg-amber-500' : 'bg-[#52B4C9]'} text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition`}>
+                            <span className="material-symbols-outlined text-[15px]">confirmation_number</span>
+                          </div>
+                          <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
+                            {associatedTicket.title}
+                          </span>
+                        </div>
 
-                  {/* Footer Link */}
-                  <button
-                    type="button"
-                    onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
-                    className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    » View Associated Ticket
-                  </button>
-                </div>
-              );
-            })()}
+                        {/* Properties list with icons */}
+                        <div className="space-y-1.5 pt-0.5 text-[11px] text-slate-600 pl-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">bar_chart</span>
+                            <span className="text-slate-500">Pipeline:</span>
+                            <span className="font-semibold text-slate-800">{associatedTicket.pipeline}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">trending_up</span>
+                            <span className="text-slate-500">Ticket Status:</span>
+                            <span className="font-semibold text-slate-800">{associatedTicket.status || associatedTicket.stage}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
+                            <span className="text-slate-500">Ticket Owner:</span>
+                            <span className="font-semibold text-slate-800">
+                              {typeof associatedTicket.ticketOwner === 'object'
+                                ? associatedTicket.ticketOwner?.name || 'Agent'
+                                : (associatedTicket.ticketOwner || 'Agent')}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                            <span className="text-slate-500">Due Date:</span>
+                            <span className="text-slate-700 font-medium">
+                              {associatedTicket.dueDate || '----------'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Footer Link */}
+                      <button
+                        type="button"
+                        onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer pl-0.5"
+                      >
+                        » View Associated Ticket
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           {/* Card 3: Customer Documents (1) */}

@@ -2053,6 +2053,90 @@ export const SAMPLE_TASKS = [
   },
 ];
 
+// ── Dynamic In-Memory & LocalStorage Store Helpers ───────────────────────────
+export function addTicketToStore(ticket) {
+  if (!ticket) return;
+  const existingIdx = FULL_SAMPLE_TICKETS.findIndex(
+    (t) => t.id === ticket.id || (t.title === ticket.title && t.contactName === ticket.contactName)
+  );
+  if (existingIdx >= 0) {
+    FULL_SAMPLE_TICKETS[existingIdx] = { ...FULL_SAMPLE_TICKETS[existingIdx], ...ticket };
+  } else {
+    FULL_SAMPLE_TICKETS.unshift(ticket);
+  }
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_tickets');
+    const list = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex((t) => t.id === ticket.id);
+    if (idx >= 0) list[idx] = ticket;
+    else list.unshift(ticket);
+    localStorage.setItem('insurmatch_dynamic_tickets', JSON.stringify(list));
+  } catch {}
+}
+
+export function getDynamicTickets() {
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_tickets');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addDealToStore(deal) {
+  if (!deal) return;
+  const existingIdx = SAMPLE_DEALS.findIndex((d) => d.id === deal.id || d.code === deal.code);
+  if (existingIdx >= 0) {
+    SAMPLE_DEALS[existingIdx] = { ...SAMPLE_DEALS[existingIdx], ...deal };
+  } else {
+    SAMPLE_DEALS.unshift(deal);
+  }
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_deals');
+    const list = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex((d) => d.id === deal.id);
+    if (idx >= 0) list[idx] = deal;
+    else list.unshift(deal);
+    localStorage.setItem('insurmatch_dynamic_deals', JSON.stringify(list));
+  } catch {}
+}
+
+export function getDynamicDeals() {
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_deals');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addContactToStore(contact) {
+  if (!contact) return;
+  const existingIdx = SAMPLE_CONTACTS.findIndex((c) => c.id === contact.id || c.code === contact.code);
+  if (existingIdx >= 0) {
+    SAMPLE_CONTACTS[existingIdx] = { ...SAMPLE_CONTACTS[existingIdx], ...contact };
+  } else {
+    SAMPLE_CONTACTS.unshift(contact);
+  }
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_contacts');
+    const list = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex((c) => c.id === contact.id);
+    if (idx >= 0) list[idx] = contact;
+    else list.unshift(contact);
+    localStorage.setItem('insurmatch_dynamic_contacts', JSON.stringify(list));
+  } catch {}
+}
+
+export function getDynamicContacts() {
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_contacts');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 
 
 

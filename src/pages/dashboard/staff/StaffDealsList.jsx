@@ -3,14 +3,20 @@ import {
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
   SAMPLE_DEALS,
+  getDynamicDeals,
+  addDealToStore,
+  addTicketToStore,
 } from '../../../data/mockCrmData';
-import { getDeals, updateDeal } from '../../../services/api';
+import { getDeals, updateDeal, createTicket } from '../../../services/api';
 import StaffDealsKanban from './StaffDealsKanban';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterDealsForAgent, getAgentIdentity } from '../../../utils/rbac';
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent = false, agentName = '' }) {
-  const [dealsList, setDealsList] = useState(SAMPLE_DEALS);
+  const [dealsList, setDealsList] = useState(() => {
+    const dyn = getDynamicDeals();
+    return [...dyn, ...SAMPLE_DEALS];
+  });
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
   const [viewMode, setViewMode] = useState('kanban'); // 'list' | 'kanban'
@@ -28,17 +34,19 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   async function loadDealsData() {
     setLoading(true);
     try {
+      const dyn = getDynamicDeals();
       const data = await getDeals();
       if (Array.isArray(data) && data.length > 0) {
-        setDealsList(data);
+        setDealsList([...dyn, ...data]);
         setIsDbConnected(true);
       } else {
-        setDealsList(SAMPLE_DEALS);
+        setDealsList([...dyn, ...SAMPLE_DEALS]);
         setIsDbConnected(false);
       }
     } catch (err) {
       console.warn('[StaffDealsList] API error:', err);
-      setDealsList(SAMPLE_DEALS);
+      const dyn = getDynamicDeals();
+      setDealsList([...dyn, ...SAMPLE_DEALS]);
       setIsDbConnected(false);
     } finally {
       setLoading(false);
@@ -59,6 +67,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   const [dealOwner, setDealOwner] = useState('Khanh Nguyen');
   const [amount, setAmount] = useState('_ _ _ _ _ _ _ _ _ _');
   const [closeDate, setCloseDate] = useState('_ _ _ _ _ _ _ _ _ _');
+  const [needUpload, setNeedUpload] = useState('No');
 
   function showToast(msg) {
     setToastMessage(msg);
@@ -229,21 +238,26 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     }
 
     const newCode = `D2600${Math.floor(5000 + Math.random() * 900)}`;
+    const cName = contactName.trim() || 'Client';
+
     const newDeal = {
       id: newCode,
       no: dealsList.length + 1,
       code: newCode,
       title: dealTitle.trim(),
-      contactName: contactName.trim() || 'Nhat Huu Tuan Dang',
+      contactName: cName,
       contactId: 'CT26002600',
       pipeline: pipeline,
       stage: stage,
       stageBadge: stage.includes('Ready') ? 'Ready to Enroll' : stage.slice(0, 15),
       stageColor: 'bg-blue-50 text-blue-700 border-blue-200',
       carrier: carrier,
+      planName: '',
       amount: amount.trim() || '_ _ _ _ _ _ _ _ _ _',
       closeDate: closeDate.trim() || '_ _ _ _ _ _ _ _ _ _',
       sellingState: sellingState,
+      uploadRequest: needUpload === 'Yes',
+      needUpload: needUpload,
       dealOwner: {
         name: dealOwner,
         avatar: dealOwner.slice(0, 2).toUpperCase(),
@@ -270,13 +284,63 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         carrier: carrier,
         closedLostReason: '---',
       },
+      activities: [
+        {
+          id: `act-${Date.now()}`,
+          type: 'Deal Created',
+          time: new Date().toLocaleString(),
+          actor: 'Platform Staff',
+          summary: `Created deal: ${dealTitle.trim()}`,
+        },
+      ],
+      notes: [],
+      tasks: [],
+      associatedTickets: [],
     };
 
+    // Quy trình: Nếu Need upload = Yes -> tự động xuất ticket upload documents
+    if (needUpload === 'Yes') {
+      const uploadTicket = {
+        id: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
+        code: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
+        title: `Upload documents - ${newDeal.title}`,
+        pipeline: 'Upload document',
+        stage: 'Waiting on verification',
+        status: 'Open',
+        priority: 'High',
+        category: 'Upload Document',
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+        }),
+        ticketOwner: dealOwner,
+        serviceAgent: 'Platform Staff',
+        contactName: cName,
+        contactId: 'CT26002600',
+        dealId: newCode,
+        dealTitle: newDeal.title,
+        carrier: carrier,
+        createdAt: new Date().toISOString(),
+        activities: [],
+        comments: [],
+      };
+      createTicket(uploadTicket).catch(() => {});
+      addTicketToStore(uploadTicket);
+      newDeal.associatedTickets = [uploadTicket];
+    }
+
+    addDealToStore(newDeal);
     setDealsList([newDeal, ...dealsList]);
     setShowCreateModal(false);
     setDealTitle('');
     setContactName('');
-    showToast(`Created deal ${newDeal.code} successfully!`);
+    setNeedUpload('No');
+    showToast(
+      needUpload === 'Yes'
+        ? `Đã tạo Deal ${newDeal.code} và tự động xuất Ticket Upload document!`
+        : `Đã tạo Deal ${newDeal.code} thành công (Không xuất ticket upload)!`
+    );
   }
 
   return (
@@ -990,6 +1054,35 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-xs"
                   />
                 </div>
+              </div>
+
+              {/* Need Upload field */}
+              <div className="pt-1">
+                <label className="block text-slate-800 font-bold mb-1 text-[11px] flex items-center justify-between">
+                  <span>Need Upload Documents <span className="text-rose-500">*</span></span>
+                  {needUpload === 'Yes' && (
+                    <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
+                      ⚡ Sẽ xuất Ticket Upload
+                    </span>
+                  )}
+                </label>
+                <select
+                  value={needUpload}
+                  onChange={(e) => setNeedUpload(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition ${
+                    needUpload === 'Yes'
+                      ? 'border-amber-400 bg-amber-50 text-amber-900 ring-1 ring-amber-400/30'
+                      : 'border-slate-200 bg-white text-slate-800'
+                  }`}
+                >
+                  <option value="No">No (Không upload tài liệu - Không xuất ticket)</option>
+                  <option value="Yes">Yes (Cần upload tài liệu - Tự động xuất ticket Upload document)</option>
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {needUpload === 'Yes'
+                    ? '⚡ Tự động tạo 1 Ticket Upload document gửi cho Platform Staff xác nhận tài liệu Marketplace.'
+                    : '✓ Tạo Deal sạch thông thường, không phát sinh ticket upload.'}
+                </p>
               </div>
 
               {/* Modal Footer */}

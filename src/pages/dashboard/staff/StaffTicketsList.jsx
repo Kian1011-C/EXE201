@@ -1,6 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getTickets, createTicket } from '../../../services/api';
-import { FULL_SAMPLE_TICKETS, SAMPLE_ACA_TICKET, SAMPLE_PAYMENT_TICKET } from '../../../data/mockCrmData';
+import {
+  FULL_SAMPLE_TICKETS,
+  SAMPLE_ACA_TICKET,
+  SAMPLE_PAYMENT_TICKET,
+  getDynamicTickets,
+  addTicketToStore,
+} from '../../../data/mockCrmData';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterTicketsForAgent, getAgentIdentity } from '../../../utils/rbac';
 
@@ -51,7 +57,10 @@ const PRIORITY_OPTIONS = [
 ];
 
 export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSelectDeal, isAgent = false, agentName = '' }) {
-  const [ticketsList, setTicketsList] = useState(FULL_SAMPLE_TICKETS);
+  const [ticketsList, setTicketsList] = useState(() => {
+    const dyn = getDynamicTickets();
+    return [...dyn, ...FULL_SAMPLE_TICKETS];
+  });
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'kanban'
@@ -155,12 +164,15 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
           dealTitle: t.deal?.title || t.dealTitle || '',
           rawTicket: t,
         }));
-        setTicketsList([...FULL_SAMPLE_TICKETS, ...dbTickets]);
+        const dyn = getDynamicTickets();
+        setTicketsList([...dyn, ...FULL_SAMPLE_TICKETS, ...dbTickets]);
       } else {
-        setTicketsList(FULL_SAMPLE_TICKETS);
+        const dyn = getDynamicTickets();
+        setTicketsList([...dyn, ...FULL_SAMPLE_TICKETS]);
       }
     } catch {
-      setTicketsList(FULL_SAMPLE_TICKETS);
+      const dyn = getDynamicTickets();
+      setTicketsList([...dyn, ...FULL_SAMPLE_TICKETS]);
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);
     }
@@ -358,6 +370,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
       }),
       description: createDescription,
     };
+    addTicketToStore(newT);
     setTicketsList([newT, ...ticketsList]);
     setShowCreateModal(false);
     setCreateTitle('');

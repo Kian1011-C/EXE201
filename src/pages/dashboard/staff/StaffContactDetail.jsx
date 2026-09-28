@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CONTACT_DETAIL_DATA } from '../../../data/mockCrmData';
+import {
+  CONTACT_DETAIL_DATA,
+  addTicketToStore,
+  addDealToStore,
+  OBAMACARE_DEAL_STAGES,
+  MEDICARE_DEAL_STAGES,
+} from '../../../data/mockCrmData';
+import { createTicket } from '../../../services/api';
 
 export const ACA_ACCOUNT_STATUS_OPTIONS = [
   'Need Create ACA Account',
@@ -9,6 +16,7 @@ export const ACA_ACCOUNT_STATUS_OPTIONS = [
   'Unverified - Can not Create',
   'DONE',
   'Plan Cancelled',
+  '(Trống / Chưa chọn)',
 ];
 
 export function getPersonName(val, fallback = 'Unassigned') {
@@ -94,7 +102,14 @@ export default function StaffContactDetail({
   const [isTaskFullscreen, setIsTaskFullscreen] = useState(false);
   const taskFileInputRef = useRef(null);
 
-  // ACA Account fields & Status sync state (matching Image 1 & 3)
+  // Address fields
+  const [streetAddress, setStreetAddress] = useState(contact?.contactFields?.streetAddress || '');
+  const [city, setCity] = useState(contact?.contactFields?.city || '');
+  const [contactState, setContactState] = useState(contact?.contactFields?.state || 'North Carolina (NC)');
+  const [postalCode, setPostalCode] = useState(contact?.contactFields?.postalCode || '');
+  const [county, setCounty] = useState(contact?.contactFields?.county || '');
+
+  // ACA Account fields & Status sync state
   const [theBestRateEmail, setTheBestRateEmail] = useState(
     contact?.acaAccount?.theBestRateEmail || ''
   );
@@ -102,22 +117,39 @@ export default function StaffContactDetail({
     contact?.acaAccountStatus ||
       contact?.acaAccount?.acaAccountStatus ||
       contact?.acaAccount?.status ||
-      'DONE'
+      ''
   );
   const [acaAccount, setAcaAccount] = useState(
-    contact?.acaAccount?.acaAccount || 'frankdang641@gmail.com'
+    contact?.acaAccount?.acaAccount || ''
   );
   const [acaPass, setAcaPass] = useState(
-    contact?.acaAccount?.acaPass || 'Thebest@2026'
+    contact?.acaAccount?.acaPass || ''
   );
   const [isAcaStatusDropdownOpen, setIsAcaStatusDropdownOpen] = useState(false);
   const acaStatusDropdownRef = useRef(null);
+
+  // Deals and Tickets in right sidebar
+  const [contactDeals, setContactDeals] = useState(
+    contact?.associatedDeals || contact?.deals || []
+  );
+  const [contactTickets, setContactTickets] = useState(
+    contact?.associatedTickets || contact?.tickets || []
+  );
+
+  // Create Deal modal state
+  const [showCreateDealModal, setShowCreateDealModal] = useState(false);
+  const [newDealTitle, setNewDealTitle] = useState('');
+  const [newDealPipeline, setNewDealPipeline] = useState('Obamacare 2026');
+  const [newDealStage, setNewDealStage] = useState('Ready to Enroll (Obamacare 2026)');
+  const [newDealCarrier, setNewDealCarrier] = useState('BCBS');
+  const [newDealState, setNewDealState] = useState('North Carolina (NC)');
+  const [newDealNeedUpload, setNewDealNeedUpload] = useState('No');
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState('');
   function showToast(msg) {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3000);
+    setTimeout(() => setToastMessage(''), 3500);
   }
 
   // Close ACA status dropdown on click outside
@@ -135,49 +167,186 @@ export default function StaffContactDetail({
   }, []);
 
   function handleAcaAccountStatusChange(newStatus) {
-    if (!newStatus || newStatus === acaAccountStatus) {
+    const val = newStatus === '(Trống / Chưa chọn)' ? '' : newStatus;
+    if (val === acaAccountStatus) {
       setIsAcaStatusDropdownOpen(false);
       return;
     }
-    setAcaAccountStatus(newStatus);
+    setAcaAccountStatus(val);
     setIsAcaStatusDropdownOpen(false);
 
-    // 1. Add activity entry to timeline matching Image 3:
-    // "Ticket Activity
-    //  Anya Nguyen (anya42@9) moved ticket stage to ${newStatus}."
-    const now = new Date();
-    const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
-      now.getDate()
-    ).padStart(2, '0')}/${now.getFullYear()}, ${String(now.getHours()).padStart(
-      2,
-      '0'
-    )}:${String(now.getMinutes()).padStart(2, '0')}`;
+    let updatedTickets = [...contactTickets];
 
-    const newAct = {
-      id: `ticket-act-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      type: 'Ticket Activity',
-      time: timeStr,
-      actor: 'Anya Nguyen (anya42@9)',
-      summary: `moved ticket stage to ${newStatus}.`,
-      linkText: 'View Details',
-      ticketId: 'TC2600101',
-    };
-    setActivitiesList((prev) => [newAct, ...(prev || [])]);
+    // Quy trình: Khi chọn "Need Create ACA Account", tự động xuất Ticket ACA account
+    if (val === 'Need Create ACA Account') {
+      const cName = [primaryFirstName, primaryMiddleName, primaryLastName].filter(Boolean).join(' ') || contact?.fullName || 'Khách hàng';
+      const acaTicket = {
+        id: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
+        code: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
+        title: `Create ACA account - ${cName}`,
+        pipeline: 'ACA account',
+        stage: 'Need Create ACA Account (ACA account)',
+        status: 'Open',
+        priority: 'High',
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+        }),
+        ticketOwner: leadContactOwner,
+        ticketOwnerAvatar: (leadContactOwner || 'KN').slice(0, 2).toUpperCase(),
+        serviceAgent: leadSupportAgent,
+        contactName: cName,
+        contactId: contact?.id || contact?.code || '',
+        contactPhone: contactPhone,
+        contactEmail: contactEmail,
+        carrier: contact?.dealCarrier || contactDeals[0]?.carrier || 'BCBS',
+        dealTitle: contactDeals[0]?.title || '',
+        dealId: contactDeals[0]?.id || '',
+        description: `Tự động tạo Ticket khi chuyển trạng thái Need Create ACA Account cho khách hàng ${cName}`,
+        createdAt: new Date().toISOString(),
+        activities: [],
+        comments: [],
+      };
 
-    // 2. Notify parent to persist contact changes
+      createTicket(acaTicket).catch(() => {});
+      addTicketToStore(acaTicket);
+      updatedTickets = [acaTicket, ...updatedTickets];
+      setContactTickets(updatedTickets);
+
+      logActivity('Ticket Created', `Tự động xuất ticket: ${acaTicket.title} (ACA account)`);
+      showToast(`Đã chuyển trạng thái và tự động xuất Ticket: ${acaTicket.title}!`);
+    } else {
+      showToast(`Đã cập nhật trạng thái ACA: ${val || 'Trống'}`);
+    }
+
     if (onUpdateContact) {
       onUpdateContact({
         ...contact,
-        acaAccountStatus: newStatus,
+        acaAccountStatus: val,
+        associatedTickets: updatedTickets,
         acaAccount: {
           ...(contact?.acaAccount || {}),
-          acaAccountStatus: newStatus,
-          status: newStatus,
+          acaAccountStatus: val,
+          status: val,
         },
       });
     }
+  }
 
-    showToast(`ACA Account & Ticket status updated to: ${newStatus}`);
+  function handleCreateDealForContact(e) {
+    e.preventDefault();
+    const cName = [primaryFirstName, primaryMiddleName, primaryLastName].filter(Boolean).join(' ') || contact?.fullName || 'Khách hàng';
+    const dTitle = newDealTitle.trim() || `Non-CMS - ${cName} - OB 10/2026 (NC)`;
+    const newCode = `D2600${Math.floor(5000 + Math.random() * 900)}`;
+
+    const newDealRecord = {
+      id: newCode,
+      code: newCode,
+      title: dTitle,
+      shortTitle: dTitle.length > 25 ? `${dTitle.slice(0, 22)}...` : dTitle,
+      pipeline: newDealPipeline,
+      stage: newDealStage,
+      carrier: newDealCarrier,
+      sellingState: newDealState,
+      dealOwner: leadContactOwner,
+      contactName: cName,
+      contactId: contact?.id || contact?.code || '',
+      needUpload: newDealNeedUpload,
+      uploadRequest: newDealNeedUpload === 'Yes',
+      isNew: true,
+      amount: '',
+      closeDate: '',
+      planName: '',
+      monthlyPremium: '',
+      subsidyAmount: '',
+      agencyCommission: '',
+      holderOfPolicy: '',
+      policyEffectiveDate: '',
+      commissionAvailDate: '',
+      paymentStatus: '',
+      chooseDoctorStatus: '',
+      doctorName: '',
+      deadlineUploadDocs: '',
+      householdInfo: '',
+      payThruDate: '',
+      stageAca: '',
+      consentFormStatus: '',
+      primaryMemberId: '',
+      activities: [
+        {
+          id: `act-${Date.now()}`,
+          type: 'Deal Created',
+          time: new Date().toLocaleString(),
+          actor: 'Platform Staff',
+          summary: `Created deal: ${dTitle}`,
+        },
+      ],
+      notes: [],
+      tasks: [],
+      stageHistory: [
+        {
+          from: 'Created',
+          to: newDealStage,
+          date: new Date().toLocaleString(),
+          user: leadContactOwner,
+        },
+      ],
+    };
+
+    let updatedTickets = [...contactTickets];
+    // Quy trình: Nếu Need upload = Yes -> tự động xuất ticket upload documents!
+    if (newDealNeedUpload === 'Yes') {
+      const uploadTicket = {
+        id: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
+        code: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
+        title: `Upload documents - ${dTitle}`,
+        pipeline: 'Upload document',
+        stage: 'Waiting on verification',
+        status: 'Open',
+        priority: 'High',
+        category: 'Upload Document',
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+        }),
+        ticketOwner: leadContactOwner,
+        serviceAgent: leadSupportAgent,
+        contactName: cName,
+        contactId: contact?.id || contact?.code || '',
+        dealId: newCode,
+        dealTitle: dTitle,
+        carrier: newDealCarrier,
+        createdAt: new Date().toISOString(),
+        activities: [],
+        comments: [],
+      };
+      createTicket(uploadTicket).catch(() => {});
+      addTicketToStore(uploadTicket);
+      updatedTickets = [uploadTicket, ...updatedTickets];
+      setContactTickets(updatedTickets);
+      logActivity('Ticket Created', `Tự động xuất ticket: ${uploadTicket.title} (Upload document)`);
+    }
+
+    addDealToStore(newDealRecord);
+    const updatedDeals = [newDealRecord, ...contactDeals];
+    setContactDeals(updatedDeals);
+
+    if (onUpdateContact) {
+      onUpdateContact({
+        ...contact,
+        associatedDeals: updatedDeals,
+        associatedTickets: updatedTickets,
+      });
+    }
+
+    setShowCreateDealModal(false);
+    showToast(
+      newDealNeedUpload === 'Yes'
+        ? `Đã tạo Deal và tự động xuất Ticket Upload document cho ${cName}!`
+        : `Đã tạo Deal thành công cho ${cName} (Không xuất ticket upload)!`
+    );
   }
 
   function logActivity(type, summary, linkText = '', dealId = null) {
@@ -202,35 +371,35 @@ export default function StaffContactDetail({
   }
 
   // Primary fields (synchronized with create contact)
-  const initialPrimary = contact?.primary || CONTACT_DETAIL_DATA.primary || {};
+  const initialPrimary = contact?.primary || (contact ? {} : (CONTACT_DETAIL_DATA.primary || {}));
   const [primaryFirstName, setPrimaryFirstName] = useState(
-    contact?.firstName || initialPrimary.firstName || 'Nhat Huu Tuan'
+    contact?.firstName || initialPrimary.firstName || ''
   );
   const [primaryMiddleName, setPrimaryMiddleName] = useState(
     contact?.middleName || initialPrimary.middleName || ''
   );
   const [primaryLastName, setPrimaryLastName] = useState(
-    contact?.lastName || initialPrimary.lastName || 'Dang'
+    contact?.lastName || initialPrimary.lastName || ''
   );
-  const [primaryDob, setPrimaryDob] = useState(initialPrimary.dob || '12/28/1995');
-  const [primarySsn, setPrimarySsn] = useState(initialPrimary.ssn || '673-73-0055');
+  const [primaryDob, setPrimaryDob] = useState(initialPrimary.dob || '');
+  const [primarySsn, setPrimarySsn] = useState(initialPrimary.ssn || '');
   const [primaryRelation, setPrimaryRelation] = useState(initialPrimary.familyRelationship || 'Self');
-  const [primaryGender, setPrimaryGender] = useState(initialPrimary.gender || 'Male');
-  const [primaryImmigration, setPrimaryImmigration] = useState(initialPrimary.immigrationStatus || 'Permanent Resident');
-  const [primaryAlienNumber, setPrimaryAlienNumber] = useState(initialPrimary.alienNumber || '219802465');
-  const [primaryCertificateNumber, setPrimaryCertificateNumber] = useState(initialPrimary.certificateNumber || 'IOE0921776907');
-  const [primaryDateExpired, setPrimaryDateExpired] = useState(initialPrimary.dateExpired || '03/31/2036');
+  const [primaryGender, setPrimaryGender] = useState(initialPrimary.gender || '');
+  const [primaryImmigration, setPrimaryImmigration] = useState(initialPrimary.immigrationStatus || '');
+  const [primaryAlienNumber, setPrimaryAlienNumber] = useState(initialPrimary.alienNumber || '');
+  const [primaryCertificateNumber, setPrimaryCertificateNumber] = useState(initialPrimary.certificateNumber || '');
+  const [primaryDateExpired, setPrimaryDateExpired] = useState(initialPrimary.dateExpired || '');
   const [primaryHousehold, setPrimaryHousehold] = useState(initialPrimary.household || '');
 
   // Contact fields
   const [contactPhone, setContactPhone] = useState(
-    contact?.rawPhone || (contact?.phone ? contact.phone.replace(/^\+1\s*/, '') : '(714) 837-2395')
+    contact?.rawPhone || contact?.phone || ''
   );
   const [contactLanguage, setContactLanguage] = useState(contact?.language || 'Vietnamese');
-  const [contactEmail, setContactEmail] = useState(contact?.email || 'tuannhat.n2@gmail.com');
+  const [contactEmail, setContactEmail] = useState(contact?.email || '');
 
   // Source of Lead fields
-  const [leadHowDoYouKnowUs, setLeadHowDoYouKnowUs] = useState(contact?.howDoYouKnowUs || '---');
+  const [leadHowDoYouKnowUs, setLeadHowDoYouKnowUs] = useState(contact?.howDoYouKnowUs || '');
   const [leadWhoRefer, setLeadWhoRefer] = useState(contact?.whoReferClient || '');
   const [leadContactOwner, setLeadContactOwner] = useState(
     getPersonName(contact?.contactOwner, 'The Best Rate Insurance')
@@ -247,26 +416,31 @@ export default function StaffContactDetail({
       const mName = contact.middleName !== undefined ? contact.middleName : (p.middleName || '');
       const lName = contact.lastName !== undefined ? contact.lastName : (p.lastName || '');
 
-      setPrimaryFirstName(fName || (contact.fullName ? contact.fullName.split(' ')[0] : 'Nhat Huu Tuan'));
+      setPrimaryFirstName(fName || (contact.fullName ? contact.fullName.split(' ')[0] : ''));
       setPrimaryMiddleName(mName || '');
-      setPrimaryLastName(lName || (contact.fullName ? contact.fullName.split(' ').slice(-1)[0] : 'Dang'));
-      setPrimaryDob(p.dob || '12/28/1995');
-      setPrimarySsn(p.ssn || '673-73-0055');
+      setPrimaryLastName(lName || (contact.fullName ? contact.fullName.split(' ').slice(-1)[0] : ''));
+      setPrimaryDob(p.dob || '');
+      setPrimarySsn(p.ssn || '');
       setPrimaryRelation(p.familyRelationship || 'Self');
-      setPrimaryGender(p.gender || 'Male');
-      setPrimaryImmigration(p.immigrationStatus || 'Permanent Resident');
-      setPrimaryAlienNumber(p.alienNumber || '219802465');
-      setPrimaryCertificateNumber(p.certificateNumber || 'IOE0921776907');
-      setPrimaryDateExpired(p.dateExpired || '03/31/2036');
+      setPrimaryGender(p.gender || '');
+      setPrimaryImmigration(p.immigrationStatus || '');
+      setPrimaryAlienNumber(p.alienNumber || '');
+      setPrimaryCertificateNumber(p.certificateNumber || '');
+      setPrimaryDateExpired(p.dateExpired || '');
       setPrimaryHousehold(p.household || '');
 
-      setContactPhone(
-        contact.rawPhone || (contact.phone ? contact.phone.replace(/^\+1\s*/, '') : '(714) 837-2395')
-      );
+      setContactPhone(contact.rawPhone || contact.phone || '');
       setContactLanguage(contact.language || 'Vietnamese');
-      setContactEmail(contact.email || 'tuannhat.n2@gmail.com');
+      setContactEmail(contact.email || '');
 
-      setLeadHowDoYouKnowUs(contact.howDoYouKnowUs || '---');
+      const cf = contact.contactFields || {};
+      setStreetAddress(cf.streetAddress || '');
+      setCity(cf.city || '');
+      setContactState(cf.state || 'North Carolina (NC)');
+      setPostalCode(cf.postalCode || '');
+      setCounty(cf.county || '');
+
+      setLeadHowDoYouKnowUs(contact.howDoYouKnowUs || '');
       setLeadWhoRefer(contact.whoReferClient || '');
       setLeadContactOwner(
         getPersonName(contact.contactOwner, 'The Best Rate Insurance')
@@ -275,12 +449,19 @@ export default function StaffContactDetail({
         getPersonName(contact.supportAgent, 'Platform Staff')
       );
 
-      const s = contact.acaAccountStatus || contact.acaAccount?.acaAccountStatus || contact.acaAccount?.status;
-      if (s) setAcaAccountStatus(s);
+      const s = contact.acaAccountStatus || contact.acaAccount?.acaAccountStatus || contact.acaAccount?.status || '';
+      setAcaAccountStatus(s);
+      setAcaAccount(contact.acaAccount?.acaAccount || '');
+      setAcaPass(contact.acaAccount?.acaPass || '');
+      setTheBestRateEmail(contact.acaAccount?.theBestRateEmail || '');
 
       setActivitiesList(contact.activities || []);
       setNotesList(contact.notes || []);
       setTasksList(contact.tasks || []);
+      setMembersList(contact.members || []);
+
+      setContactDeals(contact.associatedDeals || contact.deals || []);
+      setContactTickets(contact.associatedTickets || contact.tickets || []);
     }
   }, [contact]);
 
@@ -450,16 +631,13 @@ export default function StaffContactDetail({
   }
 
   // Use passed contact info or fallback to CONTACT_DETAIL_DATA
-  const contactInfo = {
-    ...CONTACT_DETAIL_DATA,
-    ...(contact || {}),
-  };
+  const contactInfo = contact || CONTACT_DETAIL_DATA;
 
   // Dynamic Full Name and Initials
   const currentFullName = [primaryFirstName, primaryMiddleName, primaryLastName]
     .map((s) => (s || '').trim())
     .filter(Boolean)
-    .join(' ') || contactInfo.fullName || 'Nhat Huu Tuan Dang';
+    .join(' ') || contactInfo.fullName || (contact ? 'Liên hệ mới' : 'Nhat Huu Tuan Dang');
 
   const currentInitials = currentFullName
     .split(' ')
@@ -469,7 +647,7 @@ export default function StaffContactDetail({
     .join('')
     .toUpperCase() || 'ND';
 
-  const dealItem = contactInfo.associatedDeals[0];
+  const dealItem = contactDeals[0] || null;
 
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -804,14 +982,15 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">State</label>
                         <div className="relative">
                           <select
-                            defaultValue="North Carolina (NC)"
+                            value={contactState}
+                            onChange={(e) => setContactState(e.target.value)}
                             className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                           >
-                            <option>North Carolina (NC)</option>
-                            <option>Texas (TX)</option>
-                            <option>California (CA)</option>
-                            <option>Florida (FL)</option>
-                            <option>Georgia (GA)</option>
+                            <option value="North Carolina (NC)">North Carolina (NC)</option>
+                            <option value="Texas (TX)">Texas (TX)</option>
+                            <option value="California (CA)">California (CA)</option>
+                            <option value="Florida (FL)">Florida (FL)</option>
+                            <option value="Georgia (GA)">Georgia (GA)</option>
                           </select>
                           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400 pointer-events-none">
                             <span className="text-[12px]">✕</span>
@@ -826,7 +1005,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Street Address</label>
                         <input
                           type="text"
-                          defaultValue="4301 Laurel Pond Way"
+                          value={streetAddress}
+                          onChange={(e) => setStreetAddress(e.target.value)}
+                          placeholder="e.g. 4301 Laurel Pond Way"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -836,7 +1017,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">City</label>
                         <input
                           type="text"
-                          defaultValue="Raleigh"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          placeholder="e.g. Raleigh"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -846,7 +1029,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Postal Code</label>
                         <input
                           type="text"
-                          defaultValue="27616"
+                          value={postalCode}
+                          onChange={(e) => setPostalCode(e.target.value)}
+                          placeholder="e.g. 27616"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -856,7 +1041,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">County</label>
                         <input
                           type="text"
-                          placeholder=""
+                          value={county}
+                          onChange={(e) => setCounty(e.target.value)}
+                          placeholder="e.g. Wake"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -914,7 +1101,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">The Best Rate Ins Email</label>
                         <input
                           type="email"
-                          placeholder=""
+                          value={theBestRateEmail}
+                          onChange={(e) => setTheBestRateEmail(e.target.value)}
+                          placeholder="e.g. agent@thebestrate.com"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -928,7 +1117,7 @@ export default function StaffContactDetail({
                           <span
                             title="Status History"
                             className="material-symbols-outlined text-[13px] text-slate-400 hover:text-blue-600 cursor-pointer transition"
-                            onClick={() => showToast(`Current ACA Account Status: ${acaAccountStatus}`)}
+                            onClick={() => showToast(`Current ACA Account Status: ${acaAccountStatus || '(Trống / Chưa chọn)'}`)}
                           >
                             history
                           </span>
@@ -943,8 +1132,8 @@ export default function StaffContactDetail({
                                 : 'border-slate-200'
                             } bg-white text-xs text-slate-800 hover:border-slate-300 cursor-pointer transition select-none shadow-2xs`}
                           >
-                            <span className="truncate font-medium text-slate-800">
-                              {acaAccountStatus || 'Need Create ACA Account'}
+                            <span className={`truncate font-medium ${acaAccountStatus ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                              {acaAccountStatus || '(Trống / Chưa chọn)'}
                             </span>
                             <div className="flex items-center gap-1 text-slate-400 shrink-0 ml-1">
                               {acaAccountStatus && (
@@ -952,10 +1141,10 @@ export default function StaffContactDetail({
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleAcaAccountStatusChange('Need Create ACA Account');
+                                    handleAcaAccountStatusChange('(Trống / Chưa chọn)');
                                   }}
                                   className="text-[12px] hover:text-slate-600 p-0.5 cursor-pointer leading-none"
-                                  title="Reset to default"
+                                  title="Reset to empty"
                                 >
                                   ✕
                                 </button>
@@ -971,7 +1160,7 @@ export default function StaffContactDetail({
                           {isAcaStatusDropdownOpen && (
                             <div className="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50 text-xs">
                               {ACA_ACCOUNT_STATUS_OPTIONS.map((opt) => {
-                                const isSelected = opt === acaAccountStatus;
+                                const isSelected = opt === acaAccountStatus || (opt === '(Trống / Chưa chọn)' && !acaAccountStatus);
                                 return (
                                   <button
                                     key={opt}
@@ -1002,7 +1191,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Aca Account</label>
                         <input
                           type="text"
-                          defaultValue="frankdang641@gmail.com"
+                          value={acaAccount}
+                          onChange={(e) => setAcaAccount(e.target.value)}
+                          placeholder="e.g. client@gmail.com"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -1012,7 +1203,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Aca Pass</label>
                         <input
                           type="text"
-                          defaultValue="Thebest@2026"
+                          value={acaPass}
+                          onChange={(e) => setAcaPass(e.target.value)}
+                          placeholder="e.g. Thebest@2026"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -1695,7 +1888,7 @@ export default function StaffContactDetail({
 
         {/* ── COLUMN 3: Associated Objects (Right Panel ~320px) ────────────── */}
         <div className="w-full xl:w-[320px] bg-white border-l border-slate-200 shrink-0 flex flex-col divide-y divide-slate-200 overflow-y-auto">
-          {/* Section 1: Deals (1) ─────────────────────────────────────────── */}
+          {/* Section 1: Deals ─────────────────────────────────────────── */}
           <div>
             {/* Header Accordion Bar */}
             <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition border-b border-slate-100">
@@ -1707,18 +1900,20 @@ export default function StaffContactDetail({
                 <span className="material-symbols-outlined text-[17px] text-slate-700">
                   {rightDealsOpen ? 'expand_more' : 'chevron_right'}
                 </span>
-                <span>Deals (1)</span>
+                <span>Deals ({contactDeals.length})</span>
               </button>
               <div className="flex items-center gap-2 text-slate-500">
                 <button
                   type="button"
-                  title="Add deal"
+                  onClick={() => setShowCreateDealModal(true)}
+                  title="Tạo Deal mới"
                   className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[17px]">add</span>
                 </button>
                 <button
                   type="button"
+                  onClick={() => showToast('Đang làm mới danh sách Deal...')}
                   title="Refresh"
                   className="hover:text-blue-600 p-0.5 rounded cursor-pointer text-slate-500"
                 >
@@ -1728,83 +1923,90 @@ export default function StaffContactDetail({
             </div>
 
             {/* Content Body */}
-            {rightDealsOpen && (() => {
-              const dealItem = contact?.deals?.[0] || contact?.associatedDeals?.[0] || {
-                id: 'D26005033',
-                title: 'Non-CMS - Nhat H Dang - OB 10/2026 (NC)',
-                shortTitle: 'Non-CMS - Nhat H Dang - OB...',
-                pipeline: 'Obamacare 2026',
-                stage: 'Ready to Enroll (Obamacare 2026)',
-                dealOwner: 'Khanh Nguyen',
-                carrier: 'BCBS',
-                member: contact?.fullName || 'Nhat Huu Tuan Dang',
-              };
-              return (
-                <div className="p-3">
-                  <div className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs">
-                    {/* Title row with badge */}
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                        <span className="material-symbols-outlined text-[15px]">handshake</span>
+            {rightDealsOpen && (
+              <div className="p-3 space-y-3">
+                {contactDeals.length === 0 ? (
+                  <div className="p-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <span className="material-symbols-outlined text-[28px] text-slate-300 block mb-1">handshake</span>
+                    <p className="text-xs font-semibold text-slate-600">Chưa có deal nào</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 mb-2.5">Tạo deal mới cho liên hệ này</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateDealModal(true)}
+                      className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-2xs transition inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">add</span>
+                      <span>Tạo Deal cho liên hệ này</span>
+                    </button>
+                  </div>
+                ) : (
+                  contactDeals.map((dealItem) => (
+                    <div key={dealItem.id || dealItem.code || Math.random()} className="space-y-1">
+                      <div className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs hover:border-blue-400 transition">
+                        {/* Title row with badge */}
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <span className="material-symbols-outlined text-[15px]">handshake</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => onSelectDeal && onSelectDeal(dealItem)}
+                            className="font-bold text-[#104882] hover:text-blue-700 hover:underline cursor-pointer truncate text-left text-xs leading-snug"
+                          >
+                            {dealItem?.shortTitle || dealItem?.title || 'Deal'}
+                          </button>
+                        </div>
+
+                        {/* Properties list with icons */}
+                        <div className="space-y-1.5 pt-0.5 text-[11px] text-slate-600 pl-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">bar_chart</span>
+                            <span className="text-slate-500">Pipeline:</span>
+                            <span className="font-semibold text-slate-800">{dealItem?.pipeline || 'Obamacare 2026'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">trending_up</span>
+                            <span className="text-slate-500">Stage:</span>
+                            <span className="font-semibold text-slate-800">{dealItem?.stage || 'Ready to Enroll'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
+                            <span className="text-slate-500">Deal Owner:</span>
+                            <span className="font-semibold text-slate-800">{getPersonName(dealItem?.dealOwner, leadContactOwner || 'Agent')}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">public</span>
+                            <span className="text-slate-500">Carrier:</span>
+                            <span className="font-semibold text-slate-800">{dealItem?.carrier || 'BCBS'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[15px] text-slate-400">badge</span>
+                              <span className="text-slate-500">Member:</span>
+                              <span className="font-semibold text-slate-800 truncate max-w-[140px]">
+                                {dealItem?.member || currentFullName}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
+
+                      {/* Footer Link */}
                       <button
                         type="button"
                         onClick={() => onSelectDeal && onSelectDeal(dealItem)}
-                        className="font-bold text-[#104882] hover:text-blue-700 hover:underline cursor-pointer truncate text-left text-xs leading-snug"
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer pl-0.5"
                       >
-                        {dealItem?.shortTitle || dealItem?.title || 'Non-CMS - Nhat H Dang - OB...'}
+                        <span>» View Associated Deal</span>
                       </button>
                     </div>
-
-                    {/* Properties list with icons */}
-                    <div className="space-y-1.5 pt-0.5 text-[11px] text-slate-600 pl-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">bar_chart</span>
-                        <span className="text-slate-500">Pipeline:</span>
-                        <span className="font-semibold text-slate-800">{dealItem?.pipeline || 'Obamacare 2026'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">trending_up</span>
-                        <span className="text-slate-500">Stage:</span>
-                        <span className="font-semibold text-slate-800">{dealItem?.stage || 'Ready to Enroll'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
-                        <span className="text-slate-500">Deal Owner:</span>
-                        <span className="font-semibold text-slate-800">{getPersonName(dealItem?.dealOwner, 'Khanh Nguyen')}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">public</span>
-                        <span className="text-slate-500">Carrier:</span>
-                        <span className="font-semibold text-slate-800">{dealItem?.carrier || 'BCBS'}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[15px] text-slate-400">badge</span>
-                          <span className="text-slate-500">Member:</span>
-                          <span className="font-semibold text-slate-800 truncate max-w-[140px]">
-                            {dealItem?.member || contact?.fullName || 'Nhat Huu Tuan Dang'}
-                          </span>
-                        </div>
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">expand_more</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Footer Link */}
-                  <button
-                    type="button"
-                    onClick={() => onSelectDeal && onSelectDeal(dealItem)}
-                    className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer pl-0.5"
-                  >
-                    <span>» View Associated Deal</span>
-                  </button>
-                </div>
-              );
-            })()}
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Section 2: Tickets (1) ───────────────────────────────────────── */}
+          {/* Section 2: Tickets ───────────────────────────────────────── */}
           <div>
             {/* Header Accordion Bar */}
             <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition border-b border-slate-100">
@@ -1816,18 +2018,20 @@ export default function StaffContactDetail({
                 <span className="material-symbols-outlined text-[17px] text-slate-700">
                   {rightTicketsOpen ? 'expand_more' : 'chevron_right'}
                 </span>
-                <span>Tickets (1)</span>
+                <span>Tickets ({contactTickets.length})</span>
               </button>
               <div className="flex items-center gap-2 text-slate-500">
                 <button
                   type="button"
-                  title="Add ticket"
+                  onClick={() => showToast('Để tạo Ticket: đổi trạng thái ACA sang "Need Create ACA Account" hoặc tạo Deal với "Need Upload: Yes"')}
+                  title="Thêm ticket"
                   className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[17px]">add</span>
                 </button>
                 <button
                   type="button"
+                  onClick={() => showToast('Đang làm mới danh sách Ticket...')}
                   title="Refresh"
                   className="hover:text-blue-600 p-0.5 rounded cursor-pointer text-slate-500"
                 >
@@ -1837,137 +2041,78 @@ export default function StaffContactDetail({
             </div>
 
             {/* Content Body */}
-            {rightTicketsOpen && (() => {
-              const isPaymentContact =
-                contact?.fullName?.toLowerCase().includes('hoai thanh') ||
-                contact?.email?.includes('nguyenleminhquang');
-              const isKenHoContact =
-                contact?.fullName?.toLowerCase().includes('ken') ||
-                contact?.id === 'CT26002607' ||
-                contact?.email?.includes('kylieho');
-
-              const associatedTicket = isPaymentContact
-                ? {
-                    id: 'TC2600201',
-                    title: 'Oct/26 Company Pay ticket',
-                    avatar: 'OT',
-                    avatarBg: 'bg-[#B25E3B]',
-                    pipeline: 'Payment',
-                    status: 'Make payment',
-                    rawStatus: 'Make payment',
-                    priority: 'None',
-                    openDays: 9,
-                    closeDate: '',
-                    dueDate: '09/20/2026',
-                    serviceAgent: 'Anya Nguyen (anya42@9)',
-                    serviceAgentAvatar: 'AN',
-                    ticketOwner: 'Khanh Nguyen (khanhnguyen31@7)',
-                    ticketOwnerAvatar: 'KN',
-                    carrier: contact?.dealCarrier || 'Kaiser Permanente',
-                    contactName: contact?.fullName || 'Hoai thanh Nguyen',
-                    contactPhone: contact?.phone || '+1 (838) 776-1434',
-                    contactEmail: contact?.email || 'nguyenleminhquang1215@gmail.com',
-                    leadOwner: 'Khanh Nguyen',
-                    dealTitle: 'Non Commission - Hoai thanh Nguyen - OB 2026',
-                    dealShortTitle: 'Non Commission - Hoai thanh...',
-                    dealPipeline: 'Obamacare 2026',
-                    dealStage: 'Non-Commission - Active',
-                    dealOwner: 'Khanh Nguyen',
-                    dealCarrier: contact?.dealCarrier || 'Kaiser Permanente',
-                  }
-                : {
-                    id: 'TC2600101',
-                    title: 'ACA account 2026',
-                    avatar: 'A2',
-                    avatarBg: 'bg-[#E05638]',
-                    pipeline: 'ACA account',
-                    status: acaAccountStatus || 'DONE',
-                    rawStatus: acaAccountStatus || 'DONE',
-                    priority: 'High',
-                    closeDate: '07/20/2026',
-                    dueDate: '07/15/2026',
-                    serviceAgent: 'Ivy Lu (ivy)',
-                    serviceAgentAvatar: 'IL',
-                    ticketOwner: 'Jay Ly (trichauly24@7)',
-                    ticketOwnerAvatar: 'JL',
-                    carrier: contact?.dealCarrier || 'BCBS',
-                    contactName: contact?.fullName || (isKenHoContact ? 'Ken xington Ho' : 'Ken xington Ho'),
-                    contactPhone: contact?.phone || '+1 (832) 998-9804',
-                    contactEmail: contact?.email || 'kylieho@thesuperiorskilledlearners.com',
-                    leadOwner: contact?.contactOwner?.name || contact?.contactOwner || 'Jay Ly',
-                    dealTitle: isKenHoContact
-                      ? 'Ken Ho + Kylie Ho + Kaylee Ho - OB 08/2026'
-                      : `${contact?.fullName || 'Client'} - OB 2026`,
-                    dealShortTitle: isKenHoContact
-                      ? 'Ken Ho + Kylie Ho + Kaylee Ho - ...'
-                      : `${contact?.fullName || 'Client'} - OB 2026`,
-                    dealPipeline: 'Obamacare 2026',
-                    dealStage: 'Enrolled - Active',
-                    dealOwner: contact?.contactOwner?.name || contact?.contactOwner || 'Jay Ly',
-                    dealCarrier: contact?.dealCarrier || 'BCBS',
-                  };
-
-              return (
-                <div className="p-3">
-                  <div
-                    onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
-                    className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
-                  >
-                    {/* Title row with badge */}
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition">
-                        <span className="material-symbols-outlined text-[15px]">confirmation_number</span>
-                      </div>
-                      <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
-                        {associatedTicket.title}
-                      </span>
-                    </div>
-
-                    {/* Properties list with icons */}
-                    <div className="space-y-1.5 pt-0.5 text-[11px] text-slate-600 pl-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">bar_chart</span>
-                        <span className="text-slate-500">Pipeline:</span>
-                        <span className="font-semibold text-slate-800">{associatedTicket.pipeline}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">trending_up</span>
-                        <span className="text-slate-500">Ticket Status:</span>
-                        <span className="font-semibold text-slate-800">{associatedTicket.status}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
-                        <span className="text-slate-500">Ticket Owner:</span>
-                        <span className="font-semibold text-slate-800">
-                          {getPersonName(associatedTicket.ticketOwner, 'Agent')}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
-                        <span className="text-slate-500">{associatedTicket.openDays ? 'Open:' : 'Close Date:'}</span>
-                        <span className="text-slate-600 font-medium">
-                          {associatedTicket.openDays
-                            ? `${associatedTicket.openDays} Day(s)`
-                            : (associatedTicket.closeDate || '----------')}
-                        </span>
-                      </div>
-                    </div>
+            {rightTicketsOpen && (
+              <div className="p-3 space-y-3">
+                {contactTickets.length === 0 ? (
+                  <div className="p-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <span className="material-symbols-outlined text-[28px] text-slate-300 block mb-1">confirmation_number</span>
+                    <p className="text-xs font-semibold text-slate-600">Chưa có ticket nào</p>
+                    <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                      ⚡ Chọn trạng thái ACA sang <strong>Need Create ACA Account</strong> hoặc tạo Deal có <strong>Need Upload = Yes</strong> để tự động xuất Ticket.
+                    </p>
                   </div>
+                ) : (
+                  contactTickets.map((associatedTicket) => (
+                    <div key={associatedTicket.id || associatedTicket.code || Math.random()} className="space-y-1">
+                      <div
+                        onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                        className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
+                      >
+                        {/* Title row with badge */}
+                        <div className="flex items-center gap-2">
+                          <div className={`w-7 h-7 rounded-full ${associatedTicket.pipeline === 'Upload document' ? 'bg-amber-500' : 'bg-[#52B4C9]'} text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition`}>
+                            <span className="material-symbols-outlined text-[15px]">confirmation_number</span>
+                          </div>
+                          <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
+                            {associatedTicket.title}
+                          </span>
+                        </div>
 
-                  {/* Footer Link */}
-                  <button
-                    type="button"
-                    onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
-                    className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer pl-0.5"
-                  >
-                    <span>» View Associated Ticket</span>
-                  </button>
-                </div>
-              );
-            })()}
+                        {/* Properties list with icons */}
+                        <div className="space-y-1.5 pt-0.5 text-[11px] text-slate-600 pl-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">bar_chart</span>
+                            <span className="text-slate-500">Pipeline:</span>
+                            <span className="font-semibold text-slate-800">{associatedTicket.pipeline}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">trending_up</span>
+                            <span className="text-slate-500">Ticket Status:</span>
+                            <span className="font-semibold text-slate-800">{associatedTicket.status || associatedTicket.stage}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
+                            <span className="text-slate-500">Ticket Owner:</span>
+                            <span className="font-semibold text-slate-800">
+                              {getPersonName(associatedTicket.ticketOwner, leadContactOwner || 'Agent')}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                            <span className="text-slate-500">Due Date:</span>
+                            <span className="text-slate-700 font-medium">
+                              {associatedTicket.dueDate || '----------'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Footer Link */}
+                      <button
+                        type="button"
+                        onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer pl-0.5"
+                      >
+                        <span>» View Associated Ticket</span>
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Section 3: Customer Documents (1) (Image 2) ───────────────────── */}
+          {/* Section 3: Customer Documents ───────────────────── */}
           <div>
             {/* Header Accordion Bar */}
             <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition border-b border-slate-100">
@@ -2012,9 +2157,9 @@ export default function StaffContactDetail({
                     <button
                       type="button"
                       onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
-                      className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left"
+                      className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left truncate"
                     >
-                      Nhat H Dang
+                      {currentFullName}
                     </button>
                   </div>
 
@@ -2871,6 +3016,179 @@ export default function StaffContactDetail({
                 >
                   <span className="material-symbols-outlined text-[16px]">close</span>
                   <span>Cancel</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Create Deal Modal for Contact ────────────────────────────── */}
+      {showCreateDealModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-lg overflow-hidden animate-scale-in">
+            {/* Modal Header */}
+            <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-[#104882]/10 text-[#104882] flex items-center justify-center font-bold">
+                  <span className="material-symbols-outlined text-[18px]">handshake</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Tạo Deal mới</h3>
+                  <p className="text-[11px] text-slate-500">Liên hệ: <strong className="text-slate-700">{currentFullName}</strong></p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCreateDealModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-md transition cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleCreateDealForContact} className="p-5 space-y-3.5 text-xs">
+              {/* Deal Name */}
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
+                  Deal Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newDealTitle}
+                  onChange={(e) => setNewDealTitle(e.target.value)}
+                  placeholder={`e.g. Non-CMS - ${currentFullName} - OB 2026`}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-xs font-medium"
+                />
+              </div>
+
+              {/* Carrier & Pipeline */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
+                    Carrier <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={newDealCarrier}
+                    onChange={(e) => setNewDealCarrier(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs font-semibold text-blue-700 cursor-pointer"
+                  >
+                    <option value="BCBS">BCBS</option>
+                    <option value="Ambetter">Ambetter</option>
+                    <option value="UnitedHealthcare">UnitedHealthcare</option>
+                    <option value="Oscar">Oscar</option>
+                    <option value="Molina Healthcare">Molina Healthcare</option>
+                    <option value="Kaiser Permanente">Kaiser Permanente</option>
+                    <option value="Aetna">Aetna</option>
+                    <option value="Cigna">Cigna</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
+                    Pipeline <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={newDealPipeline}
+                    onChange={(e) => {
+                      const pl = e.target.value;
+                      setNewDealPipeline(pl);
+                      setNewDealStage(pl.includes('Medicare') ? MEDICARE_DEAL_STAGES[0] : OBAMACARE_DEAL_STAGES[0]);
+                    }}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs cursor-pointer"
+                  >
+                    <option value="Obamacare 2026">Obamacare 2026</option>
+                    <option value="Medicare 2026">Medicare 2026</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Stage & State */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
+                    Stage <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={newDealStage}
+                    onChange={(e) => setNewDealStage(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs cursor-pointer"
+                  >
+                    {(newDealPipeline.includes('Medicare')
+                      ? MEDICARE_DEAL_STAGES
+                      : OBAMACARE_DEAL_STAGES
+                    ).map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
+                    Selling State <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={newDealState}
+                    onChange={(e) => setNewDealState(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs cursor-pointer"
+                  >
+                    <option value="North Carolina (NC)">North Carolina (NC)</option>
+                    <option value="Texas (TX)">Texas (TX)</option>
+                    <option value="California (CA)">California (CA)</option>
+                    <option value="Georgia (GA)">Georgia (GA)</option>
+                    <option value="Florida (FL)">Florida (FL)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Need Upload field (Quy trình: Yes -> xuất ticket upload, No -> không xuất) */}
+              <div className="pt-1">
+                <label className="block text-slate-800 font-bold mb-1 text-[11px] flex items-center justify-between">
+                  <span>Need Upload Documents <span className="text-rose-500">*</span></span>
+                  {newDealNeedUpload === 'Yes' && (
+                    <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
+                      ⚡ Sẽ xuất Ticket Upload
+                    </span>
+                  )}
+                </label>
+                <select
+                  value={newDealNeedUpload}
+                  onChange={(e) => setNewDealNeedUpload(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition ${
+                    newDealNeedUpload === 'Yes'
+                      ? 'border-amber-400 bg-amber-50 text-amber-900 ring-1 ring-amber-400/30'
+                      : 'border-slate-200 bg-white text-slate-800'
+                  }`}
+                >
+                  <option value="No">No (Không upload tài liệu - Không xuất ticket)</option>
+                  <option value="Yes">Yes (Cần upload tài liệu - Tự động xuất ticket Upload document)</option>
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {newDealNeedUpload === 'Yes'
+                    ? '⚡ Tự động tạo 1 Ticket Upload document gửi cho Platform Staff xác nhận tài liệu Marketplace.'
+                    : '✓ Tạo Deal sạch thông thường, không phát sinh ticket upload.'}
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateDealModal(false)}
+                  className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer font-medium"
+                >
+                  Huỷ
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-lg bg-[#104882] text-white hover:bg-blue-700 cursor-pointer font-bold shadow-xs flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">save</span>
+                  <span>Tạo Deal</span>
                 </button>
               </div>
             </form>
