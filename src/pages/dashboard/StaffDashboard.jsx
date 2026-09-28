@@ -143,28 +143,61 @@ export default function StaffDashboard() {
       else { firstName = parts.slice(0, -1).join(' '); lastName = parts[parts.length - 1]; }
     }
 
+    const isDemoSample = contact.id === 'CT26002600' && !contact.isNew;
+    const defaultData = isDemoSample ? CONTACT_DETAIL_DATA : {
+      primary: {},
+      contactFields: {},
+      acaAccount: {
+        theBestRateEmail: '',
+        acaAccountStatus: '',
+        acaAccount: '',
+        acaPass: '',
+        acaStatusSpecial: '',
+        acaAccountSpecial: '',
+        acaPassSpecial: '',
+        enrollCallRep: '',
+      },
+      sourceOfLead: {},
+      associatedDeals: [],
+      associatedTickets: [],
+      associatedDocuments: [],
+      activities: [],
+      notes: [],
+      tasks: [],
+      members: [],
+    };
+
     const mergedContact = {
-      ...CONTACT_DETAIL_DATA,
+      ...defaultData,
       ...contact,
-      firstName: firstName || 'Nhat Huu Tuan',
+      firstName: firstName || (isDemoSample ? 'Nhat Huu Tuan' : ''),
       middleName: middleName || '',
-      lastName: lastName || 'Dang',
-      fullName: contact.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || 'Nhat Huu Tuan Dang',
+      lastName: lastName || (isDemoSample ? 'Dang' : ''),
+      fullName: contact.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || (isDemoSample ? 'Nhat Huu Tuan Dang' : ''),
       primary: {
-        ...(CONTACT_DETAIL_DATA.primary || {}),
+        ...(defaultData.primary || {}),
         ...(contact.primary || {}),
-        firstName: firstName || 'Nhat Huu Tuan',
+        firstName: firstName || (isDemoSample ? 'Nhat Huu Tuan' : ''),
         middleName: middleName || '',
-        lastName: lastName || 'Dang',
+        lastName: lastName || (isDemoSample ? 'Dang' : ''),
+      },
+      contactFields: {
+        ...(defaultData.contactFields || {}),
+        ...(contact.contactFields || {}),
+      },
+      acaAccount: {
+        ...(defaultData.acaAccount || {}),
+        ...(contact.acaAccount || {}),
+        acaAccountStatus: contact.acaAccountStatus || contact.acaAccount?.acaAccountStatus || '',
       },
       sourceOfLead: {
-        ...(CONTACT_DETAIL_DATA.sourceOfLead || {}),
+        ...(defaultData.sourceOfLead || {}),
         ...(contact.sourceOfLead || {}),
         howDoYouKnowUs: contact.howDoYouKnowUs || (contact.sourceOfLead?.howDoYouKnowUs || '---'),
         whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
-        contactOwner: contact.contactOwner?.name || contact.contactOwner || CONTACT_DETAIL_DATA.sourceOfLead.contactOwner,
+        contactOwner: contact.contactOwner?.name || contact.contactOwner || (isDemoSample ? CONTACT_DETAIL_DATA.sourceOfLead.contactOwner : 'The Best Rate Insurance'),
       },
-      initials: (contact.fullName || 'ND')
+      initials: (contact.fullName || (isDemoSample ? 'ND' : (firstName ? firstName[0] : 'CT')))
         .split(' ')
         .filter(Boolean)
         .map((w) => w[0])

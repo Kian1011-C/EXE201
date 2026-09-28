@@ -491,9 +491,9 @@ export const CONTACT_DETAIL_DATA = {
   },
   acaAccount: {
     theBestRateEmail: '',
-    acaAccountStatus: 'Uploaded - Waiting for Verification',
-    acaAccount: 'frankdang641@gmail.com',
-    acaPass: 'Thebest@2026',
+    acaAccountStatus: '',
+    acaAccount: '',
+    acaPass: '',
     acaStatusSpecial: '',
     acaAccountSpecial: '',
     acaPassSpecial: '',

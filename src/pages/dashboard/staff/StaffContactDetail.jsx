@@ -104,9 +104,11 @@ export default function StaffContactDetail({
   const taskFileInputRef = useRef(null);
 
   // Address fields
+  const [enrolledAddress, setEnrolledAddress] = useState(contact?.contactFields?.enrolledAddress || '');
+  const [mailingAddress, setMailingAddress] = useState(contact?.contactFields?.mailingAddress || '');
   const [streetAddress, setStreetAddress] = useState(contact?.contactFields?.streetAddress || '');
   const [city, setCity] = useState(contact?.contactFields?.city || '');
-  const [contactState, setContactState] = useState(contact?.contactFields?.state || 'North Carolina (NC)');
+  const [contactState, setContactState] = useState(contact?.contactFields?.state || '');
   const [postalCode, setPostalCode] = useState(contact?.contactFields?.postalCode || '');
   const [county, setCounty] = useState(contact?.contactFields?.county || '');
 
@@ -125,6 +127,18 @@ export default function StaffContactDetail({
   );
   const [acaPass, setAcaPass] = useState(
     contact?.acaAccount?.acaPass || ''
+  );
+  const [acaStatusSpecial, setAcaStatusSpecial] = useState(
+    contact?.acaAccount?.acaStatusSpecial || ''
+  );
+  const [acaAccountSpecial, setAcaAccountSpecial] = useState(
+    contact?.acaAccount?.acaAccountSpecial || ''
+  );
+  const [acaPassSpecial, setAcaPassSpecial] = useState(
+    contact?.acaAccount?.acaPassSpecial || ''
+  );
+  const [enrollCallRep, setEnrollCallRep] = useState(
+    contact?.acaAccount?.enrollCallRep || ''
   );
   const [isAcaStatusDropdownOpen, setIsAcaStatusDropdownOpen] = useState(false);
   const acaStatusDropdownRef = useRef(null);
@@ -407,9 +421,11 @@ export default function StaffContactDetail({
       setContactEmail(contact.email || '');
 
       const cf = contact.contactFields || {};
+      setEnrolledAddress(cf.enrolledAddress || '');
+      setMailingAddress(cf.mailingAddress || '');
       setStreetAddress(cf.streetAddress || '');
       setCity(cf.city || '');
-      setContactState(cf.state || 'North Carolina (NC)');
+      setContactState(cf.state || '');
       setPostalCode(cf.postalCode || '');
       setCounty(cf.county || '');
 
@@ -419,11 +435,16 @@ export default function StaffContactDetail({
         getPersonName(contact.contactOwner, 'The Best Rate Insurance')
       );
 
-      const s = contact.acaAccountStatus || contact.acaAccount?.acaAccountStatus || contact.acaAccount?.status || '';
+      const aca = contact.acaAccount || {};
+      const s = contact.acaAccountStatus || aca.acaAccountStatus || aca.status || '';
       setAcaAccountStatus(s);
-      setAcaAccount(contact.acaAccount?.acaAccount || '');
-      setAcaPass(contact.acaAccount?.acaPass || '');
-      setTheBestRateEmail(contact.acaAccount?.theBestRateEmail || '');
+      setAcaAccount(aca.acaAccount || '');
+      setAcaPass(aca.acaPass || '');
+      setTheBestRateEmail(aca.theBestRateEmail || '');
+      setAcaStatusSpecial(aca.acaStatusSpecial || '');
+      setAcaAccountSpecial(aca.acaAccountSpecial || '');
+      setAcaPassSpecial(aca.acaPassSpecial || '');
+      setEnrollCallRep(aca.enrollCallRep || '');
 
       setActivitiesList(contact.activities || []);
       setNotesList(contact.notes || []);
@@ -914,7 +935,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Enrolled Address</label>
                         <input
                           type="text"
-                          defaultValue="4301 Laurel Pond Way, Raleigh, NC 27616"
+                          value={enrolledAddress}
+                          onChange={(e) => setEnrolledAddress(e.target.value)}
+                          placeholder="e.g. 4301 Laurel Pond Way, Raleigh, NC 27616"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -924,7 +947,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Mailing Address</label>
                         <input
                           type="text"
-                          defaultValue="4301 Laurel Pond Way, Raleigh, NC 27616"
+                          value={mailingAddress}
+                          onChange={(e) => setMailingAddress(e.target.value)}
+                          placeholder="e.g. 4301 Laurel Pond Way, Raleigh, NC 27616"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -938,6 +963,7 @@ export default function StaffContactDetail({
                             onChange={(e) => setContactState(e.target.value)}
                             className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                           >
+                            <option value="">--</option>
                             <option value="North Carolina (NC)">North Carolina (NC)</option>
                             <option value="Texas (TX)">Texas (TX)</option>
                             <option value="California (CA)">California (CA)</option>
@@ -1047,7 +1073,11 @@ export default function StaffContactDetail({
                   </button>
 
                   {acaAccountOpen && (
-                    <div className="p-3 bg-slate-50/70 rounded-lg my-1 space-y-3 text-xs border border-slate-200">
+                    <div className="p-3 bg-slate-50/70 rounded-lg my-1 space-y-3 text-xs border border-slate-200 relative">
+                      {/* Anti-browser-autofill decoy inputs */}
+                      <input type="text" style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, width: 0, height: 0 }} tabIndex={-1} autoComplete="off" />
+                      <input type="password" style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, width: 0, height: 0 }} tabIndex={-1} autoComplete="new-password" />
+
                       {/* The Best Rate Ins Email */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">The Best Rate Ins Email</label>
@@ -1143,6 +1173,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Aca Account</label>
                         <input
                           type="text"
+                          name="crm_contact_aca_acc"
+                          autoComplete="off"
+                          data-lpignore="true"
                           value={acaAccount}
                           onChange={(e) => setAcaAccount(e.target.value)}
                           placeholder="e.g. client@gmail.com"
@@ -1155,6 +1188,9 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Aca Pass</label>
                         <input
                           type="text"
+                          name="crm_contact_aca_pwd"
+                          autoComplete="off"
+                          data-lpignore="true"
                           value={acaPass}
                           onChange={(e) => setAcaPass(e.target.value)}
                           placeholder="e.g. Thebest@2026"
@@ -1167,7 +1203,8 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">ACA Account Status - Special States</label>
                         <div className="relative">
                           <select
-                            defaultValue=""
+                            value={acaStatusSpecial}
+                            onChange={(e) => setAcaStatusSpecial(e.target.value)}
                             className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                           >
                             <option value="">--</option>
@@ -1186,7 +1223,12 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">ACA Account - Special States</label>
                         <input
                           type="text"
-                          placeholder=""
+                          name="crm_contact_aca_spec_acc"
+                          autoComplete="off"
+                          data-lpignore="true"
+                          value={acaAccountSpecial}
+                          onChange={(e) => setAcaAccountSpecial(e.target.value)}
+                          placeholder="e.g. client.special@state.gov"
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
@@ -1196,6 +1238,11 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">ACA Account Password - Special Stat...</label>
                         <input
                           type="password"
+                          name="crm_contact_aca_spec_pwd"
+                          autoComplete="new-password"
+                          data-lpignore="true"
+                          value={acaPassSpecial}
+                          onChange={(e) => setAcaPassSpecial(e.target.value)}
                           placeholder=""
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
@@ -1206,7 +1253,8 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Enroll Call Rep</label>
                         <div className="relative">
                           <select
-                            defaultValue=""
+                            value={enrollCallRep}
+                            onChange={(e) => setEnrollCallRep(e.target.value)}
                             className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                           >
                             <option value="">--</option>
