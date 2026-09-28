@@ -28,6 +28,7 @@ import {
   CONTACT_DETAIL_DATA,
   DEAL_DETAIL_DATA,
   CUSTOMER_DOCUMENT_DATA,
+  updateCustomerDocumentInStore,
 } from '../../data/mockCrmData';
 import {
   getContact,
@@ -295,8 +296,7 @@ export default function AgentDashboard() {
   }
 
   function handleSelectCustomerDocument(doc) {
-    const contactDoc = selectedContact?.customerDocument || doc;
-    const finalDoc = contactDoc || {
+    const targetDoc = doc || selectedContact?.customerDocument || {
       id: `doc-${selectedContact?.id || Date.now()}`,
       name: selectedContact?.fullName || 'Hai Nguyen',
       contactOwner:
@@ -333,18 +333,30 @@ export default function AgentDashboard() {
       }),
       lastModifiedBy: selectedContact?.contactOwner || 'Khanh Nguyen',
     };
-    setSelectedDocument(finalDoc);
+    setSelectedDocument(targetDoc);
     setCurrentView('customer-document-detail');
-    navigate(`/dashboard/agent/documents/${finalDoc?.id || 'DOC-01'}`, { replace: false });
+    navigate(`/dashboard/agent/documents/${targetDoc?.id || 'DOC-01'}`, { replace: false });
   }
 
   function handleUpdateDocument(updatedDoc) {
     setSelectedDocument(updatedDoc);
+    updateCustomerDocumentInStore(updatedDoc);
     if (selectedContact) {
-      setSelectedContact((prev) => ({
-        ...prev,
-        customerDocument: updatedDoc,
-      }));
+      setSelectedContact((prev) => {
+        if (!prev) return prev;
+        const prevDocs = prev.customerDocuments || [];
+        const idx = prevDocs.findIndex(
+          (d) => d.id === updatedDoc.id || d.name === updatedDoc.name
+        );
+        const updatedList = idx >= 0
+          ? prevDocs.map((d, i) => (i === idx ? updatedDoc : d))
+          : [updatedDoc, ...prevDocs];
+        return {
+          ...prev,
+          customerDocument: updatedDoc,
+          customerDocuments: updatedList,
+        };
+      });
     }
   }
 

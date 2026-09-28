@@ -2151,22 +2151,71 @@ export function getDynamicContacts() {
 // ── Customer Documents Store Helpers ─────────────────────────────────────────
 export function addCustomerDocumentToStore(doc) {
   if (!doc) return;
-  const existingIdx = SAMPLE_CUSTOMER_DOCUMENTS.findIndex(
-    (d) => d.id === doc.id || (d.name === doc.name && d.contactName === doc.contactName)
-  );
-  if (existingIdx >= 0) {
-    SAMPLE_CUSTOMER_DOCUMENTS[existingIdx] = { ...SAMPLE_CUSTOMER_DOCUMENTS[existingIdx], ...doc };
-  } else {
-    SAMPLE_CUSTOMER_DOCUMENTS.unshift(doc);
+
+  // Enrich with totalFiles and categoriesSummary (including files list) if not present
+  let totalFiles = doc.totalFiles;
+  let categoriesSummary = doc.categoriesSummary;
+  if (doc.filesByCategory) {
+    totalFiles = Object.values(doc.filesByCategory).reduce(
+      (sum, list) => sum + (Array.isArray(list) ? list.length : 0),
+      0
+    );
+    const catMap = {
+      consentFormMkp: 'Consent form MKP',
+      consentFormText: 'Consent form text',
+      identity: 'Identity',
+      insuranceRecord: 'Insurance record',
+      otherDocument: 'Other document',
+      paymentInformation: 'Payment information',
+      tax: 'Tax',
+    };
+    categoriesSummary = Object.entries(doc.filesByCategory)
+      .filter(([_, list]) => Array.isArray(list) && list.length > 0)
+      .map(([k, list]) => ({
+        key: k,
+        label: catMap[k] || k,
+        count: list.length,
+        files: list,
+      }));
   }
+
+  const enrichedDoc = {
+    ...doc,
+    totalFiles: totalFiles ?? doc.totalFiles ?? 0,
+    categoriesSummary: categoriesSummary ?? doc.categoriesSummary ?? [],
+  };
+
   try {
     const raw = localStorage.getItem('insurmatch_dynamic_documents');
-    const list = raw ? JSON.parse(raw) : [];
-    const idx = list.findIndex((d) => d.id === doc.id);
-    if (idx >= 0) list[idx] = doc;
-    else list.unshift(doc);
+    let list = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex(
+      (d) =>
+        (d.id && d.id === enrichedDoc.id) ||
+        (d.name === enrichedDoc.name && (d.contactId === enrichedDoc.contactId || d.contactName === enrichedDoc.contactName))
+    );
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...enrichedDoc };
+    } else {
+      list.unshift(enrichedDoc);
+    }
+    // Deduplicate by id or (name + contactId)
+    const seen = new Set();
+    list = list.filter((item) => {
+      const key = item.id || `${item.name}_${item.contactId || item.contactName}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     localStorage.setItem('insurmatch_dynamic_documents', JSON.stringify(list));
   } catch {}
+
+  // Update in-memory SAMPLE_CUSTOMER_DOCUMENTS only if already in sample
+  const sampleIdx = SAMPLE_CUSTOMER_DOCUMENTS.findIndex(
+    (d) => d.id === enrichedDoc.id || (d.name === enrichedDoc.name && d.contactName === enrichedDoc.contactName)
+  );
+  if (sampleIdx >= 0) {
+    SAMPLE_CUSTOMER_DOCUMENTS[sampleIdx] = { ...SAMPLE_CUSTOMER_DOCUMENTS[sampleIdx], ...enrichedDoc };
+  }
 }
 
 export function updateCustomerDocumentInStore(doc) {
@@ -2176,10 +2225,40 @@ export function updateCustomerDocumentInStore(doc) {
 export function getDynamicCustomerDocuments() {
   try {
     const raw = localStorage.getItem('insurmatch_dynamic_documents');
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) return [];
+    // Deduplicate in case old data had duplicates
+    const seen = new Set();
+    const unique = [];
+    for (const d of list) {
+      const key = d.id || `${d.name}_${d.contactId || d.contactName}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(d);
+      }
+    }
+    if (unique.length !== list.length) {
+      localStorage.setItem('insurmatch_dynamic_documents', JSON.stringify(unique));
+    }
+    return unique;
   } catch {
     return [];
   }
+}
+
+export function getAllCustomerDocuments() {
+  const dynamic = getDynamicCustomerDocuments();
+  const seenIds = new Set(dynamic.map((d) => d.id).filter(Boolean));
+  const seenNames = new Set(
+    dynamic.map((d) => `${d.name}_${d.contactId || d.contactName}`).filter(Boolean)
+  );
+  const filteredSamples = SAMPLE_CUSTOMER_DOCUMENTS.filter(
+    (s) =>
+      !seenIds.has(s.id) &&
+      !seenNames.has(`${s.name}_${s.contactId || s.contactName}`)
+  );
+  return [...dynamic, ...filteredSamples];
 }
 
 // ============================================================

@@ -6,7 +6,9 @@ import {
   addDealToStore,
   addContactToStore,
   addCustomerDocumentToStore,
+  updateCustomerDocumentInStore,
   getDynamicCustomerDocuments,
+  getAllCustomerDocuments,
   SAMPLE_CUSTOMER_DOCUMENTS,
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
@@ -182,24 +184,37 @@ export default function StaffContactDetail({
   };
 
   const [customerDocuments, setCustomerDocuments] = useState(() => {
+    let initialList = [];
     if (contact?.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
-      return contact.customerDocuments;
+      initialList = contact.customerDocuments;
+    } else if (contact?.customerDocument) {
+      initialList = [contact.customerDocument];
+    } else {
+      const allDocs = getAllCustomerDocuments();
+      const found = allDocs.filter(
+        (d) =>
+          (contact?.id && d.contactId === contact.id) ||
+          (contact?.code && d.contactId === contact.code) ||
+          (contact?.fullName && (d.contactName === contact.fullName || d.name === contact.fullName))
+      );
+      if (found.length > 0) {
+        initialList = found;
+      } else if (contact?.id === 'CT26002600' || contact?.id === 'CT26002601') {
+        const s = SAMPLE_CUSTOMER_DOCUMENTS.find((d) => d.contactId === contact.id);
+        if (s) initialList = [s];
+      }
     }
-    if (contact?.customerDocument) {
-      return [contact.customerDocument];
+    // Deduplicate by id or (name + contactId)
+    const seen = new Set();
+    const unique = [];
+    for (const d of initialList) {
+      const key = d.id || `${d.name}_${d.contactId || d.contactName}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(d);
+      }
     }
-    const allDocs = [...getDynamicCustomerDocuments(), ...SAMPLE_CUSTOMER_DOCUMENTS];
-    const found = allDocs.filter(
-      (d) =>
-        (contact?.id && d.contactId === contact.id) ||
-        (contact?.code && d.contactId === contact.code)
-    );
-    if (found.length > 0) return found;
-    if (contact?.id === 'CT26002600' || contact?.id === 'CT26002601') {
-      const s = SAMPLE_CUSTOMER_DOCUMENTS.find((d) => d.contactId === contact.id);
-      if (s) return [s];
-    }
-    return [];
+    return unique;
   });
   const [showCreateDocModal, setShowCreateDocModal] = useState(false);
   const [showAddDocModal, setShowAddDocModal] = useState(false);
@@ -536,17 +551,18 @@ export default function StaffContactDetail({
       setContactTickets(contact.associatedTickets || contact.tickets || []);
 
       // Sync customer documents for this contact
-      const allDocs = [...getDynamicCustomerDocuments(), ...SAMPLE_CUSTOMER_DOCUMENTS];
       let initialDocs = [];
       if (contact.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
         initialDocs = contact.customerDocuments;
       } else if (contact.customerDocument) {
         initialDocs = [contact.customerDocument];
       } else {
+        const allDocs = getAllCustomerDocuments();
         const found = allDocs.filter(
           (d) =>
             (contact.id && d.contactId === contact.id) ||
-            (contact.code && d.contactId === contact.code)
+            (contact.code && d.contactId === contact.code) ||
+            (contact.fullName && (d.contactName === contact.fullName || d.name === contact.fullName))
         );
         if (found.length > 0) {
           initialDocs = found;
@@ -555,7 +571,28 @@ export default function StaffContactDetail({
           if (s) initialDocs = [s];
         }
       }
-      setCustomerDocuments(initialDocs);
+      // Deduplicate by id or (name + contactId)
+      const seen = new Set();
+      const uniqueDocs = [];
+      for (const d of initialDocs) {
+        const key = d.id || `${d.name}_${d.contactId || d.contactName}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueDocs.push(d);
+        }
+      }
+      // If contact has customerDocument with newer files, merge into uniqueDocs
+      if (contact.customerDocument) {
+        const docIdx = uniqueDocs.findIndex(
+          (d) => d.id === contact.customerDocument.id || d.name === contact.customerDocument.name
+        );
+        if (docIdx >= 0) {
+          uniqueDocs[docIdx] = { ...uniqueDocs[docIdx], ...contact.customerDocument };
+        } else if (uniqueDocs.length === 0) {
+          uniqueDocs.push(contact.customerDocument);
+        }
+      }
+      setCustomerDocuments(uniqueDocs);
     }
   }, [contact]);
 
@@ -2784,8 +2821,38 @@ export default function StaffContactDetail({
                 ) : (
                   <div className="space-y-2.5">
                     {customerDocuments.map((doc, docIdx) => {
-                      const docSummary = doc.categoriesSummary || [];
-                      const hasFiles = doc.totalFiles > 0 || docSummary.length > 0;
+                      const activeSummary = (() => {
+                        if (Array.isArray(doc.categoriesSummary) && doc.categoriesSummary.length > 0) {
+                          return doc.categoriesSummary;
+                        }
+                        if (doc.filesByCategory) {
+                          const catMap = {
+                            consentFormMkp: 'Consent form MKP',
+                            consentFormText: 'Consent form text',
+                            identity: 'Identity',
+                            insuranceRecord: 'Insurance record',
+                            otherDocument: 'Other document',
+                            paymentInformation: 'Payment information',
+                            tax: 'Tax',
+                          };
+                          const list = [];
+                          Object.entries(doc.filesByCategory).forEach(([k, files]) => {
+                            if (Array.isArray(files) && files.length > 0) {
+                              list.push({
+                                key: k,
+                                label: catMap[k] || k,
+                                count: files.length,
+                                files: files,
+                              });
+                            }
+                          });
+                          return list;
+                        }
+                        return [];
+                      })();
+
+                      const totalFilesCount = doc.totalFiles || activeSummary.reduce((sum, item) => sum + (item.count || 0), 0);
+                      const hasFiles = totalFilesCount > 0 || activeSummary.length > 0;
                       const parts = (doc.lastModifiedTime || '09/28/2026, 10:07').split(',');
                       const updateDate = parts[0]?.trim() || '09/28/2026';
                       const updateTime = parts[1]?.trim() || '10:07';
@@ -2811,23 +2878,49 @@ export default function StaffContactDetail({
 
                           {/* Document categories tree OR empty dashed box */}
                           {hasFiles ? (
-                            <div className="space-y-1 pt-1">
-                              {docSummary.map((item) => (
-                                <div
-                                  key={item.label || item.key}
-                                  onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(doc)}
-                                  className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 transition cursor-pointer group"
-                                >
-                                  <div className="flex items-center gap-2 text-slate-600 group-hover:text-blue-700">
-                                    <span className="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
-                                    <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600">
-                                      description
+                            <div className="space-y-1.5 pt-1">
+                              {activeSummary.map((item) => (
+                                <div key={item.label || item.key} className="space-y-1">
+                                  <div
+                                    onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(doc)}
+                                    className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 transition cursor-pointer group"
+                                  >
+                                    <div className="flex items-center gap-2 text-slate-600 group-hover:text-blue-700">
+                                      <span className="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
+                                      <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600">
+                                        description
+                                      </span>
+                                      <span className="text-xs font-medium">{item.label}</span>
+                                    </div>
+                                    <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] flex items-center justify-center">
+                                      {item.count}
                                     </span>
-                                    <span className="text-xs font-medium">{item.label}</span>
                                   </div>
-                                  <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] flex items-center justify-center">
-                                    {item.count}
-                                  </span>
+                                  {/* Uploaded file preview chips */}
+                                  {Array.isArray(item.files) && item.files.length > 0 && (
+                                    <div className="pl-6 pr-1 space-y-1">
+                                      {item.files.map((file, fIdx) => (
+                                        <div
+                                          key={file.id || fIdx}
+                                          onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(doc)}
+                                          className="flex items-center gap-1.5 py-1 px-2 rounded-md bg-slate-50 border border-slate-100 hover:bg-blue-50/70 hover:border-blue-200 transition cursor-pointer text-slate-700"
+                                          title={file.fullName || file.name}
+                                        >
+                                          <span className="material-symbols-outlined text-[15px] text-rose-500 shrink-0">
+                                            {file.type === 'pdf' ? 'picture_as_pdf' : 'description'}
+                                          </span>
+                                          <span className="text-[11px] font-medium text-slate-700 truncate flex-1">
+                                            {file.name || file.fullName}
+                                          </span>
+                                          {file.size && (
+                                            <span className="text-[10px] text-slate-400 font-normal shrink-0">
+                                              {file.size}
+                                            </span>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -3758,7 +3851,10 @@ export default function StaffContactDetail({
         onClose={() => setShowCreateDocModal(false)}
         contact={contact}
         onSave={(newDoc) => {
-          const updated = [newDoc, ...customerDocuments];
+          const filtered = customerDocuments.filter(
+            (d) => d.id !== newDoc.id && d.name !== newDoc.name
+          );
+          const updated = [newDoc, ...filtered];
           setCustomerDocuments(updated);
           logActivity('Document Created', `Tạo Customer Document mới: ${newDoc.name}`);
           showToast(`Đã tạo Customer Document: ${newDoc.name}!`);

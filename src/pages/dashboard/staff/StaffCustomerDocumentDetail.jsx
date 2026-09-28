@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { CUSTOMER_DOCUMENT_DATA } from '../../../data/mockCrmData';
+import { CUSTOMER_DOCUMENT_DATA, updateCustomerDocumentInStore } from '../../../data/mockCrmData';
 
 export default function StaffCustomerDocumentDetail({
   documentData,
@@ -123,15 +123,34 @@ export default function StaffCustomerDocumentDetail({
         ...prev,
         [categoryKey]: [...(prev[categoryKey] || []), ...newFiles],
       };
+      const totalFiles = Object.values(updated).reduce(
+        (sum, list) => sum + (Array.isArray(list) ? list.length : 0),
+        0
+      );
+      const categoriesSummary = categories
+        .filter((c) => Array.isArray(updated[c.key]) && updated[c.key].length > 0)
+        .map((c) => ({
+          key: c.key,
+          label: c.label,
+          count: updated[c.key].length,
+          files: updated[c.key],
+        }));
+
+      const updatedDoc = {
+        ...doc,
+        name: docName,
+        initials: currentInitials,
+        contactOwner: contactOwner,
+        filesByCategory: updated,
+        totalFiles,
+        categoriesSummary,
+        lastModifiedTime: newTimestamp,
+        lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
+      };
+
+      updateCustomerDocumentInStore(updatedDoc);
       if (onUpdateDocument) {
-        onUpdateDocument({
-          ...doc,
-          name: docName,
-          initials: currentInitials,
-          filesByCategory: updated,
-          lastModifiedTime: newTimestamp,
-          lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
-        });
+        onUpdateDocument(updatedDoc);
       }
       return updated;
     });
@@ -159,15 +178,34 @@ export default function StaffCustomerDocumentDetail({
         ...prev,
         [categoryKey]: (prev[categoryKey] || []).filter((f) => f.id !== fileId),
       };
+      const totalFiles = Object.values(updated).reduce(
+        (sum, list) => sum + (Array.isArray(list) ? list.length : 0),
+        0
+      );
+      const categoriesSummary = categories
+        .filter((c) => Array.isArray(updated[c.key]) && updated[c.key].length > 0)
+        .map((c) => ({
+          key: c.key,
+          label: c.label,
+          count: updated[c.key].length,
+          files: updated[c.key],
+        }));
+
+      const updatedDoc = {
+        ...doc,
+        name: docName,
+        initials: currentInitials,
+        contactOwner: contactOwner,
+        filesByCategory: updated,
+        totalFiles,
+        categoriesSummary,
+        lastModifiedTime: newTimestamp,
+        lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
+      };
+
+      updateCustomerDocumentInStore(updatedDoc);
       if (onUpdateDocument) {
-        onUpdateDocument({
-          ...doc,
-          name: docName,
-          initials: currentInitials,
-          filesByCategory: updated,
-          lastModifiedTime: newTimestamp,
-          lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
-        });
+        onUpdateDocument(updatedDoc);
       }
       return updated;
     });
