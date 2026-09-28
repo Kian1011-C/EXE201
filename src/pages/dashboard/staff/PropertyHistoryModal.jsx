@@ -487,6 +487,7 @@ export default function PropertyHistoryModal({
 /**
  * Reusable Field Label with History Button
  * Matches exact UI in screenshot media_1790590606226.png and media_1790590615878.png
+ * Only shows the history button when hovering near the field/label
  */
 export function PropertyLabelWithHistory({
   label,
@@ -495,9 +496,15 @@ export function PropertyLabelWithHistory({
   onOpenHistory,
   className = '',
 }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <div className={`flex items-center justify-between mb-1 ${className}`}>
-      <label className="text-slate-700 font-semibold text-[11px] flex items-center gap-1 truncate">
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`property-history-row group/proplabel flex items-center justify-between mb-1 ${className}`}
+    >
+      <label className="text-slate-700 font-semibold text-[11px] flex items-center gap-1 truncate cursor-pointer select-none">
         <span>{label}</span>
         {required && <span className="text-rose-500">*</span>}
       </label>
@@ -511,9 +518,13 @@ export function PropertyLabelWithHistory({
           }
         }}
         title={`Xem lịch sử thay đổi: ${label}`}
-        className="w-5 h-5 rounded-md bg-[#F1F5F9] hover:bg-slate-200 text-blue-600 flex items-center justify-center transition cursor-pointer shrink-0 ml-1.5 shadow-2xs group"
+        className={`property-history-btn w-5 h-5 rounded-md bg-[#F1F5F9] hover:bg-blue-100 hover:text-blue-700 text-blue-600 flex items-center justify-center transition-all duration-150 cursor-pointer shrink-0 ml-1.5 shadow-2xs ${
+          isHovered
+            ? 'opacity-100 scale-100 pointer-events-auto'
+            : 'opacity-0 scale-90 pointer-events-none'
+        } group-hover/proplabel:opacity-100 group-hover/proplabel:scale-100 group-hover/proplabel:pointer-events-auto group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto`}
       >
-        <span className="material-symbols-outlined text-[14px] leading-none group-hover:scale-110 transition-transform">
+        <span className="material-symbols-outlined text-[14px] leading-none hover:scale-110 transition-transform">
           history
         </span>
       </button>

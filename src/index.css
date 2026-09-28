@@ -227,5 +227,23 @@ html {
   border-image: linear-gradient(to right, #3b82f6, #06b6d4) 1;
 }
 
+/* Property History Button Hover Effect: Hidden by default, reveals on hover near the field/label */
+.property-history-btn {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.property-history-row:hover .property-history-btn,
+div:hover > .property-history-row .property-history-btn,
+div:focus-within > .property-history-row .property-history-btn,
+.property-history-btn:focus,
+.property-history-btn:hover {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: scale(1) !important;
+}
+
 
 
