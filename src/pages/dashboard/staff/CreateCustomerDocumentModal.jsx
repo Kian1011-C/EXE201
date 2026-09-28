@@ -23,14 +23,26 @@ const AGENT_OPTIONS = [
 ];
 
 const CATEGORIES = [
-  { key: 'identity', label: 'Identity' },
-  { key: 'insuranceRecord', label: 'Insurance Record' },
-  { key: 'tax', label: 'Tax' },
-  { key: 'consentFormText', label: 'Consent Form Text' },
-  { key: 'consentFormMkp', label: 'Consent Form MKP' },
-  { key: 'paymentInformation', label: 'Payment Information' },
-  { key: 'otherDocument', label: 'Other Document' },
+  { key: 'identity', label: 'Identity', icon: 'badge', color: 'text-violet-600', bg: 'bg-violet-50' },
+  { key: 'insuranceRecord', label: 'Insurance Record', icon: 'health_and_safety', color: 'text-blue-600', bg: 'bg-blue-50' },
+  { key: 'tax', label: 'Tax', icon: 'receipt_long', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { key: 'consentFormText', label: 'Consent Form Text', icon: 'assignment', color: 'text-amber-600', bg: 'bg-amber-50' },
+  { key: 'consentFormMkp', label: 'Consent Form MKP', icon: 'description', color: 'text-orange-600', bg: 'bg-orange-50' },
+  { key: 'paymentInformation', label: 'Payment Information', icon: 'credit_card', color: 'text-rose-600', bg: 'bg-rose-50' },
+  { key: 'otherDocument', label: 'Other Document', icon: 'folder_open', color: 'text-slate-600', bg: 'bg-slate-50' },
 ];
+
+// Returns icon + color based on file extension
+function getFileTypeInfo(filename) {
+  const ext = (filename.split('.').pop() || '').toLowerCase();
+  if (['pdf'].includes(ext)) return { icon: 'picture_as_pdf', color: 'text-red-500', bg: 'bg-red-50', label: 'PDF' };
+  if (['doc', 'docx'].includes(ext)) return { icon: 'description', color: 'text-blue-600', bg: 'bg-blue-50', label: 'Word' };
+  if (['xls', 'xlsx', 'csv'].includes(ext)) return { icon: 'table_chart', color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Excel' };
+  if (['ppt', 'pptx'].includes(ext)) return { icon: 'slideshow', color: 'text-orange-500', bg: 'bg-orange-50', label: 'PPT' };
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'heic'].includes(ext)) return { icon: 'image', color: 'text-purple-600', bg: 'bg-purple-50', label: 'Image' };
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return { icon: 'folder_zip', color: 'text-amber-600', bg: 'bg-amber-50', label: 'Archive' };
+  return { icon: 'insert_drive_file', color: 'text-slate-500', bg: 'bg-slate-50', label: ext.toUpperCase() || 'File' };
+}
 
 export default function CreateCustomerDocumentModal({
   isOpen,
@@ -47,6 +59,7 @@ export default function CreateCustomerDocumentModal({
   const [showOwnerDropdown, setShowOwnerDropdown] = useState(false);
   const [ownerSearchQuery, setOwnerSearchQuery] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [dragOverKey, setDragOverKey] = useState(null); // category key being dragged over
 
   // Attached files state per category
   const [attachedFiles, setAttachedFiles] = useState({
@@ -129,6 +142,11 @@ export default function CreateCustomerDocumentModal({
   function handleFileSelected(key, e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
+    addFiles(key, files);
+    e.target.value = '';
+  }
+
+  function addFiles(key, files) {
     const mapped = files.map((f) => ({
       id: `f-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
       name: f.name,
@@ -138,13 +156,12 @@ export default function CreateCustomerDocumentModal({
           ? `${(f.size / (1024 * 1024)).toFixed(1)} MB`
           : `${Math.round(f.size / 1024)} KB`,
       type: f.name.split('.').pop() || 'doc',
+      uploadedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }));
-
     setAttachedFiles((prev) => ({
       ...prev,
       [key]: [...(prev[key] || []), ...mapped],
     }));
-    e.target.value = '';
   }
 
   function handleRemoveFile(key, fileId) {
@@ -152,6 +169,21 @@ export default function CreateCustomerDocumentModal({
       ...prev,
       [key]: (prev[key] || []).filter((f) => f.id !== fileId),
     }));
+  }
+
+  // Drag & drop handlers
+  function handleDragOver(e, key) {
+    e.preventDefault();
+    setDragOverKey(key);
+  }
+  function handleDragLeave() {
+    setDragOverKey(null);
+  }
+  function handleDrop(e, key) {
+    e.preventDefault();
+    setDragOverKey(null);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length) addFiles(key, files);
   }
 
   function handleSave() {
@@ -234,6 +266,8 @@ export default function CreateCustomerDocumentModal({
     ...SAMPLE_CUSTOMER_DOCUMENTS,
   ];
 
+  const totalUploadedFiles = Object.values(attachedFiles).reduce((sum, list) => sum + list.length, 0);
+
   if (!isOpen) return null;
 
   return createPortal(
@@ -245,15 +279,20 @@ export default function CreateCustomerDocumentModal({
             : 'w-full max-w-3xl max-h-[92vh]'
         }`}
       >
-        {/* ── Top Header Bar (Matching media_1790590561081.png) ────────── */}
+        {/* ── Top Header Bar ────────────── */}
         <div className="px-5 py-3.5 bg-[#104882] text-white flex items-center justify-between shrink-0 shadow-xs">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">
-              edit
+              upload_file
             </span>
             <h3 className="text-xs font-bold uppercase tracking-wider">
               CREATE CUSTOMER DOCUMENT
             </h3>
+            {totalUploadedFiles > 0 && (
+              <span className="ml-1 bg-white/20 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                {totalUploadedFiles} file{totalUploadedFiles > 1 ? 's' : ''}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -460,68 +499,152 @@ export default function CreateCustomerDocumentModal({
                 </div>
               </div>
 
-              {/* ── Document Categories List (Matching media_1790590561081.png) ── */}
-              <div className="pt-2 space-y-3">
-                {CATEGORIES.map((cat) => {
-                  const files = attachedFiles[cat.key] || [];
+              {/* ── Document Categories ── */}
+              <div className="pt-1">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-800">Documents by Category</span>
+                  {totalUploadedFiles > 0 && (
+                    <span className="text-[11px] text-slate-500">
+                      {totalUploadedFiles} file{totalUploadedFiles > 1 ? 's' : ''} uploaded
+                    </span>
+                  )}
+                </div>
 
-                  return (
-                    <div key={cat.key} className="space-y-1.5">
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold text-slate-900 text-xs min-w-[150px]">
-                          {cat.label}
-                        </span>
+                <div className="space-y-2">
+                  {CATEGORIES.map((cat) => {
+                    const files = attachedFiles[cat.key] || [];
+                    const isDragOver = dragOverKey === cat.key;
 
-                        <button
-                          type="button"
-                          onClick={() => handleTriggerUpload(cat.key)}
-                          className="inline-flex items-center gap-1 text-[#104882] hover:text-blue-700 text-xs font-semibold cursor-pointer transition hover:underline"
-                        >
-                          <span className="material-symbols-outlined text-[15px] rotate-45 text-slate-500">
-                            attach_file
-                          </span>
-                          <span>Add new</span>
-                        </button>
-
-                        {/* Hidden file input */}
-                        <input
-                          type="file"
-                          multiple
-                          ref={(el) => (fileInputRefs.current[cat.key] = el)}
-                          onChange={(e) => handleFileSelected(cat.key, e)}
-                          className="hidden"
-                        />
-                      </div>
-
-                      {/* Display attached files for this category */}
-                      {files.length > 0 && (
-                        <div className="pl-4 flex flex-wrap gap-2 pt-1">
-                          {files.map((file) => (
-                            <div
-                              key={file.id}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-[11px] text-slate-700"
-                            >
-                              <span className="material-symbols-outlined text-[14px] text-blue-600">
-                                description
+                    return (
+                      <div
+                        key={cat.key}
+                        className={`rounded-xl border transition-all duration-150 overflow-hidden ${
+                          isDragOver
+                            ? 'border-blue-400 bg-blue-50/60 shadow-sm'
+                            : files.length > 0
+                            ? 'border-slate-200 bg-white shadow-xs'
+                            : 'border-slate-200 bg-white'
+                        }`}
+                        onDragOver={(e) => handleDragOver(e, cat.key)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, cat.key)}
+                      >
+                        {/* Category Header Row */}
+                        <div className="flex items-center justify-between px-3.5 py-2.5">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${cat.bg}`}>
+                              <span className={`material-symbols-outlined text-[16px] ${cat.color}`}>
+                                {cat.icon}
                               </span>
-                              <span className="font-medium truncate max-w-[180px]" title={file.name}>
-                                {file.name}
+                            </div>
+                            <span className="font-semibold text-slate-800 text-xs">{cat.label}</span>
+                            {files.length > 0 && (
+                              <span className="ml-0.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#104882] text-white text-[10px] font-bold shrink-0">
+                                {files.length}
                               </span>
-                              <span className="text-slate-400 text-[10px]">({file.size})</span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            {isDragOver ? (
+                              <span className="text-[11px] text-blue-600 font-semibold animate-pulse">
+                                Drop to upload
+                              </span>
+                            ) : (
                               <button
                                 type="button"
-                                onClick={() => handleRemoveFile(cat.key, file.id)}
-                                className="text-slate-400 hover:text-rose-600 transition cursor-pointer ml-1"
+                                onClick={() => handleTriggerUpload(cat.key)}
+                                className="inline-flex items-center gap-1 text-[11px] text-[#104882] hover:text-blue-700 font-semibold cursor-pointer transition hover:underline"
                               >
-                                <span className="material-symbols-outlined text-[14px]">close</span>
+                                <span className="material-symbols-outlined text-[14px] -rotate-45">attach_file</span>
+                                <span>Add new</span>
                               </button>
-                            </div>
-                          ))}
+                            )}
+
+                            {/* Hidden file input */}
+                            <input
+                              type="file"
+                              multiple
+                              ref={(el) => (fileInputRefs.current[cat.key] = el)}
+                              onChange={(e) => handleFileSelected(cat.key, e)}
+                              className="hidden"
+                            />
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+
+                        {/* Uploaded files list */}
+                        {files.length > 0 && (
+                          <div className="border-t border-slate-100 px-3.5 py-2.5 bg-slate-50/60 space-y-1.5">
+                            {files.map((file) => {
+                              const typeInfo = getFileTypeInfo(file.name);
+                              return (
+                                <div
+                                  key={file.id}
+                                  className="flex items-center gap-2.5 bg-white border border-slate-200 rounded-lg px-3 py-2 group hover:border-blue-200 hover:shadow-xs transition-all"
+                                >
+                                  {/* File type icon */}
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${typeInfo.bg}`}>
+                                    <span className={`material-symbols-outlined text-[18px] ${typeInfo.color}`}>
+                                      {typeInfo.icon}
+                                    </span>
+                                  </div>
+
+                                  {/* File info */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-semibold text-slate-800 text-[11px] truncate" title={file.name}>
+                                      {file.name}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${typeInfo.bg} ${typeInfo.color}`}>
+                                        {typeInfo.label}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400">{file.size}</span>
+                                      {file.uploadedAt && (
+                                        <span className="text-[10px] text-slate-400">· {file.uploadedAt}</span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Actions */}
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                    <button
+                                      type="button"
+                                      title="Remove"
+                                      onClick={() => handleRemoveFile(cat.key, file.id)}
+                                      className="w-6 h-6 flex items-center justify-center rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                    >
+                                      <span className="material-symbols-outlined text-[15px]">delete</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+
+                            {/* Drop more hint */}
+                            <button
+                              type="button"
+                              onClick={() => handleTriggerUpload(cat.key)}
+                              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-dashed border-slate-300 text-[11px] text-slate-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/40 transition cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">add</span>
+                              <span>Add more files</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Drag hint when empty */}
+                        {files.length === 0 && isDragOver && (
+                          <div className="px-3.5 pb-2.5">
+                            <div className="border-2 border-dashed border-blue-400 rounded-lg py-3 flex flex-col items-center gap-1 bg-blue-50/40">
+                              <span className="material-symbols-outlined text-blue-500 text-[22px]">cloud_upload</span>
+                              <span className="text-[11px] text-blue-600 font-semibold">Drop files here</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </>
           ) : (
@@ -578,7 +701,7 @@ export default function CreateCustomerDocumentModal({
           )}
         </div>
 
-        {/* ── Modal Footer (Matching media_1790590561081.png) ─────────── */}
+        {/* ── Modal Footer ─────────── */}
         <div className="px-6 py-3.5 border-t border-slate-200 bg-white flex items-center justify-center gap-3 shrink-0">
           <button
             type="button"
