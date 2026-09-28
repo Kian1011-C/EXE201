@@ -1710,6 +1710,7 @@ export default function StaffDealDetail({
 
               {feeBonusPaymentOpen && (
                 <div className="p-3.5 bg-slate-50/60 border-t border-slate-100 space-y-3 text-xs">
+                  {/* Monthly Premium */}
                   <div>
                     <PropertyLabelWithHistory
                       label="Monthly Premium"
@@ -1721,20 +1722,26 @@ export default function StaffDealDetail({
                         value={monthlyPremium}
                         onChange={(e) => setMonthlyPremium(e.target.value)}
                         placeholder="e.g. $0.00"
-                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                        className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 font-mono"
                       />
-                      {monthlyPremium && (
-                        <button
-                          type="button"
-                          onClick={() => setMonthlyPremium('')}
-                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                          title="Xóa"
-                        >
-                          ✕
-                        </button>
-                      )}
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
+                        {monthlyPremium && (
+                          <button
+                            type="button"
+                            onClick={() => setMonthlyPremium('')}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3.5 w-px bg-slate-200" />
+                        <span className="text-[12px] font-bold text-slate-600 font-mono">$</span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Subsidy Amount (APTC) */}
                   <div>
                     <PropertyLabelWithHistory
                       label="Subsidy Amount (APTC)"
@@ -1746,20 +1753,26 @@ export default function StaffDealDetail({
                         value={subsidyAmount}
                         onChange={(e) => setSubsidyAmount(e.target.value)}
                         placeholder="e.g. $485.00"
-                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                        className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 font-mono"
                       />
-                      {subsidyAmount && (
-                        <button
-                          type="button"
-                          onClick={() => setSubsidyAmount('')}
-                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                          title="Xóa"
-                        >
-                          ✕
-                        </button>
-                      )}
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
+                        {subsidyAmount && (
+                          <button
+                            type="button"
+                            onClick={() => setSubsidyAmount('')}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3.5 w-px bg-slate-200" />
+                        <span className="text-[12px] font-bold text-slate-600 font-mono">$</span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Agency Commission */}
                   <div>
                     <PropertyLabelWithHistory
                       label="Agency Commission"
@@ -1771,20 +1784,26 @@ export default function StaffDealDetail({
                         value={agencyCommission}
                         onChange={(e) => setAgencyCommission(e.target.value)}
                         placeholder="e.g. $25.00"
-                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                        className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 font-mono"
                       />
-                      {agencyCommission && (
-                        <button
-                          type="button"
-                          onClick={() => setAgencyCommission('')}
-                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                          title="Xóa"
-                        >
-                          ✕
-                        </button>
-                      )}
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
+                        {agencyCommission && (
+                          <button
+                            type="button"
+                            onClick={() => setAgencyCommission('')}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3.5 w-px bg-slate-200" />
+                        <span className="text-[12px] font-bold text-slate-600 font-mono">$</span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Bonus Tier */}
                   <div>
                     <PropertyLabelWithHistory
                       label="Bonus Tier"
@@ -1794,14 +1813,14 @@ export default function StaffDealDetail({
                       <select
                         value={bonusTier}
                         onChange={(e) => setBonusTier(e.target.value)}
-                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
                       >
                         <option value="">-- Chưa chọn Bonus Tier --</option>
                         <option value="Standard Tier">Standard Tier</option>
                         <option value="Tier 1 Bonus ($50)">Tier 1 Bonus ($50)</option>
                         <option value="Tier 2 Bonus ($100)">Tier 2 Bonus ($100)</option>
                       </select>
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
                         {bonusTier && (
                           <button
                             type="button"
@@ -1815,11 +1834,13 @@ export default function StaffDealDetail({
                             ✕
                           </button>
                         )}
-                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
-                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                        <span className="h-3.5 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[15px] text-[#0F2962] pointer-events-none">expand_more</span>
                       </div>
                     </div>
                   </div>
+
+                  {/* Payment Option */}
                   <div>
                     <PropertyLabelWithHistory
                       label="Payment Option"
@@ -1829,14 +1850,14 @@ export default function StaffDealDetail({
                       <select
                         value={paymentOption}
                         onChange={(e) => setPaymentOption(e.target.value)}
-                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
                       >
                         <option value="">-- Chưa chọn Payment Option --</option>
                         <option value="EFT Auto-pay">EFT Auto-pay</option>
                         <option value="Direct Carrier Pay">Direct Carrier Pay</option>
                         <option value="Credit / Debit Card">Credit / Debit Card</option>
                       </select>
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
                         {paymentOption && (
                           <button
                             type="button"
@@ -1850,11 +1871,13 @@ export default function StaffDealDetail({
                             ✕
                           </button>
                         )}
-                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
-                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                        <span className="h-3.5 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[15px] text-[#0F2962] pointer-events-none">expand_more</span>
                       </div>
                     </div>
                   </div>
+
+                  {/* Payment Verification */}
                   <div>
                     <PropertyLabelWithHistory
                       label="Payment Verification"
@@ -1864,14 +1887,14 @@ export default function StaffDealDetail({
                       <select
                         value={paymentVerification}
                         onChange={(e) => setPaymentVerification(e.target.value)}
-                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
                       >
                         <option value="">-- Chưa chọn trạng thái --</option>
                         <option value="Verified">Verified</option>
                         <option value="Pending Verification">Pending Verification</option>
                         <option value="Failed">Failed</option>
                       </select>
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
                         {paymentVerification && (
                           <button
                             type="button"
@@ -1885,13 +1908,14 @@ export default function StaffDealDetail({
                             ✕
                           </button>
                         )}
-                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
-                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                        <span className="h-3.5 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[15px] text-[#0F2962] pointer-events-none">expand_more</span>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
+
             </div>
 
 
