@@ -22,6 +22,8 @@ import AdminSystemTab from './admin/AdminSystemTab';
 import {
   MOCK_CONTACTS,
   SAMPLE_CONTACTS,
+  SAMPLE_DEALS,
+  getDynamicDeals,
   CONTACT_DETAIL_DATA,
   DEAL_DETAIL_DATA,
   CUSTOMER_DOCUMENT_DATA,
@@ -127,8 +129,13 @@ export default function AdminDashboard() {
       const parts = path.split('/dashboard/admin/deals/');
       const dealId = parts[1];
       if (dealId) {
+        const allDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
+        const localFound = allDeals.find((d) => d.id === dealId || d.code === dealId);
+        if (localFound) {
+          setSelectedDeal({ ...DEAL_DETAIL_DATA, ...localFound });
+        }
         getDeal(dealId)
-          .then((res) => { if (res) setSelectedDeal((prev) => ({ ...prev, ...res })); })
+          .then((res) => { if (res) setSelectedDeal((prev) => ({ ...DEAL_DETAIL_DATA, ...res })); })
           .catch(() => {});
       }
       setActiveTab('deals');

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 
 // ── Currency parsing and formatting helpers ──────────────────────────────────
 export function parseAmount(val) {
@@ -166,6 +166,29 @@ export default function StaffDealsKanban({
   onToggleCollapse,
 }) {
   const [filterMode, setFilterMode] = useState('all'); // 'all' (all stages) | 'active' (only stages with deals)
+  const [activeMenuDealId, setActiveMenuDealId] = useState(null);
+  const [toastMsg, setToastMsg] = useState(null);
+  const menuRef = useRef(null);
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    function handleGlobalClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setActiveMenuDealId(null);
+      }
+    }
+    if (activeMenuDealId) {
+      document.addEventListener('mousedown', handleGlobalClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleGlobalClick);
+    };
+  }, [activeMenuDealId]);
+
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2500);
+  };
 
   // Dynamically assemble all columns based on pipeline + deal stages
   const columns = useMemo(() => {
@@ -339,27 +362,123 @@ export default function StaffDealsKanban({
                 ) : (
                   col.deals.map((deal) => {
                     const formattedTime = deal.lastModifiedTime || '09/18/2026, 15:39';
-                    const dealUrl = `/dashboard/staff/deals/${deal.id || deal.code || 'D26005033'}`;
+                    const isStaff = window.location.pathname.includes('/staff');
+                    const isAdmin = window.location.pathname.includes('/admin');
+                    const isAgent = window.location.pathname.includes('/agent');
+                    const baseRoute = isAdmin
+                      ? '/dashboard/admin/deals'
+                      : isAgent
+                      ? '/dashboard/agent/deals'
+                      : '/dashboard/staff/deals';
+                    const dealUrl = `${baseRoute}/${deal.id || deal.code || 'D26005033'}`;
+                    const isMenuOpen = activeMenuDealId === deal.id;
 
                     return (
-                      <a
+                      <div
                         key={deal.id}
-                        href={dealUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`block bg-white rounded-lg border border-slate-200/90 p-3 shadow-2xs hover:shadow-md ${col.borderHover} transition-all duration-150 cursor-pointer relative group text-inherit no-underline`}
+                        onClick={(e) => {
+                          if (e.target.closest('.no-card-toggle')) return;
+                          setActiveMenuDealId(isMenuOpen ? null : deal.id);
+                        }}
+                        className={`bg-white rounded-lg border border-slate-200/90 p-3 shadow-2xs hover:shadow-md ${col.borderHover} transition-all duration-150 cursor-pointer relative group`}
                       >
+                        {/* ── Deal Context Menu Popover (Matching media_1790576813648.png) ── */}
+                        {isMenuOpen && (
+                          <div
+                            ref={menuRef}
+                            onClick={(e) => e.stopPropagation()}
+                            className="no-card-toggle absolute top-2 left-4 z-50 w-44 bg-white rounded-lg shadow-xl border border-slate-200/90 py-1.5 text-xs text-slate-700 animate-in fade-in zoom-in-95 duration-100 divide-y divide-slate-100"
+                          >
+                            <div className="py-0.5">
+                              {/* 1. Detail */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuDealId(null);
+                                  onSelectDeal && onSelectDeal(deal);
+                                }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-slate-50 hover:text-blue-600 transition font-medium text-slate-700 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[17px] text-slate-500">
+                                  info
+                                </span>
+                                <span>Detail</span>
+                              </button>
+
+                              {/* 2. Open in new tab */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuDealId(null);
+                                  window.open(dealUrl, '_blank');
+                                }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-slate-50 hover:text-blue-600 transition font-medium text-slate-700 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[17px] text-slate-500">
+                                  open_in_new
+                                </span>
+                                <span>Open in new tab</span>
+                              </button>
+
+                              {/* 3. Copy link */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuDealId(null);
+                                  const fullUrl = `${window.location.origin}${dealUrl}`;
+                                  if (navigator.clipboard) {
+                                    navigator.clipboard.writeText(fullUrl).then(() => {
+                                      showToast('Đã sao chép liên kết deal!');
+                                    }).catch(() => {
+                                      showToast('Đã sao chép liên kết deal!');
+                                    });
+                                  } else {
+                                    showToast('Đã sao chép liên kết deal!');
+                                  }
+                                }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-slate-50 hover:text-blue-600 transition font-medium text-slate-700 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[17px] text-slate-500">
+                                  link
+                                </span>
+                                <span>Copy link</span>
+                              </button>
+                            </div>
+
+                            <div className="py-0.5">
+                              {/* 4. Close */}
+                              <button
+                                type="button"
+                                onClick={() => setActiveMenuDealId(null)}
+                                className="w-full flex items-center gap-2.5 px-3 py-1.5 text-left hover:bg-rose-50 hover:text-rose-600 text-slate-600 transition font-medium cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[17px] text-slate-400">
+                                  close
+                                </span>
+                                <span>Close</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Deal Title */}
                         <div className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition truncate mb-1.5 flex items-center justify-between gap-1">
                           <span className="truncate" title={deal.title}>
                             {deal.shortTitle || deal.title}
                           </span>
-                          <span
+                          <button
+                            type="button"
                             title="Mở trong tab mới"
-                            className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-blue-600 opacity-60 group-hover:opacity-100 transition shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(dealUrl, '_blank');
+                            }}
+                            className="no-card-toggle p-0.5 rounded hover:bg-blue-50 text-slate-400 hover:text-blue-600 opacity-60 group-hover:opacity-100 transition shrink-0 cursor-pointer"
                           >
-                            open_in_new
-                          </span>
+                            <span className="material-symbols-outlined text-[15px]">
+                              open_in_new
+                            </span>
+                          </button>
                         </div>
 
                         {/* Row 1: Amount */}
@@ -394,7 +513,7 @@ export default function StaffDealsKanban({
                             {formattedTime}
                           </span>
                         </div>
-                      </a>
+                      </div>
                     );
                   })
                 )}
@@ -413,6 +532,14 @@ export default function StaffDealsKanban({
           );
         })}
       </div>
+
+      {/* Toast notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+          <span className="material-symbols-outlined text-[16px] text-emerald-400">check_circle</span>
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 }

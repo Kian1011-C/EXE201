@@ -950,8 +950,30 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                       </td>
 
                       {/* Deal Name */}
-                      <td className="px-3 py-2.5 font-bold text-slate-900 group-hover:text-blue-700 max-w-[280px] truncate">
-                        {deal.title}
+                      <td className="px-3 py-2.5 font-bold text-slate-900 group-hover:text-blue-700 max-w-[280px]">
+                        <div className="flex items-center justify-between gap-1.5">
+                          <span className="truncate" title={deal.title}>{deal.title}</span>
+                          <button
+                            type="button"
+                            title="Mở trong tab mới"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const isStaff = window.location.pathname.includes('/staff');
+                              const isAdmin = window.location.pathname.includes('/admin');
+                              const isAgent = window.location.pathname.includes('/agent');
+                              const baseRoute = isAdmin
+                                ? '/dashboard/admin/deals'
+                                : isAgent
+                                ? '/dashboard/agent/deals'
+                                : '/dashboard/staff/deals';
+                              const dealUrl = `${baseRoute}/${deal.id || deal.code || 'D26005033'}`;
+                              window.open(dealUrl, '_blank');
+                            }}
+                            className="p-1 rounded hover:bg-blue-100 text-slate-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition cursor-pointer shrink-0"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">open_in_new</span>
+                          </button>
+                        </div>
                       </td>
 
                       {/* Associated Contact */}
