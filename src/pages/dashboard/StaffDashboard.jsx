@@ -5,6 +5,7 @@ import StaffContactsList from './staff/StaffContactsList';
 import StaffContactDetail from './staff/StaffContactDetail';
 import StaffDealDetail from './staff/StaffDealDetail';
 import StaffDealsList from './staff/StaffDealsList';
+import StaffCustomerDocumentsList from './staff/StaffCustomerDocumentsList';
 import StaffCustomerDocumentDetail from './staff/StaffCustomerDocumentDetail';
 import StaffCrmDashboard from './staff/StaffCrmDashboard';
 import StaffTicketsList from './staff/StaffTicketsList';
@@ -84,8 +85,11 @@ export default function StaffDashboard() {
           .then((res) => { if (res) setSelectedDocument((prev) => ({ ...prev, ...res })); })
           .catch(() => {});
       }
-      setCurrentTab('contacts');
+      setCurrentTab('documents');
       setCurrentView('customer-document-detail');
+    } else if (path.endsWith('/dashboard/staff/documents') || path.endsWith('/dashboard/staff/documents/')) {
+      setCurrentTab('documents');
+      setCurrentView('customer-documents-list');
     } else if (path.includes('/dashboard/staff/deals/')) {
       const parts = path.split('/dashboard/staff/deals/');
       const dealId = parts[1];
@@ -271,6 +275,9 @@ export default function StaffDashboard() {
     } else if (tab === 'tasks') {
       setCurrentView('tasks-list');
       navigate('/dashboard/staff/tasks', { replace: false });
+    } else if (tab === 'documents') {
+      setCurrentView('customer-documents-list');
+      navigate('/dashboard/staff/documents', { replace: false });
     } else if (tab === 'commission') {
       setCurrentView('commission-ledger');
       navigate('/dashboard/staff/commission', { replace: false });
@@ -287,6 +294,15 @@ export default function StaffDashboard() {
   function handleBackToContactDetail() {
     setCurrentView('contact-detail');
     navigate(`/dashboard/staff/contacts/${selectedContact?.id || 'CT26002600'}`, { replace: false });
+  }
+
+  function handleBackFromCustomerDocument() {
+    if (currentTab === 'documents') {
+      setCurrentView('customer-documents-list');
+      navigate('/dashboard/staff/documents', { replace: false });
+    } else {
+      handleBackToContactDetail();
+    }
   }
 
   function handleBackFromDeal() {
@@ -364,10 +380,19 @@ export default function StaffDashboard() {
         />
       )}
 
+      {/* ── Customer Documents Views ────────────────────────────────────── */}
+      {currentView === 'customer-documents-list' && (
+        <StaffCustomerDocumentsList
+          onSelectCustomerDocument={handleSelectCustomerDocument}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+        />
+      )}
+
       {currentView === 'customer-document-detail' && (
         <StaffCustomerDocumentDetail
           documentData={selectedDocument}
-          onBack={handleBackToContactDetail}
+          onBack={handleBackFromCustomerDocument}
           onSelectContact={() => handleSelectContact(selectedContact)}
           onSelectDeal={() => handleSelectDeal(selectedDeal)}
           onUpdateDocument={handleUpdateDocument}

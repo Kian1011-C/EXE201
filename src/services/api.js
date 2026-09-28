@@ -307,6 +307,14 @@ export async function updateDeal(id, data) {
 }
 
 // ── Documents ────────────────────────────────────────────────────────────────
+export async function getDocuments(params = {}) {
+  const query = new URLSearchParams();
+  if (params.contactId) query.append('contactId', params.contactId);
+  if (params.owner) query.append('owner', params.owner);
+  const qStr = query.toString() ? `?${query.toString()}` : '';
+  return await request(`/documents${qStr}`);
+}
+
 export async function getDocument(id) {
   return await request(`/documents/${encodeURIComponent(id)}`);
 }

@@ -164,6 +164,23 @@ export function filterTasksForAgent(tasksList, user) {
 }
 
 /**
+ * Customer Document filtering for Agent
+ */
+export function filterCustomerDocumentsForAgent(documentsList, user) {
+  if (!Array.isArray(documentsList)) return [];
+  if (!user || user.role !== 'agent') return documentsList;
+
+  return documentsList.filter((doc) => {
+    return (
+      isOwnerMatch(doc.contactOwner, user) ||
+      isOwnerMatch(doc.owner, user) ||
+      isOwnerMatch(doc.uploadedBy, user) ||
+      isOwnerMatch(doc.lastModifiedBy, user)
+    );
+  });
+}
+
+/**
  * Can an agent view a specific single record?
  */
 export function canAgentAccessItem(item, user, entityType = 'contact') {

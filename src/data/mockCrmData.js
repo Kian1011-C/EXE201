@@ -2137,6 +2137,270 @@ export function getDynamicContacts() {
   }
 }
 
+// ── Customer Documents Store Helpers ─────────────────────────────────────────
+export function addCustomerDocumentToStore(doc) {
+  if (!doc) return;
+  const existingIdx = SAMPLE_CUSTOMER_DOCUMENTS.findIndex(
+    (d) => d.id === doc.id || (d.name === doc.name && d.contactName === doc.contactName)
+  );
+  if (existingIdx >= 0) {
+    SAMPLE_CUSTOMER_DOCUMENTS[existingIdx] = { ...SAMPLE_CUSTOMER_DOCUMENTS[existingIdx], ...doc };
+  } else {
+    SAMPLE_CUSTOMER_DOCUMENTS.unshift(doc);
+  }
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_documents');
+    const list = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex((d) => d.id === doc.id);
+    if (idx >= 0) list[idx] = doc;
+    else list.unshift(doc);
+    localStorage.setItem('insurmatch_dynamic_documents', JSON.stringify(list));
+  } catch {}
+}
+
+export function updateCustomerDocumentInStore(doc) {
+  addCustomerDocumentToStore(doc);
+}
+
+export function getDynamicCustomerDocuments() {
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_documents');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+// ============================================================
+// Sample Customer Documents List
+// ============================================================
+export const SAMPLE_CUSTOMER_DOCUMENTS = [
+  {
+    id: 'DOC-01',
+    name: 'Nhat H Dang',
+    initials: 'ND',
+    contactName: 'Nhat Huu Tuan Dang',
+    contactId: 'CT26002600',
+    contactOwner: 'Khanh Nguyen (khanhnguyen31@7)',
+    lastModifiedTime: '09/11/2026, 17:44',
+    lastModifiedBy: 'Anya Nguyen',
+    totalFiles: 5,
+    categoriesSummary: [
+      { key: 'identity', label: 'Identity', count: 3 },
+      { key: 'consentFormText', label: 'Consent Form Text', count: 1 },
+      { key: 'paymentInformation', label: 'Payment Information', count: 1 },
+    ],
+    filesByCategory: CUSTOMER_DOCUMENT_DATA.filesByCategory,
+    associatedContact: CUSTOMER_DOCUMENT_DATA.associatedContact,
+  },
+  {
+    id: 'DOC-02',
+    name: 'Hai Nguyen',
+    initials: 'HN',
+    contactName: 'Hai Nguyen',
+    contactId: 'CT26002601',
+    contactOwner: 'Khanh Nguyen (khanhnguyen31@7)',
+    lastModifiedTime: '09/27/2026, 10:07',
+    lastModifiedBy: 'Khanh Nguyen',
+    totalFiles: 0,
+    categoriesSummary: [],
+    filesByCategory: {
+      consentFormMkp: [],
+      consentFormText: [],
+      identity: [],
+      insuranceRecord: [],
+      otherDocument: [],
+      paymentInformation: [],
+      tax: [],
+    },
+    associatedContact: {
+      id: 'CT26002601',
+      name: 'Hai Nguyen',
+      phone: '+1 (714) 837-2395',
+      email: 'hainguyen@example.com',
+      leadOwner: 'Khanh Nguyen',
+      language: 'Vietnamese',
+    },
+  },
+  {
+    id: 'DOC-03',
+    name: 'Thi My Linh Tran',
+    initials: 'TT',
+    contactName: 'Thi My Linh Tran',
+    contactId: 'CT26002602',
+    contactOwner: 'Khanh Nguyen (khanhnguyen31@7)',
+    lastModifiedTime: '09/18/2026, 14:20',
+    lastModifiedBy: 'Khanh Nguyen',
+    totalFiles: 3,
+    categoriesSummary: [
+      { key: 'identity', label: 'Identity', count: 2 },
+      { key: 'consentFormMkp', label: 'Consent Form MKP', count: 1 },
+    ],
+    filesByCategory: {
+      consentFormMkp: [
+        { id: 'f-3-1', name: 'Consent_MKP_Tran.pdf', fullName: 'Consent_MKP_Tran.pdf', size: '420 KB', type: 'pdf' },
+      ],
+      consentFormText: [],
+      identity: [
+        { id: 'f-3-2', name: 'DriverLicense_Front.jpg', fullName: 'DriverLicense_Front.jpg', size: '2.1 MB', type: 'image' },
+        { id: 'f-3-3', name: 'DriverLicense_Back.jpg', fullName: 'DriverLicense_Back.jpg', size: '1.9 MB', type: 'image' },
+      ],
+      insuranceRecord: [],
+      otherDocument: [],
+      paymentInformation: [],
+      tax: [],
+    },
+    associatedContact: {
+      id: 'CT26002602',
+      name: 'Thi My Linh Tran',
+      phone: '+1 (408) 555-0199',
+      email: 'mylinh.tran@gmail.com',
+      leadOwner: 'Khanh Nguyen',
+      language: 'Vietnamese',
+    },
+  },
+  {
+    id: 'DOC-04',
+    name: 'Van Tuan Le',
+    initials: 'VL',
+    contactName: 'Van Tuan Le',
+    contactId: 'CT26002603',
+    contactOwner: 'Amy Vo (amyvo27@0)',
+    lastModifiedTime: '09/20/2026, 11:30',
+    lastModifiedBy: 'Amy Vo',
+    totalFiles: 2,
+    categoriesSummary: [
+      { key: 'identity', label: 'Identity', count: 1 },
+      { key: 'tax', label: 'Tax', count: 1 },
+    ],
+    filesByCategory: {
+      consentFormMkp: [],
+      consentFormText: [],
+      identity: [
+        { id: 'f-4-1', name: 'Passport_Scan.pdf', fullName: 'Passport_Scan.pdf', size: '850 KB', type: 'pdf' },
+      ],
+      insuranceRecord: [],
+      otherDocument: [],
+      paymentInformation: [],
+      tax: [
+        { id: 'f-4-2', name: 'Tax_Return_1040_2025.pdf', fullName: 'Tax_Return_1040_2025.pdf', size: '1.2 MB', type: 'pdf' },
+      ],
+    },
+    associatedContact: {
+      id: 'CT26002603',
+      name: 'Van Tuan Le',
+      phone: '+1 (714) 222-3344',
+      email: 'tuan.le@yahoo.com',
+      leadOwner: 'Amy Vo',
+      language: 'Vietnamese',
+    },
+  },
+  {
+    id: 'DOC-05',
+    name: 'Michael Cuong Nguyen',
+    initials: 'MN',
+    contactName: 'Michael Cuong Nguyen',
+    contactId: 'CT26002604',
+    contactOwner: 'oanh dinh (Oanhdinhtest99@5)',
+    lastModifiedTime: '09/22/2026, 16:15',
+    lastModifiedBy: 'oanh dinh',
+    totalFiles: 4,
+    categoriesSummary: [
+      { key: 'identity', label: 'Identity', count: 1 },
+      { key: 'consentFormText', label: 'Consent Form Text', count: 1 },
+      { key: 'paymentInformation', label: 'Payment Information', count: 1 },
+      { key: 'insuranceRecord', label: 'Insurance Record', count: 1 },
+    ],
+    filesByCategory: {
+      consentFormMkp: [],
+      consentFormText: [
+        { id: 'f-5-1', name: 'Consent_Text_Signed.pdf', fullName: 'Consent_Text_Signed.pdf', size: '512 KB', type: 'pdf' },
+      ],
+      identity: [
+        { id: 'f-5-2', name: 'State_ID.jpg', fullName: 'State_ID.jpg', size: '1.4 MB', type: 'image' },
+      ],
+      insuranceRecord: [
+        { id: 'f-5-3', name: 'Prior_Coverage_Proof.pdf', fullName: 'Prior_Coverage_Proof.pdf', size: '940 KB', type: 'pdf' },
+      ],
+      otherDocument: [],
+      paymentInformation: [
+        { id: 'f-5-4', name: 'Voided_Check.jpg', fullName: 'Voided_Check.jpg', size: '1.1 MB', type: 'image' },
+      ],
+      tax: [],
+    },
+    associatedContact: {
+      id: 'CT26002604',
+      name: 'Michael Cuong Nguyen',
+      phone: '+1 (832) 998-1122',
+      email: 'cuong.nguyen@outlook.com',
+      leadOwner: 'oanh dinh',
+      language: 'English',
+    },
+  },
+  {
+    id: 'DOC-06',
+    name: 'Kevin Hoang',
+    initials: 'KH',
+    contactName: 'Kevin Hoang',
+    contactId: 'CT26002605',
+    contactOwner: 'Ken Hoang (kenhoang)',
+    lastModifiedTime: '09/24/2026, 09:45',
+    lastModifiedBy: 'Ken Hoang',
+    totalFiles: 1,
+    categoriesSummary: [
+      { key: 'identity', label: 'Identity', count: 1 },
+    ],
+    filesByCategory: {
+      consentFormMkp: [],
+      consentFormText: [],
+      identity: [
+        { id: 'f-6-1', name: 'ID_Card_2026.png', fullName: 'ID_Card_2026.png', size: '890 KB', type: 'image' },
+      ],
+      insuranceRecord: [],
+      otherDocument: [],
+      paymentInformation: [],
+      tax: [],
+    },
+    associatedContact: {
+      id: 'CT26002605',
+      name: 'Kevin Hoang',
+      phone: '+1 (408) 777-8899',
+      email: 'kevin.hoang@gmail.com',
+      leadOwner: 'Ken Hoang',
+      language: 'English',
+    },
+  },
+  {
+    id: 'DOC-07',
+    name: 'Lisa Truong',
+    initials: 'LT',
+    contactName: 'Lisa Truong',
+    contactId: 'CT26002606',
+    contactOwner: 'Khanh Nguyen (khanhnguyen31@7)',
+    lastModifiedTime: '09/26/2026, 13:10',
+    lastModifiedBy: 'Khanh Nguyen',
+    totalFiles: 0,
+    categoriesSummary: [],
+    filesByCategory: {
+      consentFormMkp: [],
+      consentFormText: [],
+      identity: [],
+      insuranceRecord: [],
+      otherDocument: [],
+      paymentInformation: [],
+      tax: [],
+    },
+    associatedContact: {
+      id: 'CT26002606',
+      name: 'Lisa Truong',
+      phone: '+1 (619) 334-5566',
+      email: 'lisa.truong@yahoo.com',
+      leadOwner: 'Khanh Nguyen',
+      language: 'Vietnamese',
+    },
+  },
+];
+
 
 
 

@@ -122,6 +122,12 @@ export default function StaffCrmLayout({
       desc: 'Quản lý công việc & Kanban',
     },
     {
+      id: 'documents',
+      label: 'Documents',
+      icon: 'folder_shared',
+      desc: 'Hồ sơ tài liệu khách hàng & Xác thực',
+    },
+    {
       id: 'quotes',
       label: 'Match Queue',
       icon: 'contact_support',
@@ -180,6 +186,12 @@ export default function StaffCrmLayout({
       label: 'Tasks',
       icon: 'checklist',
       desc: 'Quản lý công việc & Kanban',
+    },
+    {
+      id: 'documents',
+      label: 'Documents',
+      icon: 'folder_shared',
+      desc: 'Hồ sơ tài liệu khách hàng & Xác thực',
     },
   ];
 

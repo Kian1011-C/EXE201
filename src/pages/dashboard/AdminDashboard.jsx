@@ -5,6 +5,7 @@ import StaffContactsList from './staff/StaffContactsList';
 import StaffContactDetail from './staff/StaffContactDetail';
 import StaffDealsList from './staff/StaffDealsList';
 import StaffDealDetail from './staff/StaffDealDetail';
+import StaffCustomerDocumentsList from './staff/StaffCustomerDocumentsList';
 import StaffCustomerDocumentDetail from './staff/StaffCustomerDocumentDetail';
 import StaffTicketsList from './staff/StaffTicketsList';
 import StaffTicketDetail from './staff/StaffTicketDetail';
@@ -117,8 +118,11 @@ export default function AdminDashboard() {
           .then((res) => { if (res) setSelectedDocument((prev) => ({ ...prev, ...res })); })
           .catch(() => {});
       }
-      setActiveTab('contacts');
+      setActiveTab('documents');
       setCurrentView('customer-document-detail');
+    } else if (path.endsWith('/dashboard/admin/documents') || path.endsWith('/dashboard/admin/documents/')) {
+      setActiveTab('documents');
+      setCurrentView('customer-documents-list');
     } else if (path.includes('/dashboard/admin/deals/')) {
       const parts = path.split('/dashboard/admin/deals/');
       const dealId = parts[1];
@@ -230,6 +234,9 @@ export default function AdminDashboard() {
     } else if (tabId === 'tasks') {
       setCurrentView('tasks-list');
       navigate('/dashboard/admin/tasks');
+    } else if (tabId === 'documents') {
+      setCurrentView('customer-documents-list');
+      navigate('/dashboard/admin/documents');
     } else if (tabId === 'quotes') {
       setCurrentView('quotes');
       navigate('/dashboard/admin/quotes');
@@ -391,6 +398,15 @@ export default function AdminDashboard() {
     navigate(`/dashboard/admin/contacts/${selectedContact?.id || 'CT26002600'}`, { replace: false });
   }
 
+  function handleBackFromCustomerDocument() {
+    if (activeTab === 'documents') {
+      setCurrentView('customer-documents-list');
+      navigate('/dashboard/admin/documents', { replace: false });
+    } else {
+      handleBackToContactDetail();
+    }
+  }
+
   function handleBackFromDeal() {
     if (activeTab === 'deals') {
       setCurrentView('deals-list');
@@ -456,11 +472,19 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* ── Customer Documents Detail View ────────────────────────────────── */}
+      {/* ── Customer Documents Views ────────────────────────────────────────── */}
+      {currentView === 'customer-documents-list' && (
+        <StaffCustomerDocumentsList
+          onSelectCustomerDocument={handleSelectCustomerDocument}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+        />
+      )}
+
       {currentView === 'customer-document-detail' && (
         <StaffCustomerDocumentDetail
           documentData={selectedDocument}
-          onBack={handleBackToContactDetail}
+          onBack={handleBackFromCustomerDocument}
           onSelectContact={() => handleSelectContact(selectedContact)}
           onSelectDeal={() => handleSelectDeal(selectedDeal)}
           onUpdateDocument={handleUpdateDocument}

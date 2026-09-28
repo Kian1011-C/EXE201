@@ -5,6 +5,7 @@ import StaffContactsList from './staff/StaffContactsList';
 import StaffContactDetail from './staff/StaffContactDetail';
 import StaffDealDetail from './staff/StaffDealDetail';
 import StaffDealsList from './staff/StaffDealsList';
+import StaffCustomerDocumentsList from './staff/StaffCustomerDocumentsList';
 import StaffCustomerDocumentDetail from './staff/StaffCustomerDocumentDetail';
 import StaffCrmDashboard from './staff/StaffCrmDashboard';
 import StaffTicketsList from './staff/StaffTicketsList';
@@ -161,6 +162,19 @@ export default function AgentDashboard() {
     } else if (path.includes('/dashboard/agent/tasks')) {
       setCurrentTab('tasks');
       setCurrentView('tasks');
+    } else if (path.includes('/dashboard/agent/documents/')) {
+      const parts = path.split('/dashboard/agent/documents/');
+      const docId = parts[1];
+      if (docId) {
+        getDocument(docId)
+          .then((res) => { if (res) setSelectedDocument((prev) => ({ ...prev, ...res })); })
+          .catch(() => {});
+      }
+      setCurrentTab('documents');
+      setCurrentView('customer-document-detail');
+    } else if (path.includes('/dashboard/agent/documents')) {
+      setCurrentTab('documents');
+      setCurrentView('customer-documents-list');
     } else {
       setCurrentTab('dashboard');
       setCurrentView('dashboard');
@@ -309,6 +323,9 @@ export default function AgentDashboard() {
     } else if (tab === 'tasks') {
       setCurrentView('tasks');
       navigate('/dashboard/agent/tasks', { replace: false });
+    } else if (tab === 'documents') {
+      setCurrentView('customer-documents-list');
+      navigate('/dashboard/agent/documents', { replace: false });
     }
   }
 
@@ -321,6 +338,15 @@ export default function AgentDashboard() {
   function handleBackToContactDetail() {
     setCurrentView('contact-detail');
     navigate(`/dashboard/agent/contacts/${selectedContact?.id || 'CT26002600'}`, { replace: false });
+  }
+
+  function handleBackFromCustomerDocument() {
+    if (currentTab === 'documents') {
+      setCurrentView('customer-documents-list');
+      navigate('/dashboard/agent/documents', { replace: false });
+    } else {
+      handleBackToContactDetail();
+    }
   }
 
   function handleBackFromDeal() {
@@ -666,6 +692,17 @@ export default function AgentDashboard() {
         )
       )}
 
+      {/* ── 5.5 CUSTOMER DOCUMENTS LIST VIEW ────────────────────────── */}
+      {currentView === 'customer-documents-list' && (
+        <StaffCustomerDocumentsList
+          isAgent={true}
+          agentName={currentAgent.name}
+          onSelectCustomerDocument={handleSelectCustomerDocument}
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
+        />
+      )}
+
       {/* ── 6. CUSTOMER DOCUMENT DETAIL VIEW ────────────────────────────── */}
       {currentView === 'customer-document-detail' && (
         !canAgentAccessItem(selectedDocument, user || { role: 'agent', name: currentAgent.name }, 'document') ? (
@@ -673,13 +710,13 @@ export default function AgentDashboard() {
             title="Quyền truy cập tài liệu khách hàng bị giới hạn"
             message="Theo quy định, bạn chỉ có quyền xem và tải tài liệu xác thực của khách hàng thuộc quyền quản lý của mình."
             ownerName={extractOwnerString(selectedDocument?.contactOwner)}
-            onBack={handleBackToContactDetail}
-            backLabel="Quay lại Hồ sơ khách hàng"
+            onBack={handleBackFromCustomerDocument}
+            backLabel="Quay lại Hồ sơ tài liệu"
           />
         ) : (
           <StaffCustomerDocumentDetail
             documentData={selectedDocument}
-            onBack={handleBackToContactDetail}
+            onBack={handleBackFromCustomerDocument}
             onSelectContact={() => handleSelectContact(selectedContact)}
             onSelectDeal={() => handleSelectDeal(selectedDeal)}
             onUpdateDocument={handleUpdateDocument}
