@@ -3,10 +3,11 @@ import {
   CONTACT_DETAIL_DATA,
   addTicketToStore,
   addDealToStore,
+  addContactToStore,
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
 } from '../../../data/mockCrmData';
-import { createTicket } from '../../../services/api';
+import { createTicket, updateContact } from '../../../services/api';
 import AddDealModal from './AddDealModal';
 
 export const ACA_ACCOUNT_STATUS_OPTIONS = [
@@ -370,6 +371,63 @@ export default function StaffContactDetail({
   const [primaryLastName, setPrimaryLastName] = useState(
     contact?.lastName || initialPrimary.lastName || ''
   );
+
+  // Quick name edit state & handlers (from pencil icon)
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editMiddleName, setEditMiddleName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+
+  function handleStartEditName() {
+    setEditFirstName(primaryFirstName);
+    setEditMiddleName(primaryMiddleName);
+    setEditLastName(primaryLastName);
+    setIsEditingName(true);
+  }
+
+  function handleSaveName() {
+    const f = (editFirstName || '').trim();
+    const m = (editMiddleName || '').trim();
+    const l = (editLastName || '').trim();
+    setPrimaryFirstName(f);
+    setPrimaryMiddleName(m);
+    setPrimaryLastName(l);
+    setIsEditingName(false);
+    const newName = [f, m, l].filter(Boolean).join(' ') || 'Khách hàng';
+
+    const updatedContact = {
+      ...(contact || {}),
+      firstName: f,
+      middleName: m,
+      lastName: l,
+      fullName: newName,
+      name: newName,
+      primary: {
+        ...(contact?.primary || {}),
+        firstName: f,
+        middleName: m,
+        lastName: l,
+      },
+    };
+
+    addContactToStore(updatedContact);
+    if (contact?.id) {
+      updateContact(contact.id, {
+        firstName: f,
+        middleName: m,
+        lastName: l,
+      }).catch(() => null);
+    }
+    if (onUpdateContact) {
+      onUpdateContact(updatedContact);
+    }
+    logActivity('Contact Name Updated', `changed name to "${newName}"`);
+    showToast(`Đã đổi tên liên hệ thành: ${newName}`);
+  }
+
+  function handleCancelEditName() {
+    setIsEditingName(false);
+  }
   const [primaryDob, setPrimaryDob] = useState(initialPrimary.dob || '');
   const [primarySsn, setPrimarySsn] = useState(initialPrimary.ssn || '');
   const [primaryRelation, setPrimaryRelation] = useState(initialPrimary.familyRelationship || 'Self');
@@ -642,8 +700,88 @@ export default function StaffContactDetail({
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   function handleSaveContactChanges() {
+    const updatedContact = {
+      ...(contact || {}),
+      firstName: primaryFirstName,
+      middleName: primaryMiddleName,
+      lastName: primaryLastName,
+      fullName: currentFullName,
+      name: currentFullName,
+      phone: contactPhone,
+      email: contactEmail,
+      language: contactLanguage,
+      contactOwner: contactOwner,
+      leadOwner: leadOwner,
+      howDoYouKnowUs: howDoYouKnowUs,
+      whoReferClient: whoReferClient,
+      enrolledAddress: enrolledAddress,
+      mailingAddress: mailingAddress,
+      contactFields: {
+        ...(contact?.contactFields || {}),
+        enrolledAddress,
+        mailingAddress,
+        streetAddress,
+        city,
+        state,
+        postalCode,
+        county,
+      },
+      primary: {
+        ...(contact?.primary || {}),
+        firstName: primaryFirstName,
+        middleName: primaryMiddleName,
+        lastName: primaryLastName,
+        dob: primaryDob,
+        ssn: primarySsn,
+        gender: primaryGender,
+        immigrationStatus: primaryImmigration,
+        alienNumber: primaryAlienNumber,
+        certificateNumber: primaryCertificateNumber,
+        dateExpired: primaryDateExpired,
+        household: primaryHousehold,
+      },
+      acaAccount: {
+        ...(contact?.acaAccount || {}),
+        theBestRateInsEmail,
+        acaAccount,
+        acaPass,
+        acaStatusSpecial,
+        acaAccountSpecial,
+        acaPassSpecial,
+        enrollCallRep,
+      },
+    };
+
+    addContactToStore(updatedContact);
+    if (contact?.id) {
+      updateContact(contact.id, {
+        firstName: primaryFirstName,
+        middleName: primaryMiddleName,
+        lastName: primaryLastName,
+        phone: contactPhone,
+        email: contactEmail,
+        address: enrolledAddress,
+        city: city,
+        state: state,
+        zipCode: postalCode,
+        dateOfBirth: primaryDob,
+        ssn: primarySsn,
+        gender: primaryGender,
+        immigrationStatus: primaryImmigration,
+        acaUsername: acaAccountSpecial || acaAccount,
+        acaPassword: acaPassSpecial || acaPass,
+        acaStatus: acaStatusSpecial,
+        sourceChannel: howDoYouKnowUs,
+        sourceDetail: whoReferClient,
+      }).catch(() => null);
+    }
+    if (onUpdateContact) {
+      onUpdateContact(updatedContact);
+    }
+
     logActivity('Contact Updated', `updated contact details for ${currentFullName}`);
     setSaveSuccess(true);
+    showToast('Đã lưu thông tin liên hệ thành công!');
     setTimeout(() => setSaveSuccess(false), 2500);
   }
 
@@ -733,19 +871,86 @@ export default function StaffContactDetail({
                   {currentInitials}
                 </div>
                 <div className="min-w-0 flex-grow">
-                  <div className="flex items-center gap-1.5">
-                    <h2 className="text-sm font-bold text-slate-900 leading-tight">
-                      {currentFullName}
-                    </h2>
-                    <button
-                      type="button"
-                      title="Edit contact"
-                      onClick={() => showToast('Editing contact profile...')}
-                      className="text-slate-400 hover:text-blue-600 transition cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[14px]">edit</span>
-                    </button>
-                  </div>
+                  {isEditingName ? (
+                    <div className="my-1 p-2.5 bg-blue-50/90 border border-blue-200 rounded-lg space-y-2 shadow-xs">
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">First Name *</label>
+                          <input
+                            type="text"
+                            value={editFirstName}
+                            onChange={(e) => setEditFirstName(e.target.value)}
+                            className="w-full text-xs font-semibold text-slate-900 bg-white border border-slate-300 rounded px-2 py-1 focus:border-blue-500 focus:outline-none"
+                            placeholder="First name"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveName();
+                              if (e.key === 'Escape') handleCancelEditName();
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Last Name *</label>
+                          <input
+                            type="text"
+                            value={editLastName}
+                            onChange={(e) => setEditLastName(e.target.value)}
+                            className="w-full text-xs font-semibold text-slate-900 bg-white border border-slate-300 rounded px-2 py-1 focus:border-blue-500 focus:outline-none"
+                            placeholder="Last name"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveName();
+                              if (e.key === 'Escape') handleCancelEditName();
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Middle Name</label>
+                        <input
+                          type="text"
+                          value={editMiddleName}
+                          onChange={(e) => setEditMiddleName(e.target.value)}
+                          className="w-full text-xs font-medium text-slate-900 bg-white border border-slate-300 rounded px-2 py-1 focus:border-blue-500 focus:outline-none"
+                          placeholder="Middle name (tùy chọn)"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveName();
+                            if (e.key === 'Escape') handleCancelEditName();
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-end gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          onClick={handleCancelEditName}
+                          className="px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-200/70 rounded border border-slate-200 cursor-pointer"
+                        >
+                          Hủy
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveName}
+                          className="px-3 py-1 text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded shadow-xs cursor-pointer flex items-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-[13px]">check</span>
+                          <span>Lưu tên</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <h2 className="text-sm font-bold text-slate-900 leading-tight">
+                        {currentFullName}
+                      </h2>
+                      <button
+                        type="button"
+                        title="Chỉnh sửa họ tên liên hệ"
+                        onClick={handleStartEditName}
+                        className="text-slate-400 hover:text-blue-600 transition cursor-pointer p-0.5 rounded hover:bg-slate-100"
+                      >
+                        <span className="material-symbols-outlined text-[15px]">edit</span>
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-1">
                     <span className="material-symbols-outlined text-[14px] text-slate-400">mail</span>
                     <span className="truncate text-blue-700 font-medium">{contactEmail}</span>

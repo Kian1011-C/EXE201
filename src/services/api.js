@@ -286,6 +286,14 @@ export async function createContact(data) {
   return res ? normalizeContact(res) : res;
 }
 
+export async function updateContact(id, data) {
+  const res = await request(`/contacts/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }).catch(() => null);
+  return res ? normalizeContact(res) : res;
+}
+
 // ── Deals ────────────────────────────────────────────────────────────────────
 export async function getDeals(params = {}) {
   const query = new URLSearchParams();
