@@ -3,8 +3,11 @@ import { getContacts, createContact as apiCreateContact } from '../../../service
 import { SAMPLE_CONTACTS, addContactToStore, getDynamicContacts } from '../../../data/mockCrmData';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterContactsForAgent, getAgentIdentity } from '../../../utils/rbac';
+import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 
 export default function StaffContactsList({ onSelectContact, isAgent = false, agentName = '' }) {
+  const { user } = useAuth();
+  const currentActor = getCurrentActor(user);
   const [contactsList, setContactsList] = useState(SAMPLE_CONTACTS);
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
@@ -59,7 +62,6 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   const [teleSaleTeam, setTeleSaleTeam] = useState('');
   const [contactOwner, setContactOwner] = useState('The Best Rate Insurance');
 
-  const { user } = useAuth();
   const activeIsAgent = isAgent || user?.role === 'agent';
   const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
 
@@ -227,6 +229,10 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     }).catch((err) => console.warn('Could not save to DB:', err));
 
     addContactToStore(newRecord);
+
+    // Initialize real property history with current actor
+    getPropertyHistory('contact', newCode, newRecord, currentActor);
+
     setContactsList([newRecord, ...contactsList]);
     showToast(`Đã tạo liên hệ mới: ${fullName}`);
 

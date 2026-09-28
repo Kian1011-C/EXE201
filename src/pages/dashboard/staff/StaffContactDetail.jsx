@@ -17,7 +17,12 @@ import { createTicket, updateContact } from '../../../services/api';
 import AddDealModal from './AddDealModal';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
-import { recordPropertyUpdate } from '../../../services/propertyHistoryService';
+import {
+  recordPropertyUpdate,
+  recordPropertyUpdatesBatch,
+  getCurrentActor,
+} from '../../../services/propertyHistoryService';
+import { useAuth } from '../../../auth/AuthContext';
 
 export const ACA_ACCOUNT_STATUS_OPTIONS = [
   'Need Create ACA Account',
@@ -64,6 +69,8 @@ export default function StaffContactDetail({
   onSelectTask,
   onUpdateContact,
 }) {
+  const { user } = useAuth();
+  const currentActor = getCurrentActor(user);
   const [activeTab, setActiveTab] = useState('activity');
   // Accordion states: mở ra mở vô được
   const [sourceLeadOpen, setSourceLeadOpen] = useState(false);
@@ -316,8 +323,19 @@ export default function StaffContactDetail({
       setIsAcaStatusDropdownOpen(false);
       return;
     }
+    const oldStatusVal = acaAccountStatus;
     setAcaAccountStatus(val);
     setIsAcaStatusDropdownOpen(false);
+
+    const contactId = contact?.id || contact?.code || 'CT26002600';
+    recordPropertyUpdate(
+      'contact',
+      contactId,
+      'ACA Account Status',
+      oldStatusVal,
+      val,
+      currentActor
+    );
 
     let updatedTickets = [...contactTickets];
 
@@ -837,48 +855,44 @@ export default function StaffContactDetail({
 
     addContactToStore(updatedContact);
 
-    // Record property history updates
+    // Record property history updates in batch with dynamic current actor
     const contactId = contact?.id || contact?.code || 'CT26002600';
     const oldCF = contact?.contactFields || {};
     const oldPrimary = contact?.primary || {};
     const oldAca = contact?.acaAccount || {};
 
-    if (enrolledAddress && enrolledAddress !== oldCF.enrolledAddress) {
-      recordPropertyUpdate('contact', contactId, 'Enrolled Address', oldCF.enrolledAddress || '', enrolledAddress);
-    }
-    if (contactPhone && contactPhone !== (contact?.phone || oldCF.phone)) {
-      recordPropertyUpdate('contact', contactId, 'Phone', contact?.phone || oldCF.phone || '', contactPhone);
-    }
-    if (mailingAddress && mailingAddress !== oldCF.mailingAddress) {
-      recordPropertyUpdate('contact', contactId, 'Mailing Address', oldCF.mailingAddress || '', mailingAddress);
-    }
-    if (contactState && contactState !== oldCF.state) {
-      recordPropertyUpdate('contact', contactId, 'State', oldCF.state || '', contactState);
-    }
-    if (city && city !== oldCF.city) {
-      recordPropertyUpdate('contact', contactId, 'City', oldCF.city || '', city);
-    }
-    if (postalCode && postalCode !== oldCF.postalCode) {
-      recordPropertyUpdate('contact', contactId, 'Postal Code', oldCF.postalCode || '', postalCode);
-    }
-    if (county && county !== oldCF.county) {
-      recordPropertyUpdate('contact', contactId, 'County', oldCF.county || '', county);
-    }
-    if (contactLanguage && contactLanguage !== (contact?.language || 'Vietnamese')) {
-      recordPropertyUpdate('contact', contactId, 'Language', contact?.language || 'Vietnamese', contactLanguage);
-    }
-    if (acaAccountStatus && acaAccountStatus !== (contact?.acaAccountStatus || oldAca.acaAccountStatus)) {
-      recordPropertyUpdate('contact', contactId, 'ACA Account Status', contact?.acaAccountStatus || oldAca.acaAccountStatus || '', acaAccountStatus);
-    }
-    if (primaryDob && primaryDob !== (contact?.dateOfBirth || oldPrimary.dob)) {
-      recordPropertyUpdate('contact', contactId, 'Date Of Birth', contact?.dateOfBirth || oldPrimary.dob || '', primaryDob);
-    }
-    if (primarySsn && primarySsn !== (contact?.ssn || oldPrimary.ssn)) {
-      recordPropertyUpdate('contact', contactId, 'SSN', contact?.ssn || oldPrimary.ssn || '', primarySsn);
-    }
-    if (leadContactOwner && leadContactOwner !== (contact?.contactOwner || '')) {
-      recordPropertyUpdate('contact', contactId, 'Contact Owner', contact?.contactOwner || '', leadContactOwner);
-    }
+    const updates = [
+      { fieldName: 'Enrolled Address', oldValue: oldCF.enrolledAddress || contact?.address || '', newValue: enrolledAddress },
+      { fieldName: 'Phone', oldValue: contact?.phone || oldCF.phone || '', newValue: contactPhone },
+      { fieldName: 'Email', oldValue: contact?.email || oldCF.email || '', newValue: contactEmail },
+      { fieldName: 'Mailing Address', oldValue: oldCF.mailingAddress || '', newValue: mailingAddress },
+      { fieldName: 'Street Address', oldValue: oldCF.streetAddress || '', newValue: streetAddress },
+      { fieldName: 'State', oldValue: oldCF.state || contact?.state || '', newValue: contactState },
+      { fieldName: 'City', oldValue: oldCF.city || contact?.city || '', newValue: city },
+      { fieldName: 'Postal Code', oldValue: oldCF.postalCode || contact?.zipCode || '', newValue: postalCode },
+      { fieldName: 'County', oldValue: oldCF.county || '', newValue: county },
+      { fieldName: 'Language', oldValue: contact?.language || 'Vietnamese', newValue: contactLanguage },
+      { fieldName: 'First Name', oldValue: contact?.firstName || oldPrimary.firstName || '', newValue: primaryFirstName },
+      { fieldName: 'Middle Name', oldValue: contact?.middleName || oldPrimary.middleName || '', newValue: primaryMiddleName },
+      { fieldName: 'Last Name', oldValue: contact?.lastName || oldPrimary.lastName || '', newValue: primaryLastName },
+      { fieldName: 'Date Of Birth', oldValue: contact?.dateOfBirth || oldPrimary.dob || '', newValue: primaryDob },
+      { fieldName: 'SSN', oldValue: contact?.ssn || oldPrimary.ssn || '', newValue: primarySsn },
+      { fieldName: 'Gender', oldValue: contact?.gender || oldPrimary.gender || '', newValue: primaryGender },
+      { fieldName: 'Immigration Status', oldValue: contact?.immigrationStatus || oldPrimary.immigrationStatus || '', newValue: primaryImmigration },
+      { fieldName: 'ACA Account Status', oldValue: contact?.acaAccountStatus || oldAca.acaAccountStatus || oldAca.status || '', newValue: acaAccountStatus },
+      { fieldName: 'Contact Owner', oldValue: getPersonName(contact?.contactOwner, ''), newValue: leadContactOwner },
+      { fieldName: 'How do you know us', oldValue: contact?.howDoYouKnowUs || '', newValue: leadHowDoYouKnowUs },
+      { fieldName: 'Who refer client', oldValue: contact?.whoReferClient || '', newValue: leadWhoRefer },
+      { fieldName: 'Aca Account', oldValue: oldAca.acaAccount || '', newValue: acaAccount },
+      { fieldName: 'Aca Pass', oldValue: oldAca.acaPass || '', newValue: acaPass },
+      { fieldName: 'ACA Status Special', oldValue: oldAca.acaStatusSpecial || '', newValue: acaStatusSpecial },
+      { fieldName: 'ACA Account Special', oldValue: oldAca.acaAccountSpecial || '', newValue: acaAccountSpecial },
+      { fieldName: 'ACA Pass Special', oldValue: oldAca.acaPassSpecial || '', newValue: acaPassSpecial },
+      { fieldName: 'Enroll Call Rep', oldValue: oldAca.enrollCallRep || '', newValue: enrollCallRep },
+      { fieldName: 'The Best Rate Email', oldValue: oldAca.theBestRateEmail || '', newValue: theBestRateEmail },
+    ];
+
+    recordPropertyUpdatesBatch('contact', contactId, updates, currentActor);
 
     if (contact?.id) {
       updateContact(contact.id, {
@@ -3875,8 +3889,50 @@ export default function StaffContactDetail({
         initialFieldName={selectedHistoryField}
         entityType="contact"
         entityId={contact?.id || contact?.code || 'CT26002600'}
-        entityName={currentFullName || 'Contact'}
-        entityData={contact || {}}
+        entityName={currentFullName || contact?.fullName || 'Contact'}
+        entityData={{
+          ...contact,
+          fullName: currentFullName,
+          firstName: primaryFirstName,
+          middleName: primaryMiddleName,
+          lastName: primaryLastName,
+          phone: contactPhone,
+          email: contactEmail,
+          language: contactLanguage,
+          address: enrolledAddress,
+          contactFields: {
+            ...(contact?.contactFields || {}),
+            enrolledAddress,
+            mailingAddress,
+            streetAddress,
+            city,
+            state: contactState,
+            postalCode,
+            county,
+          },
+          primary: {
+            ...(contact?.primary || {}),
+            dob: primaryDob,
+            ssn: primarySsn,
+            gender: primaryGender,
+            immigrationStatus: primaryImmigration,
+          },
+          acaAccount: {
+            ...(contact?.acaAccount || {}),
+            acaAccountStatus,
+            acaAccount,
+            acaPass,
+            acaStatusSpecial,
+            acaAccountSpecial,
+            acaPassSpecial,
+            enrollCallRep,
+            theBestRateEmail,
+          },
+          acaAccountStatus,
+          contactOwner: leadContactOwner,
+          howDoYouKnowUs: leadHowDoYouKnowUs,
+          whoReferClient: leadWhoRefer,
+        }}
         availableFields={[
           'Contact Owner',
           'Lead Owner',

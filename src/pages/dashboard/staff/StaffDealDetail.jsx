@@ -8,7 +8,12 @@ import {
 } from '../../../data/mockCrmData';
 import { createTicket } from '../../../services/api';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
-import { recordPropertyUpdate } from '../../../services/propertyHistoryService';
+import {
+  recordPropertyUpdate,
+  recordPropertyUpdatesBatch,
+  getCurrentActor,
+} from '../../../services/propertyHistoryService';
+import { useAuth } from '../../../auth/AuthContext';
 
 export default function StaffDealDetail({
   deal,
@@ -19,6 +24,8 @@ export default function StaffDealDetail({
   onSelectTask,
   onUpdateDeal,
 }) {
+  const { user } = useAuth();
+  const currentActor = getCurrentActor(user);
   const dealInfo = deal || DEAL_DETAIL_DATA;
 
   // State for deal editing
@@ -153,17 +160,21 @@ export default function StaffDealDetail({
         from: oldStage,
         to: newStage,
         date: dateStr,
-        user: 'Anya Nguyen (anya42@9)',
+        user: currentActor,
       },
       ...prev,
     ]);
+
+    // Record in Property History
+    const dealId = deal?.id || dealInfo.id || 'D26005033';
+    recordPropertyUpdate('deal', dealId, 'Stage', oldStage, newStage, currentActor);
 
     // Log activity in middle timeline
     const newAct = {
       id: 'deal-act-' + Date.now(),
       type: 'Deal Activity',
       time: dateStr,
-      actor: 'Anya Nguyen (anya42@9)',
+      actor: currentActor,
       summary: `moved deal stage from "${oldStage}" to "${newStage}"`,
       dealId: dealInfo.id,
       dealTitle: dealTitle,
@@ -303,12 +314,15 @@ export default function StaffDealDetail({
         id: 'deal-act-' + Date.now(),
         type: 'Ticket Created',
         time: dateStr,
-        actor: 'Platform Staff',
+        actor: currentActor,
         summary: `Tự động xuất ticket: ${uploadTicket.title} (Upload document)`,
         dealId: dealInfo.id,
         dealTitle: dealTitle,
       };
       setActivitiesList((prev) => [newAct, ...prev]);
+
+      const dealId = deal?.id || dealInfo.id || 'D26005033';
+      recordPropertyUpdate('deal', dealId, 'Need Upload', deal?.needUpload || 'No', 'Yes', currentActor);
 
       if (onUpdateDeal) {
         onUpdateDeal({
@@ -320,6 +334,9 @@ export default function StaffDealDetail({
       }
       showToast('Đã chọn Need Upload = Yes: Tự động xuất Ticket Upload document!');
     } else {
+      const dealId = deal?.id || dealInfo.id || 'D26005033';
+      recordPropertyUpdate('deal', dealId, 'Need Upload', deal?.needUpload || 'Yes', 'No', currentActor);
+
       if (onUpdateDeal) {
         onUpdateDeal({
           ...deal,
@@ -393,6 +410,41 @@ export default function StaffDealDetail({
         closedLostReason,
       },
     };
+    const dealId = deal?.id || dealInfo.id || 'D26005033';
+    const oldAdmin = deal?.adminOnly || dealInfo.adminOnly || {};
+    const newAmountStr = enrollAmount ? `$${enrollAmount}` : amount;
+
+    const updates = [
+      { fieldName: 'Deal Title', oldValue: deal?.title || dealInfo.title || '', newValue: dealTitle },
+      { fieldName: 'Pipeline', oldValue: deal?.pipeline || dealInfo.pipeline || '', newValue: pipeline },
+      { fieldName: 'Stage', oldValue: deal?.stage || dealInfo.stage || '', newValue: stage },
+      { fieldName: 'Amount', oldValue: deal?.amount !== undefined ? deal.amount : (dealInfo.amount || ''), newValue: newAmountStr },
+      { fieldName: 'Carrier', oldValue: deal?.carrier || oldAdmin.carrier || '', newValue: carrier },
+      { fieldName: 'Plan Name', oldValue: deal?.planName || '', newValue: planName },
+      { fieldName: 'Monthly Premium', oldValue: deal?.monthlyPremium || '', newValue: monthlyPremium },
+      { fieldName: 'Subsidy Amount (APTC)', oldValue: deal?.subsidyAmount || '', newValue: subsidyAmount },
+      { fieldName: 'Agency Commission', oldValue: deal?.agencyCommission || '', newValue: agencyCommission },
+      { fieldName: 'Bonus Tier', oldValue: deal?.bonusTier || '', newValue: bonusTier },
+      { fieldName: 'Payment Option', oldValue: deal?.paymentOption || '', newValue: paymentOption },
+      { fieldName: 'Payment Verification', oldValue: deal?.paymentVerification || '', newValue: paymentVerification },
+      { fieldName: 'Enrolled NPN', oldValue: deal?.enrolledNpn || oldAdmin.enrolledNpn || '', newValue: enrolledNpn },
+      { fieldName: 'Broker Effective Date', oldValue: deal?.brokerEffectiveDate || oldAdmin.brokerEffectiveDate || '', newValue: brokerEffectiveDate },
+      { fieldName: 'Termination Date', oldValue: deal?.terminationDate || oldAdmin.terminationDate || '', newValue: terminationDate },
+      { fieldName: 'Sale Support Status', oldValue: deal?.saleSupportStatus || oldAdmin.saleSupportStatus || '', newValue: saleSupportStatus },
+      { fieldName: 'Closed Lost Reason', oldValue: deal?.closedLostReason || oldAdmin.closedLostReason || '', newValue: closedLostReason },
+      { fieldName: 'Application ID', oldValue: deal?.applicationId || '', newValue: appId },
+      { fieldName: 'Estimate Household Income', oldValue: deal?.estimateHouseholdIncome || deal?.estimateIncome || '', newValue: estimateHouseholdIncome },
+      { fieldName: 'Household Member', oldValue: deal?.householdMember || '', newValue: householdMember },
+      { fieldName: 'Number Member', oldValue: deal?.numberMember || '', newValue: numberMember },
+      { fieldName: 'Enrolled Address', oldValue: deal?.enrolledAddress || '', newValue: enrolledAddress },
+      { fieldName: 'Quoted county', oldValue: deal?.quotedCounty || '', newValue: quotedCounty },
+      { fieldName: 'Is this a backdate deal?', oldValue: deal?.isBackdateDeal || '', newValue: isBackdateDeal },
+      { fieldName: 'Selling State', oldValue: deal?.sellingState || oldAdmin.sellingState || '', newValue: sellingState },
+      { fieldName: 'Primary Member Id', oldValue: deal?.primaryMemberId || oldAdmin.primaryMemberId || '', newValue: primaryMemberId },
+    ];
+
+    recordPropertyUpdatesBatch('deal', dealId, updates, currentActor);
+
     if (onUpdateDeal) {
       onUpdateDeal(updatedDeal);
     }
@@ -473,7 +525,10 @@ export default function StaffDealDetail({
   }
 
   function handleUpdateSaleSupportStatus(newSss) {
+    const oldSss = saleSupportStatus;
     setSaleSupportStatus(newSss);
+    const dealId = deal?.id || dealInfo.id || 'D26005033';
+    recordPropertyUpdate('deal', dealId, 'Sale Support Status', oldSss, newSss, currentActor);
     logActivity('Deal Property Updated', `changed Sale Support Status to "${newSss}"`);
     if (onUpdateDeal) {
       onUpdateDeal({
@@ -3076,20 +3131,36 @@ export default function StaffDealDetail({
         initialFieldName={selectedHistoryField}
         entityType="deal"
         entityId={deal?.id || dealInfo.id || 'D26005033'}
-        entityName={dealTitle || 'Deal'}
+        entityName={dealTitle || deal?.title || 'Deal'}
         entityData={{
           ...deal,
+          title: dealTitle,
+          pipeline,
+          stage,
           brokerEffectiveDate,
           enrolledNpn,
           terminationDate,
           carrier,
           planName,
           applicationId: appId,
+          estimateHouseholdIncome,
           estimateIncome: estimateHouseholdIncome,
-          enrolledAddress,
-          amount: enrollAmount,
+          householdMember,
           numberMember,
+          enrolledAddress,
+          quotedCounty,
+          isBackdateDeal,
           sellingState,
+          amount: enrollAmount ? `$${enrollAmount}` : amount,
+          monthlyPremium,
+          subsidyAmount,
+          agencyCommission,
+          bonusTier,
+          paymentOption,
+          paymentVerification,
+          saleSupportStatus,
+          closedLostReason,
+          primaryMemberId,
         }}
         availableFields={[
           'Enrolled NPN',

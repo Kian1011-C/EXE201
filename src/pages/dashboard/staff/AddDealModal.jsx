@@ -9,6 +9,8 @@ import {
   SAMPLE_DEALS,
 } from '../../../data/mockCrmData';
 import { createTicket } from '../../../services/api';
+import { useAuth } from '../../../auth/AuthContext';
+import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 
 const OWNER_OPTIONS = [
   '--',
@@ -28,6 +30,8 @@ export default function AddDealModal({
   membersList = [],
   onDealCreated,
 }) {
+  const { user } = useAuth();
+  const currentActor = getCurrentActor(user);
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'existing'
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -169,6 +173,9 @@ export default function AddDealModal({
     }
 
     addDealToStore(newDeal);
+
+    // Initialize real property history with current actor
+    getPropertyHistory('deal', newCode, newDeal, currentActor);
 
     if (onDealCreated) {
       onDealCreated(newDeal, generatedTicket);

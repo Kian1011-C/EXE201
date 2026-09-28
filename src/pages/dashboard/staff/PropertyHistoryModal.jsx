@@ -57,11 +57,24 @@ export default function PropertyHistoryModal({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const [historyVersion, setHistoryVersion] = useState(0);
+
+  // Listen to property history update events
+  useEffect(() => {
+    function handleHistoryUpdated(e) {
+      if (!entityId || e?.detail?.entityId === entityId) {
+        setHistoryVersion((v) => v + 1);
+      }
+    }
+    window.addEventListener('insurmatch:history_updated', handleHistoryUpdated);
+    return () => window.removeEventListener('insurmatch:history_updated', handleHistoryUpdated);
+  }, [entityId]);
+
   // Fetch history list from service/localStorage
   const rawHistoryList = useMemo(() => {
     if (!isOpen || !entityId) return [];
     return getPropertyHistory(entityType, entityId, entityData);
-  }, [isOpen, entityType, entityId, entityData]);
+  }, [isOpen, entityType, entityId, entityData, historyVersion]);
 
   // Build field options list
   const fieldOptions = useMemo(() => {
