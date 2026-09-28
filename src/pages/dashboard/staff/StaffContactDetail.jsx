@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   CONTACT_DETAIL_DATA,
   addTicketToStore,
@@ -931,10 +932,10 @@ export default function StaffContactDetail({
       </div>
 
       {/* ── 3-Column Content Layout (Image 2) ─────────────────────────────── */}
-      <div className="flex-grow flex flex-col xl:flex-row overflow-auto">
+      <div className="flex-1 min-h-0 flex flex-col xl:flex-row overflow-hidden relative">
         {/* ── COLUMN 1: Contact Information (Left Panel ~320px) ───────────── */}
         <div
-          className={`bg-white border-r border-slate-200 shrink-0 flex flex-col transition-all duration-200 relative ${
+          className={`bg-white border-r border-slate-200 shrink-0 flex flex-col transition-all duration-200 relative h-full min-h-0 ${
             leftPanelCollapsed ? 'w-12 overflow-hidden' : 'w-full xl:w-[320px] overflow-y-auto'
           }`}
         >
@@ -2178,7 +2179,7 @@ export default function StaffContactDetail({
         </div>
 
         {/* ── COLUMN 2: Timeline & Activity Feed (Middle Panel) ───────────── */}
-        <div className="flex-grow bg-white p-4 overflow-y-auto flex flex-col gap-3">
+        <div className="flex-1 min-w-0 h-full min-h-0 bg-white p-4 overflow-y-auto flex flex-col gap-3">
           {/* Tabs + Dynamic Action Button (Activity: none, Notes: Create Note, Tasks: Create Task) */}
           <div className="flex items-center justify-between border-b border-slate-200 pb-2">
             {/* 3 Nav Tabs: Activity, Notes, Tasks */}
@@ -2502,7 +2503,7 @@ export default function StaffContactDetail({
         </div>
 
         {/* ── COLUMN 3: Associated Objects (Right Panel ~320px) ────────────── */}
-        <div className="w-full xl:w-[320px] bg-white border-l border-slate-200 shrink-0 flex flex-col divide-y divide-slate-200 overflow-y-auto">
+        <div className="w-full xl:w-[320px] bg-white border-l border-slate-200 shrink-0 flex flex-col divide-y divide-slate-200 overflow-y-auto h-full min-h-0">
           {/* Section 1: Deals ─────────────────────────────────────────── */}
           <div>
             {/* Header Accordion Bar */}
@@ -2861,9 +2862,9 @@ export default function StaffContactDetail({
         </div>
         </div>
       {/* ── Add Member Modal ────────────────────────────────────────────── */}
-      {showAddMemberModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+      {showAddMemberModal && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150 my-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600">person_add</span>
@@ -2947,14 +2948,15 @@ export default function StaffContactDetail({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Create Note Modal (Exact match to uploaded image) ────────────── */}
-      {showCreateNoteModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      {showCreateNoteModal && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
           <div
-            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 ${
+            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 my-auto ${
               isNoteFullscreen
                 ? 'fixed inset-2 max-w-none w-auto h-auto'
                 : 'max-w-3xl w-full'
@@ -3266,14 +3268,15 @@ export default function StaffContactDetail({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Create Task Modal (Exact match to uploaded image) ────────────── */}
-      {showCreateTaskModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      {showCreateTaskModal && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
           <div
-            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 ${
+            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 my-auto ${
               isTaskFullscreen
                 ? 'fixed inset-2 max-w-none w-auto h-auto'
                 : 'max-w-3xl w-full max-h-[92vh]'
@@ -3648,13 +3651,14 @@ export default function StaffContactDetail({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Add Customer Document Modal ── */}
-      {showAddDocModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-sm overflow-hidden animate-scale-in">
+      {showAddDocModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-2xs p-4 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-sm overflow-hidden animate-scale-in my-auto">
             <div className="px-4 py-3 bg-[#183968] text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[17px]">upload_file</span>
@@ -3713,7 +3717,8 @@ export default function StaffContactDetail({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Create Deal Modal Matching media_1790575726166.png ── */}

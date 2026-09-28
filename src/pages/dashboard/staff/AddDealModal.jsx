@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
@@ -169,10 +170,12 @@ export default function AddDealModal({
     onClose();
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-2xs p-4 animate-fade-in">
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-2xs p-4 animate-fade-in overflow-y-auto">
       <div
-        className={`bg-white shadow-2xl overflow-hidden flex flex-col transition-all duration-200 animate-scale-in ${
+        className={`bg-white shadow-2xl overflow-hidden flex flex-col transition-all duration-200 animate-scale-in my-auto ${
           isFullscreen
             ? 'fixed inset-0 rounded-none w-screen h-screen'
             : 'rounded-xl border border-slate-200 w-full max-w-4xl max-h-[92vh]'
@@ -549,6 +552,7 @@ export default function AddDealModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

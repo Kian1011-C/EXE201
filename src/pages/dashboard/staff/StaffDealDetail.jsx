@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   DEAL_DETAIL_DATA,
   OBAMACARE_DEAL_STAGES,
@@ -2034,10 +2035,10 @@ export default function StaffDealDetail({
       </div>
 
       {/* ── Create Note Modal (Exact match to uploaded image & Contact Detail) ────────────── */}
-      {showCreateNoteModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      {showCreateNoteModal && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
           <div
-            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 ${
+            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 my-auto ${
               isNoteFullscreen
                 ? 'fixed inset-2 max-w-none w-auto h-auto'
                 : 'max-w-3xl w-full'
@@ -2349,14 +2350,15 @@ export default function StaffDealDetail({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Create Task Modal (Exact match to uploaded image & Contact Detail) ────────────── */}
-      {showCreateTaskModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      {showCreateTaskModal && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
           <div
-            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 ${
+            className={`bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 my-auto ${
               isTaskFullscreen
                 ? 'fixed inset-2 max-w-none w-auto h-auto'
                 : 'max-w-3xl w-full max-h-[92vh]'
@@ -2731,13 +2733,14 @@ export default function StaffDealDetail({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Stage Change History Modal ────────────────────────────────────── */}
-      {showStageHistoryModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      {showStageHistoryModal && createPortal(
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 my-auto">
             <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-blue-600">history</span>
@@ -2776,7 +2779,8 @@ export default function StaffDealDetail({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {/* ── Create Customer Document Modal Matching media_1790590561081.png (Hình 3) ── */}
       <CreateCustomerDocumentModal

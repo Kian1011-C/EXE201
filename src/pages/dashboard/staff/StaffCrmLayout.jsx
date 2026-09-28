@@ -814,7 +814,7 @@ export default function StaffCrmLayout({
         </aside>
 
         {/* Dynamic CRM Page Content */}
-        <main className="flex-grow overflow-auto bg-[#F8FAFC] flex flex-col pb-16 md:pb-0 animate-fade-in-up">
+        <main className="flex-grow min-h-0 overflow-auto bg-[#F8FAFC] flex flex-col pb-16 md:pb-0 animate-fade-in-up">
           {children}
         </main>
       </div>

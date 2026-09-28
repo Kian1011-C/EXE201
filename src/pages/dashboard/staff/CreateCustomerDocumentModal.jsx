@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   addCustomerDocumentToStore,
   getDynamicCustomerDocuments,
@@ -231,10 +232,12 @@ export default function CreateCustomerDocumentModal({
     ...SAMPLE_CUSTOMER_DOCUMENTS,
   ];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-2xs p-4 animate-in fade-in duration-150 overflow-y-auto">
       <div
-        className={`bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all duration-200 ${
+        className={`bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all duration-200 my-auto ${
           isFullscreen
             ? 'w-full h-full max-w-none rounded-none'
             : 'w-full max-w-3xl max-h-[92vh]'
@@ -600,6 +603,7 @@ export default function CreateCustomerDocumentModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

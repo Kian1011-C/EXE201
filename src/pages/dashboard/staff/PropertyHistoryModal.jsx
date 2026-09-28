@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   getPropertyHistory,
   exportPropertyHistoryCSV,
@@ -129,10 +130,10 @@ export default function PropertyHistoryModal({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150 overflow-y-auto">
       <div
-        className={`bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden transition-all duration-200 border border-slate-200 ${
+        className={`bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden transition-all duration-200 border border-slate-200 my-auto ${
           isFullscreen
             ? 'fixed inset-0 w-full h-full rounded-none max-w-none max-h-none z-50'
             : 'w-full max-w-6xl max-h-[88vh]'
@@ -478,7 +479,8 @@ export default function PropertyHistoryModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
