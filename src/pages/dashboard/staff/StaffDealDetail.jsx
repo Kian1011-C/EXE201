@@ -909,18 +909,7 @@ export default function StaffDealDetail({
                     </div>
                   </div>
 
-                  {/* Support Agent* */}
-                  <div>
-                    <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                      Support Agent <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-800">
-                      <div className="w-4 h-4 rounded-full bg-teal-600 text-white flex items-center justify-center text-[9px] font-bold shrink-0">
-                        AN
-                      </div>
-                      <span className="truncate">{dealInfo.adminOnly?.supportAgent || 'Anya Nguyen (anya42@9)'}</span>
-                    </div>
-                  </div>
+
 
                   {/* Code */}
                   <div>

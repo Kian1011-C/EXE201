@@ -123,7 +123,6 @@ export function filterDealsForAgent(dealsList, user) {
     return (
       isOwnerMatch(d.dealOwner, user) ||
       isOwnerMatch(d.leadOwner, user) ||
-      isOwnerMatch(d.supportAgent, user) ||
       isOwnerMatch(d.agentName, user) ||
       isOwnerMatch(d.adminOnly?.dealOwner, user)
     );
@@ -202,7 +201,6 @@ export function canAgentAccessItem(item, user, entityType = 'contact') {
     return (
       isOwnerMatch(item.dealOwner, user) ||
       isOwnerMatch(item.leadOwner, user) ||
-      isOwnerMatch(item.supportAgent, user) ||
       isOwnerMatch(item.agentName, user) ||
       isOwnerMatch(item.adminOnly?.dealOwner, user)
     );

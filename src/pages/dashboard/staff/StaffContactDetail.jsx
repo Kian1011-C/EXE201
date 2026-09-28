@@ -286,7 +286,7 @@ export default function StaffContactDetail({
         }),
         ticketOwner: leadContactOwner,
         ticketOwnerAvatar: (leadContactOwner || 'KN').slice(0, 2).toUpperCase(),
-        serviceAgent: leadSupportAgent,
+        serviceAgent: leadContactOwner,
         contactName: cName,
         contactId: contact?.id || contact?.code || '',
         contactPhone: contactPhone,
@@ -380,9 +380,6 @@ export default function StaffContactDetail({
   const [leadContactOwner, setLeadContactOwner] = useState(
     getPersonName(contact?.contactOwner, 'The Best Rate Insurance')
   );
-  const [leadSupportAgent, setLeadSupportAgent] = useState(
-    getPersonName(contact?.supportAgent, 'Platform Staff')
-  );
 
   // Sync state whenever selected contact changes
   useEffect(() => {
@@ -420,9 +417,6 @@ export default function StaffContactDetail({
       setLeadWhoRefer(contact.whoReferClient || '');
       setLeadContactOwner(
         getPersonName(contact.contactOwner, 'The Best Rate Insurance')
-      );
-      setLeadSupportAgent(
-        getPersonName(contact.supportAgent, 'Platform Staff')
       );
 
       const s = contact.acaAccountStatus || contact.acaAccount?.acaAccountStatus || contact.acaAccount?.status || '';
@@ -834,24 +828,6 @@ export default function StaffContactDetail({
                         </div>
                       </div>
 
-                      {/* 3. Support Agent */}
-                      <div>
-                        <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Support Agent</label>
-                        <div className="relative flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5 focus-within:border-blue-500 hover:border-slate-300 transition">
-                          <div className="w-5 h-5 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
-                            {String(getPersonName(leadSupportAgent, 'PS')).slice(0, 2).toUpperCase()}
-                          </div>
-                          <select
-                            value={getPersonName(leadSupportAgent, 'Platform Staff')}
-                            onChange={(e) => setLeadSupportAgent(e.target.value)}
-                            className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer"
-                          >
-                            {AGENT_OPTIONS.map((opt) => (
-                              <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
 
                       {/* 4. How do you know us */}
                       <div>

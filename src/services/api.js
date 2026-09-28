@@ -77,7 +77,6 @@ function normalizeContact(c) {
   if (!c) return c;
   const fullName = c.fullName || [c.firstName, c.middleName, c.lastName].filter(Boolean).join(' ') || 'Unknown Contact';
   const ownerName = formatUserName(c.contactOwner) || 'The Best Rate Insurance';
-  const supportName = formatUserName(c.supportAgent) || 'Platform Staff';
   const modifiedByName = formatUserName(c.lastModifiedBy) || ownerName;
 
   return {
@@ -88,7 +87,6 @@ function normalizeContact(c) {
     fullName,
     name: fullName,
     contactOwnerName: ownerName,
-    supportAgentName: supportName,
     phone: c.phone || '—',
     email: c.email || '—',
     language: c.language || 'Vietnamese',
@@ -99,10 +97,6 @@ function normalizeContact(c) {
       name: ownerName,
       avatar: c.contactOwner?.avatar || getUserAvatar(ownerName),
       bg: c.contactOwner?.bg || 'bg-amber-100 text-amber-800',
-    },
-    supportAgent: {
-      name: supportName,
-      avatar: c.supportAgent?.avatar || getUserAvatar(supportName),
     },
     lastModifiedBy: {
       name: modifiedByName,

@@ -222,7 +222,6 @@ export default function AgentDashboard() {
         howDoYouKnowUs: contact.howDoYouKnowUs || (contact.sourceOfLead?.howDoYouKnowUs || '---'),
         whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
         contactOwner: contact.contactOwner?.name || contact.contactOwner || 'Khanh Nguyen (khanhnguyen31@7)',
-        supportAgent: contact.supportAgent || 'Anya Nguyen (anya42@9)',
       },
       initials: (contact.fullName || 'ND')
         .split(' ')

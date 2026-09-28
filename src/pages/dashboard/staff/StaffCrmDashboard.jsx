@@ -286,7 +286,7 @@ export default function StaffCrmDashboard({
     return Array.from(set);
   }, [medDeals]);
 
-  // ── Card 3: Active OB by Support Agent (100% Real DB Data) ──────────────────
+  // ── Card 3: Active OB by Agent (100% Real DB Data) ─────────────────────────
   const activeObByAgent = useMemo(() => {
     const activeOB = obDeals.filter((d) => (d.stage || '').toLowerCase().includes('active'));
     const map = {};
@@ -304,7 +304,7 @@ export default function StaffCrmDashboard({
     [activeObByAgent]
   );
 
-  // ── Card 4: Medicare Deals by Support Agent (100% Real DB Data) ─────────────
+  // ── Card 4: Medicare Deals by Agent (100% Real DB Data) ────────────────────
   const medDealsByAgent = useMemo(() => {
     const map = {};
     medDeals.forEach((d) => {
@@ -329,8 +329,6 @@ export default function StaffCrmDashboard({
         c.contactOwnerName ||
         (c.contactOwner
           ? getPersonName(c.contactOwner)
-          : c.supportAgent
-          ? getPersonName(c.supportAgent)
           : 'Unassigned');
       if (!map[owner]) map[owner] = { agent: owner, active: 0, inactive: 0, total: 0 };
       if (c.status === 'Active') {
@@ -508,9 +506,8 @@ export default function StaffCrmDashboard({
     const map = {};
     needAccount.forEach((c) => {
       const agent =
-        c.supportAgentName ||
         c.contactOwnerName ||
-        getPersonName(c.supportAgent || c.contactOwner);
+        getPersonName(c.contactOwner);
       map[agent] = (map[agent] || 0) + 1;
     });
     const maxVal = Math.max(...Object.values(map), 1);
@@ -1033,12 +1030,12 @@ export default function StaffCrmDashboard({
         {/* ── ROW 2: 3 Medium Charts (33% / 33% / 33%) ─────────────────────── */}
         {['all', 'obamacare', 'medicare'].includes(categoryFilter) && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Card 3: Total Active OB 2026 - Support Agent */}
+            {/* Card 3: Total Active OB 2026 - Agent */}
             {['all', 'obamacare'].includes(categoryFilter) && (
               <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-4 flex flex-col">
                 <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
                   <h3 className="text-xs font-bold text-slate-900 truncate">
-                    Total Active OB 2026 - Support Agent
+                    Total Active OB 2026 - Agent
                   </h3>
               <div className="flex items-center gap-1 text-slate-400">
                 <span className="material-symbols-outlined text-[15px]">crop_free</span>
@@ -1078,7 +1075,7 @@ export default function StaffCrmDashboard({
               </div>
             )}
 
-            {/* Card 4: Total Medicare deals 2026 - Support Agent */}
+            {/* Card 4: Total Medicare deals 2026 - Agent */}
             {['all', 'medicare'].includes(categoryFilter) && (
               <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-200 crm-card-hover p-4 flex flex-col">
                 <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
@@ -1087,7 +1084,7 @@ export default function StaffCrmDashboard({
                     className="text-xs font-bold text-slate-900 truncate hover:text-blue-600 cursor-pointer"
                     title="Click to view Medicare deals"
                   >
-                    Total Medicare deals 2026 - Support Agent
+                    Total Medicare deals 2026 - Agent
                   </h3>
               <div className="flex items-center gap-1 text-slate-400">
                 <span className="material-symbols-outlined text-[15px]">crop_free</span>
@@ -2470,7 +2467,7 @@ export default function StaffCrmDashboard({
                 </span>
               </div>
               <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-3">
-                <span className="text-[10px] font-semibold text-amber-600 uppercase tracking-wider block">Support Agent Share (20%)</span>
+                <span className="text-[10px] font-semibold text-amber-600 uppercase tracking-wider block">Staff Platform Share (20%)</span>
                 <span className="text-base font-extrabold text-amber-700 font-mono">
                   ${commissionsSummary.totalDeduction.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>

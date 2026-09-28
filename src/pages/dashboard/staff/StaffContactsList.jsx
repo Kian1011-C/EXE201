@@ -58,7 +58,6 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   const [language, setLanguage] = useState('Vietnamese');
   const [teleSaleTeam, setTeleSaleTeam] = useState('');
   const [contactOwner, setContactOwner] = useState('The Best Rate Insurance');
-  const [supportAgent, setSupportAgent] = useState('Anya Nguyen (anya42@9)');
 
   const { user } = useAuth();
   const activeIsAgent = isAgent || user?.role === 'agent';
@@ -148,7 +147,6 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       howDoYouKnowUs: howDoYouKnowUs || '',
       whoReferClient: whoReferClient || '',
       teleSaleTeam: teleSaleTeam || '',
-      supportAgent: supportAgent || 'Anya Nguyen (anya42@9)',
       acaAccountStatus: '', // Trống ban đầu theo quy trình
       status: 'Active',
       isNew: true,
@@ -189,7 +187,6 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         whoReferClient: whoReferClient || '',
         contactOwner: contactOwner || 'The Best Rate Insurance',
         leadOwner: contactOwner || 'The Best Rate Insurance',
-        supportAgent: supportAgent || 'Anya Nguyen (anya42@9)',
         medicareShareOwner: '',
         obamacareSharedOwner: '',
         lifeSharedOwner: '',
@@ -225,7 +222,6 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       whoReferClient: whoReferClient,
       teleSaleTeam: teleSaleTeam,
       contactOwnerName: contactOwner || 'The Best Rate Insurance',
-      supportAgent: supportAgent,
       status: 'Active',
       acaAccountStatus: '',
     }).catch((err) => console.warn('Could not save to DB:', err));
@@ -245,7 +241,6 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     setLanguage('Vietnamese');
     setTeleSaleTeam('');
     setContactOwner('The Best Rate Insurance');
-    setSupportAgent('Anya Nguyen (anya42@9)');
     setShowCreateModal(false);
   }
 
@@ -859,28 +854,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                 </div>
               </div>
 
-              {/* 11. Support Agent* */}
-              <div>
-                <label className="block text-slate-800 font-medium mb-1 text-[11px]">
-                  Support Agent <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    value={supportAgent}
-                    onChange={(e) => setSupportAgent(e.target.value)}
-                    className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
-                  >
-                    <option value="">--</option>
-                    <option value="Anya Nguyen (anya42@9)">Anya Nguyen (anya42@9)</option>
-                    <option value="Miranda Pham">Miranda Pham</option>
-                    <option value="Lisa Le">Lisa Le</option>
-                    <option value="Winnie Nguyen">Winnie Nguyen</option>
-                  </select>
-                  <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
-                    expand_more
-                  </span>
-                </div>
-              </div>
+
 
               {/* Bottom Submit Actions */}
               <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5 sticky bottom-0 bg-white py-2">

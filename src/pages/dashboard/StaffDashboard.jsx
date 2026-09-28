@@ -163,7 +163,6 @@ export default function StaffDashboard() {
         howDoYouKnowUs: contact.howDoYouKnowUs || (contact.sourceOfLead?.howDoYouKnowUs || '---'),
         whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
         contactOwner: contact.contactOwner?.name || contact.contactOwner || CONTACT_DETAIL_DATA.sourceOfLead.contactOwner,
-        supportAgent: contact.supportAgent || CONTACT_DETAIL_DATA.sourceOfLead.supportAgent,
       },
       initials: (contact.fullName || 'ND')
         .split(' ')

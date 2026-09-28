@@ -19,14 +19,6 @@ const OWNER_OPTIONS = [
   'Platform Staff',
 ];
 
-const SUPPORT_AGENT_OPTIONS = [
-  { name: 'Tiger Truong (tiger.truong86@6)', short: 'Tiger Truong', avatar: 'TT', bg: 'bg-[#B34720]' },
-  { name: 'Anya Nguyen (anya42@9)', short: 'Anya Nguyen', avatar: 'AN', bg: 'bg-[#5B6B82]' },
-  { name: 'Khanh Nguyen (khanhnguyen31@7)', short: 'Khanh Nguyen', avatar: 'KN', bg: 'bg-blue-600' },
-  { name: 'Ivy Lu (ivy)', short: 'Ivy Lu', avatar: 'IL', bg: 'bg-sky-600' },
-  { name: 'Platform Staff', short: 'Platform Staff', avatar: 'PS', bg: 'bg-slate-600' },
-];
-
 export default function AddDealModal({
   isOpen,
   onClose,
@@ -43,8 +35,6 @@ export default function AddDealModal({
   const [pipeline, setPipeline] = useState('--');
   const [stage, setStage] = useState('--');
   const [dealOwner, setDealOwner] = useState('--');
-  const [supportAgent, setSupportAgent] = useState('Tiger Truong (tiger.truong86@6)');
-  const [isSupportAgentMenuOpen, setIsSupportAgentMenuOpen] = useState(false);
   const [contactName, setContactName] = useState(initialContactName || 'Hai Nguyen');
   const [member, setMember] = useState('--');
   const [carrier, setCarrier] = useState('BCBS');
@@ -103,7 +93,6 @@ export default function AddDealModal({
         avatar: (dealOwner === '--' ? 'KN' : dealOwner.slice(0, 2)).toUpperCase(),
         bg: 'bg-blue-600 text-white',
       },
-      supportAgent: supportAgent,
       lastModifiedBy: {
         name: 'Anya Nguyen',
         avatar: 'AN',
@@ -116,7 +105,6 @@ export default function AddDealModal({
         terminationDate: '2027-12-31',
         leadOwner: dealOwner,
         dealOwner: dealOwner,
-        supportAgent: supportAgent,
         code: newCode,
         primaryMemberId: 'MID-' + Math.floor(10000000 + Math.random() * 90000000),
         saleSupportStatus: 'None',
@@ -158,7 +146,7 @@ export default function AddDealModal({
           year: 'numeric',
         }),
         ticketOwner: dealOwner === '--' ? 'Khanh Nguyen' : dealOwner,
-        serviceAgent: supportAgent || 'Platform Staff',
+        serviceAgent: 'Platform Staff',
         contactName: contactName,
         contactId: initialContactId || 'CT26002600',
         dealId: newCode,
@@ -180,9 +168,6 @@ export default function AddDealModal({
     }
     onClose();
   }
-
-  // Selected agent object for the chip display
-  const currentAgentObj = SUPPORT_AGENT_OPTIONS.find((a) => a.name === supportAgent) || SUPPORT_AGENT_OPTIONS[0];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-2xs p-4 animate-fade-in">
@@ -326,101 +311,26 @@ export default function AddDealModal({
               </div>
             </div>
 
-            {/* Row 3: Deal Owner * & Support Agent */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Deal Owner */}
-              <div>
-                <label className="block text-slate-800 font-semibold mb-1 text-[11px]">
-                  Deal Owner <span className="text-rose-500 font-bold">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    value={dealOwner}
-                    onChange={(e) => setDealOwner(e.target.value)}
-                    className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
-                  >
-                    {OWNER_OPTIONS.map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
-                    expand_more
-                  </span>
-                </div>
-              </div>
-
-              {/* Support Agent (Matching chip style in screenshot) */}
-              <div>
-                <label className="block text-slate-800 font-semibold mb-1 text-[11px]">
-                  Support Agent
-                </label>
-                <div className="relative">
-                  <div
-                    onClick={() => setIsSupportAgentMenuOpen(!isSupportAgentMenuOpen)}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 hover:border-slate-300 cursor-pointer transition shadow-2xs min-h-[34px]"
-                  >
-                    {supportAgent ? (
-                      <div className="flex items-center gap-1.5 truncate">
-                        <span
-                          className={`w-5 h-5 rounded-full ${currentAgentObj.bg} text-white text-[9px] font-bold flex items-center justify-center shrink-0`}
-                        >
-                          {currentAgentObj.avatar}
-                        </span>
-                        <span className="text-slate-800 font-medium truncate">
-                          {currentAgentObj.name}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-slate-400 italic">-- Chưa chọn --</span>
-                    )}
-
-                    <div className="flex items-center gap-1 text-slate-400 shrink-0 ml-1">
-                      {supportAgent && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSupportAgent('');
-                          }}
-                          className="hover:text-rose-500 p-0.5 cursor-pointer leading-none"
-                          title="Clear"
-                        >
-                          ✕
-                        </button>
-                      )}
-                      <span className="material-symbols-outlined text-[16px] text-slate-400">
-                        expand_more
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Dropdown Options */}
-                  {isSupportAgentMenuOpen && (
-                    <div className="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50 text-xs">
-                      {SUPPORT_AGENT_OPTIONS.map((agent) => (
-                        <div
-                          key={agent.name}
-                          onClick={() => {
-                            setSupportAgent(agent.name);
-                            setIsSupportAgentMenuOpen(false);
-                          }}
-                          className={`px-3 py-2 flex items-center gap-2 hover:bg-slate-50 cursor-pointer transition ${
-                            supportAgent === agent.name ? 'bg-blue-50/70 font-semibold text-blue-900' : 'text-slate-700'
-                          }`}
-                        >
-                          <span
-                            className={`w-5 h-5 rounded-full ${agent.bg} text-white text-[9px] font-bold flex items-center justify-center shrink-0`}
-                          >
-                            {agent.avatar}
-                          </span>
-                          <span className="truncate">{agent.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+            {/* Row 3: Deal Owner * */}
+            <div>
+              <label className="block text-slate-800 font-semibold mb-1 text-[11px]">
+                Deal Owner <span className="text-rose-500 font-bold">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  value={dealOwner}
+                  onChange={(e) => setDealOwner(e.target.value)}
+                  className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+                >
+                  {OWNER_OPTIONS.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
+                  expand_more
+                </span>
               </div>
             </div>
 
