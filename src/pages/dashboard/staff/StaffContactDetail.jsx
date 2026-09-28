@@ -239,7 +239,7 @@ export default function StaffContactDetail({
 
   const activeLastUpdate = useMemo(() => {
     if (contact?.customerDocument?.lastModifiedTime) {
-      const parts = contact.customerDocument.lastModifiedTime.split(',');
+      const parts = String(contact.customerDocument.lastModifiedTime).split(',');
       return {
         date: parts[0]?.trim() || docLastUpdate.date,
         time: parts[1]?.trim() || docLastUpdate.time,
@@ -756,10 +756,10 @@ export default function StaffContactDetail({
       phone: contactPhone,
       email: contactEmail,
       language: contactLanguage,
-      contactOwner: contactOwner,
-      leadOwner: leadOwner,
-      howDoYouKnowUs: howDoYouKnowUs,
-      whoReferClient: whoReferClient,
+      contactOwner: leadContactOwner,
+      leadOwner: leadContactOwner,
+      howDoYouKnowUs: leadHowDoYouKnowUs,
+      whoReferClient: leadWhoRefer,
       enrolledAddress: enrolledAddress,
       mailingAddress: mailingAddress,
       contactFields: {
@@ -768,7 +768,7 @@ export default function StaffContactDetail({
         mailingAddress,
         streetAddress,
         city,
-        state,
+        state: contactState,
         postalCode,
         county,
       },
@@ -788,7 +788,7 @@ export default function StaffContactDetail({
       },
       acaAccount: {
         ...(contact?.acaAccount || {}),
-        theBestRateInsEmail,
+        theBestRateEmail,
         acaAccount,
         acaPass,
         acaStatusSpecial,

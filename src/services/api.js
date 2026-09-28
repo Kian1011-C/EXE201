@@ -3,6 +3,17 @@
 // Connected to Spring Boot 3 + PostgreSQL via Docker Compose
 // ============================================================
 
+import {
+  SAMPLE_CONTACTS,
+  getDynamicContacts,
+  SAMPLE_DEALS,
+  getDynamicDeals,
+  SAMPLE_TICKETS,
+  getDynamicTickets,
+  SAMPLE_TASKS,
+  getDynamicCustomerDocuments,
+} from '../data/mockCrmData';
+
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 /**
@@ -274,8 +285,26 @@ export async function getContacts(params = {}) {
 }
 
 export async function getContact(id) {
-  const data = await request(`/contacts/${encodeURIComponent(id)}`);
-  return data ? normalizeContact(data) : data;
+  if (!id) return null;
+  // If id is not numeric (e.g. 'CT26002632'), check dynamic/sample store first to avoid Spring Boot 500 error
+  if (typeof id === 'string' && !/^\d+$/.test(id)) {
+    try {
+      const dynamic = typeof window !== 'undefined' ? getDynamicContacts() : [];
+      const local = [...dynamic, ...SAMPLE_CONTACTS].find(c => String(c.id) === String(id) || String(c.code) === String(id));
+      if (local) return normalizeContact(local);
+    } catch (_) {}
+  }
+
+  const data = await request(`/contacts/${encodeURIComponent(id)}`).catch(() => null);
+  if (data) return normalizeContact(data);
+
+  try {
+    const dynamic = typeof window !== 'undefined' ? getDynamicContacts() : [];
+    const local = [...dynamic, ...SAMPLE_CONTACTS].find(c => String(c.id) === String(id) || String(c.code) === String(id));
+    if (local) return normalizeContact(local);
+  } catch (_) {}
+
+  return null;
 }
 
 export async function createContact(data) {
@@ -306,8 +335,25 @@ export async function getDeals(params = {}) {
 }
 
 export async function getDeal(id) {
-  const data = await request(`/deals/${encodeURIComponent(id)}`);
-  return data ? normalizeDeal(data) : data;
+  if (!id) return null;
+  if (typeof id === 'string' && !/^\d+$/.test(id)) {
+    try {
+      const dynamic = typeof window !== 'undefined' ? getDynamicDeals() : [];
+      const local = [...dynamic, ...SAMPLE_DEALS].find(d => String(d.id) === String(id) || String(d.code) === String(id));
+      if (local) return normalizeDeal(local);
+    } catch (_) {}
+  }
+
+  const data = await request(`/deals/${encodeURIComponent(id)}`).catch(() => null);
+  if (data) return normalizeDeal(data);
+
+  try {
+    const dynamic = typeof window !== 'undefined' ? getDynamicDeals() : [];
+    const local = [...dynamic, ...SAMPLE_DEALS].find(d => String(d.id) === String(id) || String(d.code) === String(id));
+    if (local) return normalizeDeal(local);
+  } catch (_) {}
+
+  return null;
 }
 
 export async function updateDeal(id, data) {
@@ -328,7 +374,25 @@ export async function getDocuments(params = {}) {
 }
 
 export async function getDocument(id) {
-  return await request(`/documents/${encodeURIComponent(id)}`);
+  if (!id) return null;
+  if (typeof id === 'string' && !/^\d+$/.test(id)) {
+    try {
+      const dynamic = typeof window !== 'undefined' ? getDynamicCustomerDocuments() : [];
+      const local = dynamic.find(d => String(d.id) === String(id) || String(d.code) === String(id));
+      if (local) return local;
+    } catch (_) {}
+  }
+
+  const data = await request(`/documents/${encodeURIComponent(id)}`).catch(() => null);
+  if (data) return data;
+
+  try {
+    const dynamic = typeof window !== 'undefined' ? getDynamicCustomerDocuments() : [];
+    const local = dynamic.find(d => String(d.id) === String(id) || String(d.code) === String(id));
+    if (local) return local;
+  } catch (_) {}
+
+  return null;
 }
 
 export async function addDocumentFile(docId, fileData) {
@@ -387,8 +451,25 @@ export async function getTickets(params = {}) {
 }
 
 export async function getTicket(id) {
-  const data = await request(`/tickets/${encodeURIComponent(id)}`);
-  return data ? normalizeTicket(data) : data;
+  if (!id) return null;
+  if (typeof id === 'string' && !/^\d+$/.test(id)) {
+    try {
+      const dynamic = typeof window !== 'undefined' ? getDynamicTickets() : [];
+      const local = [...dynamic, ...SAMPLE_TICKETS].find(t => String(t.id) === String(id) || String(t.code) === String(id));
+      if (local) return normalizeTicket(local);
+    } catch (_) {}
+  }
+
+  const data = await request(`/tickets/${encodeURIComponent(id)}`).catch(() => null);
+  if (data) return normalizeTicket(data);
+
+  try {
+    const dynamic = typeof window !== 'undefined' ? getDynamicTickets() : [];
+    const local = [...dynamic, ...SAMPLE_TICKETS].find(t => String(t.id) === String(id) || String(t.code) === String(id));
+    if (local) return normalizeTicket(local);
+  } catch (_) {}
+
+  return null;
 }
 
 export async function createTicket(data) {
@@ -419,8 +500,23 @@ export async function getTasks(params = {}) {
 }
 
 export async function getTask(id) {
-  const data = await request(`/tasks/${encodeURIComponent(id)}`);
-  return data ? normalizeTask(data) : data;
+  if (!id) return null;
+  if (typeof id === 'string' && !/^\d+$/.test(id)) {
+    try {
+      const local = (SAMPLE_TASKS || []).find(t => String(t.id) === String(id) || String(t.code) === String(id));
+      if (local) return normalizeTask(local);
+    } catch (_) {}
+  }
+
+  const data = await request(`/tasks/${encodeURIComponent(id)}`).catch(() => null);
+  if (data) return normalizeTask(data);
+
+  try {
+    const local = (SAMPLE_TASKS || []).find(t => String(t.id) === String(id) || String(t.code) === String(id));
+    if (local) return normalizeTask(local);
+  } catch (_) {}
+
+  return null;
 }
 
 export async function createTask(data) {
