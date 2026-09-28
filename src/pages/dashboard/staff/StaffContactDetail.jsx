@@ -39,7 +39,6 @@ export const AGENT_OPTIONS = [
   'The Best Rate Insurance',
   'Platform Staff',
   'Khanh Nguyen (khanhnguyen31@7)',
-  'Anya Nguyen (anya42@9)',
   'Sean Ngo (sean75@8)',
   'Sarah Thai (sarahthai20@1)',
   'Ivy Le (ivyle15@3)',
@@ -822,44 +821,75 @@ export default function StaffContactDetail({
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Contact Owner</label>
                         <div className="relative flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5 focus-within:border-blue-500 hover:border-slate-300 transition">
                           <div className="w-5 h-5 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
-                            {String(getPersonName(leadContactOwner, 'TB')).slice(0, 2).toUpperCase()}
+                            {leadContactOwner ? String(getPersonName(leadContactOwner, 'TB')).slice(0, 2).toUpperCase() : '--'}
                           </div>
                           <select
-                            value={getPersonName(leadContactOwner, 'The Best Rate Insurance')}
+                            value={leadContactOwner || ''}
                             onChange={(e) => setLeadContactOwner(e.target.value)}
-                            className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer"
+                            className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-12"
                           >
+                            <option value="">-- Chưa chọn --</option>
                             {AGENT_OPTIONS.map((opt) => (
                               <option key={opt} value={opt}>{opt}</option>
                             ))}
                           </select>
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                            {leadContactOwner && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setLeadContactOwner('');
+                                }}
+                                className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                                title="Xóa Contact Owner"
+                              >
+                                ✕
+                              </button>
+                            )}
+                            <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                            <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                          </div>
                         </div>
                       </div>
 
                       {/* 2. Lead Owner */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Lead Owner</label>
-                        <div className="flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5">
+                        <div className="relative flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5">
                           <div className="w-5 h-5 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
-                            {String(getPersonName(leadContactOwner, 'TB')).slice(0, 2).toUpperCase()}
+                            {leadContactOwner ? String(getPersonName(leadContactOwner, 'TB')).slice(0, 2).toUpperCase() : '--'}
                           </div>
                           <span className="flex-grow text-xs text-slate-800 truncate font-medium">
-                            {getPersonName(leadContactOwner, 'The Best Rate Insurance')}
+                            {leadContactOwner || '-- Chưa chọn --'}
                           </span>
+                          {leadContactOwner && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setLeadContactOwner('');
+                              }}
+                              className="text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa Lead Owner"
+                            >
+                              ✕
+                            </button>
+                          )}
                         </div>
                       </div>
-
 
                       {/* 4. How do you know us */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">How do you know us</label>
                         <div className="relative">
                           <select
-                            value={leadHowDoYouKnowUs || '---'}
+                            value={leadHowDoYouKnowUs || ''}
                             onChange={(e) => setLeadHowDoYouKnowUs(e.target.value)}
-                            className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                            className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                           >
-                            <option value="---">---</option>
+                            <option value="">---</option>
                             <option value="Facebook">Facebook</option>
                             <option value="Refer">Refer (Giới thiệu)</option>
                             <option value="Google">Google Search</option>
@@ -868,22 +898,50 @@ export default function StaffContactDetail({
                             <option value="Cold Call">Cold Call</option>
                             <option value="Website">Website</option>
                           </select>
-                          <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
-                            expand_more
-                          </span>
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                            {leadHowDoYouKnowUs && leadHowDoYouKnowUs !== '---' && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setLeadHowDoYouKnowUs('');
+                                }}
+                                className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                                title="Xóa"
+                              >
+                                ✕
+                              </button>
+                            )}
+                            <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                            <span className="material-symbols-outlined text-[16px] pointer-events-none">
+                              expand_more
+                            </span>
+                          </div>
                         </div>
                       </div>
 
                       {/* 5. Who refer client */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Who refer client</label>
-                        <input
-                          type="text"
-                          value={leadWhoRefer}
-                          onChange={(e) => setLeadWhoRefer(e.target.value)}
-                          placeholder="Referral name or note..."
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={leadWhoRefer}
+                            onChange={(e) => setLeadWhoRefer(e.target.value)}
+                            placeholder="Referral name or note..."
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {leadWhoRefer && (
+                            <button
+                              type="button"
+                              onClick={() => setLeadWhoRefer('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -933,25 +991,49 @@ export default function StaffContactDetail({
                       {/* Enrolled Address */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Enrolled Address</label>
-                        <input
-                          type="text"
-                          value={enrolledAddress}
-                          onChange={(e) => setEnrolledAddress(e.target.value)}
-                          placeholder="e.g. 4301 Laurel Pond Way, Raleigh, NC 27616"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={enrolledAddress}
+                            onChange={(e) => setEnrolledAddress(e.target.value)}
+                            placeholder="e.g. 4301 Laurel Pond Way, Raleigh, NC 27616"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {enrolledAddress && (
+                            <button
+                              type="button"
+                              onClick={() => setEnrolledAddress('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Mailing Address */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Mailing Address</label>
-                        <input
-                          type="text"
-                          value={mailingAddress}
-                          onChange={(e) => setMailingAddress(e.target.value)}
-                          placeholder="e.g. 4301 Laurel Pond Way, Raleigh, NC 27616"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={mailingAddress}
+                            onChange={(e) => setMailingAddress(e.target.value)}
+                            placeholder="e.g. 4301 Laurel Pond Way, Raleigh, NC 27616"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {mailingAddress && (
+                            <button
+                              type="button"
+                              onClick={() => setMailingAddress('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* State */}
@@ -970,10 +1052,22 @@ export default function StaffContactDetail({
                             <option value="Florida (FL)">Florida (FL)</option>
                             <option value="Georgia (GA)">Georgia (GA)</option>
                           </select>
-                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400 pointer-events-none">
-                            <span className="text-[12px]">✕</span>
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                            {contactState && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setContactState('');
+                                }}
+                                className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                                title="Xóa"
+                              >
+                                ✕
+                              </button>
+                            )}
                             <span className="h-3 w-px bg-slate-200 mx-0.5" />
-                            <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                            <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
                           </div>
                         </div>
                       </div>
@@ -981,49 +1075,97 @@ export default function StaffContactDetail({
                       {/* Street Address */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Street Address</label>
-                        <input
-                          type="text"
-                          value={streetAddress}
-                          onChange={(e) => setStreetAddress(e.target.value)}
-                          placeholder="e.g. 4301 Laurel Pond Way"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={streetAddress}
+                            onChange={(e) => setStreetAddress(e.target.value)}
+                            placeholder="e.g. 4301 Laurel Pond Way"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {streetAddress && (
+                            <button
+                              type="button"
+                              onClick={() => setStreetAddress('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* City */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">City</label>
-                        <input
-                          type="text"
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          placeholder="e.g. Raleigh"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            placeholder="e.g. Raleigh"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {city && (
+                            <button
+                              type="button"
+                              onClick={() => setCity('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Postal Code */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Postal Code</label>
-                        <input
-                          type="text"
-                          value={postalCode}
-                          onChange={(e) => setPostalCode(e.target.value)}
-                          placeholder="e.g. 27616"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={postalCode}
+                            onChange={(e) => setPostalCode(e.target.value)}
+                            placeholder="e.g. 27616"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {postalCode && (
+                            <button
+                              type="button"
+                              onClick={() => setPostalCode('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* County */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">County</label>
-                        <input
-                          type="text"
-                          value={county}
-                          onChange={(e) => setCounty(e.target.value)}
-                          placeholder="e.g. Wake"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={county}
+                            onChange={(e) => setCounty(e.target.value)}
+                            placeholder="e.g. Wake"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {county && (
+                            <button
+                              type="button"
+                              onClick={() => setCounty('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Language* */}
@@ -1035,15 +1177,30 @@ export default function StaffContactDetail({
                           <select
                             value={contactLanguage}
                             onChange={(e) => setContactLanguage(e.target.value)}
-                            className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                            className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                           >
+                            <option value="">--</option>
                             <option value="Vietnamese">Vietnamese</option>
                             <option value="English">English</option>
                             <option value="Bilingual">Bilingual</option>
                           </select>
-                          <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
-                            expand_more
-                          </span>
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                            {contactLanguage && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setContactLanguage('');
+                                }}
+                                className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                                title="Xóa"
+                              >
+                                ✕
+                              </button>
+                            )}
+                            <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                            <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                          </div>
                         </div>
                       </div>
 
@@ -1081,13 +1238,25 @@ export default function StaffContactDetail({
                       {/* The Best Rate Ins Email */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">The Best Rate Ins Email</label>
-                        <input
-                          type="email"
-                          value={theBestRateEmail}
-                          onChange={(e) => setTheBestRateEmail(e.target.value)}
-                          placeholder="e.g. agent@thebestrate.com"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="email"
+                            value={theBestRateEmail}
+                            onChange={(e) => setTheBestRateEmail(e.target.value)}
+                            placeholder="e.g. agent@thebestrate.com"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {theBestRateEmail && (
+                            <button
+                              type="button"
+                              onClick={() => setTheBestRateEmail('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* ACA Account Status - Normal state (Matching Image 3) */}
@@ -1171,31 +1340,55 @@ export default function StaffContactDetail({
                       {/* Aca Account */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Aca Account</label>
-                        <input
-                          type="text"
-                          name="crm_contact_aca_acc"
-                          autoComplete="off"
-                          data-lpignore="true"
-                          value={acaAccount}
-                          onChange={(e) => setAcaAccount(e.target.value)}
-                          placeholder="e.g. client@gmail.com"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            name="crm_contact_aca_acc"
+                            autoComplete="off"
+                            data-lpignore="true"
+                            value={acaAccount}
+                            onChange={(e) => setAcaAccount(e.target.value)}
+                            placeholder="e.g. client@gmail.com"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500"
+                          />
+                          {acaAccount && (
+                            <button
+                              type="button"
+                              onClick={() => setAcaAccount('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Aca Pass */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Aca Pass</label>
-                        <input
-                          type="text"
-                          name="crm_contact_aca_pwd"
-                          autoComplete="off"
-                          data-lpignore="true"
-                          value={acaPass}
-                          onChange={(e) => setAcaPass(e.target.value)}
-                          placeholder="e.g. Thebest@2026"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            name="crm_contact_aca_pwd"
+                            autoComplete="off"
+                            data-lpignore="true"
+                            value={acaPass}
+                            onChange={(e) => setAcaPass(e.target.value)}
+                            placeholder="e.g. Thebest@2026"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500"
+                          />
+                          {acaPass && (
+                            <button
+                              type="button"
+                              onClick={() => setAcaPass('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* ACA Account Status - Special States */}
@@ -1205,47 +1398,85 @@ export default function StaffContactDetail({
                           <select
                             value={acaStatusSpecial}
                             onChange={(e) => setAcaStatusSpecial(e.target.value)}
-                            className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                            className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                           >
                             <option value="">--</option>
                             <option value="Active">Active</option>
                             <option value="Inactive">Inactive</option>
                             <option value="Pending">Pending</option>
                           </select>
-                          <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
-                            expand_more
-                          </span>
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                            {acaStatusSpecial && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setAcaStatusSpecial('');
+                                }}
+                                className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                                title="Xóa"
+                              >
+                                ✕
+                              </button>
+                            )}
+                            <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                            <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                          </div>
                         </div>
                       </div>
 
                       {/* ACA Account - Special States */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">ACA Account - Special States</label>
-                        <input
-                          type="text"
-                          name="crm_contact_aca_spec_acc"
-                          autoComplete="off"
-                          data-lpignore="true"
-                          value={acaAccountSpecial}
-                          onChange={(e) => setAcaAccountSpecial(e.target.value)}
-                          placeholder="e.g. client.special@state.gov"
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            name="crm_contact_aca_spec_acc"
+                            autoComplete="off"
+                            data-lpignore="true"
+                            value={acaAccountSpecial}
+                            onChange={(e) => setAcaAccountSpecial(e.target.value)}
+                            placeholder="e.g. client.special@state.gov"
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {acaAccountSpecial && (
+                            <button
+                              type="button"
+                              onClick={() => setAcaAccountSpecial('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* ACA Account Password - Special Stat... */}
                       <div>
                         <label className="block text-slate-800 font-semibold mb-1 text-[11px]">ACA Account Password - Special Stat...</label>
-                        <input
-                          type="password"
-                          name="crm_contact_aca_spec_pwd"
-                          autoComplete="new-password"
-                          data-lpignore="true"
-                          value={acaPassSpecial}
-                          onChange={(e) => setAcaPassSpecial(e.target.value)}
-                          placeholder=""
-                          className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="password"
+                            name="crm_contact_aca_spec_pwd"
+                            autoComplete="new-password"
+                            data-lpignore="true"
+                            value={acaPassSpecial}
+                            onChange={(e) => setAcaPassSpecial(e.target.value)}
+                            placeholder=""
+                            className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                          />
+                          {acaPassSpecial && (
+                            <button
+                              type="button"
+                              onClick={() => setAcaPassSpecial('')}
+                              className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                              title="Xóa"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Enroll Call Rep */}
@@ -1255,15 +1486,29 @@ export default function StaffContactDetail({
                           <select
                             value={enrollCallRep}
                             onChange={(e) => setEnrollCallRep(e.target.value)}
-                            className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                            className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                           >
                             <option value="">--</option>
                             <option value="Rep 1">Agent Rep 1</option>
                             <option value="Rep 2">Agent Rep 2</option>
                           </select>
-                          <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
-                            expand_more
-                          </span>
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                            {enrollCallRep && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setEnrollCallRep('');
+                                }}
+                                className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                                title="Xóa"
+                              >
+                                ✕
+                              </button>
+                            )}
+                            <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                            <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                          </div>
                         </div>
                       </div>
                     </div>
