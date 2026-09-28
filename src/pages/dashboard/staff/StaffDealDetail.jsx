@@ -1871,63 +1871,49 @@ export default function StaffDealDetail({
                     <button
                       type="button"
                       onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
-                      className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left"
+                      className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left truncate"
                     >
-                      Nhat H Dang
+                      {deal?.contactName || 'Hai Nguyen'}
                     </button>
                   </div>
 
-                  <div className="space-y-1 pt-1 text-[11px]">
-                    <div
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
-                      className="flex items-center justify-between py-1 px-1.5 rounded hover:bg-slate-50 transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-1.5 text-slate-600">
-                        <span className="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">description</span>
-                        <span>Identity</span>
-                      </div>
-                      <span className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] flex items-center justify-center">
-                        3
-                      </span>
+                  {(deal?.customerDocuments?.length > 0 || deal?.hasDocs) ? (
+                    <div className="space-y-1 pt-1 text-[11px]">
+                      {(deal?.customerDocuments || [
+                        { name: 'Identity', count: 3 },
+                        { name: 'Consent Form Text', count: 1 },
+                        { name: 'Payment Information', count: 1 },
+                      ]).map((cat) => (
+                        <div
+                          key={cat.name}
+                          onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(cat)}
+                          className="flex items-center justify-between py-1 px-1.5 rounded hover:bg-slate-50 transition cursor-pointer"
+                        >
+                          <div className="flex items-center gap-1.5 text-slate-600">
+                            <span className="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">description</span>
+                            <span>{cat.name}</span>
+                          </div>
+                          <span className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] flex items-center justify-center">
+                            {cat.count}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-
-                    <div
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
-                      className="flex items-center justify-between py-1 px-1.5 rounded hover:bg-slate-50 transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-1.5 text-slate-600">
-                        <span className="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">description</span>
-                        <span>Consent Form Text</span>
-                      </div>
-                      <span className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] flex items-center justify-center">
-                        1
-                      </span>
+                  ) : (
+                    /* Exact match to media_1790575754874.png */
+                    <div className="border border-dashed border-slate-200 rounded-lg py-5 px-3 text-center bg-[#F8FAFC]">
+                      <span className="text-slate-400 italic text-xs">No files attached</span>
                     </div>
-
-                    <div
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
-                      className="flex items-center justify-between py-1 px-1.5 rounded hover:bg-slate-50 transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-1.5 text-slate-600">
-                        <span className="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">description</span>
-                        <span>Payment Information</span>
-                      </div>
-                      <span className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] flex items-center justify-center">
-                        1
-                      </span>
-                    </div>
-                  </div>
+                  )}
 
                   <div className="border-t border-slate-100 pt-2 mt-1 flex items-center justify-between text-[10px] text-slate-400">
                     <div className="flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">calendar_today</span>
                       <span className="uppercase font-semibold">LAST UPDATE:</span>
-                      <span className="font-bold text-[#0F2962]">09/11/2026</span>
+                      <span className="font-bold text-[#0F2962]">{(deal?.customerDocuments?.length > 0 || deal?.hasDocs) ? '09/11/2026' : '09/27/2026'}</span>
                     </div>
-                    <span>17:45</span>
+                    <span>{(deal?.customerDocuments?.length > 0 || deal?.hasDocs) ? '17:45' : '10:07'}</span>
                   </div>
                 </div>
               </div>

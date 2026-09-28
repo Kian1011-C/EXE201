@@ -7,6 +7,7 @@ import {
   MEDICARE_DEAL_STAGES,
 } from '../../../data/mockCrmData';
 import { createTicket } from '../../../services/api';
+import AddDealModal from './AddDealModal';
 
 export const ACA_ACCOUNT_STATUS_OPTIONS = [
   'Need Create ACA Account',
@@ -138,12 +139,47 @@ export default function StaffContactDetail({
 
   // Create Deal modal state
   const [showCreateDealModal, setShowCreateDealModal] = useState(false);
-  const [newDealTitle, setNewDealTitle] = useState('');
-  const [newDealPipeline, setNewDealPipeline] = useState('Obamacare 2026');
-  const [newDealStage, setNewDealStage] = useState('Ready to Enroll (Obamacare 2026)');
-  const [newDealCarrier, setNewDealCarrier] = useState('BCBS');
-  const [newDealState, setNewDealState] = useState('North Carolina (NC)');
-  const [newDealNeedUpload, setNewDealNeedUpload] = useState('No');
+
+  // Customer Documents state (empty for clean contacts, populated for sample contacts)
+  const [customerDocuments, setCustomerDocuments] = useState(() => {
+    if (contact?.customerDocuments && contact.customerDocuments.length > 0) {
+      return contact.customerDocuments;
+    }
+    if (contact?.fullName === '123 123' || contact?.hasDocs) {
+      return [
+        { name: 'Identity', count: 3 },
+        { name: 'Consent Form Text', count: 1 },
+        { name: 'Payment Information', count: 1 },
+      ];
+    }
+    return [];
+  });
+  const [showAddDocModal, setShowAddDocModal] = useState(false);
+  const [newDocCategory, setNewDocCategory] = useState('Identity');
+  const [newDocFileName, setNewDocFileName] = useState('');
+  const [docLastUpdate, setDocLastUpdate] = useState(() => {
+    if (contact?.fullName === '123 123') return { date: '09/11/2026', time: '17:45' };
+    return { date: '09/27/2026', time: '10:07' };
+  });
+
+  function handleAddDocument(e) {
+    e.preventDefault();
+    setCustomerDocuments((prev) => {
+      const existing = prev.find((d) => d.name === newDocCategory);
+      if (existing) {
+        return prev.map((d) => (d.name === newDocCategory ? { ...d, count: d.count + 1 } : d));
+      } else {
+        return [...prev, { name: newDocCategory, count: 1 }];
+      }
+    });
+    const now = new Date();
+    const dStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}/${now.getFullYear()}`;
+    const tStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    setDocLastUpdate({ date: dStr, time: tStr });
+    setShowAddDocModal(false);
+    setNewDocFileName('');
+    showToast(`Đã đính kèm tài liệu vào mục ${newDocCategory}!`);
+  }
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState('');
@@ -232,121 +268,6 @@ export default function StaffContactDetail({
         },
       });
     }
-  }
-
-  function handleCreateDealForContact(e) {
-    e.preventDefault();
-    const cName = [primaryFirstName, primaryMiddleName, primaryLastName].filter(Boolean).join(' ') || contact?.fullName || 'Khách hàng';
-    const dTitle = newDealTitle.trim() || `Non-CMS - ${cName} - OB 10/2026 (NC)`;
-    const newCode = `D2600${Math.floor(5000 + Math.random() * 900)}`;
-
-    const newDealRecord = {
-      id: newCode,
-      code: newCode,
-      title: dTitle,
-      shortTitle: dTitle.length > 25 ? `${dTitle.slice(0, 22)}...` : dTitle,
-      pipeline: newDealPipeline,
-      stage: newDealStage,
-      carrier: newDealCarrier,
-      sellingState: newDealState,
-      dealOwner: leadContactOwner,
-      contactName: cName,
-      contactId: contact?.id || contact?.code || '',
-      needUpload: newDealNeedUpload,
-      uploadRequest: newDealNeedUpload === 'Yes',
-      isNew: true,
-      amount: '',
-      closeDate: '',
-      planName: '',
-      monthlyPremium: '',
-      subsidyAmount: '',
-      agencyCommission: '',
-      holderOfPolicy: '',
-      policyEffectiveDate: '',
-      commissionAvailDate: '',
-      paymentStatus: '',
-      chooseDoctorStatus: '',
-      doctorName: '',
-      deadlineUploadDocs: '',
-      householdInfo: '',
-      payThruDate: '',
-      stageAca: '',
-      consentFormStatus: '',
-      primaryMemberId: '',
-      activities: [
-        {
-          id: `act-${Date.now()}`,
-          type: 'Deal Created',
-          time: new Date().toLocaleString(),
-          actor: 'Platform Staff',
-          summary: `Created deal: ${dTitle}`,
-        },
-      ],
-      notes: [],
-      tasks: [],
-      stageHistory: [
-        {
-          from: 'Created',
-          to: newDealStage,
-          date: new Date().toLocaleString(),
-          user: leadContactOwner,
-        },
-      ],
-    };
-
-    let updatedTickets = [...contactTickets];
-    // Quy trình: Nếu Need upload = Yes -> tự động xuất ticket upload documents!
-    if (newDealNeedUpload === 'Yes') {
-      const uploadTicket = {
-        id: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
-        code: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
-        title: `Upload documents - ${dTitle}`,
-        pipeline: 'Upload document',
-        stage: 'Waiting on verification',
-        status: 'Open',
-        priority: 'High',
-        category: 'Upload Document',
-        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-          month: '2-digit',
-          day: '2-digit',
-          year: 'numeric',
-        }),
-        ticketOwner: leadContactOwner,
-        serviceAgent: leadSupportAgent,
-        contactName: cName,
-        contactId: contact?.id || contact?.code || '',
-        dealId: newCode,
-        dealTitle: dTitle,
-        carrier: newDealCarrier,
-        createdAt: new Date().toISOString(),
-        activities: [],
-        comments: [],
-      };
-      createTicket(uploadTicket).catch(() => {});
-      addTicketToStore(uploadTicket);
-      updatedTickets = [uploadTicket, ...updatedTickets];
-      setContactTickets(updatedTickets);
-      logActivity('Ticket Created', `Tự động xuất ticket: ${uploadTicket.title} (Upload document)`);
-    }
-
-    addDealToStore(newDealRecord);
-    const updatedDeals = [newDealRecord, ...contactDeals];
-    setContactDeals(updatedDeals);
-
-    if (onUpdateContact) {
-      onUpdateContact({
-        ...contact,
-        associatedDeals: updatedDeals,
-        associatedTickets: updatedTickets,
-      });
-    }
-
-    setShowCreateDealModal(false);
-    showToast(
-      newDealNeedUpload === 'Yes'
-        ? `Đã tạo Deal và tự động xuất Ticket Upload document cho ${cName}!`
-        : `Đã tạo Deal thành công cho ${cName} (Không xuất ticket upload)!`
-    );
   }
 
   function logActivity(type, summary, linkText = '', dealId = null) {
@@ -2129,7 +2050,7 @@ export default function StaffContactDetail({
               <div className="flex items-center gap-2 text-slate-500">
                 <button
                   type="button"
-                  onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
+                  onClick={() => setShowAddDocModal(true)}
                   title="Add document"
                   className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
                 >
@@ -2159,72 +2080,47 @@ export default function StaffContactDetail({
                       onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
                       className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left truncate"
                     >
-                      {currentFullName}
+                      {currentFullName || 'Hai Nguyen'}
                     </button>
                   </div>
 
-                  {/* Document categories tree */}
-                  <div className="space-y-1 pt-1">
-                    {/* Item 1: Identity */}
-                    <div
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
-                      className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 text-slate-600 group-hover:text-blue-700">
-                        <span className="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
-                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600">
-                          description
-                        </span>
-                        <span className="text-xs font-medium">Identity</span>
-                      </div>
-                      <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] flex items-center justify-center">
-                        3
-                      </span>
+                  {/* Document categories tree OR empty dashed box */}
+                  {customerDocuments.length > 0 ? (
+                    <div className="space-y-1 pt-1">
+                      {customerDocuments.map((doc) => (
+                        <div
+                          key={doc.name}
+                          onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(doc)}
+                          className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 transition cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-2 text-slate-600 group-hover:text-blue-700">
+                            <span className="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
+                            <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600">
+                              description
+                            </span>
+                            <span className="text-xs font-medium">{doc.name}</span>
+                          </div>
+                          <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] flex items-center justify-center">
+                            {doc.count}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-
-                    {/* Item 2: Consent Form Text */}
-                    <div
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
-                      className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 text-slate-600 group-hover:text-blue-700">
-                        <span className="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
-                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600">
-                          description
-                        </span>
-                        <span className="text-xs font-medium">Consent Form Text</span>
-                      </div>
-                      <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] flex items-center justify-center">
-                        1
-                      </span>
+                  ) : (
+                    /* Exact match to media_1790575754874.png */
+                    <div className="border border-dashed border-slate-200 rounded-lg py-5 px-3 text-center bg-[#F8FAFC]">
+                      <span className="text-slate-400 italic text-xs">No files attached</span>
                     </div>
-
-                    {/* Item 3: Payment Information */}
-                    <div
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
-                      className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 transition cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 text-slate-600 group-hover:text-blue-700">
-                        <span className="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
-                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600">
-                          description
-                        </span>
-                        <span className="text-xs font-medium">Payment Information</span>
-                      </div>
-                      <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] flex items-center justify-center">
-                        1
-                      </span>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Card Footer: LAST UPDATE */}
                   <div className="border-t border-slate-100 pt-2 mt-1 flex items-center justify-between text-[11px] text-slate-400">
                     <div className="flex items-center gap-1 text-[10px]">
                       <span className="material-symbols-outlined text-[13px] text-slate-400">calendar_today</span>
                       <span className="uppercase text-slate-400 font-semibold tracking-wider">LAST UPDATE:</span>
-                      <span className="font-bold text-[#0F2962]">09/11/2026</span>
+                      <span className="font-bold text-[#0F2962]">{docLastUpdate.date}</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">17:45</span>
+                    <span className="text-[10px] text-slate-400">{docLastUpdate.time}</span>
                   </div>
                 </div>
               </div>
@@ -3023,178 +2919,102 @@ export default function StaffContactDetail({
         </div>
       )}
 
-      {/* ── Create Deal Modal for Contact ────────────────────────────── */}
-      {showCreateDealModal && (
+      {/* ── Add Customer Document Modal ── */}
+      {showAddDocModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-lg overflow-hidden animate-scale-in">
-            {/* Modal Header */}
-            <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-sm overflow-hidden animate-scale-in">
+            <div className="px-4 py-3 bg-[#183968] text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#104882]/10 text-[#104882] flex items-center justify-center font-bold">
-                  <span className="material-symbols-outlined text-[18px]">handshake</span>
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">Tạo Deal mới</h3>
-                  <p className="text-[11px] text-slate-500">Liên hệ: <strong className="text-slate-700">{currentFullName}</strong></p>
-                </div>
+                <span className="material-symbols-outlined text-[17px]">upload_file</span>
+                <h3 className="text-xs font-bold uppercase tracking-wide">Attach Customer Document</h3>
               </div>
               <button
                 type="button"
-                onClick={() => setShowCreateDealModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-md transition cursor-pointer"
+                onClick={() => setShowAddDocModal(false)}
+                className="text-white/80 hover:text-white cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
-
-            {/* Modal Form */}
-            <form onSubmit={handleCreateDealForContact} className="p-5 space-y-3.5 text-xs">
-              {/* Deal Name */}
+            <form onSubmit={handleAddDocument} className="p-4 space-y-3 text-xs">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                  Deal Name <span className="text-rose-500">*</span>
+                  Document Category <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={newDocCategory}
+                  onChange={(e) => setNewDocCategory(e.target.value)}
+                  className="w-full px-3 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="Identity">Identity (ID / Passport / Driver License)</option>
+                  <option value="Consent Form Text">Consent Form Text</option>
+                  <option value="Payment Information">Payment Information</option>
+                  <option value="Income Proof">Income Proof (W2, 1040)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
+                  File / Description (Optional)
                 </label>
                 <input
                   type="text"
-                  required
-                  value={newDealTitle}
-                  onChange={(e) => setNewDealTitle(e.target.value)}
-                  placeholder={`e.g. Non-CMS - ${currentFullName} - OB 2026`}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-xs font-medium"
+                  value={newDocFileName}
+                  onChange={(e) => setNewDocFileName(e.target.value)}
+                  placeholder="e.g. passport_scan.pdf"
+                  className="w-full px-3 py-2 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500"
                 />
               </div>
-
-              {/* Carrier & Pipeline */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Carrier <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={newDealCarrier}
-                    onChange={(e) => setNewDealCarrier(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs font-semibold text-blue-700 cursor-pointer"
-                  >
-                    <option value="BCBS">BCBS</option>
-                    <option value="Ambetter">Ambetter</option>
-                    <option value="UnitedHealthcare">UnitedHealthcare</option>
-                    <option value="Oscar">Oscar</option>
-                    <option value="Molina Healthcare">Molina Healthcare</option>
-                    <option value="Kaiser Permanente">Kaiser Permanente</option>
-                    <option value="Aetna">Aetna</option>
-                    <option value="Cigna">Cigna</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Pipeline <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={newDealPipeline}
-                    onChange={(e) => {
-                      const pl = e.target.value;
-                      setNewDealPipeline(pl);
-                      setNewDealStage(pl.includes('Medicare') ? MEDICARE_DEAL_STAGES[0] : OBAMACARE_DEAL_STAGES[0]);
-                    }}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs cursor-pointer"
-                  >
-                    <option value="Obamacare 2026">Obamacare 2026</option>
-                    <option value="Medicare 2026">Medicare 2026</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Stage & State */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Stage <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={newDealStage}
-                    onChange={(e) => setNewDealStage(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs cursor-pointer"
-                  >
-                    {(newDealPipeline.includes('Medicare')
-                      ? MEDICARE_DEAL_STAGES
-                      : OBAMACARE_DEAL_STAGES
-                    ).map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Selling State <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={newDealState}
-                    onChange={(e) => setNewDealState(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs cursor-pointer"
-                  >
-                    <option value="North Carolina (NC)">North Carolina (NC)</option>
-                    <option value="Texas (TX)">Texas (TX)</option>
-                    <option value="California (CA)">California (CA)</option>
-                    <option value="Georgia (GA)">Georgia (GA)</option>
-                    <option value="Florida (FL)">Florida (FL)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Need Upload field (Quy trình: Yes -> xuất ticket upload, No -> không xuất) */}
-              <div className="pt-1">
-                <label className="block text-slate-800 font-bold mb-1 text-[11px] flex items-center justify-between">
-                  <span>Need Upload Documents <span className="text-rose-500">*</span></span>
-                  {newDealNeedUpload === 'Yes' && (
-                    <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
-                      ⚡ Sẽ xuất Ticket Upload
-                    </span>
-                  )}
-                </label>
-                <select
-                  value={newDealNeedUpload}
-                  onChange={(e) => setNewDealNeedUpload(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition ${
-                    newDealNeedUpload === 'Yes'
-                      ? 'border-amber-400 bg-amber-50 text-amber-900 ring-1 ring-amber-400/30'
-                      : 'border-slate-200 bg-white text-slate-800'
-                  }`}
-                >
-                  <option value="No">No (Không upload tài liệu - Không xuất ticket)</option>
-                  <option value="Yes">Yes (Cần upload tài liệu - Tự động xuất ticket Upload document)</option>
-                </select>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  {newDealNeedUpload === 'Yes'
-                    ? '⚡ Tự động tạo 1 Ticket Upload document gửi cho Platform Staff xác nhận tài liệu Marketplace.'
-                    : '✓ Tạo Deal sạch thông thường, không phát sinh ticket upload.'}
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-2.5">
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowCreateDealModal(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer font-medium"
+                  onClick={() => setShowAddDocModal(false)}
+                  className="px-3 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium cursor-pointer"
                 >
-                  Huỷ
+                  Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-[#104882] text-white hover:bg-blue-700 cursor-pointer font-bold shadow-xs flex items-center gap-1.5"
+                  className="px-4 py-1.5 rounded bg-[#183968] text-white hover:bg-[#122b50] font-bold cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[16px]">save</span>
-                  <span>Tạo Deal</span>
+                  Attach File
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* ── Create Deal Modal Matching media_1790575726166.png ── */}
+      <AddDealModal
+        isOpen={showCreateDealModal}
+        onClose={() => setShowCreateDealModal(false)}
+        initialContactName={currentFullName}
+        initialContactId={contact?.id || contact?.code || ''}
+        membersList={membersList}
+        onDealCreated={(newDeal, uploadTicket) => {
+          const updatedDeals = [newDeal, ...contactDeals];
+          setContactDeals(updatedDeals);
+          let updatedTickets = contactTickets;
+          if (uploadTicket) {
+            updatedTickets = [uploadTicket, ...contactTickets];
+            setContactTickets(updatedTickets);
+            logActivity('Ticket Created', `Tự động xuất ticket: ${uploadTicket.title} (Upload document)`);
+          }
+          logActivity('Deal Created', `Tạo deal mới: ${newDeal.title}`);
+          if (onUpdateContact) {
+            onUpdateContact({
+              ...contact,
+              associatedDeals: updatedDeals,
+              associatedTickets: updatedTickets,
+            });
+          }
+          showToast(
+            newDeal.needUpload === 'Yes'
+              ? `Đã tạo Deal và tự động xuất Ticket Upload document cho ${currentFullName}!`
+              : `Đã tạo Deal thành công cho ${currentFullName}!`
+          );
+        }}
+      />
     </div>
   );
 }

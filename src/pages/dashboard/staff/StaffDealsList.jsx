@@ -9,6 +9,7 @@ import {
 } from '../../../data/mockCrmData';
 import { getDeals, updateDeal, createTicket } from '../../../services/api';
 import StaffDealsKanban from './StaffDealsKanban';
+import AddDealModal from './AddDealModal';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterDealsForAgent, getAgentIdentity } from '../../../utils/rbac';
 
@@ -56,18 +57,6 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   useEffect(() => {
     loadDealsData();
   }, []);
-
-  // Form state for Create Deal
-  const [dealTitle, setDealTitle] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [pipeline, setPipeline] = useState('Obamacare 2026');
-  const [stage, setStage] = useState('Ready to Enroll (Obamacare 2026)');
-  const [carrier, setCarrier] = useState('BCBS');
-  const [sellingState, setSellingState] = useState('North Carolina (NC)');
-  const [dealOwner, setDealOwner] = useState('Khanh Nguyen');
-  const [amount, setAmount] = useState('_ _ _ _ _ _ _ _ _ _');
-  const [closeDate, setCloseDate] = useState('_ _ _ _ _ _ _ _ _ _');
-  const [needUpload, setNeedUpload] = useState('No');
 
   function showToast(msg) {
     setToastMessage(msg);
@@ -226,121 +215,6 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
       ...prev,
       [colId]: !prev[colId],
     }));
-  }
-
-
-  // Handle Create Deal Submit
-  function handleCreateSubmit(e) {
-    e.preventDefault();
-    if (!dealTitle.trim()) {
-      showToast('Please enter Deal title');
-      return;
-    }
-
-    const newCode = `D2600${Math.floor(5000 + Math.random() * 900)}`;
-    const cName = contactName.trim() || 'Client';
-
-    const newDeal = {
-      id: newCode,
-      no: dealsList.length + 1,
-      code: newCode,
-      title: dealTitle.trim(),
-      contactName: cName,
-      contactId: 'CT26002600',
-      pipeline: pipeline,
-      stage: stage,
-      stageBadge: stage.includes('Ready') ? 'Ready to Enroll' : stage.slice(0, 15),
-      stageColor: 'bg-blue-50 text-blue-700 border-blue-200',
-      carrier: carrier,
-      planName: '',
-      amount: amount.trim() || '_ _ _ _ _ _ _ _ _ _',
-      closeDate: closeDate.trim() || '_ _ _ _ _ _ _ _ _ _',
-      sellingState: sellingState,
-      uploadRequest: needUpload === 'Yes',
-      needUpload: needUpload,
-      dealOwner: {
-        name: dealOwner,
-        avatar: dealOwner.slice(0, 2).toUpperCase(),
-        bg: 'bg-blue-600 text-white',
-      },
-      lastModifiedBy: {
-        name: 'Anya Nguyen',
-        avatar: 'AN',
-        bg: 'bg-teal-600 text-white',
-      },
-      lastModifiedTime: 'Just now',
-      adminOnly: {
-        enrolledNpn: 'Anh Que Pham 20011862',
-        brokerEffectiveDate: '2026-09-09',
-        terminationDate: '2027-12-31',
-        leadOwner: `${dealOwner} (khanhnguyen31@7)`,
-        dealOwner: `${dealOwner} (khanhnguyen31@7)`,
-        supportAgent: 'Anya Nguyen (anya42@9)',
-        code: newCode,
-        primaryMemberId: 'MID-' + Math.floor(10000000 + Math.random() * 90000000),
-        saleSupportStatus: 'None',
-        numberMember: 1,
-        sellingState: sellingState,
-        carrier: carrier,
-        closedLostReason: '---',
-      },
-      activities: [
-        {
-          id: `act-${Date.now()}`,
-          type: 'Deal Created',
-          time: new Date().toLocaleString(),
-          actor: 'Platform Staff',
-          summary: `Created deal: ${dealTitle.trim()}`,
-        },
-      ],
-      notes: [],
-      tasks: [],
-      associatedTickets: [],
-    };
-
-    // Quy trình: Nếu Need upload = Yes -> tự động xuất ticket upload documents
-    if (needUpload === 'Yes') {
-      const uploadTicket = {
-        id: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
-        code: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
-        title: `Upload documents - ${newDeal.title}`,
-        pipeline: 'Upload document',
-        stage: 'Waiting on verification',
-        status: 'Open',
-        priority: 'High',
-        category: 'Upload Document',
-        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-          month: '2-digit',
-          day: '2-digit',
-          year: 'numeric',
-        }),
-        ticketOwner: dealOwner,
-        serviceAgent: 'Platform Staff',
-        contactName: cName,
-        contactId: 'CT26002600',
-        dealId: newCode,
-        dealTitle: newDeal.title,
-        carrier: carrier,
-        createdAt: new Date().toISOString(),
-        activities: [],
-        comments: [],
-      };
-      createTicket(uploadTicket).catch(() => {});
-      addTicketToStore(uploadTicket);
-      newDeal.associatedTickets = [uploadTicket];
-    }
-
-    addDealToStore(newDeal);
-    setDealsList([newDeal, ...dealsList]);
-    setShowCreateModal(false);
-    setDealTitle('');
-    setContactName('');
-    setNeedUpload('No');
-    showToast(
-      needUpload === 'Yes'
-        ? `Đã tạo Deal ${newDeal.code} và tự động xuất Ticket Upload document!`
-        : `Đã tạo Deal ${newDeal.code} thành công (Không xuất ticket upload)!`
-    );
   }
 
   return (
@@ -920,191 +794,19 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         </div>
       )}
 
-      {/* ── 5. Create Deal Modal ─────────────────────────────────────────── */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-fade-in border border-slate-200">
-            {/* Modal Header */}
-            <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[20px]">handshake</span>
-                </div>
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900">Create Deal</h2>
-                  <p className="text-[11px] text-slate-500">Fill in the deal information below</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCreateModal(false)}
-                className="w-7 h-7 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-3.5 text-xs">
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                  Deal Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={dealTitle}
-                  onChange={(e) => setDealTitle(e.target.value)}
-                  placeholder="e.g. Non-CMS - Nhat H Dang - OB 10/2026 (NC)"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Associated Contact
-                  </label>
-                  <input
-                    type="text"
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    placeholder="e.g. Nhat Huu Tuan Dang"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Carrier <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={carrier}
-                    onChange={(e) => setCarrier(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs font-semibold text-blue-700"
-                  >
-                    <option>BCBS</option>
-                    <option>Ambetter</option>
-                    <option>UnitedHealthcare</option>
-                    <option>Oscar</option>
-                    <option>Molina Healthcare</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Pipeline <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={pipeline}
-                    onChange={(e) => setPipeline(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs"
-                  >
-                    <option>Obamacare 2026</option>
-                    <option>Medicare 2026</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Stage <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={stage}
-                    onChange={(e) => setStage(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs"
-                  >
-                    {(pipeline.includes('Medicare')
-                      ? MEDICARE_DEAL_STAGES
-                      : OBAMACARE_DEAL_STAGES
-                    ).map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Selling State <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={sellingState}
-                    onChange={(e) => setSellingState(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs"
-                  >
-                    <option>North Carolina (NC)</option>
-                    <option>Texas (TX)</option>
-                    <option>California (CA)</option>
-                    <option>Georgia (GA)</option>
-                    <option>Florida (FL)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                    Deal Owner <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={dealOwner}
-                    onChange={(e) => setDealOwner(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-xs"
-                  />
-                </div>
-              </div>
-
-              {/* Need Upload field */}
-              <div className="pt-1">
-                <label className="block text-slate-800 font-bold mb-1 text-[11px] flex items-center justify-between">
-                  <span>Need Upload Documents <span className="text-rose-500">*</span></span>
-                  {needUpload === 'Yes' && (
-                    <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
-                      ⚡ Sẽ xuất Ticket Upload
-                    </span>
-                  )}
-                </label>
-                <select
-                  value={needUpload}
-                  onChange={(e) => setNeedUpload(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition ${
-                    needUpload === 'Yes'
-                      ? 'border-amber-400 bg-amber-50 text-amber-900 ring-1 ring-amber-400/30'
-                      : 'border-slate-200 bg-white text-slate-800'
-                  }`}
-                >
-                  <option value="No">No (Không upload tài liệu - Không xuất ticket)</option>
-                  <option value="Yes">Yes (Cần upload tài liệu - Tự động xuất ticket Upload document)</option>
-                </select>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  {needUpload === 'Yes'
-                    ? '⚡ Tự động tạo 1 Ticket Upload document gửi cho Platform Staff xác nhận tài liệu Marketplace.'
-                    : '✓ Tạo Deal sạch thông thường, không phát sinh ticket upload.'}
-                </p>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-[#104882] text-white hover:bg-blue-700 cursor-pointer font-bold shadow-xs"
-                >
-                  Create Deal
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* ── Create Deal Modal Matching media_1790575726166.png ── */}
+      <AddDealModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onDealCreated={(newDeal, uploadTicket) => {
+          setDealsList((prev) => [newDeal, ...prev]);
+          showToast(
+            newDeal.needUpload === 'Yes'
+              ? `Đã tạo Deal ${newDeal.code} và tự động xuất Ticket Upload document!`
+              : `Đã tạo Deal ${newDeal.code} thành công!`
+          );
+        }}
+      />
     </div>
   );
 }

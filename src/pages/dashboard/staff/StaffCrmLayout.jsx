@@ -746,15 +746,6 @@ export default function StaffCrmLayout({
             const active = currentTab === item.id;
             return (
               <div key={item.id} className="relative group w-full flex justify-center">
-                {active && (
-                  <div
-                    className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full shadow-sm ${
-                      isAdmin
-                        ? 'bg-rose-500 shadow-rose-500/50'
-                        : 'bg-cyan-400 shadow-cyan-400/50'
-                    }`}
-                  />
-                )}
                 <button
                   type="button"
                   onClick={() => onSelectTab && onSelectTab(item.id)}
@@ -762,7 +753,7 @@ export default function StaffCrmLayout({
                     active
                       ? isAdmin
                         ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-2 ring-rose-400/40'
-                        : 'bg-[#00B4D8] text-white shadow-md shadow-cyan-500/25 ring-2 ring-cyan-300/40'
+                        : 'bg-[#52B4C9] text-white shadow-md shadow-cyan-600/30'
                       : 'text-slate-400 hover:text-white hover:bg-white/10'
                   }`}
                 >
