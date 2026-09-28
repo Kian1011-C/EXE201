@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
@@ -12,6 +12,25 @@ import StaffDealsKanban from './StaffDealsKanban';
 import AddDealModal from './AddDealModal';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterDealsForAgent, getAgentIdentity } from '../../../utils/rbac';
+
+export const AGENT_DIRECTORY = [
+  { name: 'Amy Vo', handle: 'amyvo27@0', avatar: 'AV', bg: 'bg-[#3B82F6]' },
+  { name: 'Anh Pham', handle: 'anhlpham14@3', avatar: 'AP', bg: 'bg-[#C2410C]' },
+  { name: 'anhthu.tran', handle: 'anhthu.tran59@4', avatar: 'AT', bg: 'bg-[#2563EB]' },
+  { name: 'Bao Uyen', handle: 'baouyen76@8', avatar: 'BU', bg: 'bg-[#15803D]' },
+  { name: 'Bella Nhi Nguyen', handle: 'bellan.nguyen86@0', avatar: 'BN', bg: 'bg-[#92400E]' },
+  { name: 'Bijou Tran', handle: 'bijou.trantbr164', avatar: 'BT', bg: 'bg-[#991B1B]' },
+  { name: 'Bobby Ngo', handle: 'bobby38@9', avatar: 'BN', bg: 'bg-[#B45309]' },
+  { name: 'Brian Nguyen', handle: 'briannguyen31@6', avatar: 'BN', bg: 'bg-[#78350F]' },
+  { name: 'Jay Ly', handle: 'trichauly24@7', avatar: 'JL', bg: 'bg-[#059669]' },
+  { name: 'Khanh Nguyen', handle: 'khanhnguyen31@7', avatar: 'KN', bg: 'bg-[#047857]' },
+  { name: 'Sarah Thai', handle: 'sarahthai20@1', avatar: 'ST', bg: 'bg-[#7C3AED]' },
+  { name: 'Sean Ngo', handle: 'sean75@8', avatar: 'SN', bg: 'bg-[#0D9488]' },
+  { name: 'Tiger Truong', handle: 'tigertruong86@8', avatar: 'TT', bg: 'bg-[#EA580C]' },
+  { name: 'Anya Nguyen', handle: 'anya42@9', avatar: 'AN', bg: 'bg-[#0F766E]' },
+  { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
+  { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
+];
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent = false, agentName = '' }) {
   const [dealsList, setDealsList] = useState(() => {
@@ -31,6 +50,38 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   const [collapsedColumns, setCollapsedColumns] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Custom Views state (matching media_1790576078619.png)
+  const [customViews, setCustomViews] = useState(() => {
+    try {
+      const saved = localStorage.getItem('insurmatch_custom_deal_views');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [showAddViewModal, setShowAddViewModal] = useState(false);
+  const [newViewName, setNewViewName] = useState('');
+
+  // Custom Deal Owner Dropdown state (matching media_1790576252122.png)
+  const [showOwnerDropdown, setShowOwnerDropdown] = useState(false);
+  const [ownerSearchText, setOwnerSearchText] = useState('');
+  const ownerDropdownRef = useRef(null);
+
+  // Close owner dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ownerDropdownRef.current && !ownerDropdownRef.current.contains(e.target)) {
+        setShowOwnerDropdown(false);
+      }
+    }
+    if (showOwnerDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showOwnerDropdown]);
 
   async function loadDealsData() {
     setLoading(true);
@@ -75,9 +126,62 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     return dealsList;
   }, [dealsList, activeIsAgent, user, effectiveAgent.name]);
 
+  // Unique owners from deals
+  const ownerOptions = useMemo(() => {
+    const set = new Set(scopedDeals.map((d) => d.dealOwner?.name).filter(Boolean));
+    return Array.from(set);
+  }, [scopedDeals]);
+
+  // Combined agent directory for Deal Owner dropdown (matching media_1790576252122.png)
+  const allAvailableAgents = useMemo(() => {
+    const list = [...AGENT_DIRECTORY];
+    const existing = new Set(list.map((a) => a.name.toLowerCase()));
+    ownerOptions.forEach((o) => {
+      if (o && !existing.has(o.toLowerCase())) {
+        const initials = o.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'AG';
+        list.push({
+          name: o,
+          handle: o.toLowerCase().replace(/[^a-z0-9]/g, ''),
+          avatar: initials,
+          bg: 'bg-slate-600',
+        });
+        existing.add(o.toLowerCase());
+      }
+    });
+    return list;
+  }, [ownerOptions]);
+
+  // Filtered agent list for dropdown search
+  const filteredAgentList = useMemo(() => {
+    const q = ownerSearchText.trim().toLowerCase();
+    if (!q) return allAvailableAgents;
+    return allAvailableAgents.filter(
+      (a) => a.name.toLowerCase().includes(q) || a.handle.toLowerCase().includes(q)
+    );
+  }, [allAvailableAgents, ownerSearchText]);
+
   // Filtered Deals
   const filteredDeals = useMemo(() => {
     return scopedDeals.filter((d) => {
+      // 1. Tab-based matching
+      if (activeIsAgent || activeViewTab === 'my') {
+        const matchesMy = d.dealOwner?.name?.toLowerCase().includes(effectiveAgent.name.toLowerCase());
+        if (!matchesMy) return false;
+      } else if (activeViewTab.startsWith('view_')) {
+        const cv = customViews.find((v) => v.id === activeViewTab);
+        const targetOwner = cv?.owner || (ownerFilter !== '__none__' && ownerFilter !== 'all' ? ownerFilter : null);
+        // If view has no owner assigned yet and ownerFilter is __none__, view is completely EMPTY as per Image 3!
+        if (!targetOwner || ownerFilter === '__none__') {
+          return false;
+        }
+        const dOwnerName = d.dealOwner?.name || '';
+        const matchesCustom =
+          dOwnerName.toLowerCase().includes(targetOwner.toLowerCase()) ||
+          targetOwner.toLowerCase().includes(dOwnerName.toLowerCase());
+        if (!matchesCustom) return false;
+      }
+
+      // 2. Search query matching
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -87,9 +191,14 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         (d.contactName && d.contactName.toLowerCase().includes(q)) ||
         (d.carrier && d.carrier.toLowerCase().includes(q));
 
-      const matchesOwner =
-        ownerFilter === 'all' ||
-        (d.dealOwner?.name && d.dealOwner.name.toLowerCase().includes(ownerFilter.toLowerCase()));
+      // 3. Dropdown owner matching (if on All Deals tab)
+      let matchesOwner = true;
+      if (activeViewTab === 'all') {
+        matchesOwner =
+          ownerFilter === 'all' ||
+          ownerFilter === '__none__' ||
+          (d.dealOwner?.name && d.dealOwner.name.toLowerCase().includes(ownerFilter.toLowerCase()));
+      }
 
       const matchesPipeline =
         pipelineFilter === 'all' ||
@@ -108,25 +217,13 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         stageFilter === 'all' ||
         (d.stage && d.stage.toLowerCase().includes(stageFilter.toLowerCase()));
 
-      let matchesTab = true;
-      if (activeViewTab === 'my') {
-        matchesTab = d.dealOwner?.name?.toLowerCase().includes(effectiveAgent.name.toLowerCase());
-      } else if (activeViewTab === 'team') {
-        matchesTab = true;
-      } else if (activeViewTab === 'ready') {
-        matchesTab = d.stage?.includes('Ready to Enroll');
-      } else if (activeViewTab === 'verified') {
-        matchesTab = d.stage?.includes('VERIFIED') || d.stage?.includes('Closed Won');
-      }
-
       return (
         matchesSearch &&
         matchesOwner &&
         matchesPipeline &&
         matchesCarrier &&
         matchesCommissionId &&
-        matchesStage &&
-        matchesTab
+        matchesStage
       );
     });
   }, [
@@ -138,14 +235,83 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     commissionIdQuery,
     stageFilter,
     activeViewTab,
+    customViews,
+    activeIsAgent,
     effectiveAgent.name,
   ]);
 
-  // Unique owners
-  const ownerOptions = useMemo(() => {
-    const set = new Set(scopedDeals.map((d) => d.dealOwner?.name).filter(Boolean));
-    return Array.from(set);
-  }, [scopedDeals]);
+  // Handle owner selection from dropdown
+  function handleSelectOwner(agent) {
+    if (!agent) {
+      setOwnerFilter('all');
+      if (activeViewTab.startsWith('view_')) {
+        const updated = customViews.map((v) =>
+          v.id === activeViewTab ? { ...v, owner: '' } : v
+        );
+        setCustomViews(updated);
+        try {
+          localStorage.setItem('insurmatch_custom_deal_views', JSON.stringify(updated));
+        } catch {}
+      }
+      setShowOwnerDropdown(false);
+      setOwnerSearchText('');
+      return;
+    }
+
+    setOwnerFilter(agent.name);
+    // If currently in a custom view tab, bind this owner to the view and save!
+    if (activeViewTab.startsWith('view_')) {
+      const updated = customViews.map((v) =>
+        v.id === activeViewTab ? { ...v, owner: agent.name } : v
+      );
+      setCustomViews(updated);
+      try {
+        localStorage.setItem('insurmatch_custom_deal_views', JSON.stringify(updated));
+      } catch {}
+    }
+    setShowOwnerDropdown(false);
+    setOwnerSearchText('');
+    showToast(`Đã chọn Deal Owner: ${agent.name}`);
+  }
+
+  // Handle creating custom view
+  function handleCreateCustomView(e) {
+    if (e) e.preventDefault();
+    const trimmed = newViewName.trim();
+    if (!trimmed) {
+      showToast('Vui lòng nhập tên view!');
+      return;
+    }
+    const newView = {
+      id: 'view_' + Date.now(),
+      name: trimmed,
+      owner: '', // Bắt đầu trống như ảnh 3!
+    };
+    const updated = [...customViews, newView];
+    setCustomViews(updated);
+    try {
+      localStorage.setItem('insurmatch_custom_deal_views', JSON.stringify(updated));
+    } catch {}
+    setActiveViewTab(newView.id);
+    setOwnerFilter('__none__'); // Empty initial state
+    setShowAddViewModal(false);
+    setNewViewName('');
+    showToast(`Đã thêm view "${trimmed}". Chọn Deal Owner để xem danh sách deals.`);
+  }
+
+  // Handle deleting custom view
+  function handleDeleteCustomView(viewId) {
+    const updated = customViews.filter((v) => v.id !== viewId);
+    setCustomViews(updated);
+    try {
+      localStorage.setItem('insurmatch_custom_deal_views', JSON.stringify(updated));
+    } catch {}
+    if (activeViewTab === viewId) {
+      setActiveViewTab('all');
+      setOwnerFilter('all');
+    }
+    showToast('Đã xóa view tùy chỉnh');
+  }
 
   // Unique carriers
   const carrierOptions = useMemo(() => {
@@ -312,60 +478,105 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         </div>
       )}
 
-      {/* ── Top View Tabs (Matching Screenshot media_1790228065239.png) ────────── */}
+      {/* ── Top View Tabs (Matching Screenshot media_1790575995773.png) ────────── */}
       <div className="flex items-center gap-1 border-b border-slate-200 text-xs font-semibold overflow-x-auto pb-px">
-        <button
-          onClick={() => {
-            setActiveViewTab('all');
-            setPipelineFilter('all');
-            setStageFilter('all');
-            setOwnerFilter('all');
-          }}
-          className={`px-3.5 py-2 border-b-2 transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-            activeViewTab === 'all'
-              ? 'border-[#00B4D8] text-[#104882] font-bold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <span className="material-symbols-outlined text-[15px] text-slate-400">group</span>
-          <span>All Deals</span>
-        </button>
+        {activeIsAgent ? (
+          <button
+            onClick={() => setActiveViewTab('my')}
+            className="px-3.5 py-2 border-b-2 border-[#00B4D8] text-[#104882] font-bold transition cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          >
+            <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
+            <span>My Deals</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+              {filteredDeals.length}
+            </span>
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => {
+                setActiveViewTab('all');
+                setPipelineFilter('all');
+                setStageFilter('all');
+                setOwnerFilter('all');
+              }}
+              className={`px-3.5 py-2 border-b-2 transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                activeViewTab === 'all'
+                  ? 'border-[#00B4D8] text-[#104882] font-bold'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px] text-slate-400">group</span>
+              <span>All Deals</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                {activeViewTab === 'all' ? filteredDeals.length : scopedDeals.length}
+              </span>
+            </button>
 
-        <button
-          onClick={() => setActiveViewTab('my')}
-          className={`px-3.5 py-2 border-b-2 transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-            activeViewTab === 'my'
-              ? 'border-[#00B4D8] text-[#104882] font-bold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <span className="material-symbols-outlined text-[15px] text-slate-400">badge</span>
-          <span>My Team Deal</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
-            1.1K
-          </span>
-        </button>
+            {/* Custom Views added by Staff / Admin */}
+            {customViews.map((cv) => {
+              const count = cv.owner
+                ? scopedDeals.filter((d) => {
+                    const dOwnerName = d.dealOwner?.name || '';
+                    return (
+                      dOwnerName.toLowerCase().includes(cv.owner.toLowerCase()) ||
+                      cv.owner.toLowerCase().includes(dOwnerName.toLowerCase())
+                    );
+                  }).length
+                : 0;
 
-        <button
-          onClick={() => setActiveViewTab('team')}
-          className={`px-3.5 py-2 border-b-2 transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-            activeViewTab === 'team'
-              ? 'border-[#00B4D8] text-[#104882] font-bold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <span className="material-symbols-outlined text-[15px] text-slate-400">diversity_3</span>
-          <span>Khanh, TriChau, Hao - Deal</span>
-        </button>
+              return (
+                <div
+                  key={cv.id}
+                  onClick={() => {
+                    setActiveViewTab(cv.id);
+                    setOwnerFilter(cv.owner ? cv.owner : '__none__');
+                  }}
+                  className={`group px-3.5 py-2 border-b-2 transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                    activeViewTab === cv.id
+                      ? 'border-[#00B4D8] text-[#104882] font-bold'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[15px] text-slate-400">
+                    view_agenda
+                  </span>
+                  <span>{cv.name}</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      count > 0 ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCustomView(cv.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 hover:text-rose-600 text-slate-400 p-0.5 rounded transition cursor-pointer"
+                    title="Xóa view này"
+                  >
+                    <span className="material-symbols-outlined text-[13px]">close</span>
+                  </button>
+                </div>
+              );
+            })}
 
-        <button
-          type="button"
-          onClick={() => showToast('Feature: Create custom saved view')}
-          className="px-2.5 py-1 text-blue-600 hover:text-blue-800 flex items-center gap-1 text-[11px] font-medium cursor-pointer ml-1"
-        >
-          <span className="material-symbols-outlined text-[14px]">add</span>
-          <span>Add View</span>
-        </button>
+            <button
+              type="button"
+              onClick={() => {
+                setNewViewName('');
+                setShowAddViewModal(true);
+              }}
+              className="px-2.5 py-1 text-blue-600 hover:text-blue-800 flex items-center gap-1 text-[11px] font-medium cursor-pointer ml-1 rounded hover:bg-blue-50 transition"
+            >
+              <span className="material-symbols-outlined text-[14px]">add</span>
+              <span>Add View</span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* ── 4. Secondary Control Toolbar (Exact match to media_1790228065239.png) ─ */}
@@ -418,23 +629,115 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             </span>
           </div>
 
-          {/* Deal Owner Dropdown */}
-          <div className="relative">
-            <select
-              value={ownerFilter}
-              onChange={(e) => setOwnerFilter(e.target.value)}
-              className="appearance-none pl-2.5 pr-7 py-1 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+          {/* Custom Deal Owner Dropdown (Matching Screenshot media_1790576252122.png) */}
+          <div className="relative" ref={ownerDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowOwnerDropdown(!showOwnerDropdown);
+                setOwnerSearchText('');
+              }}
+              className={`flex items-center gap-1.5 pl-2.5 pr-2 py-1 rounded-lg border text-xs font-medium cursor-pointer shadow-2xs transition ${
+                ownerFilter !== 'all' && ownerFilter !== '__none__'
+                  ? 'border-blue-400 bg-blue-50/80 text-blue-900 font-semibold'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
             >
-              <option value="all">Deal Owner...</option>
-              {ownerOptions.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
-              expand_more
-            </span>
+              {ownerFilter !== 'all' && ownerFilter !== '__none__' ? (
+                <>
+                  <div className="w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                    {ownerFilter.slice(0, 2).toUpperCase()}
+                  </div>
+                  <span className="truncate max-w-[130px]">{ownerFilter}</span>
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectOwner(null);
+                    }}
+                    className="text-slate-400 hover:text-rose-600 font-bold ml-0.5 text-[11px] px-0.5"
+                    title="Xóa bộ lọc Deal Owner"
+                  >
+                    ✕
+                  </span>
+                </>
+              ) : (
+                <span className="text-slate-600">Deal Owner...</span>
+              )}
+              <span className="material-symbols-outlined text-[15px] text-slate-400">
+                expand_more
+              </span>
+            </button>
+
+            {/* Dropdown Menu Popover */}
+            {showOwnerDropdown && (
+              <div className="absolute left-0 top-full mt-1.5 w-72 max-h-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95">
+                {/* Search Header */}
+                <div className="p-2 border-b border-slate-100 bg-slate-50/80">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={ownerSearchText}
+                      onChange={(e) => setOwnerSearchText(e.target.value)}
+                      placeholder="Search..."
+                      autoFocus
+                      className="w-full pl-7 pr-2.5 py-1 text-xs rounded border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 font-medium"
+                    />
+                    <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[14px] text-slate-400">
+                      search
+                    </span>
+                  </div>
+                </div>
+
+                {/* Agents List */}
+                <div className="overflow-y-auto flex-grow divide-y divide-slate-50 py-1">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectOwner(null)}
+                    className="w-full px-3 py-2 text-left text-xs text-slate-600 hover:bg-blue-50 flex items-center gap-2 transition cursor-pointer"
+                  >
+                    <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center">
+                      --
+                    </span>
+                    <span className="font-medium text-slate-700">Tất cả Deal Owner</span>
+                  </button>
+
+                  {filteredAgentList.map((ag) => {
+                    const isSelected =
+                      ownerFilter.toLowerCase() === ag.name.toLowerCase() ||
+                      ownerFilter.toLowerCase().includes(ag.name.toLowerCase());
+                    return (
+                      <button
+                        key={ag.handle + ag.name}
+                        type="button"
+                        onClick={() => handleSelectOwner(ag)}
+                        className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2.5 transition cursor-pointer ${
+                          isSelected ? 'bg-blue-50 text-blue-900 font-semibold' : 'hover:bg-slate-50 text-slate-800'
+                        }`}
+                      >
+                        <div
+                          className={`w-6 h-6 rounded-full ${ag.bg} text-white text-[10px] font-bold flex items-center justify-center shrink-0`}
+                        >
+                          {ag.avatar}
+                        </div>
+                        <div className="min-w-0 flex-grow">
+                          <span className="truncate block font-medium">
+                            {ag.name}{' '}
+                            <span className="text-[11px] text-slate-400 font-normal">
+                              ({ag.handle})
+                            </span>
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  {filteredAgentList.length === 0 && (
+                    <div className="p-3 text-center text-xs text-slate-400">
+                      Không tìm thấy agent phù hợp
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Carrier Dropdown */}
@@ -807,6 +1110,71 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
           );
         }}
       />
+
+      {/* ── Add View Modal (Exact Match to Screenshot media_1790576078619.png) ── */}
+      {showAddViewModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95">
+            {/* Dark Navy Blue Header */}
+            <div className="bg-[#143B73] px-5 py-3.5 flex items-center justify-between text-white">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">table_chart</span>
+                <span className="text-xs font-bold uppercase tracking-wider">ADD VIEW</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddViewModal(false)}
+                  className="text-white/80 hover:text-white p-1 rounded transition cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body - Simple Name Input only as requested */}
+            <form onSubmit={handleCreateCustomView}>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                    Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newViewName}
+                    onChange={(e) => setNewViewName(e.target.value)}
+                    placeholder="Nhập tên view (vd: Quyen Le, Tri Tran - Deal)"
+                    autoFocus
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-500 focus:outline-none text-xs text-slate-800 font-medium placeholder:text-slate-400"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1.5">
+                    View mới tạo sẽ bắt đầu trống. Bạn có thể chọn Deal Owner ở thanh công cụ để lọc danh sách deal cho agent đó.
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setShowAddViewModal(false)}
+                  className="px-4 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                >
+                  <span className="material-symbols-outlined text-[14px]">close</span>
+                  <span>Cancel</span>
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">save</span>
+                  <span>Save</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
