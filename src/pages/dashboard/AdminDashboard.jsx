@@ -22,6 +22,7 @@ import AdminSystemTab from './admin/AdminSystemTab';
 import {
   MOCK_CONTACTS,
   SAMPLE_CONTACTS,
+  getDynamicContacts,
   SAMPLE_DEALS,
   getDynamicDeals,
   CONTACT_DETAIL_DATA,
@@ -147,10 +148,15 @@ export default function AdminDashboard() {
       const parts = path.split('/dashboard/admin/contacts/');
       const contactId = parts[1];
       if (contactId) {
+        const allContacts = [...getDynamicContacts(), ...SAMPLE_CONTACTS];
+        const localFound = allContacts.find((c) => c.id === contactId || c.code === contactId);
+        if (localFound) {
+          handleSelectContact(localFound, false);
+        }
         getContact(contactId)
           .then((data) => { if (data) handleSelectContact(data, false); })
           .catch(() => {
-            const found = SAMPLE_CONTACTS.find((c) => c.id === contactId || c.code === contactId);
+            const found = allContacts.find((c) => c.id === contactId || c.code === contactId);
             if (found) handleSelectContact(found, false);
           });
       }

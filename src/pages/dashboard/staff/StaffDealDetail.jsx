@@ -5,11 +5,8 @@ import {
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
   addTicketToStore,
-  getDynamicCustomerDocuments,
-  SAMPLE_CUSTOMER_DOCUMENTS,
 } from '../../../data/mockCrmData';
 import { createTicket } from '../../../services/api';
-import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import { recordPropertyUpdate } from '../../../services/propertyHistoryService';
 
@@ -76,42 +73,26 @@ export default function StaffDealDetail({
       if (deal?.tasks) setTasksList(deal.tasks);
       const sss = deal?.adminOnly?.saleSupportStatus || deal?.saleSupportStatus;
       if (sss) setSaleSupportStatus(sss);
-    }
-  }, [deal]);
-
-  const [showCreateDocModal, setShowCreateDocModal] = useState(false);
-  const [dealDoc, setDealDoc] = useState(() => {
-    if (deal?.customerDocument) return deal.customerDocument;
-    const allDocs = [...getDynamicCustomerDocuments(), ...SAMPLE_CUSTOMER_DOCUMENTS];
-    const found = allDocs.find(
-      (d) =>
-        (deal?.contactId && d.contactId === deal.contactId) ||
-        (deal?.contactName && d.contactName && d.contactName.trim().toLowerCase() === deal.contactName.trim().toLowerCase())
-    );
-    if (found) return found;
-    if (deal?.code === 'D26005033' || deal?.contactName === 'Hai Nguyen') {
-      return SAMPLE_CUSTOMER_DOCUMENTS.find(d => d.name === 'Hai Nguyen' || d.contactName === 'Hai Nguyen') || null;
-    }
-    return null;
-  });
-
-  useEffect(() => {
-    if (deal?.customerDocument) {
-      setDealDoc(deal.customerDocument);
-    } else {
-      const allDocs = [...getDynamicCustomerDocuments(), ...SAMPLE_CUSTOMER_DOCUMENTS];
-      const found = allDocs.find(
-        (d) =>
-          (deal?.contactId && d.contactId === deal.contactId) ||
-          (deal?.contactName && d.contactName && d.contactName.trim().toLowerCase() === deal.contactName.trim().toLowerCase())
-      );
-      if (found) {
-        setDealDoc(found);
-      } else if (deal?.code === 'D26005033' || deal?.contactName === 'Hai Nguyen') {
-        setDealDoc(SAMPLE_CUSTOMER_DOCUMENTS.find(d => d.name === 'Hai Nguyen' || d.contactName === 'Hai Nguyen') || null);
-      } else {
-        setDealDoc(null);
-      }
+      setPrimaryMemberId(deal?.adminOnly?.primaryMemberId || deal?.primaryMemberId || '');
+      setCarrier(deal?.adminOnly?.carrier || deal?.carrier || 'BCBS');
+      setSellingState(deal?.adminOnly?.sellingState || deal?.sellingState || '--');
+      setNumberMember(deal?.adminOnly?.numberMember !== undefined && deal?.adminOnly?.numberMember !== null ? String(deal.adminOnly.numberMember) : (deal?.numberMember || ''));
+      setEnrolledNpn(deal?.adminOnly?.enrolledNpn || deal?.enrolledNpn || '');
+      setBrokerEffectiveDate(deal?.adminOnly?.brokerEffectiveDate || deal?.brokerEffectiveDate || '');
+      setTerminationDate(deal?.adminOnly?.terminationDate || deal?.terminationDate || '');
+      setAppId(deal?.applicationId || deal?.appId || '');
+      setEstimateHouseholdIncome(deal?.estimateHouseholdIncome || '');
+      setHouseholdMember(deal?.householdMember || deal?.householdSize || '');
+      setEnrollNumberMember(deal?.numberMember || '');
+      setEnrolledAddress(deal?.enrolledAddress || deal?.address || '');
+      setQuotedCounty(deal?.quotedCounty || '');
+      setIsBackdateDeal(deal?.isBackdateDeal || 'No');
+      setPlanName(deal?.planName || '');
+      setEnrollAmount(deal?.amount && deal.amount !== '_ _ _ _ _ _ _ _ _ _' ? String(deal.amount).replace('$', '').trim() : '');
+      setMonthlyPremium(deal?.monthlyPremium || '');
+      setSubsidyAmount(deal?.subsidyAmount || '');
+      setAgencyCommission(deal?.agencyCommission || '');
+      setBonusTier(deal?.bonusTier || 'Standard Tier');
     }
   }, [deal]);
 
@@ -226,54 +207,56 @@ export default function StaffDealDetail({
 
   // Form states for ADMIN ONLY
   const [primaryMemberId, setPrimaryMemberId] = useState(
-    dealInfo.adminOnly?.primaryMemberId || 'MID-98234710'
+    dealInfo.adminOnly?.primaryMemberId || dealInfo.primaryMemberId || ''
   );
-  const [carrier, setCarrier] = useState(dealInfo.adminOnly?.carrier || 'BCBS');
+  const [carrier, setCarrier] = useState(dealInfo.adminOnly?.carrier || dealInfo.carrier || 'BCBS');
   const [sellingState, setSellingState] = useState(
-    dealInfo.adminOnly?.sellingState || 'North Carolina (NC)'
+    dealInfo.adminOnly?.sellingState || dealInfo.sellingState || '--'
   );
   const [numberMember, setNumberMember] = useState(
-    dealInfo.adminOnly?.numberMember || 1
+    dealInfo.adminOnly?.numberMember !== undefined && dealInfo.adminOnly?.numberMember !== null
+      ? String(dealInfo.adminOnly.numberMember)
+      : (dealInfo.numberMember || '')
   );
   const [enrolledNpn, setEnrolledNpn] = useState(
-    dealInfo.adminOnly?.enrolledNpn || 'Anh Que Pham 20011862'
+    dealInfo.adminOnly?.enrolledNpn || dealInfo.enrolledNpn || ''
   );
   const [brokerEffectiveDate, setBrokerEffectiveDate] = useState(
-    dealInfo.adminOnly?.brokerEffectiveDate || '2026-09-09'
+    dealInfo.adminOnly?.brokerEffectiveDate || dealInfo.brokerEffectiveDate || ''
   );
   const [terminationDate, setTerminationDate] = useState(
-    dealInfo.adminOnly?.terminationDate || '2027-12-31'
+    dealInfo.adminOnly?.terminationDate || dealInfo.terminationDate || ''
   );
   const [saleSupportStatus, setSaleSupportStatus] = useState(
     dealInfo.adminOnly?.saleSupportStatus || dealInfo.saleSupportStatus || 'None'
   );
   const [closedLostReason, setClosedLostReason] = useState(
-    dealInfo.adminOnly?.closedLostReason || '---'
+    dealInfo.adminOnly?.closedLostReason || dealInfo.closedLostReason || '---'
   );
 
   // Form states for READY TO ENROLL (Matching media_1790520741199.png & media_1790520762566.png)
-  const [appId, setAppId] = useState(dealInfo.applicationId || '8282407051');
+  const [appId, setAppId] = useState(dealInfo.applicationId || dealInfo.appId || '');
   const [estimateHouseholdIncome, setEstimateHouseholdIncome] = useState(
-    dealInfo.estimateHouseholdIncome || '$17k'
+    dealInfo.estimateHouseholdIncome || ''
   );
   const [householdMember, setHouseholdMember] = useState(
-    dealInfo.householdMember || dealInfo.householdSize || '1'
+    dealInfo.householdMember || dealInfo.householdSize || ''
   );
   const [enrollNumberMember, setEnrollNumberMember] = useState(
-    dealInfo.numberMember || '1'
+    dealInfo.numberMember || ''
   );
   const [enrolledAddress, setEnrolledAddress] = useState(
-    dealInfo.enrolledAddress || dealInfo.address || '6300 Chickasaw, Midland, TX, 79705'
+    dealInfo.enrolledAddress || dealInfo.address || ''
   );
   const [quotedCounty, setQuotedCounty] = useState(dealInfo.quotedCounty || '');
   const [isBackdateDeal, setIsBackdateDeal] = useState(
     dealInfo.isBackdateDeal || 'No'
   );
   const [planName, setPlanName] = useState(
-    deal?.planName !== undefined ? deal.planName : (deal ? '' : (dealInfo.planName || ''))
+    dealInfo.planName || ''
   );
   const [enrollAmount, setEnrollAmount] = useState(
-    deal?.amount && deal.amount !== '_ _ _ _ _ _ _ _ _ _' ? String(deal.amount).replace('$', '').trim() : (deal ? '' : '36.55')
+    dealInfo.amount && dealInfo.amount !== '_ _ _ _ _ _ _ _ _ _' ? String(dealInfo.amount).replace('$', '').trim() : ''
   );
   const [needUpload, setNeedUpload] = useState(
     deal?.needUpload || (deal?.uploadRequest ? 'Yes' : 'No')
@@ -348,13 +331,73 @@ export default function StaffDealDetail({
     }
   }
 
-  // Form states for FEE, BONUS, PAYMENT
-  const [monthlyPremium, setMonthlyPremium] = useState('$0.00');
-  const [subsidyAmount, setSubsidyAmount] = useState('$485.00');
-  const [agencyCommission, setAgencyCommission] = useState('$25.00');
-  const [bonusTier, setBonusTier] = useState('Standard Tier');
-  const [paymentOption, setPaymentOption] = useState('EFT Auto-pay');
-  const [paymentVerification, setPaymentVerification] = useState('Verified');
+  // Form states for FEE, BONUS, PAYMENT (Defaults to empty if no data)
+  const [monthlyPremium, setMonthlyPremium] = useState(
+    dealInfo.monthlyPremium || ''
+  );
+  const [subsidyAmount, setSubsidyAmount] = useState(
+    dealInfo.subsidyAmount || ''
+  );
+  const [agencyCommission, setAgencyCommission] = useState(
+    dealInfo.agencyCommission || ''
+  );
+  const [bonusTier, setBonusTier] = useState(
+    dealInfo.bonusTier || ''
+  );
+  const [paymentOption, setPaymentOption] = useState(
+    dealInfo.paymentOption || ''
+  );
+  const [paymentVerification, setPaymentVerification] = useState(
+    dealInfo.paymentVerification || ''
+  );
+
+  function handleSaveDealChanges() {
+    const updatedDeal = {
+      ...(deal || {}),
+      title: dealTitle,
+      pipeline,
+      stage,
+      amount: enrollAmount ? `$${enrollAmount}` : amount,
+      primaryMemberId,
+      carrier,
+      sellingState,
+      numberMember,
+      enrolledNpn,
+      brokerEffectiveDate,
+      terminationDate,
+      saleSupportStatus,
+      closedLostReason,
+      applicationId: appId,
+      estimateHouseholdIncome,
+      householdMember,
+      enrolledAddress,
+      quotedCounty,
+      isBackdateDeal,
+      planName,
+      monthlyPremium,
+      subsidyAmount,
+      agencyCommission,
+      bonusTier,
+      paymentOption,
+      paymentVerification,
+      adminOnly: {
+        ...(deal?.adminOnly || {}),
+        primaryMemberId,
+        carrier,
+        sellingState,
+        numberMember,
+        enrolledNpn,
+        brokerEffectiveDate,
+        terminationDate,
+        saleSupportStatus,
+        closedLostReason,
+      },
+    };
+    if (onUpdateDeal) {
+      onUpdateDeal(updatedDeal);
+    }
+    showToast('Đã lưu thông tin Deal thành công!');
+  }
 
   // Middle tab state
   const [activeTab, setActiveTab] = useState('activity');
@@ -387,7 +430,6 @@ export default function StaffDealDetail({
   // Right column accordion states
   const [rightContactsOpen, setRightContactsOpen] = useState(true);
   const [rightTicketsOpen, setRightTicketsOpen] = useState(true);
-  const [rightDocsOpen, setRightDocsOpen] = useState(true);
 
   // Quick toast
   const [toastMsg, setToastMsg] = useState(null);
@@ -619,8 +661,17 @@ export default function StaffDealDetail({
           </h1>
         </div>
 
-        {/* Right: View history | Refresh */}
+        {/* Right: Save Deal Info | View history | Refresh */}
         <div className="flex items-center gap-3 text-xs text-slate-600">
+          <button
+            type="button"
+            onClick={handleSaveDealChanges}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-xs"
+          >
+            <span className="material-symbols-outlined text-[16px]">save</span>
+            <span>Save Deal Info</span>
+          </button>
+          <span className="h-3.5 w-px bg-slate-200" />
           <button
             type="button"
             onClick={() => handleOpenPropertyHistory('All')}
@@ -891,15 +942,35 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <select
-                      value={enrolledNpn}
-                      onChange={(e) => setEnrolledNpn(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:border-blue-500 font-medium"
-                    >
-                      <option>Anh Que Pham 20011862</option>
-                      <option>Trono Truong 19823412</option>
-                      <option>Nancy Pham 20491823</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={enrolledNpn}
+                        onChange={(e) => setEnrolledNpn(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:border-blue-500 font-medium cursor-pointer"
+                      >
+                        <option value="">-- Chưa chọn NPN --</option>
+                        <option value="Anh Que Pham 20011862">Anh Que Pham 20011862</option>
+                        <option value="Trono Truong 19823412">Trono Truong 19823412</option>
+                        <option value="Nancy Pham 20491823">Nancy Pham 20491823</option>
+                      </select>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                        {enrolledNpn && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setEnrolledNpn('');
+                            }}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa Enrolled NPN"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Broker Effective Date */}
@@ -908,13 +979,23 @@ export default function StaffDealDetail({
                       label="Broker Effective Date"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <div className="relative">
+                    <div className="relative flex items-center">
                       <input
                         type="date"
                         value={brokerEffectiveDate}
                         onChange={(e) => setBrokerEffectiveDate(e.target.value)}
-                        className="w-full px-2.5 py-1.5 pr-8 rounded border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:border-blue-500"
+                        className="w-full pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:border-blue-500"
                       />
+                      {brokerEffectiveDate && (
+                        <button
+                          type="button"
+                          onClick={() => setBrokerEffectiveDate('')}
+                          className="absolute right-8 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa ngày active"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -924,13 +1005,23 @@ export default function StaffDealDetail({
                       label="Termination Date"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <div className="relative">
+                    <div className="relative flex items-center">
                       <input
                         type="date"
                         value={terminationDate}
                         onChange={(e) => setTerminationDate(e.target.value)}
-                        className="w-full px-2.5 py-1.5 pr-8 rounded border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:border-blue-500"
+                        className="w-full pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:border-blue-500"
                       />
+                      {terminationDate && (
+                        <button
+                          type="button"
+                          onClick={() => setTerminationDate('')}
+                          className="absolute right-8 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa ngày term"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -966,8 +1057,6 @@ export default function StaffDealDetail({
                     </div>
                   </div>
 
-
-
                   {/* Code */}
                   <div>
                     <PropertyLabelWithHistory
@@ -988,12 +1077,25 @@ export default function StaffDealDetail({
                       label="Primary Member Id"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={primaryMemberId}
-                      onChange={(e) => setPrimaryMemberId(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-blue-300 bg-white font-mono text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={primaryMemberId}
+                        onChange={(e) => setPrimaryMemberId(e.target.value)}
+                        placeholder="e.g. MID-98234710"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                      />
+                      {primaryMemberId && (
+                        <button
+                          type="button"
+                          onClick={() => setPrimaryMemberId('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Sale Support Status */}
@@ -1031,12 +1133,25 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="number"
-                      value={numberMember}
-                      onChange={(e) => setNumberMember(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-bold"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="number"
+                        value={numberMember}
+                        onChange={(e) => setNumberMember(e.target.value)}
+                        placeholder="e.g. 1"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-bold focus:outline-none focus:border-blue-500"
+                      />
+                      {numberMember && (
+                        <button
+                          type="button"
+                          onClick={() => setNumberMember('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Selling State* */}
@@ -1046,17 +1161,37 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <select
-                      value={sellingState}
-                      onChange={(e) => setSellingState(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-medium"
-                    >
-                      <option>North Carolina (NC)</option>
-                      <option>Texas (TX)</option>
-                      <option>California (CA)</option>
-                      <option>Georgia (GA)</option>
-                      <option>Florida (FL)</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={sellingState}
+                        onChange={(e) => setSellingState(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">-- Chưa chọn State --</option>
+                        <option value="North Carolina (NC)">North Carolina (NC)</option>
+                        <option value="Texas (TX)">Texas (TX)</option>
+                        <option value="California (CA)">California (CA)</option>
+                        <option value="Georgia (GA)">Georgia (GA)</option>
+                        <option value="Florida (FL)">Florida (FL)</option>
+                      </select>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                        {sellingState && sellingState !== '--' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setSellingState('');
+                            }}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa Selling State"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Carrier* */}
@@ -1066,18 +1201,40 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <select
-                      value={carrier}
-                      onChange={(e) => setCarrier(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-bold text-blue-700"
-                    >
-                      <option>BCBS</option>
-                      <option>Ambetter</option>
-                      <option>Oscar</option>
-                      <option>UnitedHealthcare</option>
-                      <option>Molina Healthcare</option>
-                      <option>Aetna</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={carrier}
+                        onChange={(e) => setCarrier(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-bold text-blue-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">-- Chưa chọn Carrier --</option>
+                        <option value="BCBS">BCBS</option>
+                        <option value="Ambetter">Ambetter</option>
+                        <option value="Oscar">Oscar</option>
+                        <option value="UnitedHealthcare">UnitedHealthcare</option>
+                        <option value="Molina Healthcare">Molina Healthcare</option>
+                        <option value="Aetna">Aetna</option>
+                        <option value="Cigna">Cigna</option>
+                        <option value="Kaiser">Kaiser</option>
+                      </select>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                        {carrier && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setCarrier('');
+                            }}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa Carrier"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Closed Lost Reason */}
@@ -1086,16 +1243,35 @@ export default function StaffDealDetail({
                       label="Closed Lost Reason"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <select
-                      value={closedLostReason}
-                      onChange={(e) => setClosedLostReason(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700"
-                    >
-                      <option>---</option>
-                      <option>Price too high</option>
-                      <option>Chose competitor</option>
-                      <option>Not eligible</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={closedLostReason}
+                        onChange={(e) => setClosedLostReason(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">---</option>
+                        <option value="Price too high">Price too high</option>
+                        <option value="Chose competitor">Chose competitor</option>
+                        <option value="Not eligible">Not eligible</option>
+                      </select>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                        {closedLostReason && closedLostReason !== '---' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setClosedLostReason('');
+                            }}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1125,12 +1301,25 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={appId}
-                      onChange={(e) => setAppId(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={appId}
+                        onChange={(e) => setAppId(e.target.value)}
+                        placeholder="e.g. 8282407051"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                      {appId && (
+                        <button
+                          type="button"
+                          onClick={() => setAppId('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* 2. Estimate Household Income */}
@@ -1140,12 +1329,25 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={estimateHouseholdIncome}
-                      onChange={(e) => setEstimateHouseholdIncome(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={estimateHouseholdIncome}
+                        onChange={(e) => setEstimateHouseholdIncome(e.target.value)}
+                        placeholder="e.g. $17,000"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                      {estimateHouseholdIncome && (
+                        <button
+                          type="button"
+                          onClick={() => setEstimateHouseholdIncome('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* 3. Household Member */}
@@ -1155,12 +1357,25 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={householdMember}
-                      onChange={(e) => setHouseholdMember(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={householdMember}
+                        onChange={(e) => setHouseholdMember(e.target.value)}
+                        placeholder="e.g. 1"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                      {householdMember && (
+                        <button
+                          type="button"
+                          onClick={() => setHouseholdMember('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* 4. Number Member */}
@@ -1170,15 +1385,26 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <div className="relative">
+                    <div className="relative flex items-center">
                       <input
                         type="text"
                         value={enrollNumberMember}
                         onChange={(e) => setEnrollNumberMember(e.target.value)}
-                        className="w-full pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                        placeholder="e.g. 1"
+                        className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
                       />
-                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400">
-                        <span className="h-3.5 w-px bg-slate-200 mr-2" />
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
+                        {enrollNumberMember && (
+                          <button
+                            type="button"
+                            onClick={() => setEnrollNumberMember('')}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3.5 w-px bg-slate-200" />
                         <span className="text-[12px] font-bold text-slate-600 font-mono">#</span>
                       </div>
                     </div>
@@ -1191,12 +1417,25 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={enrolledAddress}
-                      onChange={(e) => setEnrolledAddress(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={enrolledAddress}
+                        onChange={(e) => setEnrolledAddress(e.target.value)}
+                        placeholder="e.g. 6300 Chickasaw, Midland, TX, 79705"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                      {enrolledAddress && (
+                        <button
+                          type="button"
+                          onClick={() => setEnrolledAddress('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* 6. Quoted county */}
@@ -1205,13 +1444,25 @@ export default function StaffDealDetail({
                       label="Quoted county"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={quotedCounty}
-                      onChange={(e) => setQuotedCounty(e.target.value)}
-                      placeholder=""
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={quotedCounty}
+                        onChange={(e) => setQuotedCounty(e.target.value)}
+                        placeholder="e.g. Midland"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                      {quotedCounty && (
+                        <button
+                          type="button"
+                          onClick={() => setQuotedCounty('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* 7. Is this a backdate deal? */}
@@ -1250,8 +1501,9 @@ export default function StaffDealDetail({
                       <select
                         value={carrier}
                         onChange={(e) => setCarrier(e.target.value)}
-                        className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
                       >
+                        <option value="">-- Chưa chọn Carrier --</option>
                         <option value="BCBS">BCBS</option>
                         <option value="Ambetter">Ambetter</option>
                         <option value="Oscar">Oscar</option>
@@ -1261,9 +1513,22 @@ export default function StaffDealDetail({
                         <option value="Cigna">Cigna</option>
                         <option value="Kaiser">Kaiser</option>
                       </select>
-                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
-                        <span className="h-3.5 w-px bg-slate-200 mr-1.5" />
-                        <span className="material-symbols-outlined text-[15px] text-[#0F2962]">
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                        {carrier && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setCarrier('');
+                            }}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa Carrier"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3.5 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[15px] text-[#0F2962] pointer-events-none">
                           expand_more
                         </span>
                       </div>
@@ -1277,12 +1542,25 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={planName}
-                      onChange={(e) => setPlanName(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={planName}
+                        onChange={(e) => setPlanName(e.target.value)}
+                        placeholder="e.g. Blue Advantage Bronze"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                      {planName && (
+                        <button
+                          type="button"
+                          onClick={() => setPlanName('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* 10. Amount */}
@@ -1292,15 +1570,26 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <div className="relative">
+                    <div className="relative flex items-center">
                       <input
                         type="text"
                         value={enrollAmount}
                         onChange={(e) => setEnrollAmount(e.target.value)}
-                        className="w-full pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
+                        placeholder="e.g. 36.55"
+                        className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
                       />
-                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400">
-                        <span className="h-3.5 w-px bg-slate-200 mr-2" />
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
+                        {enrollAmount && (
+                          <button
+                            type="button"
+                            onClick={() => setEnrollAmount('')}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3.5 w-px bg-slate-200" />
                         <span className="text-[12px] font-bold text-slate-600 font-mono">#</span>
                       </div>
                     </div>
@@ -1371,81 +1660,180 @@ export default function StaffDealDetail({
                       label="Monthly Premium"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={monthlyPremium}
-                      onChange={(e) => setMonthlyPremium(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={monthlyPremium}
+                        onChange={(e) => setMonthlyPremium(e.target.value)}
+                        placeholder="e.g. $0.00"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      />
+                      {monthlyPremium && (
+                        <button
+                          type="button"
+                          onClick={() => setMonthlyPremium('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <PropertyLabelWithHistory
                       label="Subsidy Amount (APTC)"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={subsidyAmount}
-                      onChange={(e) => setSubsidyAmount(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={subsidyAmount}
+                        onChange={(e) => setSubsidyAmount(e.target.value)}
+                        placeholder="e.g. $485.00"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      />
+                      {subsidyAmount && (
+                        <button
+                          type="button"
+                          onClick={() => setSubsidyAmount('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <PropertyLabelWithHistory
                       label="Agency Commission"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <input
-                      type="text"
-                      value={agencyCommission}
-                      onChange={(e) => setAgencyCommission(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={agencyCommission}
+                        onChange={(e) => setAgencyCommission(e.target.value)}
+                        placeholder="e.g. $25.00"
+                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white font-mono text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      />
+                      {agencyCommission && (
+                        <button
+                          type="button"
+                          onClick={() => setAgencyCommission('')}
+                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                          title="Xóa"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <PropertyLabelWithHistory
                       label="Bonus Tier"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <select
-                      value={bonusTier}
-                      onChange={(e) => setBonusTier(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700"
-                    >
-                      <option>Standard Tier</option>
-                      <option>Tier 1 Bonus ($50)</option>
-                      <option>Tier 2 Bonus ($100)</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={bonusTier}
+                        onChange={(e) => setBonusTier(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">-- Chưa chọn Bonus Tier --</option>
+                        <option value="Standard Tier">Standard Tier</option>
+                        <option value="Tier 1 Bonus ($50)">Tier 1 Bonus ($50)</option>
+                        <option value="Tier 2 Bonus ($100)">Tier 2 Bonus ($100)</option>
+                      </select>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                        {bonusTier && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setBonusTier('');
+                            }}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <PropertyLabelWithHistory
                       label="Payment Option"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <select
-                      value={paymentOption}
-                      onChange={(e) => setPaymentOption(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700"
-                    >
-                      <option>EFT Auto-pay</option>
-                      <option>Direct Carrier Pay</option>
-                      <option>Credit / Debit Card</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={paymentOption}
+                        onChange={(e) => setPaymentOption(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">-- Chưa chọn Payment Option --</option>
+                        <option value="EFT Auto-pay">EFT Auto-pay</option>
+                        <option value="Direct Carrier Pay">Direct Carrier Pay</option>
+                        <option value="Credit / Debit Card">Credit / Debit Card</option>
+                      </select>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                        {paymentOption && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPaymentOption('');
+                            }}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <PropertyLabelWithHistory
                       label="Payment Verification"
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <select
-                      value={paymentVerification}
-                      onChange={(e) => setPaymentVerification(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-medium"
-                    >
-                      <option>Verified</option>
-                      <option>Pending Verification</option>
-                      <option>Failed</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={paymentVerification}
+                        onChange={(e) => setPaymentVerification(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">-- Chưa chọn trạng thái --</option>
+                        <option value="Verified">Verified</option>
+                        <option value="Pending Verification">Pending Verification</option>
+                        <option value="Failed">Failed</option>
+                      </select>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                        {paymentVerification && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPaymentVerification('');
+                            }}
+                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
+                            title="Xóa"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span className="h-3 w-px bg-slate-200 mx-0.5" />
+                        <span className="material-symbols-outlined text-[16px] pointer-events-none">expand_more</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1925,108 +2313,6 @@ export default function StaffDealDetail({
                       </button>
                     </div>
                   ))
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Card 3: Customer Documents */}
-          <div>
-            <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition border-b border-slate-100">
-              <button
-                type="button"
-                onClick={() => setRightDocsOpen(!rightDocsOpen)}
-                className="flex items-center gap-1.5 text-xs font-bold text-[#0F2962] hover:text-blue-700 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[17px] text-slate-700">
-                  {rightDocsOpen ? 'expand_more' : 'chevron_right'}
-                </span>
-                <span>Customer Documents ({dealDoc ? 1 : 0})</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCreateDocModal(true)}
-                title="Tạo Customer Document"
-                className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[17px]">add</span>
-              </button>
-            </div>
-
-            {rightDocsOpen && (
-              <div className="p-3">
-                {!dealDoc ? (
-                  <div className="text-center py-6 px-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                    <span className="material-symbols-outlined text-[24px] text-slate-300 mb-1">
-                      description
-                    </span>
-                    <p className="text-xs font-semibold text-slate-500 mb-1">Chưa có customer document nào</p>
-                    <p className="text-[11px] text-slate-400 mb-3">Tạo tài liệu khách hàng mới cho deal này</p>
-                    <button
-                      type="button"
-                      onClick={() => setShowCreateDocModal(true)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#104882] text-white text-xs font-semibold hover:bg-blue-700 transition cursor-pointer shadow-xs"
-                    >
-                      <span className="material-symbols-outlined text-[15px]">add</span>
-                      <span>Tạo Customer Document</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                        <span className="material-symbols-outlined text-[15px]">description</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(dealDoc)}
-                        className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left truncate"
-                      >
-                        {dealDoc.name || deal?.contactName || 'Hai Nguyen'}
-                      </button>
-                    </div>
-
-                    {(dealDoc.totalFiles > 0 || (dealDoc.categoriesSummary && dealDoc.categoriesSummary.length > 0)) ? (
-                      <div className="space-y-1 pt-1 text-[11px]">
-                        {(dealDoc.categoriesSummary || []).map((cat) => (
-                          <div
-                            key={cat.label || cat.key}
-                            onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(dealDoc)}
-                            className="flex items-center justify-between py-1 px-1.5 rounded hover:bg-slate-50 transition cursor-pointer"
-                          >
-                            <div className="flex items-center gap-1.5 text-slate-600">
-                              <span className="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
-                              <span className="material-symbols-outlined text-[15px] text-slate-400">description</span>
-                              <span>{cat.label}</span>
-                            </div>
-                            <span className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] flex items-center justify-center">
-                              {cat.count}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div
-                        onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(dealDoc)}
-                        className="border border-dashed border-slate-200 rounded-lg py-5 px-3 text-center bg-[#F8FAFC] cursor-pointer hover:border-blue-300 transition"
-                      >
-                        <span className="text-slate-400 italic text-xs">No files attached</span>
-                      </div>
-                    )}
-
-                    <div className="border-t border-slate-100 pt-2 mt-1 flex items-center justify-between text-[10px] text-slate-400">
-                      <div className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[12px]">calendar_today</span>
-                        <span className="uppercase font-semibold">LAST UPDATE:</span>
-                        <span className="font-bold text-[#0F2962]">
-                          {(dealDoc.lastModifiedTime || '09/28/2026, 10:07').split(',')[0]?.trim()}
-                        </span>
-                      </div>
-                      <span>
-                        {(dealDoc.lastModifiedTime || '09/28/2026, 10:07').split(',')[1]?.trim()}
-                      </span>
-                    </div>
-                  </div>
                 )}
               </div>
             )}
@@ -2782,25 +3068,6 @@ export default function StaffDealDetail({
         </div>,
         document.body
       )}
-      {/* ── Create Customer Document Modal Matching media_1790590561081.png (Hình 3) ── */}
-      <CreateCustomerDocumentModal
-        isOpen={showCreateDocModal}
-        onClose={() => setShowCreateDocModal(false)}
-        contact={{
-          id: deal?.contactId,
-          fullName: deal?.contactName,
-          contactOwner: deal?.dealOwner?.name || (typeof deal?.dealOwner === 'string' ? deal?.dealOwner : 'Khanh Nguyen (khanhnguyen31@7)'),
-        }}
-        onSave={(newDoc) => {
-          setDealDoc(newDoc);
-          if (onUpdateDeal) {
-            onUpdateDeal({
-              ...deal,
-              customerDocument: newDoc,
-            });
-          }
-        }}
-      />
 
       {/* ── Property History Modal Matching media_1790590629171.png ──────── */}
       <PropertyHistoryModal

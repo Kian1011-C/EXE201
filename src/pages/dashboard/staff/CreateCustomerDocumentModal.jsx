@@ -77,17 +77,19 @@ export default function CreateCustomerDocumentModal({
       setContactName(cName);
       setDocName('--');
 
-      // Match owner
-      const cOwner = contact.contactOwner || contact.leadOwner || '';
+      // Match owner safely whether contactOwner is object or string
+      const rawOwner = contact.contactOwner || contact.leadOwner || '';
+      const cOwner = typeof rawOwner === 'object' ? (rawOwner.name || rawOwner.fullName || '') : String(rawOwner || '');
       const matched = AGENT_OPTIONS.find(
         (a) =>
-          cOwner.includes(a.name) ||
-          cOwner.includes(a.handle) ||
-          (typeof cOwner === 'string' && cOwner.toLowerCase().includes(a.name.toLowerCase()))
+          cOwner &&
+          (cOwner.includes(a.name) ||
+            cOwner.includes(a.handle) ||
+            cOwner.toLowerCase().includes(a.name.toLowerCase()))
       );
       if (matched) {
         setSelectedOwner(matched);
-      } else if (cOwner && typeof cOwner === 'string' && cOwner.trim()) {
+      } else if (cOwner && cOwner.trim()) {
         setSelectedOwner({
           name: cOwner.split('(')[0].trim(),
           handle: cOwner.includes('@') ? cOwner : 'agent',
