@@ -41,7 +41,7 @@ export default function StaffCrmDashboard({
   const [liveCommissions, setLiveCommissions] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'obamacare' | 'medicare' | 'tickets' | 'tasks' | 'commissions'
   const [selectedDashboard, setSelectedDashboard] = useState(
-    'Daily work of support - Team Tiger Truong'
+    'Daily work of staff - Team Tiger Truong'
   );
 
   async function fetchStats() {
@@ -2443,7 +2443,7 @@ export default function StaffCrmDashboard({
                   >
                     Carrier Commission Ledger &amp; Payout Summary ({liveCommissions.length} records)
                   </h3>
-                  <p className="text-[11px] text-slate-400">Live PMPM Carrier Remittances &amp; Support Fee Splits</p>
+                  <p className="text-[11px] text-slate-400">Live PMPM Carrier Remittances &amp; Platform Fee Splits</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -2496,7 +2496,7 @@ export default function StaffCrmDashboard({
                     <th className="px-3 py-2">Insurance Carrier</th>
                     <th className="px-3 py-2 text-center">Policies</th>
                     <th className="px-3 py-2 text-right">Gross Commission</th>
-                    <th className="px-3 py-2 text-right">Support Share</th>
+                    <th className="px-3 py-2 text-right">Platform Share</th>
                     <th className="px-3 py-2 text-right">Net Agent Payout</th>
                     <th className="px-3 py-2 text-center">Action</th>
                   </tr>

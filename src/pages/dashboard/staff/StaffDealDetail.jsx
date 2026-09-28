@@ -945,11 +945,11 @@ export default function StaffDealDetail({
                       </label>
                       <span className="text-[10px] font-bold text-blue-600">
                         {saleSupportStatus === 'None' || saleSupportStatus === 'NONE'
-                          ? '7/3 Split (Agent 70% / Support 30%)'
+                          ? '7/3 Split (Agent 70% / Platform 30%)'
                           : saleSupportStatus === 'Partial' || saleSupportStatus === 'PARTIAL'
-                          ? '5/5 Split (Agent 50% / Support 50%)'
+                          ? '5/5 Split (Agent 50% / Platform 50%)'
                           : saleSupportStatus === 'Full' || saleSupportStatus === 'FULL'
-                          ? '3/7 Split (Agent 30% / Support 70%)'
+                          ? '3/7 Split (Agent 30% / Platform 70%)'
                           : ''}
                       </span>
                     </div>
