@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   CONTACT_DETAIL_DATA,
   addTicketToStore,
@@ -140,7 +140,17 @@ export default function StaffContactDetail({
   // Create Deal modal state
   const [showCreateDealModal, setShowCreateDealModal] = useState(false);
 
-  // Customer Documents state (empty for clean contacts, populated for sample contacts)
+  // Customer Documents state (empty for clean contacts, populated when files are added or for sample contacts)
+  const CATEGORY_LABEL_MAP = {
+    consentFormMkp: 'Consent Form MKP',
+    consentFormText: 'Consent Form Text',
+    identity: 'Identity',
+    insuranceRecord: 'Insurance Record',
+    otherDocument: 'Other Document',
+    paymentInformation: 'Payment Information',
+    tax: 'Tax',
+  };
+
   const [customerDocuments, setCustomerDocuments] = useState(() => {
     if (contact?.customerDocuments && contact.customerDocuments.length > 0) {
       return contact.customerDocuments;
@@ -162,20 +172,65 @@ export default function StaffContactDetail({
     return { date: '09/27/2026', time: '10:07' };
   });
 
+  const activeCustomerDocuments = useMemo(() => {
+    if (contact?.customerDocument?.filesByCategory) {
+      const active = [];
+      Object.entries(contact.customerDocument.filesByCategory).forEach(([key, files]) => {
+        if (Array.isArray(files) && files.length > 0) {
+          active.push({
+            key,
+            name: CATEGORY_LABEL_MAP[key] || key,
+            count: files.length,
+          });
+        }
+      });
+      return active;
+    }
+    if (contact?.customerDocuments && contact.customerDocuments.length > 0) {
+      return contact.customerDocuments;
+    }
+    if (contact?.fullName === '123 123' || contact?.hasDocs) {
+      return [
+        { name: 'Identity', count: 3 },
+        { name: 'Consent Form Text', count: 1 },
+        { name: 'Payment Information', count: 1 },
+      ];
+    }
+    return customerDocuments;
+  }, [contact?.customerDocument, contact?.customerDocuments, customerDocuments, contact?.fullName, contact?.hasDocs]);
+
+  const activeLastUpdate = useMemo(() => {
+    if (contact?.customerDocument?.lastModifiedTime) {
+      const parts = contact.customerDocument.lastModifiedTime.split(',');
+      return {
+        date: parts[0]?.trim() || docLastUpdate.date,
+        time: parts[1]?.trim() || docLastUpdate.time,
+      };
+    }
+    return docLastUpdate;
+  }, [contact?.customerDocument?.lastModifiedTime, docLastUpdate]);
+
   function handleAddDocument(e) {
     e.preventDefault();
-    setCustomerDocuments((prev) => {
-      const existing = prev.find((d) => d.name === newDocCategory);
+    const updatedDocs = (() => {
+      const existing = customerDocuments.find((d) => d.name === newDocCategory);
       if (existing) {
-        return prev.map((d) => (d.name === newDocCategory ? { ...d, count: d.count + 1 } : d));
+        return customerDocuments.map((d) => (d.name === newDocCategory ? { ...d, count: d.count + 1 } : d));
       } else {
-        return [...prev, { name: newDocCategory, count: 1 }];
+        return [...customerDocuments, { name: newDocCategory, count: 1 }];
       }
-    });
+    })();
+    setCustomerDocuments(updatedDocs);
     const now = new Date();
     const dStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}/${now.getFullYear()}`;
     const tStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     setDocLastUpdate({ date: dStr, time: tStr });
+    if (onUpdateContact) {
+      onUpdateContact({
+        ...(contact || {}),
+        customerDocuments: updatedDocs,
+      });
+    }
     setShowAddDocModal(false);
     setNewDocFileName('');
     showToast(`Đã đính kèm tài liệu vào mục ${newDocCategory}!`);
@@ -2050,14 +2105,15 @@ export default function StaffContactDetail({
               <div className="flex items-center gap-2 text-slate-500">
                 <button
                   type="button"
-                  onClick={() => setShowAddDocModal(true)}
-                  title="Add document"
+                  onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(contact?.customerDocument)}
+                  title="Open Customer Documents"
                   className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[17px]">add</span>
                 </button>
                 <button
                   type="button"
+                  onClick={() => showToast('Customer documents refreshed')}
                   title="Refresh"
                   className="hover:text-blue-600 p-0.5 rounded cursor-pointer text-slate-500"
                 >
@@ -2077,7 +2133,7 @@ export default function StaffContactDetail({
                     </div>
                     <button
                       type="button"
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
+                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(contact?.customerDocument)}
                       className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left truncate"
                     >
                       {currentFullName || 'Hai Nguyen'}
@@ -2085,12 +2141,12 @@ export default function StaffContactDetail({
                   </div>
 
                   {/* Document categories tree OR empty dashed box */}
-                  {customerDocuments.length > 0 ? (
+                  {activeCustomerDocuments.length > 0 ? (
                     <div className="space-y-1 pt-1">
-                      {customerDocuments.map((doc) => (
+                      {activeCustomerDocuments.map((doc) => (
                         <div
                           key={doc.name}
-                          onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(doc)}
+                          onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(contact?.customerDocument || doc)}
                           className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 transition cursor-pointer group"
                         >
                           <div className="flex items-center gap-2 text-slate-600 group-hover:text-blue-700">
@@ -2107,8 +2163,12 @@ export default function StaffContactDetail({
                       ))}
                     </div>
                   ) : (
-                    /* Exact match to media_1790575754874.png */
-                    <div className="border border-dashed border-slate-200 rounded-lg py-5 px-3 text-center bg-[#F8FAFC]">
+                    /* Exact match to media_1790575754874.png (Ảnh 2) */
+                    <div
+                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(contact?.customerDocument)}
+                      className="border border-dashed border-slate-200 rounded-lg py-5 px-3 text-center bg-[#F8FAFC] cursor-pointer hover:border-blue-300 transition"
+                      title="Click to add files"
+                    >
                       <span className="text-slate-400 italic text-xs">No files attached</span>
                     </div>
                   )}
@@ -2118,9 +2178,9 @@ export default function StaffContactDetail({
                     <div className="flex items-center gap-1 text-[10px]">
                       <span className="material-symbols-outlined text-[13px] text-slate-400">calendar_today</span>
                       <span className="uppercase text-slate-400 font-semibold tracking-wider">LAST UPDATE:</span>
-                      <span className="font-bold text-[#0F2962]">{docLastUpdate.date}</span>
+                      <span className="font-bold text-[#0F2962]">{activeLastUpdate.date}</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">{docLastUpdate.time}</span>
+                    <span className="text-[10px] text-slate-400">{activeLastUpdate.time}</span>
                   </div>
                 </div>
               </div>

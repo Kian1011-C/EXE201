@@ -6,19 +6,28 @@ export default function StaffCustomerDocumentDetail({
   onBack,
   onSelectContact,
   onSelectDeal,
+  onUpdateDocument,
 }) {
   const doc = {
-    ...CUSTOMER_DOCUMENT_DATA,
     ...(documentData || {}),
   };
 
-  const [docName, setDocName] = useState(doc.name || 'Nhat H Dang');
+  const [docName, setDocName] = useState(doc.name || 'Hai Nguyen');
   const [contactOwner, setContactOwner] = useState(
     doc.contactOwner || 'Khanh Nguyen (khanhnguyen31@7)'
   );
   const [aboutOpen, setAboutOpen] = useState(true);
-  const [filesByCategory, setFilesByCategory] = useState(
-    doc.filesByCategory || {
+  const [lastModifiedTime, setLastModifiedTime] = useState(
+    doc.lastModifiedTime || '09/27/2026, 10:07'
+  );
+
+  // Default empty categories unless explicitly provided or marked as sample
+  const [filesByCategory, setFilesByCategory] = useState(() => {
+    if (doc.filesByCategory) return doc.filesByCategory;
+    if (doc.hasDocs || doc.name === '123 123') {
+      return CUSTOMER_DOCUMENT_DATA.filesByCategory;
+    }
+    return {
       consentFormMkp: [],
       consentFormText: [],
       identity: [],
@@ -26,8 +35,8 @@ export default function StaffCustomerDocumentDetail({
       otherDocument: [],
       paymentInformation: [],
       tax: [],
-    }
-  );
+    };
+  });
 
   // Preview modal state
   const [previewFile, setPreviewFile] = useState(null);
@@ -67,6 +76,17 @@ export default function StaffCustomerDocumentDetail({
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
+  const currentInitials =
+    doc.initials ||
+    (docName || 'Hai Nguyen')
+      .split(' ')
+      .filter(Boolean)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() ||
+    'HN';
+
   function handleFileUpload(categoryKey, event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -88,10 +108,33 @@ export default function StaffCustomerDocumentDetail({
       };
     });
 
-    setFilesByCategory((prev) => ({
-      ...prev,
-      [categoryKey]: [...(prev[categoryKey] || []), ...newFiles],
-    }));
+    const now = new Date();
+    const dStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
+      now.getDate()
+    ).padStart(2, '0')}/${now.getFullYear()}`;
+    const tStr = `${String(now.getHours()).padStart(2, '0')}:${String(
+      now.getMinutes()
+    ).padStart(2, '0')}`;
+    const newTimestamp = `${dStr}, ${tStr}`;
+    setLastModifiedTime(newTimestamp);
+
+    setFilesByCategory((prev) => {
+      const updated = {
+        ...prev,
+        [categoryKey]: [...(prev[categoryKey] || []), ...newFiles],
+      };
+      if (onUpdateDocument) {
+        onUpdateDocument({
+          ...doc,
+          name: docName,
+          initials: currentInitials,
+          filesByCategory: updated,
+          lastModifiedTime: newTimestamp,
+          lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
+        });
+      }
+      return updated;
+    });
 
     // Reset input value to allow uploading the same file again if needed
     event.target.value = '';
@@ -101,20 +144,43 @@ export default function StaffCustomerDocumentDetail({
   }
 
   function handleDeleteFile(categoryKey, fileId, fileName) {
-    setFilesByCategory((prev) => ({
-      ...prev,
-      [categoryKey]: (prev[categoryKey] || []).filter((f) => f.id !== fileId),
-    }));
+    const now = new Date();
+    const dStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
+      now.getDate()
+    ).padStart(2, '0')}/${now.getFullYear()}`;
+    const tStr = `${String(now.getHours()).padStart(2, '0')}:${String(
+      now.getMinutes()
+    ).padStart(2, '0')}`;
+    const newTimestamp = `${dStr}, ${tStr}`;
+    setLastModifiedTime(newTimestamp);
+
+    setFilesByCategory((prev) => {
+      const updated = {
+        ...prev,
+        [categoryKey]: (prev[categoryKey] || []).filter((f) => f.id !== fileId),
+      };
+      if (onUpdateDocument) {
+        onUpdateDocument({
+          ...doc,
+          name: docName,
+          initials: currentInitials,
+          filesByCategory: updated,
+          lastModifiedTime: newTimestamp,
+          lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
+        });
+      }
+      return updated;
+    });
     showToast(`Removed file ${fileName || ''}`);
   }
 
   const associatedContact = doc.associatedContact || {
-    id: 'CT26002600',
-    name: 'Nhat Huu Tuan Dang',
-    phone: '+1 (714) 837-2395',
-    email: 'tuannhat.n2@gmail.com',
-    leadOwner: 'Khanh Nguyen',
-    language: 'Vietnamese',
+    id: doc.contactId || 'CT26002600',
+    name: docName,
+    phone: doc.phone || '+1 (714) 837-2395',
+    email: doc.email || 'tuannhat.n2@gmail.com',
+    leadOwner: contactOwner,
+    language: doc.language || 'Vietnamese',
   };
 
   return (
@@ -172,7 +238,7 @@ export default function StaffCustomerDocumentDetail({
           <div className="p-4 border-b border-slate-100">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-[#52B4C9] text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs tracking-wide">
-                {doc.initials || 'ND'}
+                {currentInitials}
               </div>
               <div className="min-w-0 flex-grow">
                 <h2 className="text-base font-bold text-slate-900 truncate">
@@ -186,12 +252,12 @@ export default function StaffCustomerDocumentDetail({
               <div className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
                 <span className="text-slate-500">Last modified time:</span>
-                <span className="font-semibold text-slate-800">{doc.lastModifiedTime || '09/11/2026, 17:44'}</span>
+                <span className="font-semibold text-slate-800">{lastModifiedTime}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
                 <span className="text-slate-500">Last modified by:</span>
-                <span className="font-semibold text-slate-800">{doc.lastModifiedBy || 'Anya Nguyen'}</span>
+                <span className="font-semibold text-slate-800">{doc.lastModifiedBy || 'Khanh Nguyen'}</span>
               </div>
             </div>
 

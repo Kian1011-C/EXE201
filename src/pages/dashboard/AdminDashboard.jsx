@@ -308,10 +308,58 @@ export default function AdminDashboard() {
 
   // ── Document Handler ───────────────────────────────────────────────────────
   function handleSelectCustomerDocument(doc) {
-    setSelectedDocument({ ...CUSTOMER_DOCUMENT_DATA, ...(doc || {}) });
+    const contactDoc = selectedContact?.customerDocument || doc;
+    const finalDoc = contactDoc || {
+      id: `doc-${selectedContact?.id || Date.now()}`,
+      name: selectedContact?.fullName || 'Hai Nguyen',
+      contactOwner:
+        selectedContact?.contactOwner ||
+        selectedContact?.leadOwner ||
+        'Khanh Nguyen (khanhnguyen31@7)',
+      associatedContact: {
+        id: selectedContact?.code || selectedContact?.id || 'CT26002600',
+        name: selectedContact?.fullName || 'Hai Nguyen',
+        phone: selectedContact?.phone || '+1 (714) 837-2395',
+        email: selectedContact?.email || 'hainguyen@example.com',
+        leadOwner:
+          selectedContact?.contactOwner ||
+          selectedContact?.leadOwner ||
+          'Khanh Nguyen',
+        language: selectedContact?.language || 'Vietnamese',
+      },
+      filesByCategory: {
+        consentFormMkp: [],
+        consentFormText: [],
+        identity: [],
+        insuranceRecord: [],
+        otherDocument: [],
+        paymentInformation: [],
+        tax: [],
+      },
+      lastModifiedTime: new Date().toLocaleString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }),
+      lastModifiedBy: selectedContact?.contactOwner || 'Khanh Nguyen',
+    };
+    setSelectedDocument(finalDoc);
     setActiveTab('contacts');
     setCurrentView('customer-document-detail');
-    navigate(`/dashboard/admin/documents/${doc?.id || 'DOC-01'}`, { replace: false });
+    navigate(`/dashboard/admin/documents/${finalDoc?.id || 'DOC-01'}`, { replace: false });
+  }
+
+  function handleUpdateDocument(updatedDoc) {
+    setSelectedDocument(updatedDoc);
+    if (selectedContact) {
+      setSelectedContact((prev) => ({
+        ...prev,
+        customerDocument: updatedDoc,
+      }));
+    }
   }
 
   // ── Ticket Handlers ────────────────────────────────────────────────────────
@@ -415,6 +463,7 @@ export default function AdminDashboard() {
           onBack={handleBackToContactDetail}
           onSelectContact={() => handleSelectContact(selectedContact)}
           onSelectDeal={() => handleSelectDeal(selectedDeal)}
+          onUpdateDocument={handleUpdateDocument}
         />
       )}
 
