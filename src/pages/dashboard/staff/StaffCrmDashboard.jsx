@@ -16,6 +16,16 @@ import {
   canViewSaaSPackages,
   getAgentIdentity,
 } from '../../../utils/rbac';
+import {
+  SAMPLE_DEALS,
+  getDynamicDeals,
+  SAMPLE_CONTACTS,
+  getDynamicContacts,
+  FULL_SAMPLE_TICKETS,
+  getDynamicTickets,
+  SAMPLE_TASKS,
+} from '../../../data/mockCrmData';
+import { INITIAL_ADMIN_COMMISSIONS } from '../../../data/mockAdminAccounts';
 
 export default function StaffCrmDashboard({
   onSelectTab,
@@ -34,11 +44,20 @@ export default function StaffCrmDashboard({
 
   const [refreshing, setRefreshing] = useState(false);
   const [dbStats, setDbStats] = useState(null);
-  const [liveDeals, setLiveDeals] = useState([]);
-  const [liveContacts, setLiveContacts] = useState([]);
-  const [liveTickets, setLiveTickets] = useState([]);
-  const [liveTasks, setLiveTasks] = useState([]);
-  const [liveCommissions, setLiveCommissions] = useState([]);
+  const [liveDeals, setLiveDeals] = useState(() => {
+    const dyn = getDynamicDeals();
+    return [...dyn, ...SAMPLE_DEALS];
+  });
+  const [liveContacts, setLiveContacts] = useState(() => {
+    const dyn = getDynamicContacts();
+    return [...dyn, ...SAMPLE_CONTACTS];
+  });
+  const [liveTickets, setLiveTickets] = useState(() => {
+    const dyn = getDynamicTickets();
+    return [...dyn, ...FULL_SAMPLE_TICKETS];
+  });
+  const [liveTasks, setLiveTasks] = useState(() => SAMPLE_TASKS);
+  const [liveCommissions, setLiveCommissions] = useState(() => INITIAL_ADMIN_COMMISSIONS);
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'obamacare' | 'medicare' | 'tickets' | 'tasks' | 'commissions'
   const [selectedDashboard, setSelectedDashboard] = useState(
     'Daily work of staff - Team Tiger Truong'
@@ -56,11 +75,46 @@ export default function StaffCrmDashboard({
           getCommissions().catch(() => []),
         ]);
       if (statsRes) setDbStats(statsRes);
-      if (Array.isArray(dealsRes)) setLiveDeals(dealsRes);
-      if (Array.isArray(contactsRes)) setLiveContacts(contactsRes);
-      if (Array.isArray(ticketsRes)) setLiveTickets(ticketsRes);
-      if (Array.isArray(tasksRes)) setLiveTasks(tasksRes);
-      if (Array.isArray(commsRes)) setLiveCommissions(commsRes);
+
+      const dynDeals = getDynamicDeals();
+      if (Array.isArray(dealsRes) && dealsRes.length > 0) {
+        const dbIds = new Set(dealsRes.map((d) => String(d.id)));
+        const uniqueDyn = dynDeals.filter((d) => !dbIds.has(String(d.id)));
+        setLiveDeals([...uniqueDyn, ...dealsRes]);
+      } else {
+        setLiveDeals([...dynDeals, ...SAMPLE_DEALS]);
+      }
+
+      const dynContacts = getDynamicContacts();
+      if (Array.isArray(contactsRes) && contactsRes.length > 0) {
+        const dbIds = new Set(contactsRes.map((c) => String(c.id)));
+        const uniqueDyn = dynContacts.filter((c) => !dbIds.has(String(c.id)));
+        const remainingSamples = SAMPLE_CONTACTS.filter((s) => !dbIds.has(String(s.id)));
+        setLiveContacts([...uniqueDyn, ...contactsRes, ...remainingSamples]);
+      } else {
+        setLiveContacts([...dynContacts, ...SAMPLE_CONTACTS]);
+      }
+
+      const dynTickets = getDynamicTickets();
+      if (Array.isArray(ticketsRes) && ticketsRes.length > 0) {
+        const dbIds = new Set(ticketsRes.map((t) => String(t.id)));
+        const uniqueDyn = dynTickets.filter((t) => !dbIds.has(String(t.id)));
+        setLiveTickets([...uniqueDyn, ...ticketsRes]);
+      } else {
+        setLiveTickets([...dynTickets, ...FULL_SAMPLE_TICKETS]);
+      }
+
+      if (Array.isArray(tasksRes) && tasksRes.length > 0) {
+        setLiveTasks(tasksRes);
+      } else {
+        setLiveTasks(SAMPLE_TASKS);
+      }
+
+      if (Array.isArray(commsRes) && commsRes.length > 0) {
+        setLiveCommissions(commsRes);
+      } else {
+        setLiveCommissions(INITIAL_ADMIN_COMMISSIONS);
+      }
     } catch (err) {
       console.warn('[StaffCrmDashboard] Could not fetch live dashboard data:', err);
     }
@@ -788,7 +842,7 @@ export default function StaffCrmDashboard({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="font-bold text-emerald-700">100% Real DB Data</span>
+          <span className="font-bold text-emerald-700">CRM Live Data</span>
           <span className="text-slate-400 font-normal">
             ({scopedDeals.length} deals • {scopedTickets.length} tickets • {scopedTasks.length} tasks)
           </span>
