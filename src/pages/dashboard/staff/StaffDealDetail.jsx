@@ -1,11 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   DEAL_DETAIL_DATA,
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
   addTicketToStore,
+  getDynamicCustomerDocuments,
+  SAMPLE_CUSTOMER_DOCUMENTS,
 } from '../../../data/mockCrmData';
 import { createTicket } from '../../../services/api';
+import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
 
 export default function StaffDealDetail({
   deal,
@@ -63,6 +66,42 @@ export default function StaffDealDetail({
       if (deal?.tasks) setTasksList(deal.tasks);
       const sss = deal?.adminOnly?.saleSupportStatus || deal?.saleSupportStatus;
       if (sss) setSaleSupportStatus(sss);
+    }
+  }, [deal]);
+
+  const [showCreateDocModal, setShowCreateDocModal] = useState(false);
+  const [dealDoc, setDealDoc] = useState(() => {
+    if (deal?.customerDocument) return deal.customerDocument;
+    const allDocs = [...getDynamicCustomerDocuments(), ...SAMPLE_CUSTOMER_DOCUMENTS];
+    const found = allDocs.find(
+      (d) =>
+        (deal?.contactId && d.contactId === deal.contactId) ||
+        (deal?.contactName && d.contactName && d.contactName.trim().toLowerCase() === deal.contactName.trim().toLowerCase())
+    );
+    if (found) return found;
+    if (deal?.code === 'D26005033' || deal?.contactName === 'Hai Nguyen') {
+      return SAMPLE_CUSTOMER_DOCUMENTS.find(d => d.name === 'Hai Nguyen' || d.contactName === 'Hai Nguyen') || null;
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (deal?.customerDocument) {
+      setDealDoc(deal.customerDocument);
+    } else {
+      const allDocs = [...getDynamicCustomerDocuments(), ...SAMPLE_CUSTOMER_DOCUMENTS];
+      const found = allDocs.find(
+        (d) =>
+          (deal?.contactId && d.contactId === deal.contactId) ||
+          (deal?.contactName && d.contactName && d.contactName.trim().toLowerCase() === deal.contactName.trim().toLowerCase())
+      );
+      if (found) {
+        setDealDoc(found);
+      } else if (deal?.code === 'D26005033' || deal?.contactName === 'Hai Nguyen') {
+        setDealDoc(SAMPLE_CUSTOMER_DOCUMENTS.find(d => d.name === 'Hai Nguyen' || d.contactName === 'Hai Nguyen') || null);
+      } else {
+        setDealDoc(null);
+      }
     }
   }, [deal]);
 
@@ -1835,9 +1874,9 @@ export default function StaffDealDetail({
             )}
           </div>
 
-          {/* Card 3: Customer Documents (1) */}
+          {/* Card 3: Customer Documents */}
           <div>
-            <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition">
+            <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition border-b border-slate-100">
               <button
                 type="button"
                 onClick={() => setRightDocsOpen(!rightDocsOpen)}
@@ -1846,65 +1885,93 @@ export default function StaffDealDetail({
                 <span className="material-symbols-outlined text-[17px] text-slate-700">
                   {rightDocsOpen ? 'expand_more' : 'chevron_right'}
                 </span>
-                <span>Customer Documents (1)</span>
+                <span>Customer Documents ({dealDoc ? 1 : 0})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCreateDocModal(true)}
+                title="Tạo Customer Document"
+                className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[17px]">add</span>
               </button>
             </div>
 
             {rightDocsOpen && (
               <div className="p-3">
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                      <span className="material-symbols-outlined text-[15px]">description</span>
-                    </div>
+                {!dealDoc ? (
+                  <div className="text-center py-6 px-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    <span className="material-symbols-outlined text-[24px] text-slate-300 mb-1">
+                      description
+                    </span>
+                    <p className="text-xs font-semibold text-slate-500 mb-1">Chưa có customer document nào</p>
+                    <p className="text-[11px] text-slate-400 mb-3">Tạo tài liệu khách hàng mới cho deal này</p>
                     <button
                       type="button"
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument()}
-                      className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left truncate"
+                      onClick={() => setShowCreateDocModal(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#104882] text-white text-xs font-semibold hover:bg-blue-700 transition cursor-pointer shadow-xs"
                     >
-                      {deal?.contactName || 'Hai Nguyen'}
+                      <span className="material-symbols-outlined text-[15px]">add</span>
+                      <span>Tạo Customer Document</span>
                     </button>
                   </div>
+                ) : (
+                  <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <span className="material-symbols-outlined text-[15px]">description</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(dealDoc)}
+                        className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left truncate"
+                      >
+                        {dealDoc.name || deal?.contactName || 'Hai Nguyen'}
+                      </button>
+                    </div>
 
-                  {(deal?.customerDocuments?.length > 0 || deal?.hasDocs) ? (
-                    <div className="space-y-1 pt-1 text-[11px]">
-                      {(deal?.customerDocuments || [
-                        { name: 'Identity', count: 3 },
-                        { name: 'Consent Form Text', count: 1 },
-                        { name: 'Payment Information', count: 1 },
-                      ]).map((cat) => (
-                        <div
-                          key={cat.name}
-                          onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(cat)}
-                          className="flex items-center justify-between py-1 px-1.5 rounded hover:bg-slate-50 transition cursor-pointer"
-                        >
-                          <div className="flex items-center gap-1.5 text-slate-600">
-                            <span className="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-400">description</span>
-                            <span>{cat.name}</span>
+                    {(dealDoc.totalFiles > 0 || (dealDoc.categoriesSummary && dealDoc.categoriesSummary.length > 0)) ? (
+                      <div className="space-y-1 pt-1 text-[11px]">
+                        {(dealDoc.categoriesSummary || []).map((cat) => (
+                          <div
+                            key={cat.label || cat.key}
+                            onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(dealDoc)}
+                            className="flex items-center justify-between py-1 px-1.5 rounded hover:bg-slate-50 transition cursor-pointer"
+                          >
+                            <div className="flex items-center gap-1.5 text-slate-600">
+                              <span className="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
+                              <span className="material-symbols-outlined text-[15px] text-slate-400">description</span>
+                              <span>{cat.label}</span>
+                            </div>
+                            <span className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] flex items-center justify-center">
+                              {cat.count}
+                            </span>
                           </div>
-                          <span className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] flex items-center justify-center">
-                            {cat.count}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    /* Exact match to media_1790575754874.png */
-                    <div className="border border-dashed border-slate-200 rounded-lg py-5 px-3 text-center bg-[#F8FAFC]">
-                      <span className="text-slate-400 italic text-xs">No files attached</span>
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(dealDoc)}
+                        className="border border-dashed border-slate-200 rounded-lg py-5 px-3 text-center bg-[#F8FAFC] cursor-pointer hover:border-blue-300 transition"
+                      >
+                        <span className="text-slate-400 italic text-xs">No files attached</span>
+                      </div>
+                    )}
 
-                  <div className="border-t border-slate-100 pt-2 mt-1 flex items-center justify-between text-[10px] text-slate-400">
-                    <div className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[12px]">calendar_today</span>
-                      <span className="uppercase font-semibold">LAST UPDATE:</span>
-                      <span className="font-bold text-[#0F2962]">{(deal?.customerDocuments?.length > 0 || deal?.hasDocs) ? '09/11/2026' : '09/27/2026'}</span>
+                    <div className="border-t border-slate-100 pt-2 mt-1 flex items-center justify-between text-[10px] text-slate-400">
+                      <div className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                        <span className="uppercase font-semibold">LAST UPDATE:</span>
+                        <span className="font-bold text-[#0F2962]">
+                          {(dealDoc.lastModifiedTime || '09/28/2026, 10:07').split(',')[0]?.trim()}
+                        </span>
+                      </div>
+                      <span>
+                        {(dealDoc.lastModifiedTime || '09/28/2026, 10:07').split(',')[1]?.trim()}
+                      </span>
                     </div>
-                    <span>{(deal?.customerDocuments?.length > 0 || deal?.hasDocs) ? '17:45' : '10:07'}</span>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -2656,6 +2723,25 @@ export default function StaffDealDetail({
           </div>
         </div>
       )}
+      {/* ── Create Customer Document Modal Matching media_1790590561081.png (Hình 3) ── */}
+      <CreateCustomerDocumentModal
+        isOpen={showCreateDocModal}
+        onClose={() => setShowCreateDocModal(false)}
+        contact={{
+          id: deal?.contactId,
+          fullName: deal?.contactName,
+          contactOwner: deal?.dealOwner?.name || (typeof deal?.dealOwner === 'string' ? deal?.dealOwner : 'Khanh Nguyen (khanhnguyen31@7)'),
+        }}
+        onSave={(newDoc) => {
+          setDealDoc(newDoc);
+          if (onUpdateDeal) {
+            onUpdateDeal({
+              ...deal,
+              customerDocument: newDoc,
+            });
+          }
+        }}
+      />
     </div>
   );
 }

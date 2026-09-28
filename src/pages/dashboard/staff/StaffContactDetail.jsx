@@ -4,11 +4,15 @@ import {
   addTicketToStore,
   addDealToStore,
   addContactToStore,
+  addCustomerDocumentToStore,
+  getDynamicCustomerDocuments,
+  SAMPLE_CUSTOMER_DOCUMENTS,
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
 } from '../../../data/mockCrmData';
 import { createTicket, updateContact } from '../../../services/api';
 import AddDealModal from './AddDealModal';
+import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
 
 export const ACA_ACCOUNT_STATUS_OPTIONS = [
   'Need Create ACA Account',
@@ -166,18 +170,26 @@ export default function StaffContactDetail({
   };
 
   const [customerDocuments, setCustomerDocuments] = useState(() => {
-    if (contact?.customerDocuments && contact.customerDocuments.length > 0) {
+    if (contact?.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
       return contact.customerDocuments;
     }
-    if (contact?.fullName === '123 123' || contact?.hasDocs) {
-      return [
-        { name: 'Identity', count: 3 },
-        { name: 'Consent Form Text', count: 1 },
-        { name: 'Payment Information', count: 1 },
-      ];
+    if (contact?.customerDocument) {
+      return [contact.customerDocument];
+    }
+    const allDocs = [...getDynamicCustomerDocuments(), ...SAMPLE_CUSTOMER_DOCUMENTS];
+    const found = allDocs.filter(
+      (d) =>
+        (contact?.id && d.contactId === contact.id) ||
+        (contact?.code && d.contactId === contact.code)
+    );
+    if (found.length > 0) return found;
+    if (contact?.id === 'CT26002600' || contact?.id === 'CT26002601') {
+      const s = SAMPLE_CUSTOMER_DOCUMENTS.find((d) => d.contactId === contact.id);
+      if (s) return [s];
     }
     return [];
   });
+  const [showCreateDocModal, setShowCreateDocModal] = useState(false);
   const [showAddDocModal, setShowAddDocModal] = useState(false);
   const [newDocCategory, setNewDocCategory] = useState('Identity');
   const [newDocFileName, setNewDocFileName] = useState('');
@@ -510,6 +522,28 @@ export default function StaffContactDetail({
 
       setContactDeals(contact.associatedDeals || contact.deals || []);
       setContactTickets(contact.associatedTickets || contact.tickets || []);
+
+      // Sync customer documents for this contact
+      const allDocs = [...getDynamicCustomerDocuments(), ...SAMPLE_CUSTOMER_DOCUMENTS];
+      let initialDocs = [];
+      if (contact.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
+        initialDocs = contact.customerDocuments;
+      } else if (contact.customerDocument) {
+        initialDocs = [contact.customerDocument];
+      } else {
+        const found = allDocs.filter(
+          (d) =>
+            (contact.id && d.contactId === contact.id) ||
+            (contact.code && d.contactId === contact.code)
+        );
+        if (found.length > 0) {
+          initialDocs = found;
+        } else if (contact.id === 'CT26002600' || contact.id === 'CT26002601') {
+          const s = SAMPLE_CUSTOMER_DOCUMENTS.find((d) => d.contactId === contact.id);
+          if (s) initialDocs = [s];
+        }
+      }
+      setCustomerDocuments(initialDocs);
     }
   }, [contact]);
 
@@ -2574,13 +2608,13 @@ export default function StaffContactDetail({
                 <span className="material-symbols-outlined text-[17px] text-slate-700">
                   {rightDocsOpen ? 'expand_more' : 'chevron_right'}
                 </span>
-                <span>Customer Documents (1)</span>
+                <span>Customer Documents ({customerDocuments.length})</span>
               </button>
               <div className="flex items-center gap-2 text-slate-500">
                 <button
                   type="button"
-                  onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(contact?.customerDocument)}
-                  title="Open Customer Documents"
+                  onClick={() => setShowCreateDocModal(true)}
+                  title="Create Customer Document"
                   className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[17px]">add</span>
@@ -2599,64 +2633,97 @@ export default function StaffContactDetail({
             {/* Content Body */}
             {rightDocsOpen && (
               <div className="p-3">
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs">
-                  {/* Title row with document badge */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                      <span className="material-symbols-outlined text-[15px]">description</span>
-                    </div>
+                {customerDocuments.length === 0 ? (
+                  <div className="text-center py-6 px-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    <span className="material-symbols-outlined text-[24px] text-slate-300 mb-1">
+                      description
+                    </span>
+                    <p className="text-xs font-semibold text-slate-500 mb-1">Chưa có customer document nào</p>
+                    <p className="text-[11px] text-slate-400 mb-3">Tạo tài liệu khách hàng mới cho liên hệ này</p>
                     <button
                       type="button"
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(contact?.customerDocument)}
-                      className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left truncate"
+                      onClick={() => setShowCreateDocModal(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#104882] text-white text-xs font-semibold hover:bg-blue-700 transition cursor-pointer shadow-xs"
                     >
-                      {currentFullName || 'Hai Nguyen'}
+                      <span className="material-symbols-outlined text-[15px]">add</span>
+                      <span>Tạo Customer Document</span>
                     </button>
                   </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {customerDocuments.map((doc, docIdx) => {
+                      const docSummary = doc.categoriesSummary || [];
+                      const hasFiles = doc.totalFiles > 0 || docSummary.length > 0;
+                      const parts = (doc.lastModifiedTime || '09/28/2026, 10:07').split(',');
+                      const updateDate = parts[0]?.trim() || '09/28/2026';
+                      const updateTime = parts[1]?.trim() || '10:07';
 
-                  {/* Document categories tree OR empty dashed box */}
-                  {activeCustomerDocuments.length > 0 ? (
-                    <div className="space-y-1 pt-1">
-                      {activeCustomerDocuments.map((doc) => (
+                      return (
                         <div
-                          key={doc.name}
-                          onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(contact?.customerDocument || doc)}
-                          className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 transition cursor-pointer group"
+                          key={doc.id || docIdx}
+                          className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs"
                         >
-                          <div className="flex items-center gap-2 text-slate-600 group-hover:text-blue-700">
-                            <span className="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
-                            <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600">
-                              description
-                            </span>
-                            <span className="text-xs font-medium">{doc.name}</span>
+                          {/* Title row with document badge */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                              <span className="material-symbols-outlined text-[15px]">description</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(doc)}
+                              className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left truncate"
+                            >
+                              {doc.name || currentFullName}
+                            </button>
                           </div>
-                          <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] flex items-center justify-center">
-                            {doc.count}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    /* Exact match to media_1790575754874.png (Ảnh 2) */
-                    <div
-                      onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(contact?.customerDocument)}
-                      className="border border-dashed border-slate-200 rounded-lg py-5 px-3 text-center bg-[#F8FAFC] cursor-pointer hover:border-blue-300 transition"
-                      title="Click to add files"
-                    >
-                      <span className="text-slate-400 italic text-xs">No files attached</span>
-                    </div>
-                  )}
 
-                  {/* Card Footer: LAST UPDATE */}
-                  <div className="border-t border-slate-100 pt-2 mt-1 flex items-center justify-between text-[11px] text-slate-400">
-                    <div className="flex items-center gap-1 text-[10px]">
-                      <span className="material-symbols-outlined text-[13px] text-slate-400">calendar_today</span>
-                      <span className="uppercase text-slate-400 font-semibold tracking-wider">LAST UPDATE:</span>
-                      <span className="font-bold text-[#0F2962]">{activeLastUpdate.date}</span>
-                    </div>
-                    <span className="text-[10px] text-slate-400">{activeLastUpdate.time}</span>
+                          {/* Document categories tree OR empty dashed box */}
+                          {hasFiles ? (
+                            <div className="space-y-1 pt-1">
+                              {docSummary.map((item) => (
+                                <div
+                                  key={item.label || item.key}
+                                  onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(doc)}
+                                  className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 transition cursor-pointer group"
+                                >
+                                  <div className="flex items-center gap-2 text-slate-600 group-hover:text-blue-700">
+                                    <span className="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
+                                    <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600">
+                                      description
+                                    </span>
+                                    <span className="text-xs font-medium">{item.label}</span>
+                                  </div>
+                                  <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] flex items-center justify-center">
+                                    {item.count}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            /* Exact match to media_1790575754874.png (Ảnh 2) */
+                            <div
+                              onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(doc)}
+                              className="border border-dashed border-slate-200 rounded-lg py-5 px-3 text-center bg-[#F8FAFC] cursor-pointer hover:border-blue-300 transition"
+                              title="Click to view details"
+                            >
+                              <span className="text-slate-400 italic text-xs">No files attached</span>
+                            </div>
+                          )}
+
+                          {/* Card Footer: LAST UPDATE */}
+                          <div className="border-t border-slate-100 pt-2 mt-1 flex items-center justify-between text-[11px] text-slate-400">
+                            <div className="flex items-center gap-1 text-[10px]">
+                              <span className="material-symbols-outlined text-[13px] text-slate-400">calendar_today</span>
+                              <span className="uppercase text-slate-400 font-semibold tracking-wider">LAST UPDATE:</span>
+                              <span className="font-bold text-[#0F2962]">{updateDate}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-400">{updateTime}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -3547,6 +3614,25 @@ export default function StaffContactDetail({
               ? `Đã tạo Deal và tự động xuất Ticket Upload document cho ${currentFullName}!`
               : `Đã tạo Deal thành công cho ${currentFullName}!`
           );
+        }}
+      />
+      {/* ── Create Customer Document Modal Matching media_1790590561081.png (Hình 3) ── */}
+      <CreateCustomerDocumentModal
+        isOpen={showCreateDocModal}
+        onClose={() => setShowCreateDocModal(false)}
+        contact={contact}
+        onSave={(newDoc) => {
+          const updated = [newDoc, ...customerDocuments];
+          setCustomerDocuments(updated);
+          logActivity('Document Created', `Tạo Customer Document mới: ${newDoc.name}`);
+          showToast(`Đã tạo Customer Document: ${newDoc.name}!`);
+          if (onUpdateContact) {
+            onUpdateContact({
+              ...contact,
+              customerDocument: newDoc,
+              customerDocuments: updated,
+            });
+          }
         }}
       />
     </div>

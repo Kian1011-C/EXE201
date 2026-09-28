@@ -9,6 +9,7 @@ import {
 } from '../../../data/mockCrmData';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterCustomerDocumentsForAgent, getAgentIdentity } from '../../../utils/rbac';
+import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
 
 export const DOCUMENT_CATEGORIES = [
   { key: 'identity', label: 'Identity', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
@@ -708,103 +709,16 @@ export default function StaffCustomerDocumentsList({
         </div>
       </div>
 
-      {/* ── Create / Attach Document Modal ─────────────────────────────────── */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
-            <div className="px-5 py-3.5 bg-[#183968] text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">folder_shared</span>
-                <h3 className="text-xs font-bold uppercase tracking-wide">
-                  Create Customer Document Record
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCreateModal(false)}
-                className="text-white/80 hover:text-white cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateSubmit} className="p-5 space-y-3.5 text-xs">
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                  Select Associated Contact <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={newContactId}
-                  onChange={(e) => {
-                    const cId = e.target.value;
-                    setNewContactId(cId);
-                    const selected = availableContacts.find((c) => (c.id || c.code) === cId);
-                    if (selected) {
-                      setNewDocName(selected.fullName || `${selected.firstName || ''} ${selected.lastName || ''}`.trim());
-                      if (typeof selected.contactOwner === 'string') setNewDocOwner(selected.contactOwner);
-                    }
-                  }}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                  required
-                >
-                  {availableContacts.map((c) => (
-                    <option key={c.id || c.code} value={c.id || c.code}>
-                      {c.fullName || `${c.firstName || ''} ${c.lastName || ''}`} ({c.code || c.id})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                  Document / Customer Title <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={newDocName}
-                  onChange={(e) => setNewDocName(e.target.value)}
-                  placeholder="e.g. Hai Nguyen"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                  required
-                >
-                </input>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                  Contact Owner
-                </label>
-                <input
-                  type="text"
-                  value={newDocOwner}
-                  onChange={(e) => setNewDocOwner(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] text-slate-500">
-                <span className="font-semibold text-slate-700">Lưu ý:</span> Khi vừa tạo mới, hồ sơ tài liệu sẽ ở trạng thái <span className="italic font-medium">No files attached</span>. Bạn có thể vào chi tiết hồ sơ để tải lên các tài liệu xác thực (Identity, Consent form, Tax,...).
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold cursor-pointer"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-[#52B4C9] hover:bg-[#439cae] text-white text-xs font-bold cursor-pointer transition shadow-xs"
-                >
-                  Tạo hồ sơ
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* ── Create / Attach Document Modal Matching media_1790590561081.png (Hình 3) ── */}
+      <CreateCustomerDocumentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        contact={availableContacts[0]}
+        onSave={(newDoc) => {
+          setDocumentsList((prev) => [newDoc, ...prev]);
+          showToast(`Đã tạo Customer Document: ${newDoc.name}!`);
+        }}
+      />
     </div>
   );
 }
