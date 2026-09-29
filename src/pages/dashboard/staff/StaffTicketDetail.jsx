@@ -289,6 +289,8 @@ export default function StaffTicketDetail({
   const [filterAuthor, setFilterAuthor] = useState('all');
   const [showNoteComposer, setShowNoteComposer] = useState(false);
   const [newNoteContent, setNewNoteContent] = useState('');
+  const [editingTicketNoteId, setEditingTicketNoteId] = useState(null);
+  const [editTicketNoteContent, setEditTicketNoteContent] = useState('');
 
   // Timeline Items
   const [timelineItems, setTimelineItems] = useState(initialData.timeline || []);
@@ -517,6 +519,23 @@ export default function StaffTicketDetail({
     setNewNoteContent('');
     setShowNoteComposer(false);
     showToast('Note published to timeline');
+  };
+
+  const handleSaveTicketNote = (id) => {
+    if (!editTicketNoteContent.trim()) return;
+    setTimelineItems((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, content: editTicketNoteContent.trim(), isEdited: true } : t
+      )
+    );
+    setEditingTicketNoteId(null);
+    setEditTicketNoteContent('');
+    showToast('Note updated successfully');
+  };
+
+  const handleDeleteTicketNote = (id) => {
+    setTimelineItems((prev) => prev.filter((t) => t.id !== id));
+    showToast('Note deleted');
   };
 
   const handleCreateTask = () => {
@@ -1600,11 +1619,11 @@ export default function StaffTicketDetail({
                             key={item.id}
                             className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs hover:shadow-xs transition"
                           >
-                            <div
-                              onClick={() => toggleItemExpand(item.id)}
-                              className="flex items-center justify-between cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-between">
+                              <div
+                                onClick={() => toggleItemExpand(item.id)}
+                                className="flex items-center gap-2 cursor-pointer select-none"
+                              >
                                 <span className="material-symbols-outlined text-[15px] text-slate-400">
                                   {item.isExpanded ? 'expand_more' : 'chevron_right'}
                                 </span>
@@ -1614,17 +1633,85 @@ export default function StaffTicketDetail({
                                 <span className="text-xs text-slate-600">
                                   published by <span className="font-semibold text-slate-800">{item.actor}</span>
                                 </span>
+                                {item.isEdited && <span className="text-[10px] text-slate-400 italic">(edited)</span>}
                               </div>
-                              <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                                <span className="material-symbols-outlined text-[13px]">calendar_today</span>
-                                <span>{item.timestamp}</span>
+                              <div className="flex items-center gap-2">
+                                {item.type === 'note' && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingTicketNoteId(item.id);
+                                        setEditTicketNoteContent(item.content || '');
+                                      }}
+                                      className="inline-flex items-center gap-0.5 text-[11px] text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 font-semibold cursor-pointer transition"
+                                      title="Edit note"
+                                    >
+                                      <span className="material-symbols-outlined text-[13px]">edit</span>
+                                      <span>Edit</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteTicketNote(item.id)}
+                                      className="text-slate-400 hover:text-rose-500 p-0.5 rounded transition cursor-pointer"
+                                      title="Delete note"
+                                    >
+                                      <span className="material-symbols-outlined text-[14px]">delete</span>
+                                    </button>
+                                  </>
+                                )}
+                                <div className="flex items-center gap-1 text-[11px] text-slate-400">
+                                  <span className="material-symbols-outlined text-[13px]">calendar_today</span>
+                                  <span>{item.timestamp}</span>
+                                </div>
                               </div>
                             </div>
 
-                            {item.isExpanded && item.content && (
-                              <div className="mt-2.5 pt-2 border-t border-slate-100 pl-6 text-xs text-slate-700 leading-relaxed whitespace-pre-line">
-                                {item.content}
+                            {editingTicketNoteId === item.id ? (
+                              <div className="mt-2.5 pt-2 border-t border-slate-100 pl-6 space-y-2">
+                                <textarea
+                                  value={editTicketNoteContent}
+                                  onChange={(e) => setEditTicketNoteContent(e.target.value)}
+                                  rows={3}
+                                  className="w-full p-2 text-xs border border-blue-400 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 leading-relaxed bg-white shadow-2xs"
+                                  autoFocus
+                                />
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingTicketNoteId(null);
+                                      setEditTicketNoteContent('');
+                                    }}
+                                    className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSaveTicketNote(item.id)}
+                                    className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs cursor-pointer transition flex items-center gap-1"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">save</span>
+                                    <span>Save</span>
+                                  </button>
+                                </div>
                               </div>
+                            ) : (
+                              item.isExpanded && item.content && (
+                                <div
+                                  onDoubleClick={() => {
+                                    if (item.type === 'note') {
+                                      setEditingTicketNoteId(item.id);
+                                      setEditTicketNoteContent(item.content || '');
+                                    }
+                                  }}
+                                  title={item.type === 'note' ? 'Double-click to edit note' : ''}
+                                  className="mt-2.5 pt-2 border-t border-slate-100 pl-6 text-xs text-slate-700 leading-relaxed whitespace-pre-line cursor-text"
+                                >
+                                  {item.content}
+                                </div>
+                              )
                             )}
                           </div>
                         );

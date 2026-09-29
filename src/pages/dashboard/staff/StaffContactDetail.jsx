@@ -122,8 +122,14 @@ export default function StaffContactDetail({
   const [isEditNoteFullscreen, setIsEditNoteFullscreen] = useState(false);
   const editFileInputRef = useRef(null);
 
-  // Note actions dropdown
+  // Note actions dropdown & card interactions
   const [noteActionsOpen, setNoteActionsOpen] = useState(null); // note.id or null
+  const [collapsedNotes, setCollapsedNotes] = useState({});
+  const [activeCommentNoteId, setActiveCommentNoteId] = useState(null);
+  const [noteComments, setNoteComments] = useState({});
+  const [commentInput, setCommentInput] = useState('');
+  const [inlineEditingNoteId, setInlineEditingNoteId] = useState(null);
+  const [inlineEditBody, setInlineEditBody] = useState('');
   const fileInputRef = useRef(null);
 
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
@@ -688,12 +694,26 @@ export default function StaffContactDetail({
       (noteBody.trim() ? noteBody.trim().split('\n')[0].slice(0, 60) : '') ||
       (noteAttachments.length > 0 ? `Attachment: ${noteAttachments[0].name}` : 'General Note');
 
+    function getActiveStaffAuthor() {
+      try {
+        const raw = localStorage.getItem('tbri_user');
+        if (raw) {
+          const u = JSON.parse(raw);
+          if (u.name) return u.name;
+          if (u.fullName) return u.fullName;
+        }
+      } catch (err) {}
+      return 'Rosy Pham';
+    }
+
+    const currentAuthor = getActiveStaffAuthor();
+
     const newNote = {
       id: `note-${Date.now()}`,
       title,
       body: noteBody.trim(),
       attachments: [...noteAttachments],
-      author: 'Platform Staff',
+      author: currentAuthor,
       time: timeStr,
     };
     setNotesList((prev) => [newNote, ...prev]);
@@ -712,7 +732,7 @@ export default function StaffContactDetail({
         dueDate: followUpDateTime || '09/18/2026, 08:00',
         priority: 'Medium',
         status: 'Pending',
-        author: 'Platform Staff',
+        author: currentAuthor,
         createdAt: timeStr,
       };
       setTasksList((prev) => [newTask, ...prev]);
@@ -727,7 +747,92 @@ export default function StaffContactDetail({
     setShowCreateNoteModal(false);
   }
 
+  function handleCardFileAttach(noteId, e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const newAttach = files.map((file) => ({
+      id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: file.name,
+      size:
+        file.size > 1024 * 1024
+          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+          : `${Math.round(file.size / 1024)} KB`,
+    }));
+    setNotesList((prev) =>
+      prev.map((n) =>
+        n.id === noteId
+          ? { ...n, attachments: [...(n.attachments || []), ...newAttach] }
+          : n
+      )
+    );
+    logActivity('Attachment Added', `attached ${newAttach.length} file(s) to note`);
+    e.target.value = '';
+  }
+
+  function handleRemoveAttachmentFromNote(noteId, attId) {
+    setNotesList((prev) =>
+      prev.map((n) =>
+        n.id === noteId
+          ? { ...n, attachments: (n.attachments || []).filter((a) => a.id !== attId) }
+          : n
+      )
+    );
+  }
+
+  function handleAddComment(noteId) {
+    if (!commentInput.trim()) return;
+    const now = new Date();
+    const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
+      now.getDate()
+    ).padStart(2, '0')}/${now.getFullYear()}, ${String(now.getHours()).padStart(
+      2,
+      '0'
+    )}:${String(now.getMinutes()).padStart(2, '0')}`;
+    let author = 'Rosy Pham';
+    try {
+      const raw = localStorage.getItem('tbri_user');
+      if (raw) {
+        const u = JSON.parse(raw);
+        author = u.name || u.fullName || author;
+      }
+    } catch (e) {}
+
+    const newC = {
+      id: `c-${Date.now()}`,
+      text: commentInput.trim(),
+      author,
+      time: timeStr,
+    };
+    setNoteComments((prev) => ({
+      ...prev,
+      [noteId]: [...(prev[noteId] || []), newC],
+    }));
+    setCommentInput('');
+  }
+
   // ── Edit Note handlers ──────────────────────────────────────────────────
+  function handleStartInlineEdit(note) {
+    setInlineEditingNoteId(note.id);
+    setInlineEditBody(note.body || '');
+    setNoteActionsOpen(null);
+  }
+
+  function handleSaveInlineEdit(noteId) {
+    if (!inlineEditBody.trim()) return;
+    const updatedTitle = inlineEditBody.trim().split('\n')[0].slice(0, 60);
+    setNotesList((prev) =>
+      prev.map((n) =>
+        n.id === noteId
+          ? { ...n, title: updatedTitle, body: inlineEditBody.trim(), edited: true }
+          : n
+      )
+    );
+    setInlineEditingNoteId(null);
+    setInlineEditBody('');
+    logActivity('Note Edited', `edited note: "${updatedTitle}"`);
+    showToast('Đã lưu chỉnh sửa note thành công!');
+  }
+
   function openEditNote(note) {
     setEditingNote(note);
     setEditNoteBody(note.body);
@@ -2475,96 +2580,230 @@ export default function StaffContactDetail({
                 <div className="space-y-3 mt-1">
                   {notesList.map((note) => (
                     <div key={note.id} className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-                      {/* Note Header - HubSpot style */}
-                      <div className="flex items-center justify-between px-3.5 py-2 border-b border-slate-100 bg-slate-50">
-                        <div className="text-[11px] text-slate-600 flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px] text-blue-600">description</span>
-                          <span className="font-semibold text-slate-800">Note</span>
-                          <span className="text-slate-400">published by</span>
-                          <span className="font-semibold text-slate-700">{note.author}</span>
+                      {/* Note Header - HubSpot style matching media_1790667070854.png */}
+                      <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/80">
+                        <div
+                          onClick={() => setCollapsedNotes((prev) => ({ ...prev, [note.id]: !prev[note.id] }))}
+                          className="flex items-center gap-1.5 text-xs cursor-pointer select-none"
+                        >
+                          <span className="material-symbols-outlined text-[17px] text-slate-700">
+                            {collapsedNotes[note.id] ? 'chevron_right' : 'keyboard_arrow_down'}
+                          </span>
+                          <span className="font-bold text-slate-900">Note</span>
+                          <span className="text-slate-500 font-normal">published by</span>
+                          <span className="font-semibold text-slate-800">{note.author || 'Rosy Pham'}</span>
                           {note.edited && <span className="text-[10px] text-slate-400 italic">(edited)</span>}
                         </div>
                         <div className="flex items-center gap-2">
+                          {/* Direct Edit Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleStartInlineEdit(note)}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 rounded px-2 py-0.5 transition cursor-pointer"
+                            title="Edit this note"
+                          >
+                            <span className="material-symbols-outlined text-[13px]">edit</span>
+                            <span>Edit</span>
+                          </button>
+
                           {/* Actions dropdown */}
                           <div className="relative">
                             <button
                               type="button"
                               onClick={() => setNoteActionsOpen(noteActionsOpen === note.id ? null : note.id)}
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 rounded px-2 py-0.5 bg-white transition cursor-pointer"
+                              className="inline-flex items-center gap-0.5 text-xs font-semibold text-slate-700 hover:text-blue-600 transition cursor-pointer"
                             >
                               <span>Actions</span>
-                              <span className="material-symbols-outlined text-[13px]">expand_more</span>
+                              <span className="material-symbols-outlined text-[14px]">expand_more</span>
                             </button>
                             {noteActionsOpen === note.id && (
-                              <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-lg shadow-lg min-w-[130px] overflow-hidden">
+                              <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-lg shadow-lg min-w-[140px] overflow-hidden py-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartInlineEdit(note)}
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[15px] text-blue-600">edit_note</span>
+                                  Edit Inline
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => openEditNote(note)}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
                                 >
-                                  <span className="material-symbols-outlined text-[14px]">edit</span>
-                                  Edit
+                                  <span className="material-symbols-outlined text-[15px] text-slate-500">open_in_new</span>
+                                  Edit in Modal
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteNote(note.id)}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                                 >
-                                  <span className="material-symbols-outlined text-[14px]">delete</span>
+                                  <span className="material-symbols-outlined text-[15px] text-rose-500">delete</span>
                                   Delete
                                 </button>
                               </div>
                             )}
                           </div>
                           {/* Timestamp */}
-                          <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                            <span className="material-symbols-outlined text-[13px]">schedule</span>
+                          <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                            <span className="material-symbols-outlined text-[14px] text-slate-400">calendar_today</span>
                             <span>{note.time}</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Note Body */}
-                      <div className="px-3.5 py-3">
-                        <div className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
-                          {note.body}
-                        </div>
-                        {/* Ref code style - show first line bold if it looks like a ref */}
-                        {/* Attached files */}
-                        {note.attachments && note.attachments.length > 0 && (
-                          <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center gap-2 flex-wrap">
-                            <span className="text-[11px] font-semibold text-slate-500">Attach</span>
-                            {note.attachments.map((att) => (
-                              <span
-                                key={att.id}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[11px]"
+                      {/* Note Body (Collapsible) */}
+                      {!collapsedNotes[note.id] && (
+                        <>
+                          <div className="px-3.5 py-3">
+                            {inlineEditingNoteId === note.id ? (
+                              /* Inline Editing Mode */
+                              <div className="space-y-2.5">
+                                <textarea
+                                  value={inlineEditBody}
+                                  onChange={(e) => setInlineEditBody(e.target.value)}
+                                  rows={4}
+                                  placeholder="Enter note content..."
+                                  className="w-full p-2.5 text-xs text-slate-800 border border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/30 leading-relaxed bg-white shadow-2xs"
+                                  autoFocus
+                                />
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setInlineEditingNoteId(null);
+                                      setInlineEditBody('');
+                                    }}
+                                    className="px-3 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSaveInlineEdit(note.id)}
+                                    className="px-3.5 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs cursor-pointer transition flex items-center gap-1"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">save</span>
+                                    <span>Save</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div
+                                onDoubleClick={() => handleStartInlineEdit(note)}
+                                title="Double-click to edit note"
+                                className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed cursor-text"
                               >
-                                <span className="material-symbols-outlined text-[13px] text-blue-600">attach_file</span>
-                                <span className="font-medium truncate max-w-[200px]">{att.name}</span>
-                                <span className="text-[10px] text-slate-400">({att.size})</span>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                                {note.body}
+                              </div>
+                            )}
 
-                      {/* Note Footer - Comment & Association */}
-                      <div className="flex items-center justify-between px-3.5 py-2 border-t border-slate-100 bg-slate-50/60">
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1.5 text-[11px] text-slate-500 hover:text-blue-600 transition cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">chat_bubble_outline</span>
-                          <span className="font-medium">Comment</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-blue-600 transition cursor-pointer"
-                        >
-                          <span className="font-medium">1 association</span>
-                          <span className="material-symbols-outlined text-[13px]">expand_more</span>
-                        </button>
-                      </div>
+                            {/* Attach row - always present with Add new matching image */}
+                            <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-col gap-2">
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="font-semibold text-slate-600">Attach</span>
+                                <label className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium cursor-pointer transition">
+                                  <span className="material-symbols-outlined text-[15px] -rotate-45">attach_file</span>
+                                  <span>Add new</span>
+                                  <input
+                                    type="file"
+                                    multiple
+                                    className="hidden"
+                                    onChange={(e) => handleCardFileAttach(note.id, e)}
+                                  />
+                                </label>
+                              </div>
+
+                              {/* Attached files list if any */}
+                              {note.attachments && note.attachments.length > 0 && (
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                  {note.attachments.map((att) => (
+                                    <span
+                                      key={att.id}
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[11px]"
+                                    >
+                                      <span className="material-symbols-outlined text-[13px] text-blue-600">attach_file</span>
+                                      <span className="font-medium truncate max-w-[200px]">{att.name}</span>
+                                      <span className="text-[10px] text-slate-400">({att.size})</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveAttachmentFromNote(note.id, att.id)}
+                                        className="text-slate-400 hover:text-rose-500 transition cursor-pointer ml-0.5 text-xs"
+                                        title="Remove attachment"
+                                      >
+                                        ✕
+                                      </button>
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Note Footer - Comment & Association */}
+                          <div className="flex items-center justify-between px-3.5 py-2 border-t border-slate-100 bg-slate-50/60">
+                            <button
+                              type="button"
+                              onClick={() => setActiveCommentNoteId(activeCommentNoteId === note.id ? null : note.id)}
+                              className="inline-flex items-center gap-1.5 text-[11px] text-slate-600 hover:text-blue-600 transition cursor-pointer font-medium"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">chat_bubble_outline</span>
+                              <span className="font-medium">Comment</span>
+                              {noteComments[note.id] && noteComments[note.id].length > 0 && (
+                                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
+                                  {noteComments[note.id].length}
+                                </span>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-1 text-[11px] text-slate-600 hover:text-blue-600 transition cursor-pointer font-medium"
+                            >
+                              <span className="font-medium">1 association</span>
+                              <span className="material-symbols-outlined text-[13px]">expand_more</span>
+                            </button>
+                          </div>
+
+                          {/* Inline comment section */}
+                          {activeCommentNoteId === note.id && (
+                            <div className="p-3 bg-slate-50 border-t border-slate-100 text-xs">
+                              {noteComments[note.id] && noteComments[note.id].length > 0 && (
+                                <div className="space-y-2 mb-2">
+                                  {noteComments[note.id].map((c) => (
+                                    <div key={c.id} className="p-2 rounded bg-white border border-slate-200">
+                                      <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+                                        <span className="font-semibold text-slate-700">{c.author}</span>
+                                        <span>{c.time}</span>
+                                      </div>
+                                      <div className="text-slate-700">{c.text}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Write a comment..."
+                                  value={commentInput}
+                                  onChange={(e) => setCommentInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleAddComment(note.id);
+                                  }}
+                                  className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddComment(note.id)}
+                                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-xs transition cursor-pointer"
+                                >
+                                  Reply
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
