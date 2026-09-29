@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { createDocument } from '../../../services/api';
 import {
   addCustomerDocumentToStore,
   getDynamicCustomerDocuments,
@@ -249,6 +250,12 @@ export default function CreateCustomerDocumentModal({
     };
 
     addCustomerDocumentToStore(newDoc);
+    createDocument({
+      name: finalDocName,
+      contactOwner: ownerString,
+      lastModifiedBy: selectedOwner?.name || 'Staff',
+    }).catch((err) => console.warn('[CreateCustomerDocumentModal] Live save fallback:', err));
+
     if (onSave) {
       onSave(newDoc);
     }

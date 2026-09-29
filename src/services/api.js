@@ -395,6 +395,20 @@ export async function getDocument(id) {
   return null;
 }
 
+export async function createDocument(docData) {
+  return await request('/documents', {
+    method: 'POST',
+    body: JSON.stringify(docData),
+  });
+}
+
+export async function updateDocument(id, docData) {
+  return await request(`/documents/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(docData),
+  });
+}
+
 export async function addDocumentFile(docId, fileData) {
   return await request(`/documents/${encodeURIComponent(docId)}/files`, {
     method: 'POST',

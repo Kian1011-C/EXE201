@@ -1,5 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { CUSTOMER_DOCUMENT_DATA, updateCustomerDocumentInStore } from '../../../data/mockCrmData';
+import {
+  CUSTOMER_DOCUMENT_DATA,
+  updateCustomerDocumentInStore,
+} from '../../../data/mockCrmData';
+import {
+  addDocumentFile,
+  deleteDocumentFile,
+  updateDocument,
+} from '../../../services/api';
 
 export default function StaffCustomerDocumentDetail({
   documentData,
@@ -149,6 +157,24 @@ export default function StaffCustomerDocumentDetail({
       };
 
       updateCustomerDocumentInStore(updatedDoc);
+      if (doc?.id) {
+        updateDocument(doc.id, {
+          name: docName,
+          contactOwner: contactOwner,
+          lastModifiedBy: doc.lastModifiedBy || 'Staff',
+        }).catch((err) => console.warn('[StaffCustomerDocumentDetail] Update doc API fallback:', err));
+
+        newFiles.forEach((nf) => {
+          addDocumentFile(doc.id, {
+            category: categoryKey,
+            name: nf.name,
+            fullName: nf.fullName,
+            size: nf.size,
+            type: nf.type,
+            url: nf.url || '',
+          }).catch((err) => console.warn('[StaffCustomerDocumentDetail] Add file API fallback:', err));
+        });
+      }
       if (onUpdateDocument) {
         onUpdateDocument(updatedDoc);
       }
@@ -204,6 +230,11 @@ export default function StaffCustomerDocumentDetail({
       };
 
       updateCustomerDocumentInStore(updatedDoc);
+      if (doc?.id) {
+        deleteDocumentFile(doc.id, fileId).catch((err) =>
+          console.warn('[StaffCustomerDocumentDetail] Delete file API fallback:', err)
+        );
+      }
       if (onUpdateDocument) {
         onUpdateDocument(updatedDoc);
       }
