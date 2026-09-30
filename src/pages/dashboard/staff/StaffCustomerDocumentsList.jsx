@@ -50,10 +50,13 @@ export default function StaffCustomerDocumentsList({
   }
 
   // Load from API or fallback to mock
-  async function loadData() {
+  async function loadData(search = searchQuery, owner = ownerFilter) {
     setLoading(true);
     try {
-      const data = await getDocuments();
+      const params = {};
+      if (search && search.trim()) params.search = search.trim();
+      if (owner && owner !== 'all') params.owner = owner;
+      const data = await getDocuments(params);
       const dyn = getDynamicCustomerDocuments();
       const dynIds = new Set(dyn.map((d) => d.id));
       if (Array.isArray(data) && data.length > 0) {
@@ -71,8 +74,11 @@ export default function StaffCustomerDocumentsList({
   }
 
   useEffect(() => {
-    loadData();
-  }, []);
+    const timer = setTimeout(() => {
+      loadData(searchQuery, ownerFilter);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery, ownerFilter]);
 
   const { user } = useAuth();
   const activeIsAgent = isAgent || user?.role === 'agent';

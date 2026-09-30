@@ -1,5 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SAMPLE_TICKETS } from '../../../data/mockCrmData';
+import {
+  SAMPLE_TICKETS,
+  addCustomerDocumentToStore,
+  getDynamicCustomerDocuments,
+} from '../../../data/mockCrmData';
+import {
+  getTicket,
+  updateTicket,
+  addTicketComment,
+  getDocuments,
+  createDocument,
+  addDocumentFile,
+  deleteDocumentFile,
+  addContactTask,
+} from '../../../services/api';
 
 export const ACA_TICKET_DEFAULTS = {
   id: 'TC2600101',
@@ -199,6 +213,63 @@ const PAYMENT_STATUS_OPTIONS = [
 
 const PRIORITY_OPTIONS = ['High', 'Medium', 'Low', 'None'];
 
+export const UPLOAD_CATEGORIES = [
+  {
+    id: 'income',
+    title: 'Proof of Income (Thu nhập)',
+    desc: 'W-2, Pay stubs, Tax return...',
+    req: true,
+    backendCat: 'tax',
+    acceptedExt: '.pdf,.png,.jpg,.jpeg,.doc,.docx',
+    icon: 'receipt_long',
+  },
+  {
+    id: 'citizenship',
+    title: 'Proof of Citizenship / Immigration',
+    desc: 'Passport, Green card, Certificate...',
+    req: true,
+    backendCat: 'identity',
+    acceptedExt: '.pdf,.png,.jpg,.jpeg',
+    icon: 'badge',
+  },
+  {
+    id: 'ssn',
+    title: 'Social Security Card (SSN)',
+    desc: 'SSN Card copy',
+    req: true,
+    backendCat: 'identity',
+    acceptedExt: '.pdf,.png,.jpg,.jpeg',
+    icon: 'credit_card',
+  },
+  {
+    id: 'id',
+    title: 'Driver License / ID',
+    desc: 'State ID, Driver License',
+    req: true,
+    backendCat: 'identity',
+    acceptedExt: '.pdf,.png,.jpg,.jpeg',
+    icon: 'pin',
+  },
+  {
+    id: 'address',
+    title: 'Proof of Address',
+    desc: 'Utility bill, Lease agreement...',
+    req: false,
+    backendCat: 'otherDocument',
+    acceptedExt: '.pdf,.png,.jpg,.jpeg',
+    icon: 'home',
+  },
+  {
+    id: 'other',
+    title: 'Other (Tài liệu khác)',
+    desc: 'Any other required documents',
+    req: false,
+    backendCat: 'otherDocument',
+    acceptedExt: '.pdf,.png,.jpg,.jpeg,.doc,.docx',
+    icon: 'folder_open',
+  },
+];
+
 export default function StaffTicketDetail({
   ticket,
   onBack,
@@ -295,6 +366,13 @@ export default function StaffTicketDetail({
   // Timeline Items
   const [timelineItems, setTimelineItems] = useState(initialData.timeline || []);
 
+  // Document Uploads for isUploadDoc
+  const [uploadedDocs, setUploadedDocs] = useState({});
+  const [previewDoc, setPreviewDoc] = useState(null);
+  const [uploadingCatId, setUploadingCatId] = useState(null);
+  const [contactDocId, setContactDocId] = useState(null);
+  const fileInputRefs = useRef({});
+
   // Toast feedback
   const [toastMsg, setToastMsg] = useState(null);
   const showToast = (msg) => {
@@ -358,7 +436,223 @@ export default function StaffTicketDetail({
     } else {
       setTimelineItems(base.timeline || []);
     }
+
+    // Load customer documents for this contact from backend
+    const effectiveContactId = current.contactId || (typeof current.contact === 'object' ? current.contact?.id : current.contact) || '24';
+    getDocuments({ contactId: effectiveContactId })
+      .then((docs) => {
+        if (Array.isArray(docs) && docs.length > 0) {
+          const doc = docs[0];
+          setContactDocId(doc.id);
+          const initialMap = {};
+          (doc.files || []).forEach((f) => {
+            const fname = (f.name || f.fullName || '').toLowerCase();
+            const ftype = f.type || (fname.endsWith('.pdf') ? 'pdf' : (fname.match(/\.(png|jpg|jpeg)$/) ? 'image' : 'document'));
+            const item = {
+              id: f.id,
+              dbFileId: f.id,
+              name: f.name || f.fullName,
+              fullName: f.fullName || f.name,
+              size: f.size || '1.2 MB',
+              type: ftype,
+              url: f.url || '',
+              uploadedAt: f.createdAt ? new Date(f.createdAt).toLocaleString() : 'Uploaded',
+            };
+            if (f.category === 'identity' || fname.includes('driver') || fname.includes('license') || fname.includes('id')) {
+              if (!initialMap.id) initialMap.id = item;
+              else if (!initialMap.citizenship) initialMap.citizenship = item;
+              else if (!initialMap.ssn) initialMap.ssn = item;
+            } else if (f.category === 'tax' || fname.includes('w2') || fname.includes('income') || fname.includes('tax')) {
+              initialMap.income = item;
+            } else if (f.category === 'consentFormMkp' || f.category === 'consentFormText' || f.category === 'otherDocument') {
+              if (!initialMap.address) initialMap.address = item;
+              else if (!initialMap.other) initialMap.other = item;
+            }
+          });
+          setUploadedDocs(initialMap);
+        }
+      })
+      .catch((err) => console.warn('[StaffTicketDetail] getDocuments error:', err));
   }, [ticket]);
+
+  // Document Upload Handlers
+  const handleDocUpload = async (catId, file) => {
+    if (!file) return;
+    setUploadingCatId(catId);
+    try {
+      const catConfig = UPLOAD_CATEGORIES.find((c) => c.id === catId);
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      const fileType = ['png', 'jpg', 'jpeg'].includes(ext) ? 'image' : (ext === 'pdf' ? 'pdf' : 'document');
+      const formattedSize = file.size > 1024 * 1024
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${Math.max(1, Math.round(file.size / 1024))} KB`;
+
+      // Read file as Data URL
+      const dataUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+
+      const newFileItem = {
+        id: `doc-${catId}-${Date.now()}`,
+        name: file.name,
+        fullName: file.name,
+        size: formattedSize,
+        type: fileType,
+        category: catConfig?.backendCat || 'otherDocument',
+        url: dataUrl,
+        uploadedAt: new Date().toLocaleString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      };
+
+      const updated = {
+        ...uploadedDocs,
+        [catId]: newFileItem,
+      };
+      setUploadedDocs(updated);
+
+      // Call Backend API to save document file
+      let targetDocId = contactDocId;
+      if (!targetDocId) {
+        try {
+          const res = await createDocument({
+            name: `${contactName} - Customer Documents`,
+            contactOwner: ticketOwner || 'Khanh Nguyen',
+            lastModifiedBy: serviceAgent || 'Platform Staff',
+            contactId: ticket?.contactId || '24',
+          });
+          const createdDoc = res?.data || res;
+          if (createdDoc && createdDoc.id) {
+            targetDocId = createdDoc.id;
+            setContactDocId(createdDoc.id);
+          }
+        } catch (e) {
+          console.warn('[StaffTicketDetail] createDocument fallback:', e);
+        }
+      }
+
+      if (targetDocId) {
+        try {
+          const fileRes = await addDocumentFile(targetDocId, {
+            name: file.name,
+            fullName: file.name,
+            size: formattedSize,
+            type: fileType,
+            category: catConfig?.backendCat || 'otherDocument',
+            url: dataUrl.slice(0, 500),
+          });
+          const savedFile = fileRes?.data || fileRes;
+          if (savedFile && savedFile.id) {
+            newFileItem.dbFileId = savedFile.id;
+          }
+        } catch (e) {
+          console.warn('[StaffTicketDetail] addDocumentFile fallback:', e);
+        }
+      }
+
+      // Add activity to timeline
+      const actContent = `Tải lên file "${file.name}" cho danh mục "${catConfig?.title || catId}"`;
+      const newAct = {
+        id: `act-doc-${Date.now()}`,
+        month: 'Aug 2026',
+        type: 'activity',
+        title: 'Document Uploaded',
+        timestamp: new Date().toLocaleString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        actor: serviceAgent || 'Platform Staff',
+        content: actContent,
+      };
+      setTimelineItems((prev) => [newAct, ...prev]);
+
+      const ticketTargetId = ticket?.id || ticket?.code || '31';
+      addTicketComment(ticketTargetId, {
+        author: serviceAgent || 'Platform Staff',
+        content: actContent,
+      }).catch((err) => console.warn('[StaffTicketDetail] addTicketComment fallback:', err));
+
+      // Check required documents completion
+      const requiredCats = ['income', 'citizenship', 'ssn', 'id'];
+      const allRequiredUploaded = requiredCats.every((c) => updated[c]);
+
+      if (allRequiredUploaded) {
+        setStatus('Uploaded - Waiting for Verification');
+        updateTicket(ticketTargetId, {
+          ticketStatus: 'Uploaded - Waiting for Verification',
+        }).catch((err) => console.warn('[StaffTicketDetail] updateTicket status fallback:', err));
+        showToast('Đã tải lên đủ 4/4 tài liệu bắt buộc! Trạng thái ticket đã chuyển sang "Uploaded - Waiting for Verification"');
+      } else {
+        const countUploaded = requiredCats.filter((c) => updated[c]).length;
+        showToast(`Đã tải lên: ${file.name} (${countUploaded}/4 tài liệu bắt buộc)`);
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      showToast('Lỗi khi tải file: ' + err.message);
+    } finally {
+      setUploadingCatId(null);
+    }
+  };
+
+  const handleDocDelete = async (catId) => {
+    const docItem = uploadedDocs[catId];
+    if (!docItem) return;
+    if (!window.confirm(`Bạn có chắc muốn xóa file "${docItem.name}"?`)) return;
+
+    if (contactDocId && docItem.dbFileId) {
+      try {
+        await deleteDocumentFile(contactDocId, docItem.dbFileId);
+      } catch (e) {
+        console.warn('[StaffTicketDetail] deleteDocumentFile fallback:', e);
+      }
+    }
+
+    setUploadedDocs((prev) => {
+      const copy = { ...prev };
+      delete copy[catId];
+      return copy;
+    });
+
+    const actContent = `Đã xóa tài liệu của danh mục "${catId}": ${docItem.name}`;
+    const newAct = {
+      id: `act-del-${Date.now()}`,
+      month: 'Aug 2026',
+      type: 'activity',
+      title: 'Document Removed',
+      timestamp: new Date().toLocaleString(),
+      actor: serviceAgent || 'Platform Staff',
+      content: actContent,
+    };
+    setTimelineItems((prev) => [newAct, ...prev]);
+
+    const ticketTargetId = ticket?.id || ticket?.code || '31';
+    addTicketComment(ticketTargetId, {
+      author: serviceAgent || 'Platform Staff',
+      content: actContent,
+    }).catch(() => {});
+
+    showToast(`Đã xóa file: ${docItem.name}`);
+  };
+
+  const handleDocDownload = (docItem) => {
+    if (!docItem) return;
+    const link = document.createElement('a');
+    link.href = docItem.url || '#';
+    link.download = docItem.name || 'document';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast(`Đang tải xuống: ${docItem.name}`);
+  };
 
   // Close dropdowns on outside click
   const dropdownRef = useRef(null);
@@ -516,6 +810,15 @@ export default function StaffTicketDetail({
       content: newNoteContent.trim(),
     };
     setTimelineItems((prev) => [item, ...prev]);
+
+    const targetTicketId = ticket?.id || ticket?.code;
+    if (targetTicketId) {
+      addTicketComment(targetTicketId, {
+        author: item.actor,
+        content: item.content,
+      }).catch((err) => console.warn('[StaffTicketDetail] addTicketComment fallback:', err));
+    }
+
     setNewNoteContent('');
     setShowNoteComposer(false);
     showToast('Note published to timeline');
@@ -603,6 +906,16 @@ export default function StaffTicketDetail({
   const isAca =
     pipeline === 'ACA account' ||
     (ticket?.title && ticket.title.toLowerCase().includes('aca'));
+
+  const isUploadDoc =
+    pipeline === 'Upload document' ||
+    pipeline === 'Collect Document' ||
+    (typeof pipeline === 'string' && pipeline.toLowerCase().includes('document')) ||
+    (typeof ticketTitle === 'string' && ticketTitle.toLowerCase().includes('upload doc')) ||
+    (ticket?.pipeline && typeof ticket.pipeline === 'string' && ticket.pipeline.toLowerCase().includes('document')) ||
+    (ticket?.title && typeof ticket.title === 'string' && ticket.title.toLowerCase().includes('upload doc')) ||
+    (ticket?.category && typeof ticket.category === 'string' && ticket.category.toLowerCase().includes('upload doc'));
+
   const statusOptions = isPayment
     ? STATUS_OPTIONS_PAYMENT
     : isAca
@@ -1467,55 +1780,212 @@ export default function StaffTicketDetail({
           {/* Grouped Timeline by Month */}
           <div className="p-6 space-y-6">
             
-            {isUploadDoc ? (
-              <div className="grid grid-cols-2 gap-4 mt-2">
-                {[
-                  { id: 'income', title: 'Proof of Income (Thu nhập)', desc: 'W-2, Pay stubs, Tax return...', req: true },
-                  { id: 'citizenship', title: 'Proof of Citizenship / Immigration', desc: 'Passport, Green card, Certificate...', req: true },
-                  { id: 'ssn', title: 'Social Security Card (SSN)', desc: 'SSN Card copy', req: true },
-                  { id: 'id', title: 'Driver License / ID', desc: 'State ID, Driver License', req: true },
-                  { id: 'address', title: 'Proof of Address', desc: 'Utility bill, Lease agreement...', req: false },
-                  { id: 'other', title: 'Other (Tài liệu khác)', desc: 'Any other required documents', req: false },
-                ].map((doc) => (
-                  <div key={doc.id} className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs hover:shadow-xs transition flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-bold text-sm text-slate-800 flex items-center gap-1">
-                          {doc.title}
-                          {doc.req && <span className="text-rose-500">*</span>}
-                        </span>
-                        <span className="bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded">
-                          Missing
-                        </span>
+            {/* If isUploadDoc and on Activity tab, show the Document Collection Grid */}
+            {isUploadDoc && activeCenterTab === 'activity' && (
+              <div className="space-y-4 mb-6">
+                {/* ── Document Collection Progress Card ── */}
+                <div className="bg-gradient-to-r from-blue-50/80 via-white to-indigo-50/80 border border-blue-200/80 rounded-xl p-4 shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                        <span className="material-symbols-outlined text-[18px]">folder_managed</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mb-4">{doc.desc}</p>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <span>Document Collection Progress</span>
+                          {Object.keys(uploadedDocs).filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length >= 4 ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              <span className="material-symbols-outlined text-[12px]">verified</span>
+                              Completed (4/4)
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+                              In Progress
+                            </span>
+                          )}
+                        </h4>
+                        <p className="text-[11px] text-slate-500">
+                          {Object.keys(uploadedDocs).filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length} of 4 required documents uploaded
+                        </p>
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => alert('Chức năng upload tài liệu đang được phát triển')}
-                      className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50 text-slate-600 hover:text-blue-700 font-semibold text-xs transition cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">upload_file</span>
-                      <span>Upload File</span>
-                    </button>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-blue-700">
+                        {Math.round((Object.keys(uploadedDocs).filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length / 4) * 100)}%
+                      </span>
+                    </div>
                   </div>
-                ))}
-              </div>
-            ) : months.length === 0 ? (
-
-              <div className="flex flex-col items-center justify-center text-center py-20 text-slate-400">
-                <div className="mb-4">
-                  <svg width="100" height="100" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M50 75L35 60L60 45L75 60L50 75Z" fill="#E2E8F0"/>
-                    <path d="M35 60V85L60 100V75L35 60Z" fill="#CBD5E1"/>
-                    <path d="M75 60V85L60 100V75L75 60Z" fill="#94A3B8"/>
-                    <path d="M55 40C45 35 40 20 50 15" stroke="#3B82F6" strokeWidth="2" strokeDasharray="4 4" fill="none"/>
-                    <circle cx="50" cy="15" r="3" fill="#3B82F6"/>
-                  </svg>
+                  {/* Progress bar */}
+                  <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min(100, Math.round((Object.keys(uploadedDocs).filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length / 4) * 100))}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <span className="font-bold text-slate-700 text-sm mb-1">No data here!</span>
-                <span className="text-[12px] text-slate-500">There is no data to show right now.</span>
+
+                {/* ── 6 Document Cards Grid ── */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {UPLOAD_CATEGORIES.map((doc) => {
+                    const uploadedItem = uploadedDocs[doc.id];
+                    const isUploading = uploadingCatId === doc.id;
+
+                    return (
+                      <div
+                        key={doc.id}
+                        className={`bg-white border rounded-xl p-4 shadow-2xs hover:shadow-xs transition flex flex-col justify-between relative ${
+                          uploadedItem ? 'border-emerald-200 bg-emerald-50/10' : 'border-slate-200'
+                        }`}
+                      >
+                        {/* Hidden file input */}
+                        <input
+                          type="file"
+                          ref={(el) => (fileInputRefs.current[doc.id] = el)}
+                          accept={doc.acceptedExt}
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              handleDocUpload(doc.id, e.target.files[0]);
+                            }
+                          }}
+                          className="hidden"
+                        />
+
+                        <div>
+                          {/* Card Header: Title + Status Badge */}
+                          <div className="flex items-center justify-between mb-1.5 gap-2">
+                            <span className="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[16px] text-slate-500">
+                                {doc.icon}
+                              </span>
+                              <span>{doc.title}</span>
+                              {doc.req && <span className="text-rose-500 font-bold">*</span>}
+                            </span>
+
+                            {uploadedItem ? (
+                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                                Uploaded
+                              </span>
+                            ) : (
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                                  doc.req
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                    : 'bg-slate-50 text-slate-500 border-slate-200'
+                                }`}
+                              >
+                                {doc.req ? 'Missing' : 'Optional'}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500 mb-3">{doc.desc}</p>
+                        </div>
+
+                        {/* File details or Upload button */}
+                        {uploadedItem ? (
+                          <div className="pt-2 border-t border-slate-100 space-y-2">
+                            <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0">
+                                  {uploadedItem.type === 'image'
+                                    ? 'image'
+                                    : uploadedItem.type === 'pdf'
+                                    ? 'picture_as_pdf'
+                                    : 'description'}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <p
+                                    className="text-xs font-semibold text-slate-800 truncate"
+                                    title={uploadedItem.name}
+                                  >
+                                    {uploadedItem.name}
+                                  </p>
+                                  <p className="text-[10px] text-slate-400">
+                                    {uploadedItem.size} • {uploadedItem.uploadedAt}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0 ml-2">
+                                <button
+                                  type="button"
+                                  title="Xem trước"
+                                  onClick={() => setPreviewDoc(uploadedItem)}
+                                  className="p-1 hover:bg-slate-200 rounded text-slate-600 hover:text-blue-600 transition cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">visibility</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  title="Tải xuống"
+                                  onClick={() => handleDocDownload(uploadedItem)}
+                                  className="p-1 hover:bg-slate-200 rounded text-slate-600 hover:text-blue-600 transition cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">download</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  title="Xóa tài liệu"
+                                  onClick={() => handleDocDelete(doc.id)}
+                                  className="p-1 hover:bg-rose-50 rounded text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => fileInputRefs.current[doc.id]?.click()}
+                              className="w-full text-center text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer py-0.5"
+                            >
+                              Tải lên bản thay thế (Replace file)
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={isUploading}
+                            onClick={() => fileInputRefs.current[doc.id]?.click()}
+                            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50/60 text-slate-600 hover:text-blue-700 font-semibold text-xs transition cursor-pointer disabled:opacity-50"
+                          >
+                            {isUploading ? (
+                              <>
+                                <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                <span>Đang tải lên...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="material-symbols-outlined text-[16px]">upload_file</span>
+                                <span>Upload File</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+            )}
+
+            {months.length === 0 ? (
+              !isUploadDoc && (
+                <div className="flex flex-col items-center justify-center text-center py-20 text-slate-400">
+                  <div className="mb-4">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M50 75L35 60L60 45L75 60L50 75Z" fill="#E2E8F0"/>
+                      <path d="M35 60V85L60 100V75L35 60Z" fill="#CBD5E1"/>
+                      <path d="M75 60V85L60 100V75L75 60Z" fill="#94A3B8"/>
+                      <path d="M55 40C45 35 40 20 50 15" stroke="#3B82F6" strokeWidth="2" strokeDasharray="4 4" fill="none"/>
+                      <circle cx="50" cy="15" r="3" fill="#3B82F6"/>
+                    </svg>
+                  </div>
+                  <span className="font-bold text-slate-700 text-sm mb-1">No data here!</span>
+                  <span className="text-[12px] text-slate-500">There is no data to show right now.</span>
+                </div>
+              )
             ) : (
               months.map((month) => {
                 const itemsInMonth = filteredTimeline.filter((item) => item.month === month);
@@ -1845,16 +2315,20 @@ export default function StaffTicketDetail({
             {contactsOpen && (
               <div className="p-3">
                 <div
-                  onClick={() =>
-                    onSelectContact &&
-                    onSelectContact({
-                      id: isPayment ? 'CT26002606' : 'CT26002607',
-                      fullName: contactName,
-                      phone: contactPhone,
-                      email: contactEmail,
-                      leadOwner: leadOwner,
-                    })
-                  }
+                  onClick={() => {
+                    const cId = ticket?.contactId || (typeof ticket?.contact === 'object' ? (ticket.contact?.id || ticket.contact?.code) : ticket?.contact) || (isPayment ? 'CT26002606' : 'CT26002600');
+                    if (onSelectContact) {
+                      onSelectContact({
+                        id: cId,
+                        code: ticket?.contact?.code || 'CT26002600',
+                        fullName: contactName,
+                        name: contactName,
+                        phone: contactPhone,
+                        email: contactEmail,
+                        leadOwner: leadOwner,
+                      });
+                    }
+                  }}
                   className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
                 >
                   <div className="flex items-center gap-2">
@@ -1888,16 +2362,20 @@ export default function StaffTicketDetail({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    onSelectContact &&
-                    onSelectContact({
-                      id: isPayment ? 'CT26002606' : 'CT26002607',
-                      fullName: contactName,
-                      phone: contactPhone,
-                      email: contactEmail,
-                      leadOwner: leadOwner,
-                    })
-                  }
+                  onClick={() => {
+                    const cId = ticket?.contactId || (typeof ticket?.contact === 'object' ? (ticket.contact?.id || ticket.contact?.code) : ticket?.contact) || (isPayment ? 'CT26002606' : 'CT26002600');
+                    if (onSelectContact) {
+                      onSelectContact({
+                        id: cId,
+                        code: ticket?.contact?.code || 'CT26002600',
+                        fullName: contactName,
+                        name: contactName,
+                        phone: contactPhone,
+                        email: contactEmail,
+                        leadOwner: leadOwner,
+                      });
+                    }
+                  }}
                   className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   » View Associated Contact
@@ -1932,17 +2410,22 @@ export default function StaffTicketDetail({
             {dealsOpen && (
               <div className="p-3">
                 <div
-                  onClick={() =>
-                    onSelectDeal &&
-                    onSelectDeal({
-                      id: isPayment ? 'D26005120' : 'D26005121',
-                      title: dealTitle,
-                      pipeline: dealPipeline,
-                      stage: dealStage,
-                      carrier: dealCarrier,
-                      contactName: contactName,
-                    })
-                  }
+                  onClick={() => {
+                    const dId = ticket?.dealId || (typeof ticket?.deal === 'object' ? (ticket.deal?.id || ticket.deal?.code) : ticket?.deal) || (isPayment ? 'D26005120' : 'D26005033');
+                    if (onSelectDeal) {
+                      onSelectDeal({
+                        id: dId,
+                        code: ticket?.deal?.code || 'D26005033',
+                        title: dealTitle,
+                        dealName: dealTitle,
+                        pipeline: dealPipeline,
+                        stage: dealStage,
+                        carrier: dealCarrier,
+                        contactName: contactName,
+                        dealOwner: dealOwner,
+                      });
+                    }
+                  }}
                   className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
                 >
                   <div className="flex items-center gap-2">
@@ -1981,17 +2464,22 @@ export default function StaffTicketDetail({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    onSelectDeal &&
-                    onSelectDeal({
-                      id: isPayment ? 'D26005120' : 'D26005121',
-                      title: dealTitle,
-                      pipeline: dealPipeline,
-                      stage: dealStage,
-                      carrier: dealCarrier,
-                      contactName: contactName,
-                    })
-                  }
+                  onClick={() => {
+                    const dId = ticket?.dealId || (typeof ticket?.deal === 'object' ? (ticket.deal?.id || ticket.deal?.code) : ticket?.deal) || (isPayment ? 'D26005120' : 'D26005033');
+                    if (onSelectDeal) {
+                      onSelectDeal({
+                        id: dId,
+                        code: ticket?.deal?.code || 'D26005033',
+                        title: dealTitle,
+                        dealName: dealTitle,
+                        pipeline: dealPipeline,
+                        stage: dealStage,
+                        carrier: dealCarrier,
+                        contactName: contactName,
+                        dealOwner: dealOwner,
+                      });
+                    }
+                  }}
                   className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   » View Associated Deal
@@ -2245,6 +2733,71 @@ export default function StaffTicketDetail({
               >
                 Create Task
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: Preview Document ────────────────────────────────────────── */}
+      {previewDoc && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="material-symbols-outlined text-blue-600 text-[20px]">
+                  {previewDoc.type === 'image' ? 'image' : (previewDoc.type === 'pdf' ? 'picture_as_pdf' : 'description')}
+                </span>
+                <span className="font-bold text-xs sm:text-sm text-slate-800 truncate" title={previewDoc.name}>
+                  {previewDoc.name}
+                </span>
+                <span className="text-[11px] text-slate-400">({previewDoc.size})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleDocDownload(previewDoc)}
+                  className="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[15px]">download</span>
+                  Download
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewDoc(null)}
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="p-4 overflow-auto flex-1 flex items-center justify-center bg-slate-100 min-h-[300px]">
+              {previewDoc.type === 'image' && previewDoc.url ? (
+                <img
+                  src={previewDoc.url}
+                  alt={previewDoc.name}
+                  className="max-h-[60vh] max-w-full rounded object-contain shadow-sm"
+                />
+              ) : previewDoc.type === 'pdf' && previewDoc.url ? (
+                <iframe
+                  src={previewDoc.url}
+                  title={previewDoc.name}
+                  className="w-full h-[60vh] rounded border border-slate-200"
+                />
+              ) : (
+                <div className="text-center p-8 space-y-3">
+                  <span className="material-symbols-outlined text-6xl text-slate-400">description</span>
+                  <p className="text-xs font-medium text-slate-700">{previewDoc.name}</p>
+                  <p className="text-[11px] text-slate-500">Tài liệu đã được tải lên máy chủ. Bạn có thể tải file về để xem chi tiết.</p>
+                  <button
+                    type="button"
+                    onClick={() => handleDocDownload(previewDoc)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">download</span>
+                    Tải xuống file
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

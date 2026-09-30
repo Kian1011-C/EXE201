@@ -22,24 +22,28 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   }
 
   // Load contacts from PostgreSQL API
-  async function loadData() {
+  async function loadData(filters = {}) {
     setLoading(true);
     try {
-      const data = await getContacts();
-      const dynamic = getDynamicContacts();
-      const dynamicIds = new Set(dynamic.map((c) => c.id));
+      const activeSearch = filters.search !== undefined ? filters.search : searchQuery;
+      const activeOwner = filters.owner !== undefined ? filters.owner : ownerFilter;
+      const data = await getContacts({
+        search: activeSearch,
+        owner: activeOwner,
+      });
       if (Array.isArray(data) && data.length > 0) {
-        setContactsList([...dynamic, ...data.filter((c) => !dynamicIds.has(c.id))]);
+        setContactsList(data);
         setIsDbConnected(true);
       } else {
-        setContactsList([...dynamic, ...SAMPLE_CONTACTS.filter((c) => !dynamicIds.has(c.id))]);
+        const dynamic = getDynamicContacts();
+        const base = [...dynamic, ...SAMPLE_CONTACTS];
+        setContactsList(base);
         setIsDbConnected(false);
       }
     } catch (err) {
       console.warn('[StaffContactsList] API error, falling back to mock:', err);
       const dynamic = getDynamicContacts();
-      const dynamicIds = new Set(dynamic.map((c) => c.id));
-      setContactsList([...dynamic, ...SAMPLE_CONTACTS.filter((c) => !dynamicIds.has(c.id))]);
+      setContactsList([...dynamic, ...SAMPLE_CONTACTS]);
       setIsDbConnected(false);
     } finally {
       setLoading(false);
@@ -47,8 +51,11 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   }
 
   useEffect(() => {
-    loadData();
-  }, []);
+    const timer = setTimeout(() => {
+      loadData({ search: searchQuery, owner: ownerFilter });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery, ownerFilter]);
 
   // Form state for Create Contact (Exact match to uploaded image)
   const [firstName, setFirstName] = useState('');

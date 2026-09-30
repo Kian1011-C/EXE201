@@ -34,9 +34,12 @@ import {
   getContact,
   getDeal,
   getDocument,
+  updateContact as apiUpdateContact,
   updateDeal as apiUpdateDeal,
   getTicket,
+  updateTicket as apiUpdateTicket,
   getTask,
+  updateTask as apiUpdateTask,
   getTickets,
   getTasks,
   getDashboardStats,
@@ -704,6 +707,11 @@ export default function AgentDashboard() {
             onSelectTask={handleSelectTask}
             onUpdateContact={(updated) => {
               setSelectedContact((prev) => ({ ...prev, ...updated }));
+              if (updated?.id) {
+                apiUpdateContact(updated.id, updated).catch((err) =>
+                  console.warn('[AgentDashboard] Could not update contact:', err)
+                );
+              }
             }}
           />
         )
@@ -818,6 +826,14 @@ export default function AgentDashboard() {
             onBack={handleBackFromTicket}
             onSelectContact={handleSelectContact}
             onSelectDeal={handleSelectDeal}
+            onUpdateTicket={(updated) => {
+              setSelectedTicket((prev) => ({ ...prev, ...updated }));
+              if (updated?.id) {
+                apiUpdateTicket(updated.id, updated).catch((err) =>
+                  console.warn('[AgentDashboard] Could not update ticket:', err)
+                );
+              }
+            }}
           />
         )
       )}
@@ -850,6 +866,14 @@ export default function AgentDashboard() {
             onSelectContact={handleSelectContact}
             onSelectDeal={handleSelectDeal}
             onSelectTicket={handleSelectTicket}
+            onUpdateTask={(updated) => {
+              setSelectedTask((prev) => ({ ...prev, ...updated }));
+              if (updated?.id) {
+                apiUpdateTask(updated.id, updated).catch((err) =>
+                  console.warn('[AgentDashboard] Could not update task:', err)
+                );
+              }
+            }}
           />
         )
       )}

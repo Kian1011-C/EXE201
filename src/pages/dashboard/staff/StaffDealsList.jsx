@@ -83,15 +83,27 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     };
   }, [showOwnerDropdown]);
 
-  async function loadDealsData() {
+  async function loadDealsData(filters = {}) {
     setLoading(true);
     try {
-      const dyn = getDynamicDeals();
-      const data = await getDeals();
+      const activeSearch = filters.search !== undefined ? filters.search : searchQuery;
+      const activePipeline = filters.pipeline !== undefined ? filters.pipeline : pipelineFilter;
+      const activeStage = filters.stage !== undefined ? filters.stage : stageFilter;
+      const activeCarrier = filters.carrier !== undefined ? filters.carrier : carrierFilter;
+      const activeOwner = filters.owner !== undefined ? filters.owner : (ownerFilter !== '__none__' ? ownerFilter : null);
+
+      const data = await getDeals({
+        search: activeSearch,
+        pipeline: activePipeline,
+        stage: activeStage,
+        carrier: activeCarrier,
+        owner: activeOwner,
+      });
       if (Array.isArray(data) && data.length > 0) {
-        setDealsList([...dyn, ...data]);
+        setDealsList(data);
         setIsDbConnected(true);
       } else {
+        const dyn = getDynamicDeals();
         setDealsList([...dyn, ...SAMPLE_DEALS]);
         setIsDbConnected(false);
       }
@@ -106,8 +118,17 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   }
 
   useEffect(() => {
-    loadDealsData();
-  }, []);
+    const timer = setTimeout(() => {
+      loadDealsData({
+        search: searchQuery,
+        pipeline: pipelineFilter,
+        stage: stageFilter,
+        carrier: carrierFilter,
+        owner: ownerFilter,
+      });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery, pipelineFilter, stageFilter, carrierFilter, ownerFilter]);
 
   function showToast(msg) {
     setToastMessage(msg);

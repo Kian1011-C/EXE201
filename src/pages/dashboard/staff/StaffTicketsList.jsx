@@ -140,18 +140,28 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   }, []);
 
   // Fetch / Refresh data
-  async function handleRefresh() {
+  async function handleRefresh(filters = {}) {
     setIsRefreshing(true);
     try {
-      const data = await getTickets();
+      const activePipeline = filters.pipeline !== undefined ? filters.pipeline : selectedPipeline;
+      const activeOwner = filters.owner !== undefined ? filters.owner : selectedOwner;
+      const activePriority = filters.priority !== undefined ? filters.priority : selectedPriority;
+      const activeSearch = filters.search !== undefined ? filters.search : searchQuery;
+
+      const data = await getTickets({
+        pipeline: activePipeline,
+        owner: activeOwner,
+        priority: activePriority,
+        search: activeSearch,
+      });
       if (Array.isArray(data) && data.length > 0) {
-        // Merge with full sample tickets
         const dbTickets = data.map((t, idx) => ({
           id: t.id || `T2604${1092 - idx}`,
-          code: t.id || `T2604${1092 - idx}`,
-          title: t.title || 'ACA account 2026',
+          code: t.code || t.id || `T2604${1092 - idx}`,
+          title: t.title || t.ticketName || 'ACA account 2026',
           pipeline: t.pipeline || 'ACA account',
           stage: t.stage || (t.pipeline === 'Payment' ? 'Make payment (Payment)' : 'Need Create ACA Account (ACA account)'),
+          status: t.status || t.ticketStatus || 'Open',
           ticketOwner: typeof t.ticketOwner === 'object' ? (t.ticketOwner?.name || 'Khanh Nguyen') : (t.ticketOwner || t.owner?.name || t.ticketOwnerName || 'Khanh Nguyen'),
           ticketOwnerAvatar: ((typeof t.ticketOwner === 'object' ? t.ticketOwner?.name : t.ticketOwner) || 'KN').slice(0, 2).toUpperCase(),
           ticketOwnerBg: 'bg-emerald-600',
@@ -164,8 +174,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
           dealTitle: t.deal?.title || t.dealTitle || '',
           rawTicket: t,
         }));
-        const dyn = getDynamicTickets();
-        setTicketsList([...dyn, ...FULL_SAMPLE_TICKETS, ...dbTickets]);
+        setTicketsList(dbTickets);
       } else {
         const dyn = getDynamicTickets();
         setTicketsList([...dyn, ...FULL_SAMPLE_TICKETS]);
@@ -174,9 +183,21 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
       const dyn = getDynamicTickets();
       setTicketsList([...dyn, ...FULL_SAMPLE_TICKETS]);
     } finally {
-      setTimeout(() => setIsRefreshing(false), 500);
+      setIsRefreshing(false);
     }
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleRefresh({
+        pipeline: selectedPipeline,
+        owner: selectedOwner,
+        priority: selectedPriority,
+        search: searchQuery,
+      });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [selectedPipeline, selectedOwner, selectedPriority, searchQuery]);
 
   const { user } = useAuth();
   const activeIsAgent = isAgent || user?.role === 'agent';

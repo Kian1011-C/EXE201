@@ -350,14 +350,27 @@ export default function StaffDealsKanban({
                 </button>
               </div>
 
-              {/* ── Deals Cards Container ──────────────────────────────────── */}
-              <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 max-h-[calc(100vh-320px)] min-h-[380px]">
+              {/* ── Deals Cards Container (Drop Zone) ───────────────────────── */}
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const droppedDealId = e.dataTransfer.getData('text/plain');
+                  if (droppedDealId && onUpdateDealStage) {
+                    onUpdateDealStage(droppedDealId, col.rawStage);
+                  }
+                }}
+                className="flex-1 overflow-y-auto p-2.5 space-y-2.5 max-h-[calc(100vh-320px)] min-h-[380px]"
+              >
                 {col.deals.length === 0 ? (
                   <div className="h-36 rounded-lg border-2 border-dashed border-slate-200 bg-white/40 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center">
                     <span className="material-symbols-outlined text-[24px] mb-1 opacity-60">
                       inbox
                     </span>
-                    <span className="font-medium text-[11px]">Không có deal nào</span>
+                    <span className="font-medium text-[11px]">Không có deal nào (Kéo thả vào đây)</span>
                   </div>
                 ) : (
                   col.deals.map((deal) => {
@@ -376,11 +389,16 @@ export default function StaffDealsKanban({
                     return (
                       <div
                         key={deal.id}
+                        draggable={true}
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', String(deal.id || deal.code));
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
                         onClick={(e) => {
                           if (e.target.closest('.no-card-toggle')) return;
                           setActiveMenuDealId(isMenuOpen ? null : deal.id);
                         }}
-                        className={`bg-white rounded-lg border border-slate-200/90 p-3 shadow-2xs hover:shadow-md ${col.borderHover} transition-all duration-150 cursor-pointer relative group`}
+                        className={`bg-white rounded-lg border border-slate-200/90 p-3 shadow-2xs hover:shadow-md ${col.borderHover} transition-all duration-150 cursor-grab active:cursor-grabbing relative group`}
                       >
                         {/* ── Deal Context Menu Popover (Matching media_1790576813648.png) ── */}
                         {isMenuOpen && (

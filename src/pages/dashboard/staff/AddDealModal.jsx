@@ -8,7 +8,7 @@ import {
   getDynamicDeals,
   SAMPLE_DEALS,
 } from '../../../data/mockCrmData';
-import { createTicket } from '../../../services/api';
+import { createTicket, createDeal } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 
@@ -173,6 +173,7 @@ export default function AddDealModal({
     }
 
     addDealToStore(newDeal);
+    createDeal(newDeal).catch((err) => console.warn('[AddDealModal] createDeal fallback:', err));
 
     // Initialize real property history with current actor
     getPropertyHistory('deal', newCode, newDeal, currentActor);

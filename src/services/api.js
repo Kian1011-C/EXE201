@@ -286,15 +286,6 @@ export async function getContacts(params = {}) {
 
 export async function getContact(id) {
   if (!id) return null;
-  // If id is not numeric (e.g. 'CT26002632'), check dynamic/sample store first to avoid Spring Boot 500 error
-  if (typeof id === 'string' && !/^\d+$/.test(id)) {
-    try {
-      const dynamic = typeof window !== 'undefined' ? getDynamicContacts() : [];
-      const local = [...dynamic, ...SAMPLE_CONTACTS].find(c => String(c.id) === String(id) || String(c.code) === String(id));
-      if (local) return normalizeContact(local);
-    } catch (_) {}
-  }
-
   const data = await request(`/contacts/${encodeURIComponent(id)}`).catch(() => null);
   if (data) return normalizeContact(data);
 
@@ -327,8 +318,10 @@ export async function updateContact(id, data) {
 export async function getDeals(params = {}) {
   const query = new URLSearchParams();
   if (params.search) query.append('search', params.search);
-  if (params.stage) query.append('stage', params.stage);
-  if (params.pipeline) query.append('pipeline', params.pipeline);
+  if (params.stage && params.stage !== 'all') query.append('stage', params.stage);
+  if (params.pipeline && params.pipeline !== 'all') query.append('pipeline', params.pipeline);
+  if (params.carrier && params.carrier !== 'all') query.append('carrier', params.carrier);
+  if (params.owner && params.owner !== 'all') query.append('owner', params.owner);
   const qStr = query.toString() ? `?${query.toString()}` : '';
   const data = await request(`/deals${qStr}`);
   return Array.isArray(data) ? data.map(normalizeDeal) : data;
@@ -336,14 +329,6 @@ export async function getDeals(params = {}) {
 
 export async function getDeal(id) {
   if (!id) return null;
-  if (typeof id === 'string' && !/^\d+$/.test(id)) {
-    try {
-      const dynamic = typeof window !== 'undefined' ? getDynamicDeals() : [];
-      const local = [...dynamic, ...SAMPLE_DEALS].find(d => String(d.id) === String(id) || String(d.code) === String(id));
-      if (local) return normalizeDeal(local);
-    } catch (_) {}
-  }
-
   const data = await request(`/deals/${encodeURIComponent(id)}`).catch(() => null);
   if (data) return normalizeDeal(data);
 
@@ -354,6 +339,14 @@ export async function getDeal(id) {
   } catch (_) {}
 
   return null;
+}
+
+export async function createDeal(data) {
+  const res = await request('/deals', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return res ? normalizeDeal(res) : res;
 }
 
 export async function updateDeal(id, data) {
@@ -368,21 +361,14 @@ export async function updateDeal(id, data) {
 export async function getDocuments(params = {}) {
   const query = new URLSearchParams();
   if (params.contactId) query.append('contactId', params.contactId);
-  if (params.owner) query.append('owner', params.owner);
+  if (params.owner && params.owner !== 'all') query.append('owner', params.owner);
+  if (params.search) query.append('search', params.search);
   const qStr = query.toString() ? `?${query.toString()}` : '';
   return await request(`/documents${qStr}`);
 }
 
 export async function getDocument(id) {
   if (!id) return null;
-  if (typeof id === 'string' && !/^\d+$/.test(id)) {
-    try {
-      const dynamic = typeof window !== 'undefined' ? getDynamicCustomerDocuments() : [];
-      const local = dynamic.find(d => String(d.id) === String(id) || String(d.code) === String(id));
-      if (local) return local;
-    } catch (_) {}
-  }
-
   const data = await request(`/documents/${encodeURIComponent(id)}`).catch(() => null);
   if (data) return data;
 
@@ -396,7 +382,9 @@ export async function getDocument(id) {
 }
 
 export async function createDocument(docData) {
-  return await request('/documents', {
+  const contactId = docData.contactId || (docData.associatedContact ? docData.associatedContact.id : null);
+  const query = contactId ? `?contactId=${encodeURIComponent(contactId)}` : '';
+  return await request(`/documents${query}`, {
     method: 'POST',
     body: JSON.stringify(docData),
   });
@@ -454,11 +442,13 @@ export async function resetAndSeedDatabase() {
 // ── Tickets ──────────────────────────────────────────────────────────────────
 export async function getTickets(params = {}) {
   const query = new URLSearchParams();
-  if (params.pipeline) query.append('pipeline', params.pipeline);
-  if (params.status) query.append('status', params.status);
-  if (params.priority) query.append('priority', params.priority);
+  if (params.pipeline && params.pipeline !== 'all') query.append('pipeline', params.pipeline);
+  if (params.status && params.status !== 'all') query.append('status', params.status);
+  if (params.priority && params.priority !== 'all') query.append('priority', params.priority);
   if (params.contactId) query.append('contactId', params.contactId);
   if (params.dealId) query.append('dealId', params.dealId);
+  if (params.search) query.append('search', params.search);
+  if (params.owner && params.owner !== 'all') query.append('owner', params.owner);
   const qStr = query.toString() ? `?${query.toString()}` : '';
   const data = await request(`/tickets${qStr}`);
   return Array.isArray(data) ? data.map(normalizeTicket) : data;
@@ -466,14 +456,6 @@ export async function getTickets(params = {}) {
 
 export async function getTicket(id) {
   if (!id) return null;
-  if (typeof id === 'string' && !/^\d+$/.test(id)) {
-    try {
-      const dynamic = typeof window !== 'undefined' ? getDynamicTickets() : [];
-      const local = [...dynamic, ...SAMPLE_TICKETS].find(t => String(t.id) === String(id) || String(t.code) === String(id));
-      if (local) return normalizeTicket(local);
-    } catch (_) {}
-  }
-
   const data = await request(`/tickets/${encodeURIComponent(id)}`).catch(() => null);
   if (data) return normalizeTicket(data);
 
@@ -503,11 +485,12 @@ export async function addTicketComment(ticketId, data) {
 // ── Tasks ────────────────────────────────────────────────────────────────────
 export async function getTasks(params = {}) {
   const query = new URLSearchParams();
-  if (params.status) query.append('status', params.status);
-  if (params.priority) query.append('priority', params.priority);
-  if (params.assignedTo) query.append('assignedTo', params.assignedTo);
+  if (params.status && params.status !== 'All' && params.status !== 'all') query.append('status', params.status);
+  if (params.priority && params.priority !== 'None' && params.priority !== 'none' && params.priority !== 'all') query.append('priority', params.priority);
+  if (params.assignedTo && params.assignedTo !== 'all') query.append('assignedTo', params.assignedTo);
   if (params.contactId) query.append('contactId', params.contactId);
   if (params.dealId) query.append('dealId', params.dealId);
+  if (params.search) query.append('search', params.search);
   const qStr = query.toString() ? `?${query.toString()}` : '';
   const data = await request(`/tasks${qStr}`);
   return Array.isArray(data) ? data.map(normalizeTask) : data;
@@ -515,13 +498,6 @@ export async function getTasks(params = {}) {
 
 export async function getTask(id) {
   if (!id) return null;
-  if (typeof id === 'string' && !/^\d+$/.test(id)) {
-    try {
-      const local = (SAMPLE_TASKS || []).find(t => String(t.id) === String(id) || String(t.code) === String(id));
-      if (local) return normalizeTask(local);
-    } catch (_) {}
-  }
-
   const data = await request(`/tasks/${encodeURIComponent(id)}`).catch(() => null);
   if (data) return normalizeTask(data);
 

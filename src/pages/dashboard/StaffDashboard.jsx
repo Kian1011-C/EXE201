@@ -29,9 +29,12 @@ import {
   getContact,
   getDeal,
   getDocument,
+  updateContact as apiUpdateContact,
   updateDeal as apiUpdateDeal,
   getTicket,
+  updateTicket as apiUpdateTicket,
   getTask,
+  updateTask as apiUpdateTask,
 } from '../../services/api';
 
 export default function StaffDashboard() {
@@ -409,6 +412,11 @@ export default function StaffDashboard() {
           onSelectTask={handleSelectTask}
           onUpdateContact={(updated) => {
             setSelectedContact((prev) => ({ ...prev, ...updated }));
+            if (updated?.id) {
+              apiUpdateContact(updated.id, updated).catch((err) =>
+                console.warn('[StaffDashboard] Could not persist contact update:', err)
+              );
+            }
           }}
         />
       )}
@@ -468,6 +476,11 @@ export default function StaffDashboard() {
           onSelectDeal={handleSelectDeal}
           onUpdateTicket={(updated) => {
             setSelectedTicket((prev) => ({ ...prev, ...updated }));
+            if (updated?.id) {
+              apiUpdateTicket(updated.id, updated).catch((err) =>
+                console.warn('[StaffDashboard] Could not persist ticket update:', err)
+              );
+            }
             if (updated?.pipeline === 'ACA account' && updated?.status) {
               setSelectedContact((prev) => ({
                 ...prev,
@@ -499,6 +512,14 @@ export default function StaffDashboard() {
           onSelectContact={handleSelectContact}
           onSelectDeal={handleSelectDeal}
           onSelectTicket={handleSelectTicket}
+          onUpdateTask={(updated) => {
+            setSelectedTask((prev) => ({ ...prev, ...updated }));
+            if (updated?.id) {
+              apiUpdateTask(updated.id, updated).catch((err) =>
+                console.warn('[StaffDashboard] Could not persist task update:', err)
+              );
+            }
+          }}
         />
       )}
 

@@ -13,7 +13,13 @@ import {
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
 } from '../../../data/mockCrmData';
-import { createTicket, updateContact } from '../../../services/api';
+import {
+  createTicket,
+  updateContact,
+  addContactNote,
+  addContactTask,
+  addContactActivity,
+} from '../../../services/api';
 import AddDealModal from './AddDealModal';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
@@ -432,6 +438,15 @@ export default function StaffContactDetail({
       dealId,
     };
     setActivitiesList((prev) => [newAct, ...prev]);
+
+    const contactId = contact?.id || contact?.code;
+    if (contactId) {
+      addContactActivity(contactId, {
+        type,
+        description: summary,
+        actor: 'Platform Staff',
+      }).catch((err) => console.warn('[StaffContactDetail] addContactActivity fallback:', err));
+    }
   }
 
   // Primary fields (synchronized with create contact)
@@ -719,6 +734,15 @@ export default function StaffContactDetail({
     const updatedList = [newNote, ...notesList];
     updateAndPersistNotes(updatedList);
 
+    const targetContactId = contact?.id || contact?.code;
+    if (targetContactId) {
+      addContactNote(targetContactId, {
+        title,
+        body: noteBody.trim(),
+        author: 'Platform Staff',
+      }).catch((err) => console.warn('[StaffContactDetail] addContactNote fallback:', err));
+    }
+
     const attachSuffix =
       noteAttachments.length > 0
         ? ` with ${noteAttachments.length} file(s) attached`
@@ -738,6 +762,16 @@ export default function StaffContactDetail({
         createdAt: timeStr,
       };
       setTasksList((prev) => [newTask, ...prev]);
+
+      if (targetContactId) {
+        addContactTask(targetContactId, {
+          title: newTask.title,
+          dueDate: newTask.dueDate,
+          priority: 'Medium',
+          status: 'OPEN',
+        }).catch((err) => console.warn('[StaffContactDetail] addContactTask fallback:', err));
+      }
+
       logActivity('Task Created', `created follow-up task: "${newTask.title}" (Due: ${newTask.dueDate})`);
     }
 
@@ -948,6 +982,16 @@ export default function StaffContactDetail({
       createdAt: timeStr,
     };
     setTasksList((prev) => [newTask, ...prev]);
+
+    const targetContactId = contact?.id || contact?.code;
+    if (targetContactId) {
+      addContactTask(targetContactId, {
+        title: newTask.title,
+        dueDate: newTask.dueDate,
+        priority: newTask.priority,
+        status: 'OPEN',
+      }).catch((err) => console.warn('[StaffContactDetail] addContactTask direct fallback:', err));
+    }
 
     const attachSuffix =
       taskAttachments.length > 0

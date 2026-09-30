@@ -92,19 +92,32 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
   }, []);
 
   // Fetch / Refresh data
-  async function handleRefresh() {
+  async function handleRefresh(filters = {}) {
     setIsRefreshing(true);
     try {
-      const data = await getTasks();
+      const activePriority = filters.priority !== undefined ? filters.priority : selectedPriority;
+      const activeAssignee = filters.assignee !== undefined ? filters.assignee : selectedAssignee;
+      const activeSearch = filters.search !== undefined ? filters.search : searchQuery;
+      const activeStatus = filters.status !== undefined ? filters.status : advStatus;
+
+      const data = await getTasks({
+        priority: activePriority,
+        assignedTo: activeAssignee,
+        search: activeSearch,
+        status: activeStatus,
+      });
       if (Array.isArray(data) && data.length > 0) {
         const dbTasks = data.map((t, idx) => {
           const assignedName = typeof t.assignedTo === 'object' ? (t.assignedTo?.name || 'Jessica Nguyen') : (t.assignedToName || t.assignedTo || 'Jessica Nguyen');
           const assignedAvatar = (typeof assignedName === 'string' ? assignedName : 'JN').slice(0, 2).toUpperCase();
+          const isComp = t.status === 'Completed' || t.status === 'COMPLETED' || t.status === 'DONE';
           return {
             id: t.id || `TSK-DB-${idx}`,
-            no: SAMPLE_TASKS.length + idx + 1,
+            code: t.code || t.id || `TSK2600${1000 + idx}`,
+            no: idx + 1,
             title: t.title || 'Support task',
-            completed: t.status === 'Completed',
+            completed: isComp,
+            status: t.status || 'OPEN',
             assignee: {
               name: assignedName,
               handle: 'agent',
@@ -112,9 +125,9 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
               bg: 'bg-blue-600',
             },
             dueDate: t.dueDate || '09/30/2026',
-            taskType: t.type || '',
-            typeIcon: t.type === 'Call' ? 'call' : t.type === 'To Do' ? 'checklist' : '',
-            priority: t.priority || 'None',
+            taskType: t.taskType || t.type || 'Call',
+            typeIcon: (t.taskType === 'Call' || t.type === 'Call') ? 'call' : 'checklist',
+            priority: t.priority || 'Medium',
             lastModifiedBy: {
               name: assignedName,
               avatar: assignedAvatar,
@@ -126,31 +139,44 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
             rawTask: t,
           };
         });
-        setTasksList([...SAMPLE_TASKS, ...dbTasks]);
+        setTasksList(dbTasks);
       } else {
         setTasksList(SAMPLE_TASKS);
       }
     } catch {
       setTasksList(SAMPLE_TASKS);
     } finally {
-      setTimeout(() => setIsRefreshing(false), 500);
+      setIsRefreshing(false);
     }
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleRefresh({
+        priority: selectedPriority,
+        assignee: selectedAssignee,
+        search: searchQuery,
+        status: advStatus,
+      });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [selectedPriority, selectedAssignee, searchQuery, advStatus]);
 
   // Toggle completion status for a task
   const toggleTaskCompletion = async (e, taskId) => {
     e.stopPropagation();
+    const taskObj = tasksList.find((t) => t.id === taskId);
+    const nextCompleted = !taskObj?.completed;
     setTasksList((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t))
+      prev.map((t) => (t.id === taskId ? { ...t, completed: nextCompleted } : t))
     );
     try {
-      const taskObj = tasksList.find((t) => t.id === taskId);
-      if (taskObj?.rawTask) {
-        await updateTask(taskId, {
-          status: !taskObj.completed ? 'Completed' : 'Not Started',
-        });
-      }
-    } catch {}
+      await updateTask(taskId, {
+        status: nextCompleted ? 'COMPLETED' : 'OPEN',
+      });
+    } catch (err) {
+      console.warn('Could not update task status:', err);
+    }
   };
 
   const { user } = useAuth();
