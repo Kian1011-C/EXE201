@@ -230,8 +230,8 @@ export default function StaffTicketDetail({
   const [dueDate, setDueDate] = useState(initialData.dueDate);
 
   // Properties in "About this ticket"
-  const [serviceAgent, setServiceAgent] = useState(initialData.serviceAgent);
-  const [ticketOwner, setTicketOwner] = useState(initialData.ticketOwner);
+  const [serviceAgent, setServiceAgent] = useState(typeof initialData.serviceAgent === 'string' ? initialData.serviceAgent : (initialData.serviceAgent?.name || initialData.serviceAgent?.label || String(initialData.serviceAgent || '')));
+  const [ticketOwner, setTicketOwner] = useState(typeof initialData.ticketOwner === 'string' ? initialData.ticketOwner : (initialData.ticketOwner?.name || initialData.ticketOwner?.label || String(initialData.ticketOwner || '')));
   const [ticketResult, setTicketResult] = useState(initialData.ticketResult || '');
   const [paymentStatus, setPaymentStatus] = useState(initialData.paymentStatus || '');
   const [changeDueDateReason, setChangeDueDateReason] = useState(initialData.changeDueDateReason || '');
@@ -511,7 +511,7 @@ export default function StaffTicketDetail({
         minute: '2-digit',
         hour12: false,
       }),
-      actor: serviceAgent.split(' ')[0] + ' ' + (serviceAgent.split(' ')[1] || ''),
+      actor: (typeof serviceAgent === 'string' && serviceAgent) ? (serviceAgent.split(' ')[0] + ' ' + (serviceAgent.split(' ')[1] || '')).trim() : 'Unknown',
       isExpanded: true,
       content: newNoteContent.trim(),
     };
@@ -982,11 +982,13 @@ export default function StaffTicketDetail({
                       className="w-full flex items-center justify-between px-2 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 cursor-pointer hover:border-slate-300"
                     >
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="w-5 h-5 rounded-full bg-[#0EA5E9] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                          {serviceAgent.split(' ')[0][0]}
-                          {serviceAgent.split(' ')[1]?.[0] || 'L'}
-                        </span>
-                        <span className="truncate">{serviceAgent}</span>
+                        {serviceAgent ? (
+                          <span className="w-5 h-5 rounded-full bg-[#0EA5E9] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                            {(serviceAgent.split(' ')[0] || '?')[0]}
+                            {serviceAgent.split(' ')[1]?.[0] || ''}
+                          </span>
+                        ) : null}
+                        <span className="truncate">{serviceAgent || 'Unassigned'}</span>
                       </div>
                       <div className="flex items-center gap-1 text-slate-400 shrink-0">
                         <span
@@ -1120,11 +1122,13 @@ export default function StaffTicketDetail({
                       className="w-full flex items-center justify-between px-2 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 cursor-pointer hover:border-slate-300"
                     >
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="w-5 h-5 rounded-full bg-[#10B981] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                          {ticketOwner.split(' ')[0][0]}
-                          {ticketOwner.split(' ')[1]?.[0] || 'L'}
-                        </span>
-                        <span className="truncate">{ticketOwner}</span>
+                        {ticketOwner ? (
+                          <span className="w-5 h-5 rounded-full bg-[#10B981] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                            {(ticketOwner.split(' ')[0] || '?')[0]}
+                            {ticketOwner.split(' ')[1]?.[0] || ''}
+                          </span>
+                        ) : null}
+                        <span className="truncate">{ticketOwner || 'Unassigned'}</span>
                       </div>
                       <div className="flex items-center gap-1 text-slate-400 shrink-0">
                         <span
