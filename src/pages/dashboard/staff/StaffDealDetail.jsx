@@ -349,25 +349,15 @@ export default function StaffDealDetail({
     }
   }
 
-  // Form states for FEE, BONUS, PAYMENT (Defaults to empty if no data)
-  const [monthlyPremium, setMonthlyPremium] = useState(
-    dealInfo.monthlyPremium || ''
-  );
-  const [subsidyAmount, setSubsidyAmount] = useState(
-    dealInfo.subsidyAmount || ''
-  );
-  const [agencyCommission, setAgencyCommission] = useState(
-    dealInfo.agencyCommission || ''
-  );
-  const [bonusTier, setBonusTier] = useState(
-    dealInfo.bonusTier || ''
-  );
-  const [paymentOption, setPaymentOption] = useState(
-    dealInfo.paymentOption || ''
-  );
-  const [paymentVerification, setPaymentVerification] = useState(
-    dealInfo.paymentVerification || ''
-  );
+  // Form states for FEE, BONUS, PAYMENT (Matching Image 1)
+  const [paymentStatus, setPaymentStatus] = useState(dealInfo.paymentStatus || '');
+  const [payThroughDate, setPayThroughDate] = useState(dealInfo.payThroughDate || '');
+  const [quoteCloseDealRep, setQuoteCloseDealRep] = useState(dealInfo.quoteCloseDealRep || '');
+  const [autopayDate, setAutopayDate] = useState(dealInfo.autopayDate || '');
+  const [nameOnCreditCard, setNameOnCreditCard] = useState(dealInfo.nameOnCreditCard || '');
+  const [creditCardNumber, setCreditCardNumber] = useState(dealInfo.creditCardNumber || '');
+  const [expirationDate, setExpirationDate] = useState(dealInfo.expirationDate || '');
+  const [cvv, setCvv] = useState(dealInfo.cvv || '');
 
   function handleSaveDealChanges() {
     const updatedDeal = {
@@ -421,13 +411,14 @@ export default function StaffDealDetail({
       { fieldName: 'Stage', oldValue: deal?.stage || dealInfo.stage || '', newValue: stage },
       { fieldName: 'Amount', oldValue: deal?.amount !== undefined ? deal.amount : (dealInfo.amount || ''), newValue: newAmountStr },
       { fieldName: 'Carrier', oldValue: deal?.carrier || oldAdmin.carrier || '', newValue: carrier },
-      { fieldName: 'Plan Name', oldValue: deal?.planName || '', newValue: planName },
-      { fieldName: 'Monthly Premium', oldValue: deal?.monthlyPremium || '', newValue: monthlyPremium },
-      { fieldName: 'Subsidy Amount (APTC)', oldValue: deal?.subsidyAmount || '', newValue: subsidyAmount },
-      { fieldName: 'Agency Commission', oldValue: deal?.agencyCommission || '', newValue: agencyCommission },
-      { fieldName: 'Bonus Tier', oldValue: deal?.bonusTier || '', newValue: bonusTier },
-      { fieldName: 'Payment Option', oldValue: deal?.paymentOption || '', newValue: paymentOption },
-      { fieldName: 'Payment Verification', oldValue: deal?.paymentVerification || '', newValue: paymentVerification },
+      { fieldName: 'Payment Status', oldValue: deal?.paymentStatus || '', newValue: paymentStatus },
+      { fieldName: 'Pay Through Date', oldValue: deal?.payThroughDate || '', newValue: payThroughDate },
+      { fieldName: 'Quote Close Deal Rep', oldValue: deal?.quoteCloseDealRep || '', newValue: quoteCloseDealRep },
+      { fieldName: 'Autopay Date', oldValue: deal?.autopayDate || '', newValue: autopayDate },
+      { fieldName: 'Name On Credit Card', oldValue: deal?.nameOnCreditCard || '', newValue: nameOnCreditCard },
+      { fieldName: 'Credit Card Number', oldValue: deal?.creditCardNumber || '', newValue: creditCardNumber },
+      { fieldName: 'Expiration Date', oldValue: deal?.expirationDate || '', newValue: expirationDate },
+      { fieldName: 'CVV', oldValue: deal?.cvv || '', newValue: cvv },
       { fieldName: 'Enrolled NPN', oldValue: deal?.enrolledNpn || oldAdmin.enrolledNpn || '', newValue: enrolledNpn },
       { fieldName: 'Broker Effective Date', oldValue: deal?.brokerEffectiveDate || oldAdmin.brokerEffectiveDate || '', newValue: brokerEffectiveDate },
       { fieldName: 'Termination Date', oldValue: deal?.terminationDate || oldAdmin.terminationDate || '', newValue: terminationDate },
@@ -1726,110 +1717,6 @@ export default function StaffDealDetail({
                     </div>
                   </div>
 
-                  {/* 8. Carrier */}
-                  <div>
-                    <PropertyLabelWithHistory
-                      label="Carrier"
-                      required
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
-                    <div className="relative">
-                      <select
-                        value={carrier}
-                        onChange={(e) => setCarrier(e.target.value)}
-                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
-                      >
-                        <option value="">-- Chưa chọn Carrier --</option>
-                        <option value="BCBS">BCBS</option>
-                        <option value="Ambetter">Ambetter</option>
-                        <option value="Oscar">Oscar</option>
-                        <option value="UnitedHealthcare">UnitedHealthcare</option>
-                        <option value="Molina Healthcare">Molina Healthcare</option>
-                        <option value="Aetna">Aetna</option>
-                        <option value="Cigna">Cigna</option>
-                        <option value="Kaiser">Kaiser</option>
-                      </select>
-                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
-                        {carrier && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setCarrier('');
-                            }}
-                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                            title="Xóa Carrier"
-                          >
-                            ✕
-                          </button>
-                        )}
-                        <span className="h-3.5 w-px bg-slate-200 mx-0.5" />
-                        <span className="material-symbols-outlined text-[15px] text-[#0F2962] pointer-events-none">
-                          expand_more
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 9. Plan Name */}
-                  <div>
-                    <PropertyLabelWithHistory
-                      label="Plan Name"
-                      required
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={planName}
-                        onChange={(e) => setPlanName(e.target.value)}
-                        placeholder="e.g. Blue Advantage Bronze"
-                        className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
-                      />
-                      {planName && (
-                        <button
-                          type="button"
-                          onClick={() => setPlanName('')}
-                          className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                          title="Xóa"
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 10. Amount */}
-                  <div>
-                    <PropertyLabelWithHistory
-                      label="Amount"
-                      required
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={enrollAmount}
-                        onChange={(e) => setEnrollAmount(e.target.value)}
-                        placeholder="e.g. 36.55"
-                        className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium"
-                      />
-                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
-                        {enrollAmount && (
-                          <button
-                            type="button"
-                            onClick={() => setEnrollAmount('')}
-                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                            title="Xóa"
-                          >
-                            ✕
-                          </button>
-                        )}
-                        <span className="h-3.5 w-px bg-slate-200" />
-                        <span className="text-[12px] font-bold text-slate-600 font-mono">#</span>
-                      </div>
-                    </div>
-                  </div>
 
                   {/* 11. Need Upload */}
                   <div>
@@ -1891,129 +1778,24 @@ export default function StaffDealDetail({
 
               {feeBonusPaymentOpen && (
                 <div className="p-3.5 bg-slate-50/60 border-t border-slate-100 space-y-3 text-xs">
-                  {/* Monthly Premium */}
+                  {/* Carrier */}
                   <div>
-                    <PropertyLabelWithHistory
-                      label="Monthly Premium"
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={monthlyPremium}
-                        onChange={(e) => setMonthlyPremium(e.target.value)}
-                        placeholder="e.g. $0.00"
-                        className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 font-mono"
-                      />
-                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
-                        {monthlyPremium && (
-                          <button
-                            type="button"
-                            onClick={() => setMonthlyPremium('')}
-                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                            title="Xóa"
-                          >
-                            ✕
-                          </button>
-                        )}
-                        <span className="h-3.5 w-px bg-slate-200" />
-                        <span className="text-[12px] font-bold text-slate-600 font-mono">$</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Subsidy Amount (APTC) */}
-                  <div>
-                    <PropertyLabelWithHistory
-                      label="Subsidy Amount (APTC)"
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={subsidyAmount}
-                        onChange={(e) => setSubsidyAmount(e.target.value)}
-                        placeholder="e.g. $485.00"
-                        className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 font-mono"
-                      />
-                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
-                        {subsidyAmount && (
-                          <button
-                            type="button"
-                            onClick={() => setSubsidyAmount('')}
-                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                            title="Xóa"
-                          >
-                            ✕
-                          </button>
-                        )}
-                        <span className="h-3.5 w-px bg-slate-200" />
-                        <span className="text-[12px] font-bold text-slate-600 font-mono">$</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Agency Commission */}
-                  <div>
-                    <PropertyLabelWithHistory
-                      label="Agency Commission"
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={agencyCommission}
-                        onChange={(e) => setAgencyCommission(e.target.value)}
-                        placeholder="e.g. $25.00"
-                        className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 font-mono"
-                      />
-                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
-                        {agencyCommission && (
-                          <button
-                            type="button"
-                            onClick={() => setAgencyCommission('')}
-                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                            title="Xóa"
-                          >
-                            ✕
-                          </button>
-                        )}
-                        <span className="h-3.5 w-px bg-slate-200" />
-                        <span className="text-[12px] font-bold text-slate-600 font-mono">$</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bonus Tier */}
-                  <div>
-                    <PropertyLabelWithHistory
-                      label="Bonus Tier"
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
+                    <PropertyLabelWithHistory label="Carrier" required onOpenHistory={handleOpenPropertyHistory} />
                     <div className="relative">
-                      <select
-                        value={bonusTier}
-                        onChange={(e) => setBonusTier(e.target.value)}
-                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">-- Chưa chọn Bonus Tier --</option>
-                        <option value="Standard Tier">Standard Tier</option>
-                        <option value="Tier 1 Bonus ($50)">Tier 1 Bonus ($50)</option>
-                        <option value="Tier 2 Bonus ($100)">Tier 2 Bonus ($100)</option>
+                      <select value={carrier} onChange={(e) => setCarrier(e.target.value)} className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer">
+                        <option value="">-- Chưa chọn Carrier --</option>
+                        <option value="BCBS">BCBS</option>
+                        <option value="Ambetter">Ambetter</option>
+                        <option value="Oscar">Oscar</option>
+                        <option value="UnitedHealthcare">UnitedHealthcare</option>
+                        <option value="Molina Healthcare">Molina Healthcare</option>
+                        <option value="Aetna">Aetna</option>
+                        <option value="Cigna">Cigna</option>
+                        <option value="Kaiser">Kaiser</option>
                       </select>
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
-                        {bonusTier && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setBonusTier('');
-                            }}
-                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                            title="Xóa"
-                          >
-                            ✕
-                          </button>
+                        {carrier && (
+                          <button type="button" onClick={(e) => { e.preventDefault(); setCarrier(''); }} className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition" title="Xóa">✕</button>
                         )}
                         <span className="h-3.5 w-px bg-slate-200 mx-0.5" />
                         <span className="material-symbols-outlined text-[15px] text-[#0F2962] pointer-events-none">expand_more</span>
@@ -2021,36 +1803,45 @@ export default function StaffDealDetail({
                     </div>
                   </div>
 
-                  {/* Payment Option */}
+                  {/* Plan Name */}
                   <div>
-                    <PropertyLabelWithHistory
-                      label="Payment Option"
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
+                    <PropertyLabelWithHistory label="Plan Name" required onOpenHistory={handleOpenPropertyHistory} />
+                    <div className="relative flex items-center">
+                      <input type="text" value={planName} onChange={(e) => setPlanName(e.target.value)} placeholder="e.g. Standard Silver Value - HMO" className="w-full px-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium" />
+                      {planName && (
+                        <button type="button" onClick={() => setPlanName('')} className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition" title="Xóa">✕</button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Amount */}
+                  <div>
+                    <PropertyLabelWithHistory label="Amount" required onOpenHistory={handleOpenPropertyHistory} />
+                    <div className="relative flex items-center">
+                      <input type="text" value={enrollAmount} onChange={(e) => setEnrollAmount(e.target.value)} placeholder="e.g. 57.49" className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium" />
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
+                        {enrollAmount && (
+                          <button type="button" onClick={() => setEnrollAmount('')} className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition" title="Xóa">✕</button>
+                        )}
+                        <span className="h-3.5 w-px bg-slate-200" />
+                        <span className="text-[12px] font-bold text-slate-600 font-mono">#</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Status */}
+                  <div>
+                    <PropertyLabelWithHistory label="Payment Status" required onOpenHistory={handleOpenPropertyHistory} />
                     <div className="relative">
-                      <select
-                        value={paymentOption}
-                        onChange={(e) => setPaymentOption(e.target.value)}
-                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">-- Chưa chọn Payment Option --</option>
-                        <option value="EFT Auto-pay">EFT Auto-pay</option>
-                        <option value="Direct Carrier Pay">Direct Carrier Pay</option>
-                        <option value="Credit / Debit Card">Credit / Debit Card</option>
+                      <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500">
+                        <option value="">-- Chưa chọn --</option>
+                        <option value="Auto Pay">Auto Pay</option>
+                        <option value="Manual Pay">Manual Pay</option>
+                        <option value="Not Paid">Not Paid</option>
                       </select>
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
-                        {paymentOption && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setPaymentOption('');
-                            }}
-                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                            title="Xóa"
-                          >
-                            ✕
-                          </button>
+                        {paymentStatus && (
+                          <button type="button" onClick={(e) => { e.preventDefault(); setPaymentStatus(''); }} className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition" title="Xóa">✕</button>
                         )}
                         <span className="h-3.5 w-px bg-slate-200 mx-0.5" />
                         <span className="material-symbols-outlined text-[15px] text-[#0F2962] pointer-events-none">expand_more</span>
@@ -2058,43 +1849,80 @@ export default function StaffDealDetail({
                     </div>
                   </div>
 
-                  {/* Payment Verification */}
+                  {/* Pay Through Date */}
                   <div>
-                    <PropertyLabelWithHistory
-                      label="Payment Verification"
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
+                    <PropertyLabelWithHistory label="Pay Through Date" required onOpenHistory={handleOpenPropertyHistory} />
+                    <div className="relative flex items-center">
+                      <input type="text" value={payThroughDate} onChange={(e) => setPayThroughDate(e.target.value)} placeholder="MM/DD/YYYY" className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium" />
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
+                        {payThroughDate && (
+                          <button type="button" onClick={() => setPayThroughDate('')} className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition" title="Xóa">✕</button>
+                        )}
+                        <span className="h-3.5 w-px bg-slate-200" />
+                        <span className="material-symbols-outlined text-[14px] text-[#0F2962] pointer-events-none">calendar_today</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quote Close Deal Rep */}
+                  <div>
+                    <PropertyLabelWithHistory label="Quote Close Deal Rep" required onOpenHistory={handleOpenPropertyHistory} />
                     <div className="relative">
-                      <select
-                        value={paymentVerification}
-                        onChange={(e) => setPaymentVerification(e.target.value)}
-                        className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">-- Chưa chọn trạng thái --</option>
-                        <option value="Verified">Verified</option>
-                        <option value="Pending Verification">Pending Verification</option>
-                        <option value="Failed">Failed</option>
+                      <select value={quoteCloseDealRep} onChange={(e) => setQuoteCloseDealRep(e.target.value)} className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500">
+                        <option value="">-- Chưa chọn --</option>
+                        <option value="Agent">Agent</option>
+                        <option value="Manager">Manager</option>
                       </select>
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
-                        {paymentVerification && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setPaymentVerification('');
-                            }}
-                            className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                            title="Xóa"
-                          >
-                            ✕
-                          </button>
+                        {quoteCloseDealRep && (
+                          <button type="button" onClick={(e) => { e.preventDefault(); setQuoteCloseDealRep(''); }} className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition" title="Xóa">✕</button>
                         )}
                         <span className="h-3.5 w-px bg-slate-200 mx-0.5" />
                         <span className="material-symbols-outlined text-[15px] text-[#0F2962] pointer-events-none">expand_more</span>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Autopay Date */}
+                  <div>
+                    <PropertyLabelWithHistory label="Autopay Date" onOpenHistory={handleOpenPropertyHistory} />
+                    <div className="relative flex items-center">
+                      <input type="text" value={autopayDate} onChange={(e) => setAutopayDate(e.target.value)} placeholder="e.g. 15" className="w-full pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium" />
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
+                        {autopayDate && (
+                          <button type="button" onClick={() => setAutopayDate('')} className="text-[12px] text-rose-500 hover:text-rose-700 cursor-pointer p-0.5 leading-none transition" title="Xóa">✕</button>
+                        )}
+                        <span className="h-3.5 w-px bg-slate-200" />
+                        <span className="text-[12px] font-bold text-slate-600 font-mono">#</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Name On Credit Card */}
+                  <div>
+                    <PropertyLabelWithHistory label="Name On Credit Card" onOpenHistory={handleOpenPropertyHistory} />
+                    <input type="text" value={nameOnCreditCard} onChange={(e) => setNameOnCreditCard(e.target.value)} placeholder="e.g. PHO HUYNH" className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium" />
+                  </div>
+
+                  {/* Credit Card Number */}
+                  <div>
+                    <PropertyLabelWithHistory label="Credit Card Number" onOpenHistory={handleOpenPropertyHistory} />
+                    <input type="text" value={creditCardNumber} onChange={(e) => setCreditCardNumber(e.target.value)} placeholder="e.g. 4147202765749849" className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium" />
+                  </div>
+
+                  {/* Expiration Date */}
+                  <div>
+                    <PropertyLabelWithHistory label="Expiration Date" onOpenHistory={handleOpenPropertyHistory} />
+                    <input type="text" value={expirationDate} onChange={(e) => setExpirationDate(e.target.value)} placeholder="e.g. 08/30" className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium" />
+                  </div>
+
+                  {/* CVV */}
+                  <div>
+                    <PropertyLabelWithHistory label="CVV" onOpenHistory={handleOpenPropertyHistory} />
+                    <input type="text" value={cvv} onChange={(e) => setCvv(e.target.value)} placeholder="e.g. 014" className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-medium" />
                   </div>
                 </div>
+
               )}
 
             </div>
@@ -3668,12 +3496,14 @@ export default function StaffDealDetail({
           isBackdateDeal,
           sellingState,
           amount: enrollAmount ? `$${enrollAmount}` : amount,
-          monthlyPremium,
-          subsidyAmount,
-          agencyCommission,
-          bonusTier,
-          paymentOption,
-          paymentVerification,
+          paymentStatus,
+          payThroughDate,
+          quoteCloseDealRep,
+          autopayDate,
+          nameOnCreditCard,
+          creditCardNumber,
+          expirationDate,
+          cvv,
           saleSupportStatus,
           closedLostReason,
           primaryMemberId,
@@ -3700,12 +3530,14 @@ export default function StaffDealDetail({
           'Plan Name',
           'Amount',
           'Need Upload',
-          'Monthly Premium',
-          'Subsidy Amount (APTC)',
-          'Agency Commission',
-          'Bonus Tier',
-          'Payment Option',
-          'Payment Verification',
+          'Payment Status',
+          'Pay Through Date',
+          'Quote Close Deal Rep',
+          'Autopay Date',
+          'Name On Credit Card',
+          'Credit Card Number',
+          'Expiration Date',
+          'CVV',
         ]}
       />
     </div>
