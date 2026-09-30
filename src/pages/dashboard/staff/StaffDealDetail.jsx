@@ -2288,42 +2288,23 @@ export default function StaffDealDetail({
                           {note.edited && <span className="text-[10px] text-slate-400 italic">(edited)</span>}
                         </div>
                         <div className="flex items-center gap-2.5">
-                          {/* Actions dropdown - Exactly matching media_1790667070854.png */}
-                          <div className="relative">
+                          <div className="flex items-center gap-3">
                             <button
                               type="button"
-                              onClick={() => setNoteActionsOpen(noteActionsOpen === note.id ? null : note.id)}
-                              className="inline-flex items-center gap-0.5 text-xs font-semibold text-slate-700 hover:text-blue-600 transition cursor-pointer"
+                              onClick={() => openEditNote(note)}
+                              className="text-[11px] font-semibold text-slate-500 hover:text-blue-600 transition cursor-pointer flex items-center gap-1"
                             >
-                              <span>Actions</span>
-                              <span className="material-symbols-outlined text-[14px]">expand_more</span>
+                              <span className="material-symbols-outlined text-[13px]">edit</span>
+                              Edit
                             </button>
-                            {noteActionsOpen === note.id && (
-                              <>
-                                <div
-                                  className="fixed inset-0 z-40"
-                                  onClick={() => setNoteActionsOpen(null)}
-                                />
-                                <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-lg shadow-xl min-w-[130px] py-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => openEditNote(note)}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
-                                  >
-                                    <span className="material-symbols-outlined text-[15px] text-blue-600">edit</span>
-                                    Edit
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteNote(note.id)}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                                  >
-                                    <span className="material-symbols-outlined text-[15px] text-rose-500">delete</span>
-                                    Delete
-                                  </button>
-                                </div>
-                              </>
-                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteNote(note.id)}
+                              className="text-[11px] font-semibold text-slate-500 hover:text-rose-600 transition cursor-pointer flex items-center gap-1"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">delete</span>
+                              Delete
+                            </button>
                           </div>
                           {/* Timestamp */}
                           <div className="flex items-center gap-1 text-[11px] text-slate-500">
