@@ -1101,17 +1101,20 @@ export default function StaffTicketDetail({
                   />
                 </div>
 
-                {/* 7. Carrier */}
-                <div>
-                  <label className="block text-slate-700 font-medium text-[11px] mb-1">Carrier</label>
-                  <input
-                    type="text"
-                    value={carrier}
-                    onChange={(e) => setCarrier(e.target.value)}
-                    placeholder=""
-                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+                {!isUploadDoc && (<>
+                  {/* 7. Carrier */}
+                                  <div>
+                                    <label className="block text-slate-700 font-medium text-[11px] mb-1">Carrier</label>
+                                    <input
+                                      type="text"
+                                      value={carrier}
+                                      onChange={(e) => setCarrier(e.target.value)}
+                                      placeholder=""
+                                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                                    />
+                                  </div>
+                </>)}
+
 
                 {/* 8. Ticket Owner */}
                 <div>
@@ -1214,26 +1217,29 @@ export default function StaffTicketDetail({
                   ) : null}
                 </div>
 
-                {/* 11. Paid Through Date */}
-                <div>
-                  <label className="block text-slate-700 font-medium text-[11px] mb-1">
-                    Paid Through Date
-                  </label>
-                  <div className="relative">
-                    <div
-                      onClick={() => {
-                        const picked = prompt('Enter Paid Through Date (MM/DD/YYYY):', paidThroughDate);
-                        if (picked !== null) setPaidThroughDate(picked);
-                      }}
-                      className="w-full flex items-center justify-between px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 cursor-pointer hover:border-slate-300"
-                    >
-                      <span className="text-slate-600">{paidThroughDate || ''}</span>
-                      <span className="material-symbols-outlined text-[15px] text-slate-500">
-                        calendar_month
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {!isUploadDoc && (<>
+                  {/* 11. Paid Through Date */}
+                                  <div>
+                                    <label className="block text-slate-700 font-medium text-[11px] mb-1">
+                                      Paid Through Date
+                                    </label>
+                                    <div className="relative">
+                                      <div
+                                        onClick={() => {
+                                          const picked = prompt('Enter Paid Through Date (MM/DD/YYYY):', paidThroughDate);
+                                          if (picked !== null) setPaidThroughDate(picked);
+                                        }}
+                                        className="w-full flex items-center justify-between px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 cursor-pointer hover:border-slate-300"
+                                      >
+                                        <span className="text-slate-600">{paidThroughDate || ''}</span>
+                                        <span className="material-symbols-outlined text-[15px] text-slate-500">
+                                          calendar_month
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                </>)}
+
 
                 {/* 12. Proof (if available) */}
                 {isPayment && (
@@ -1460,7 +1466,43 @@ export default function StaffTicketDetail({
 
           {/* Grouped Timeline by Month */}
           <div className="p-6 space-y-6">
-            {months.length === 0 ? (
+            
+            {isUploadDoc ? (
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                {[
+                  { id: 'income', title: 'Proof of Income (Thu nhập)', desc: 'W-2, Pay stubs, Tax return...', req: true },
+                  { id: 'citizenship', title: 'Proof of Citizenship / Immigration', desc: 'Passport, Green card, Certificate...', req: true },
+                  { id: 'ssn', title: 'Social Security Card (SSN)', desc: 'SSN Card copy', req: true },
+                  { id: 'id', title: 'Driver License / ID', desc: 'State ID, Driver License', req: true },
+                  { id: 'address', title: 'Proof of Address', desc: 'Utility bill, Lease agreement...', req: false },
+                  { id: 'other', title: 'Other (Tài liệu khác)', desc: 'Any other required documents', req: false },
+                ].map((doc) => (
+                  <div key={doc.id} className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs hover:shadow-xs transition flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-bold text-sm text-slate-800 flex items-center gap-1">
+                          {doc.title}
+                          {doc.req && <span className="text-rose-500">*</span>}
+                        </span>
+                        <span className="bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded">
+                          Missing
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mb-4">{doc.desc}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => alert('Chức năng upload tài liệu đang được phát triển')}
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50 text-slate-600 hover:text-blue-700 font-semibold text-xs transition cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">upload_file</span>
+                      <span>Upload File</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : months.length === 0 ? (
+
               <div className="flex flex-col items-center justify-center text-center py-20 text-slate-400">
                 <div className="mb-4">
                   <svg width="100" height="100" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
