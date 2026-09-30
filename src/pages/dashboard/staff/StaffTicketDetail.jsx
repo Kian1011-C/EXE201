@@ -246,15 +246,15 @@ export default function StaffTicketDetail({
   const proofInputRef = useRef(null);
 
   // Entities
-  const [contactName, setContactName] = useState(initialData.contactName);
-  const [contactPhone, setContactPhone] = useState(initialData.contactPhone);
-  const [contactEmail, setContactEmail] = useState(initialData.contactEmail);
+  const [contactName, setContactName] = useState(String(initialData.contactName || 'Unknown'));
+  const [contactPhone, setContactPhone] = useState(String(initialData.contactPhone || ''));
+  const [contactEmail, setContactEmail] = useState(String(initialData.contactEmail || ''));
   const [leadOwner, setLeadOwner] = useState(initialData.leadOwner);
 
-  const [dealTitle, setDealTitle] = useState(initialData.dealTitle);
-  const [dealShortTitle, setDealShortTitle] = useState(initialData.dealShortTitle || initialData.dealTitle);
-  const [dealPipeline, setDealPipeline] = useState(initialData.dealPipeline || 'Obamacare 2026');
-  const [dealStage, setDealStage] = useState(initialData.dealStage || 'Enrolled - Active');
+  const [dealTitle, setDealTitle] = useState(String(initialData.dealTitle || 'Unknown Deal'));
+  const [dealShortTitle, setDealShortTitle] = useState(String(initialData.dealShortTitle || initialData.dealTitle || 'Unknown'));
+  const [dealPipeline, setDealPipeline] = useState(String(initialData.dealPipeline || 'Obamacare 2026'));
+  const [dealStage, setDealStage] = useState(String(initialData.dealStage || 'Enrolled - Active'));
   const [dealOwner, setDealOwner] = useState(initialData.dealOwner || 'Jay Ly');
   const [dealCarrier, setDealCarrier] = useState(initialData.dealCarrier || 'BCBS');
 
@@ -1804,8 +1804,8 @@ export default function StaffTicketDetail({
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                      {contactName.split(' ')[0][0]}
-                      {contactName.split(' ')[1]?.[0] || 'H'}
+                      {(contactName && typeof contactName === 'string') ? contactName.split(' ')[0][0] : 'U'}
+                      {(contactName && typeof contactName === 'string') ? (contactName.split(' ')[1]?.[0] || 'H') : 'H'}
                     </div>
                     <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
                       {contactName}
@@ -1892,8 +1892,8 @@ export default function StaffTicketDetail({
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                      {dealTitle.split(' ')[0][0]}
-                      {dealTitle.split(' ')[1]?.[0] || 'D'}
+                      {(dealTitle && typeof dealTitle === 'string') ? dealTitle.split(' ')[0][0] : 'U'}
+                      {(dealTitle && typeof dealTitle === 'string') ? (dealTitle.split(' ')[1]?.[0] || 'D') : 'D'}
                     </div>
                     <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
                       {dealShortTitle}
