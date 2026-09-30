@@ -653,11 +653,11 @@ export default function StaffDealDetail({
   function updateAndPersistDealNotes(newList) {
     setNotesList(newList);
     if (deal) {
-      deal.notes = newList;
+      const updatedDeal = { ...deal, notes: newList };
       if (onUpdateDeal) {
-        onUpdateDeal({ ...deal, notes: newList });
+        onUpdateDeal(updatedDeal);
       }
-      addDealToStore({ ...deal, notes: newList });
+      addDealToStore(updatedDeal);
     }
   }
 
