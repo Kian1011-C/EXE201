@@ -2612,19 +2612,8 @@ export default function StaffContactDetail({
                           <span className="font-semibold text-slate-800">{note.author || 'Rosy Pham'}</span>
                           {note.edited && <span className="text-[10px] text-slate-400 italic">(edited)</span>}
                         </div>
-                        <div className="flex items-center gap-2">
-                          {/* Direct Edit Button */}
-                          <button
-                            type="button"
-                            onClick={() => openEditNote(note)}
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 rounded px-2 py-0.5 transition cursor-pointer"
-                            title="Edit this note"
-                          >
-                            <span className="material-symbols-outlined text-[13px]">edit</span>
-                            <span>Edit</span>
-                          </button>
-
-                          {/* Actions dropdown */}
+                        <div className="flex items-center gap-2.5">
+                          {/* Actions dropdown - Exactly matching media_1790667070854.png */}
                           <div className="relative">
                             <button
                               type="button"
@@ -2640,22 +2629,14 @@ export default function StaffContactDetail({
                                   className="fixed inset-0 z-40"
                                   onClick={() => setNoteActionsOpen(null)}
                                 />
-                                <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-lg shadow-xl min-w-[145px] py-1">
+                                <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-lg shadow-xl min-w-[130px] py-1">
                                   <button
                                     type="button"
                                     onClick={() => openEditNote(note)}
                                     className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
                                   >
                                     <span className="material-symbols-outlined text-[15px] text-blue-600">edit</span>
-                                    Edit note
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStartInlineEdit(note)}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
-                                  >
-                                    <span className="material-symbols-outlined text-[15px] text-slate-500">edit_note</span>
-                                    Edit inline
+                                    Edit
                                   </button>
                                   <button
                                     type="button"
