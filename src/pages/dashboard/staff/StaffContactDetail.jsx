@@ -716,13 +716,15 @@ export default function StaffContactDetail({
       author: currentAuthor,
       time: timeStr,
     };
-    setNotesList((prev) => [newNote, ...prev]);
+    const updatedList = [newNote, ...notesList];
+    updateAndPersistNotes(updatedList);
 
     const attachSuffix =
       noteAttachments.length > 0
         ? ` with ${noteAttachments.length} file(s) attached`
         : '';
     logActivity('Note Added', `added note: "${title}"${attachSuffix}`);
+    showToast('Đã tạo note thành công!');
 
     // If "Create a To Do task to follow up" is checked
     if (createFollowUpTask) {
@@ -747,6 +749,20 @@ export default function StaffContactDetail({
     setShowCreateNoteModal(false);
   }
 
+  function updateAndPersistNotes(newList) {
+    setNotesList(newList);
+    if (contact) {
+      contact.notes = newList;
+      if (onUpdateContact) {
+        onUpdateContact({ ...contact, notes: newList });
+      }
+      addContactToStore({ ...contact, notes: newList });
+    }
+    if (CONTACT_DETAIL_DATA && (contact?.id === CONTACT_DETAIL_DATA.id || !contact?.id)) {
+      CONTACT_DETAIL_DATA.notes = newList;
+    }
+  }
+
   function handleCardFileAttach(noteId, e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -758,25 +774,25 @@ export default function StaffContactDetail({
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
           : `${Math.round(file.size / 1024)} KB`,
     }));
-    setNotesList((prev) =>
-      prev.map((n) =>
-        n.id === noteId
-          ? { ...n, attachments: [...(n.attachments || []), ...newAttach] }
-          : n
-      )
+    const updatedList = notesList.map((n) =>
+      n.id === noteId
+        ? { ...n, attachments: [...(n.attachments || []), ...newAttach] }
+        : n
     );
+    updateAndPersistNotes(updatedList);
     logActivity('Attachment Added', `attached ${newAttach.length} file(s) to note`);
+    showToast(`Đã đính kèm ${newAttach.length} tệp vào note`);
     e.target.value = '';
   }
 
   function handleRemoveAttachmentFromNote(noteId, attId) {
-    setNotesList((prev) =>
-      prev.map((n) =>
-        n.id === noteId
-          ? { ...n, attachments: (n.attachments || []).filter((a) => a.id !== attId) }
-          : n
-      )
+    const updatedList = notesList.map((n) =>
+      n.id === noteId
+        ? { ...n, attachments: (n.attachments || []).filter((a) => a.id !== attId) }
+        : n
     );
+    updateAndPersistNotes(updatedList);
+    showToast('Đã xóa tệp đính kèm');
   }
 
   function handleAddComment(noteId) {
@@ -814,19 +830,19 @@ export default function StaffContactDetail({
   function handleStartInlineEdit(note) {
     setInlineEditingNoteId(note.id);
     setInlineEditBody(note.body || '');
+    setCollapsedNotes((prev) => ({ ...prev, [note.id]: false }));
     setNoteActionsOpen(null);
   }
 
   function handleSaveInlineEdit(noteId) {
     if (!inlineEditBody.trim()) return;
     const updatedTitle = inlineEditBody.trim().split('\n')[0].slice(0, 60);
-    setNotesList((prev) =>
-      prev.map((n) =>
-        n.id === noteId
-          ? { ...n, title: updatedTitle, body: inlineEditBody.trim(), edited: true }
-          : n
-      )
+    const updatedList = notesList.map((n) =>
+      n.id === noteId
+        ? { ...n, title: updatedTitle, body: inlineEditBody.trim(), edited: true }
+        : n
     );
+    updateAndPersistNotes(updatedList);
     setInlineEditingNoteId(null);
     setInlineEditBody('');
     logActivity('Note Edited', `edited note: "${updatedTitle}"`);
@@ -845,26 +861,28 @@ export default function StaffContactDetail({
     if (e) e.preventDefault();
     if (!editNoteBody.trim() && editNoteAttachments.length === 0) return;
     const updatedTitle =
-      editNoteBody.trim().split('\n')[0].slice(0, 60) || editingNote.title;
-    setNotesList((prev) =>
-      prev.map((n) =>
-        n.id === editingNote.id
-          ? { ...n, title: updatedTitle, body: editNoteBody.trim(), attachments: [...editNoteAttachments], edited: true }
-          : n
-      )
+      editNoteBody.trim().split('\n')[0].slice(0, 60) || (editingNote ? editingNote.title : 'Note');
+    const updatedList = notesList.map((n) =>
+      n.id === editingNote.id
+        ? { ...n, title: updatedTitle, body: editNoteBody.trim(), attachments: [...editNoteAttachments], edited: true }
+        : n
     );
+    updateAndPersistNotes(updatedList);
     logActivity('Note Edited', `edited note: "${updatedTitle}"`);
     setShowEditNoteModal(false);
     setEditingNote(null);
     setEditNoteBody('');
     setEditNoteAttachments([]);
     setIsEditNoteFullscreen(false);
+    showToast('Đã lưu chỉnh sửa note thành công!');
   }
 
   function handleDeleteNote(noteId) {
-    setNotesList((prev) => prev.filter((n) => n.id !== noteId));
+    const updatedList = notesList.filter((n) => n.id !== noteId);
+    updateAndPersistNotes(updatedList);
     logActivity('Note Deleted', 'deleted a note');
     setNoteActionsOpen(null);
+    showToast('Đã xóa note thành công!');
   }
 
   function handleEditFileAttach(e) {
@@ -2579,9 +2597,9 @@ export default function StaffContactDetail({
               ) : (
                 <div className="space-y-3 mt-1">
                   {notesList.map((note) => (
-                    <div key={note.id} className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+                    <div key={note.id} className="rounded-xl border border-slate-200 bg-white shadow-xs relative">
                       {/* Note Header - HubSpot style matching media_1790667070854.png */}
-                      <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/80">
+                      <div className={`flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/80 ${collapsedNotes[note.id] ? 'rounded-xl border-b-0' : 'rounded-t-xl'}`}>
                         <div
                           onClick={() => setCollapsedNotes((prev) => ({ ...prev, [note.id]: !prev[note.id] }))}
                           className="flex items-center gap-1.5 text-xs cursor-pointer select-none"
@@ -2598,7 +2616,7 @@ export default function StaffContactDetail({
                           {/* Direct Edit Button */}
                           <button
                             type="button"
-                            onClick={() => handleStartInlineEdit(note)}
+                            onClick={() => openEditNote(note)}
                             className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 rounded px-2 py-0.5 transition cursor-pointer"
                             title="Edit this note"
                           >
@@ -2617,32 +2635,38 @@ export default function StaffContactDetail({
                               <span className="material-symbols-outlined text-[14px]">expand_more</span>
                             </button>
                             {noteActionsOpen === note.id && (
-                              <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-lg shadow-lg min-w-[140px] overflow-hidden py-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleStartInlineEdit(note)}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
-                                >
-                                  <span className="material-symbols-outlined text-[15px] text-blue-600">edit_note</span>
-                                  Edit Inline
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => openEditNote(note)}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
-                                >
-                                  <span className="material-symbols-outlined text-[15px] text-slate-500">open_in_new</span>
-                                  Edit in Modal
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteNote(note.id)}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                                >
-                                  <span className="material-symbols-outlined text-[15px] text-rose-500">delete</span>
-                                  Delete
-                                </button>
-                              </div>
+                              <>
+                                <div
+                                  className="fixed inset-0 z-40"
+                                  onClick={() => setNoteActionsOpen(null)}
+                                />
+                                <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-lg shadow-xl min-w-[145px] py-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditNote(note)}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
+                                  >
+                                    <span className="material-symbols-outlined text-[15px] text-blue-600">edit</span>
+                                    Edit note
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStartInlineEdit(note)}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer"
+                                  >
+                                    <span className="material-symbols-outlined text-[15px] text-slate-500">edit_note</span>
+                                    Edit inline
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteNote(note.id)}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                  >
+                                    <span className="material-symbols-outlined text-[15px] text-rose-500">delete</span>
+                                    Delete
+                                  </button>
+                                </div>
+                              </>
                             )}
                           </div>
                           {/* Timestamp */}
@@ -2742,7 +2766,7 @@ export default function StaffContactDetail({
                           </div>
 
                           {/* Note Footer - Comment & Association */}
-                          <div className="flex items-center justify-between px-3.5 py-2 border-t border-slate-100 bg-slate-50/60">
+                          <div className={`flex items-center justify-between px-3.5 py-2 border-t border-slate-100 bg-slate-50/60 ${activeCommentNoteId === note.id ? '' : 'rounded-b-xl'}`}>
                             <button
                               type="button"
                               onClick={() => setActiveCommentNoteId(activeCommentNoteId === note.id ? null : note.id)}

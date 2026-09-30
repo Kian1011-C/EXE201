@@ -510,7 +510,16 @@ export const CONTACT_DETAIL_DATA = {
     contactType: '---',
   },
   activities: [],
-  notes: [],
+  notes: [
+    {
+      id: 'note-sample-01',
+      title: 'Created ACA account, uploaded document and waiting to verify - Rosy',
+      body: 'Created ACA account, uploaded document and waiting to verify - Rosy\nRef code: RBA-N5X-8T9-N7A-1X0-B5L',
+      attachments: [],
+      author: 'Rosy Pham',
+      time: '09/24/2024, 12:23',
+    },
+  ],
   tasks: [],
   associatedDeals: [
     {
@@ -790,6 +799,16 @@ export const SAMPLE_DEALS = [
     numberMember: '',
     quotedCounty: '',
     planName: '',
+    notes: [
+      {
+        id: 'note-deal-01',
+        title: 'Created ACA account, uploaded document and waiting to verify - Rosy',
+        body: 'Created ACA account, uploaded document and waiting to verify - Rosy\nRef code: RBA-N5X-8T9-N7A-1X0-B5L',
+        attachments: [],
+        author: 'Rosy Pham',
+        time: '09/24/2024, 12:23',
+      },
+    ],
   },
   {
     id: 'D26005032',
