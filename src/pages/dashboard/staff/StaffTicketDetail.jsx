@@ -329,8 +329,8 @@ export default function StaffTicketDetail({
     setDueDate(current.dueDate);
     setTempDueDate(current.dueDate);
 
-    setServiceAgent(current.serviceAgent);
-    setTicketOwner(current.ticketOwner);
+    setServiceAgent(typeof current.serviceAgent === 'string' ? current.serviceAgent : (current.serviceAgent?.name || current.serviceAgent?.label || String(current.serviceAgent || '')));
+    setTicketOwner(typeof current.ticketOwner === 'string' ? current.ticketOwner : (current.ticketOwner?.name || current.ticketOwner?.label || String(current.ticketOwner || '')));
     setTicketResult(current.ticketResult || '');
     setPaymentStatus(current.paymentStatus || '');
     setChangeDueDateReason(current.changeDueDateReason || '');
@@ -341,15 +341,15 @@ export default function StaffTicketDetail({
     setFilesList(current.files || []);
     setProofList(current.proof || []);
 
-    setContactName(current.contactName);
-    setContactPhone(current.contactPhone);
-    setContactEmail(current.contactEmail);
+    setContactName(String(current.contactName || 'Unknown'));
+    setContactPhone(String(current.contactPhone || ''));
+    setContactEmail(String(current.contactEmail || ''));
     setLeadOwner(current.leadOwner);
 
-    setDealTitle(current.dealTitle);
-    setDealShortTitle(current.dealShortTitle || current.dealTitle);
-    setDealPipeline(current.dealPipeline || 'Obamacare 2026');
-    setDealStage(current.dealStage || 'Enrolled - Active');
+    setDealTitle(String(current.dealTitle || 'Unknown Deal'));
+    setDealShortTitle(String(current.dealShortTitle || current.dealTitle || 'Unknown'));
+    setDealPipeline(String(current.dealPipeline || 'Obamacare 2026'));
+    setDealStage(String(current.dealStage || 'Enrolled - Active'));
     setDealOwner(current.dealOwner || (isPaymentTicket ? 'Khanh Nguyen' : 'Jay Ly'));
     setDealCarrier(current.dealCarrier || (isPaymentTicket ? 'Kaiser Permanente' : 'BCBS'));
 
