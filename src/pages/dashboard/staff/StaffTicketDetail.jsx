@@ -1461,11 +1461,18 @@ export default function StaffTicketDetail({
           {/* Grouped Timeline by Month */}
           <div className="p-6 space-y-6">
             {months.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <span className="material-symbols-outlined text-4xl mb-2 text-slate-300">
-                  chat_bubble_outline
-                </span>
-                <p>No activity records match your filter.</p>
+              <div className="flex flex-col items-center justify-center text-center py-20 text-slate-400">
+                <div className="mb-4">
+                  <svg width="100" height="100" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 75L35 60L60 45L75 60L50 75Z" fill="#E2E8F0"/>
+                    <path d="M35 60V85L60 100V75L35 60Z" fill="#CBD5E1"/>
+                    <path d="M75 60V85L60 100V75L75 60Z" fill="#94A3B8"/>
+                    <path d="M55 40C45 35 40 20 50 15" stroke="#3B82F6" strokeWidth="2" strokeDasharray="4 4" fill="none"/>
+                    <circle cx="50" cy="15" r="3" fill="#3B82F6"/>
+                  </svg>
+                </div>
+                <span className="font-bold text-slate-700 text-sm mb-1">No data here!</span>
+                <span className="text-[12px] text-slate-500">There is no data to show right now.</span>
               </div>
             ) : (
               months.map((month) => {
@@ -1755,8 +1762,14 @@ export default function StaffTicketDetail({
 
             {companiesOpen && (
               <div className="p-4 flex flex-col items-center justify-center text-center py-6">
-                <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2">
-                  <span className="material-symbols-outlined text-2xl">inbox</span>
+                <div className="mb-2">
+                  <svg width="60" height="60" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 75L35 60L60 45L75 60L50 75Z" fill="#E2E8F0"/>
+                    <path d="M35 60V85L60 100V75L35 60Z" fill="#CBD5E1"/>
+                    <path d="M75 60V85L60 100V75L75 60Z" fill="#94A3B8"/>
+                    <path d="M55 40C45 35 40 20 50 15" stroke="#3B82F6" strokeWidth="2" strokeDasharray="4 4" fill="none"/>
+                    <circle cx="50" cy="15" r="3" fill="#3B82F6"/>
+                  </svg>
                 </div>
                 <span className="font-bold text-slate-700 text-xs">No data here!</span>
                 <span className="text-[11px] text-slate-400 mt-0.5">There is no data to show right now.</span>
