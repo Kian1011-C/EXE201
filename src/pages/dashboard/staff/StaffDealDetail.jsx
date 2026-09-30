@@ -5,6 +5,7 @@ import {
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
   addTicketToStore,
+  addDealToStore,
 } from '../../../data/mockCrmData';
 import { createTicket } from '../../../services/api';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
