@@ -275,6 +275,8 @@ function normalizeAccount(u) {
 }
 
 // ── Contacts ─────────────────────────────────────────────────────────────────
+export async function getUsers() { try { const data = await request('/users'); return Array.isArray(data) ? data : []; } catch { return []; } }
+
 export async function getContacts(params = {}) {
   const query = new URLSearchParams();
   if (params.search) query.append('search', params.search);

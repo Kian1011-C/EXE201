@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { getContacts, createContact as apiCreateContact } from '../../../services/api';
+import { getContacts, createContact as apiCreateContact, getUsers } from '../../../services/api';
 import { SAMPLE_CONTACTS, addContactToStore, getDynamicContacts } from '../../../data/mockCrmData';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterContactsForAgent, getAgentIdentity } from '../../../utils/rbac';
@@ -21,10 +21,15 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     setTimeout(() => setToastMessage(null), 2500);
   }
 
+  const [dbUsers, setDbUsers] = useState([]);
+
   // Load contacts from PostgreSQL API
   async function loadData(filters = {}) {
     setLoading(true);
     try {
+      const usersData = await getUsers();
+      setDbUsers(usersData);
+
       const activeSearch = filters.search !== undefined ? filters.search : searchQuery;
       const activeOwner = filters.owner !== undefined ? filters.owner : ownerFilter;
       const data = await getContacts({
@@ -136,6 +141,11 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         : `+1 ${phone.trim()}`
       : '—';
 
+    const selectedUser = dbUsers.find(u => String(u.id) === String(contactOwner));
+    const ownerNameResolved = selectedUser 
+      ? (selectedUser.fullName || selectedUser.name || [selectedUser.firstName, selectedUser.lastName].filter(Boolean).join(' ') || selectedUser.email)
+      : (contactOwner || 'The Best Rate Insurance');
+
     const newRecord = {
       id: newCode,
       no: contactsList.length + 1,
@@ -149,8 +159,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       email: email.trim() || '',
       language: language || 'Vietnamese',
       contactOwner: {
-        name: contactOwner || 'The Best Rate Insurance',
-        avatar: (contactOwner || 'TB').slice(0, 2).toUpperCase(),
+        name: ownerNameResolved,
+        avatar: (ownerNameResolved).slice(0, 2).toUpperCase(),
         bg: 'bg-blue-600 text-white',
       },
       howDoYouKnowUs: howDoYouKnowUs || '',
@@ -194,8 +204,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       sourceOfLead: {
         howDoYouKnowUs: howDoYouKnowUs || '',
         whoReferClient: whoReferClient || '',
-        contactOwner: contactOwner || 'The Best Rate Insurance',
-        leadOwner: contactOwner || 'The Best Rate Insurance',
+        contactOwner: ownerNameResolved,
+        leadOwner: ownerNameResolved,
         medicareShareOwner: '',
         obamacareSharedOwner: '',
         lifeSharedOwner: '',
@@ -230,7 +240,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       howDoYouKnowUs: howDoYouKnowUs,
       whoReferClient: whoReferClient,
       teleSaleTeam: teleSaleTeam,
-      contactOwnerName: contactOwner || 'The Best Rate Insurance',
+      contactOwnerId: selectedUser ? selectedUser.id : null,
+      contactOwnerName: ownerNameResolved,
       status: 'Active',
       acaAccountStatus: '',
     }).catch((err) => console.warn('Could not save to DB:', err));
@@ -855,11 +866,11 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                   >
                     <option value="">--</option>
                     <option value="The Best Rate Insurance">The Best Rate Insurance</option>
-                    <option value="Khanh Nguyen">Khanh Nguyen</option>
-                    <option value="Trono Truong">Trono Truong</option>
-                    <option value="Nancy Pham">Nancy Pham</option>
-                    <option value="Jay Ly">Jay Ly</option>
-                    <option value="Nathan Truong">Nathan Truong</option>
+                    {dbUsers.map(u => (
+                      <option key={u.id} value={u.id}>
+                        {u.fullName || u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email}
+                      </option>
+                    ))}
                   </select>
                   <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
                     expand_more
