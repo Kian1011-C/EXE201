@@ -8,7 +8,7 @@ import { getCurrentActor, getPropertyHistory } from '../../../services/propertyH
 export default function StaffContactsList({ onSelectContact, isAgent = false, agentName = '' }) {
   const { user } = useAuth();
   const currentActor = getCurrentActor(user);
-  const [contactsList, setContactsList] = useState(SAMPLE_CONTACTS);
+  const [contactsList, setContactsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,19 +36,16 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         search: activeSearch,
         owner: activeOwner,
       });
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setContactsList(data);
         setIsDbConnected(true);
       } else {
-        const dynamic = getDynamicContacts();
-        const base = [...dynamic, ...SAMPLE_CONTACTS];
-        setContactsList(base);
+        setContactsList([]);
         setIsDbConnected(false);
       }
     } catch (err) {
-      console.warn('[StaffContactsList] API error, falling back to mock:', err);
-      const dynamic = getDynamicContacts();
-      setContactsList([...dynamic, ...SAMPLE_CONTACTS]);
+      console.warn('[StaffContactsList] API error:', err);
+      setContactsList([]);
       setIsDbConnected(false);
     } finally {
       setLoading(false);

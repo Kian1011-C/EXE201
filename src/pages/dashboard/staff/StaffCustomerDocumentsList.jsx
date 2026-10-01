@@ -28,11 +28,7 @@ export default function StaffCustomerDocumentsList({
   isAgent = false,
   agentName = '',
 }) {
-  const [documentsList, setDocumentsList] = useState(() => {
-    const dyn = getDynamicCustomerDocuments();
-    const dynIds = new Set(dyn.map((d) => d.id));
-    return [...dyn, ...SAMPLE_CUSTOMER_DOCUMENTS.filter((d) => !dynIds.has(d.id))];
-  });
+  const [documentsList, setDocumentsList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('all');
@@ -57,17 +53,13 @@ export default function StaffCustomerDocumentsList({
       if (search && search.trim()) params.search = search.trim();
       if (owner && owner !== 'all') params.owner = owner;
       const data = await getDocuments(params);
-      const dyn = getDynamicCustomerDocuments();
-      const dynIds = new Set(dyn.map((d) => d.id));
-      if (Array.isArray(data) && data.length > 0) {
-        setDocumentsList([...dyn, ...data.filter((d) => !dynIds.has(d.id))]);
+      if (Array.isArray(data)) {
+        setDocumentsList(data);
       } else {
-        setDocumentsList([...dyn, ...SAMPLE_CUSTOMER_DOCUMENTS.filter((d) => !dynIds.has(d.id))]);
+        setDocumentsList([]);
       }
     } catch {
-      const dyn = getDynamicCustomerDocuments();
-      const dynIds = new Set(dyn.map((d) => d.id));
-      setDocumentsList([...dyn, ...SAMPLE_CUSTOMER_DOCUMENTS.filter((d) => !dynIds.has(d.id))]);
+      setDocumentsList([]);
     } finally {
       setLoading(false);
     }

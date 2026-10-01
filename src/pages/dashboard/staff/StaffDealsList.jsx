@@ -33,10 +33,7 @@ const AGENT_DIRECTORY = [
 ];
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent = false, agentName = '' }) {
-  const [dealsList, setDealsList] = useState(() => {
-    const dyn = getDynamicDeals();
-    return [...dyn, ...SAMPLE_DEALS];
-  });
+  const [dealsList, setDealsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
   const [viewMode, setViewMode] = useState('kanban'); // 'list' | 'kanban'
@@ -99,18 +96,16 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         carrier: activeCarrier,
         owner: activeOwner,
       });
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setDealsList(data);
         setIsDbConnected(true);
       } else {
-        const dyn = getDynamicDeals();
-        setDealsList([...dyn, ...SAMPLE_DEALS]);
+        setDealsList([]);
         setIsDbConnected(false);
       }
     } catch (err) {
       console.warn('[StaffDealsList] API error:', err);
-      const dyn = getDynamicDeals();
-      setDealsList([...dyn, ...SAMPLE_DEALS]);
+      setDealsList([]);
       setIsDbConnected(false);
     } finally {
       setLoading(false);

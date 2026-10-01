@@ -57,10 +57,7 @@ const PRIORITY_OPTIONS = [
 ];
 
 export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSelectDeal, isAgent = false, agentName = '' }) {
-  const [ticketsList, setTicketsList] = useState(() => {
-    const dyn = getDynamicTickets();
-    return [...dyn, ...FULL_SAMPLE_TICKETS];
-  });
+  const [ticketsList, setTicketsList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'kanban'
@@ -176,12 +173,10 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
         }));
         setTicketsList(dbTickets);
       } else {
-        const dyn = getDynamicTickets();
-        setTicketsList([...dyn, ...FULL_SAMPLE_TICKETS]);
+        setTicketsList([]);
       }
     } catch {
-      const dyn = getDynamicTickets();
-      setTicketsList([...dyn, ...FULL_SAMPLE_TICKETS]);
+      setTicketsList([]);
     } finally {
       setIsRefreshing(false);
     }

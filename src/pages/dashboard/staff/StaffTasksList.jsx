@@ -36,7 +36,7 @@ const ASSIGNEE_OPTIONS = [
 ];
 
 export default function StaffTasksList({ onSelectTask, onSelectContact, onSelectDeal, isAgent = false, agentName = '' }) {
-  const [tasksList, setTasksList] = useState(SAMPLE_TASKS);
+  const [tasksList, setTasksList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -141,10 +141,10 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
         });
         setTasksList(dbTasks);
       } else {
-        setTasksList(SAMPLE_TASKS);
+        setTasksList([]);
       }
     } catch {
-      setTasksList(SAMPLE_TASKS);
+      setTasksList([]);
     } finally {
       setIsRefreshing(false);
     }
