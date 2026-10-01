@@ -159,7 +159,7 @@ export default function AddDealModal({
         ticketOwner: dealOwner === '--' ? 'Khanh Nguyen' : dealOwner,
         serviceAgent: 'Platform Staff',
         contactName: contactName,
-        contactId: initialContactId || 'CT26002600',
+        contactId: initialContactId || '',
         dealId: newCode,
         dealTitle: finalTitle,
         carrier: carrier,

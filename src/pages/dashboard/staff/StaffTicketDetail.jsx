@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   SAMPLE_TICKETS,
   addCustomerDocumentToStore,
   getDynamicCustomerDocuments,
+  getDynamicDeals,
 } from '../../../data/mockCrmData';
 import {
   getTicket,
@@ -13,24 +14,58 @@ import {
   addDocumentFile,
   deleteDocumentFile,
   addContactTask,
+  getDeals,
 } from '../../../services/api';
 
+export function isDealBelongingToContact(deal, contactName, contactId) {
+  if (!deal) return false;
+  const dTitle = String(deal.title || deal.dealName || '').toLowerCase();
+  const dContact = String(
+    deal.contactName ||
+      (typeof deal.contact === 'object' ? (deal.contact?.fullName || deal.contact?.name) : '') ||
+      ''
+  ).toLowerCase();
+  const cName = String(contactName || '').trim().toLowerCase();
+  const cId = String(contactId || '').trim();
+
+  // Guard against old mock Ken Ho / Kaylee Ho / Hoai thanh data leaking into other contacts
+  if (dTitle.includes('ken ho') || dTitle.includes('kaylee ho') || dTitle.includes('kylie ho')) {
+    if (!cName.includes('ken') && !cName.includes('ho')) return false;
+  }
+  if (dTitle.includes('hoai thanh')) {
+    if (!cName.includes('hoai') && !cName.includes('thanh')) return false;
+  }
+
+  if (cId && String(deal.contactId || deal.contact?.id || '') === cId) {
+    return true;
+  }
+  if (cName && cName !== 'unknown') {
+    if (dContact && (dContact.includes(cName) || cName.includes(dContact))) {
+      return true;
+    }
+    if (dTitle && dTitle.includes(cName)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export const ACA_TICKET_DEFAULTS = {
-  id: 'TC2600101',
-  title: 'ACA account 2026',
+  id: '',
+  title: 'ACA account',
   avatar: 'A2',
   avatarBg: 'bg-[#E05638]',
   pipeline: 'ACA account',
-  status: 'DONE',
+  status: 'Need Create ACA Account',
   priority: 'High',
   openDays: null,
-  closeDate: '07/20/2026',
-  dueDate: '07/15/2026',
-  serviceAgent: 'Ivy Lu (ivy)',
-  serviceAgentAvatar: 'IL',
+  closeDate: '',
+  dueDate: '',
+  serviceAgent: '',
+  serviceAgentAvatar: '',
   serviceAgentBg: 'bg-[#0EA5E9]',
-  ticketOwner: 'Jay Ly (trichauly24@7)',
-  ticketOwnerAvatar: 'JL',
+  ticketOwner: '',
+  ticketOwnerAvatar: '',
   ticketOwnerBg: 'bg-[#10B981]',
   ticketResult: '',
   paymentStatus: '',
@@ -40,116 +75,57 @@ export const ACA_TICKET_DEFAULTS = {
   paidThroughDate: '',
   files: [],
   proof: [],
-  contactName: 'Ken xington Ho',
-  contactInitials: 'KH',
-  contactPhone: '+1 (832) 998-9804',
-  contactEmail: 'kylieho@thesuperiorskilledlearners.com',
-  leadOwner: 'Jay Ly',
-  dealTitle: 'Ken Ho + Kylie Ho + Kaylee Ho - OB 08/2026',
-  dealShortTitle: 'Ken Ho + Kylie Ho + Kaylee Ho - ...',
-  dealPipeline: 'Obamacare 2026',
-  dealStage: 'Enrolled - Active',
-  dealOwner: 'Jay Ly',
-  dealCarrier: 'BCBS',
-  timeline: [
-    {
-      id: 'act-1',
-      month: 'Aug 2026',
-      type: 'deal_move_active',
-      title: 'Deal Activity',
-      timestamp: '08/12/2026, 11:26',
-      actor: 'Ivy Lu (ivy)',
-      dealName: 'Ken Ho + Kylie Ho + Kaylee Ho - OB 08/2026',
-      targetStage: 'Enrolled - Active',
-    },
-    {
-      id: 'act-2',
-      month: 'Jul 2026',
-      type: 'deal_move_payment',
-      title: 'Deal Activity',
-      timestamp: '07/22/2026, 10:38',
-      actor: 'Ivy Lu (ivy)',
-      dealName: 'Ken Ho + Kylie Ho + Kaylee Ho - OB 08/2026',
-      targetStage: 'Enrolled - 1st Payment done',
-    },
-    {
-      id: 'act-3',
-      month: 'Jul 2026',
-      type: 'ticket_move_done',
-      title: 'Ticket Activity',
-      timestamp: '07/20/2026, 15:04',
-      actor: 'Ivy Lu (ivy)',
-      fromStatus: 'Need Create ACA Account',
-      toStatus: 'DONE',
-    },
-    {
-      id: 'act-4',
-      month: 'Jul 2026',
-      type: 'ticket_created',
-      title: 'Ticket Activity',
-      timestamp: '07/15/2026, 12:18',
-      creator: 'Create ACA account 2026 Tickets (version 5)',
-      targetTicketName: 'ACA account 2026',
-    },
-    {
-      id: 'act-5',
-      month: 'Jul 2026',
-      type: 'deal_created',
-      title: 'Deal Activity',
-      timestamp: '07/15/2026, 12:18',
-      actor: 'Jay Ly (trichauly24@7)',
-      dealName: 'Ken Ho + Kylie Ho + Kaylee Ho - OB 08/2026',
-    },
-  ],
+  contactName: '',
+  contactInitials: '',
+  contactPhone: '',
+  contactEmail: '',
+  leadOwner: '',
+  dealTitle: '',
+  dealShortTitle: '',
+  dealPipeline: '',
+  dealStage: '',
+  dealOwner: '',
+  dealCarrier: '',
+  timeline: [],
 };
 
 export const PAYMENT_TICKET_DEFAULTS = {
-  id: 'TC2600201',
-  title: 'Oct/26 Company Pay ticket',
+  id: '',
+  title: 'Payment ticket',
   avatar: 'OT',
   avatarBg: 'bg-[#B25E3B]',
   pipeline: 'Payment',
   status: 'Make payment',
   priority: 'None',
-  openDays: 9,
+  openDays: null,
   closeDate: '',
-  dueDate: '09/20/2026',
-  serviceAgent: 'Anya Nguyen (anya42@9)',
-  serviceAgentAvatar: 'AN',
+  dueDate: '',
+  serviceAgent: '',
+  serviceAgentAvatar: '',
   serviceAgentBg: 'bg-slate-600',
-  ticketOwner: 'Khanh Nguyen (khanhnguyen31@7)',
-  ticketOwnerAvatar: 'KN',
+  ticketOwner: '',
+  ticketOwnerAvatar: '',
   ticketOwnerBg: 'bg-slate-600',
   ticketResult: '',
-  paymentStatus: 'Company Pay',
+  paymentStatus: '',
   changeDueDateReason: '',
-  carrier: 'Kaiser Permanente',
+  carrier: '',
   deadlineDate: '',
-  paidThroughDate: '--',
+  paidThroughDate: '',
   files: [],
   proof: [],
-  contactName: 'Hoai thanh Nguyen',
-  contactInitials: 'HN',
-  contactPhone: '+1 (838) 776-1434',
-  contactEmail: 'nguyenleminhquang1215@gmail.com',
-  leadOwner: 'Khanh Nguyen',
-  dealTitle: 'Non Commission - Hoai thanh Nguyen - OB 2026',
-  dealShortTitle: 'Non Commission - Hoai thanh...',
-  dealPipeline: 'Obamacare 2026',
-  dealStage: 'Non-Commission - Active',
-  dealOwner: 'Khanh Nguyen',
-  dealCarrier: 'Kaiser Permanente',
-  timeline: [
-    {
-      id: 'pay-act-1',
-      month: 'Sep 2026',
-      type: 'ticket_created',
-      title: 'Ticket Activity',
-      timestamp: '09/15/2026, 09:58',
-      creator: 'Create Payment Ticket - 2026 [Company Pay + Need Auto Pay + No Value] (version 7)',
-      targetTicketName: 'Oct/26 Company Pay ticket',
-    },
-  ],
+  contactName: '',
+  contactInitials: '',
+  contactPhone: '',
+  contactEmail: '',
+  leadOwner: '',
+  dealTitle: '',
+  dealShortTitle: '',
+  dealPipeline: '',
+  dealStage: '',
+  dealOwner: '',
+  dealCarrier: '',
+  timeline: [],
 };
 
 const AGENT_OPTIONS = [
@@ -317,17 +293,19 @@ export default function StaffTicketDetail({
   const proofInputRef = useRef(null);
 
   // Entities
-  const [contactName, setContactName] = useState(String(initialData.contactName || 'Unknown'));
+  const [contactName, setContactName] = useState(String(initialData.contactName || ''));
   const [contactPhone, setContactPhone] = useState(String(initialData.contactPhone || ''));
   const [contactEmail, setContactEmail] = useState(String(initialData.contactEmail || ''));
-  const [leadOwner, setLeadOwner] = useState(initialData.leadOwner);
+  const [leadOwner, setLeadOwner] = useState(initialData.leadOwner || '');
 
-  const [dealTitle, setDealTitle] = useState(String(initialData.dealTitle || 'Unknown Deal'));
-  const [dealShortTitle, setDealShortTitle] = useState(String(initialData.dealShortTitle || initialData.dealTitle || 'Unknown'));
-  const [dealPipeline, setDealPipeline] = useState(String(initialData.dealPipeline || 'Obamacare 2026'));
-  const [dealStage, setDealStage] = useState(String(initialData.dealStage || 'Enrolled - Active'));
-  const [dealOwner, setDealOwner] = useState(initialData.dealOwner || 'Jay Ly');
-  const [dealCarrier, setDealCarrier] = useState(initialData.dealCarrier || 'BCBS');
+  // Dynamic Associated Deal State
+  const [associatedDeal, setAssociatedDeal] = useState(null);
+  const [dealTitle, setDealTitle] = useState('');
+  const [dealShortTitle, setDealShortTitle] = useState('');
+  const [dealPipeline, setDealPipeline] = useState('');
+  const [dealStage, setDealStage] = useState('');
+  const [dealOwner, setDealOwner] = useState('');
+  const [dealCarrier, setDealCarrier] = useState('');
 
   // Dropdowns
   const [isPriorityOpen, setIsPriorityOpen] = useState(false);
@@ -380,6 +358,136 @@ export default function StaffTicketDetail({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
+  // Helper to dynamically resolve associated deal strictly for this ticket's contact
+  const resolveAndApplyDeal = useCallback((currentTicket) => {
+    const cName = String(
+      currentTicket.contactName ||
+        (typeof currentTicket.contact === 'object'
+          ? currentTicket.contact?.fullName || currentTicket.contact?.name
+          : '') ||
+        ''
+    ).trim();
+    const cId = String(
+      currentTicket.contactId ||
+        (typeof currentTicket.contact === 'object' ? currentTicket.contact?.id : currentTicket.contact) ||
+        ''
+    ).trim();
+    const dId = String(
+      currentTicket.dealId ||
+        (typeof currentTicket.deal === 'object' ? currentTicket.deal?.id || currentTicket.deal?.code : currentTicket.deal) ||
+        ''
+    ).trim();
+
+    let matched = null;
+
+    // 1. Direct object passed on currentTicket.deal
+    if (currentTicket.deal && typeof currentTicket.deal === 'object' && (currentTicket.deal.title || currentTicket.deal.id)) {
+      if (isDealBelongingToContact(currentTicket.deal, cName, cId)) {
+        matched = currentTicket.deal;
+      }
+    }
+
+    // 2. Direct title passed on currentTicket.dealTitle
+    if (!matched && currentTicket.dealTitle && typeof currentTicket.dealTitle === 'string' && currentTicket.dealTitle.trim()) {
+      if (isDealBelongingToContact({ title: currentTicket.dealTitle, id: dId }, cName, cId)) {
+        matched = {
+          id: dId || `DL-${Date.now()}`,
+          code: dId || 'DL26005000',
+          title: currentTicket.dealTitle,
+          shortTitle: currentTicket.dealShortTitle || currentTicket.dealTitle,
+          pipeline: currentTicket.dealPipeline || 'Obamacare 2026',
+          stage: currentTicket.dealStage || 'Ready to Enroll',
+          dealOwner: currentTicket.dealOwner || currentTicket.ticketOwner || '',
+          carrier: currentTicket.dealCarrier || currentTicket.carrier || '',
+        };
+      }
+    }
+
+    // 3. Search local dynamic deals (localStorage / in-memory store)
+    if (!matched) {
+      const dynamicDeals = getDynamicDeals();
+      if (Array.isArray(dynamicDeals) && dynamicDeals.length > 0) {
+        if (dId) {
+          const byId = dynamicDeals.find((d) => (String(d.id) === dId || String(d.code) === dId) && isDealBelongingToContact(d, cName, cId));
+          if (byId) matched = byId;
+        }
+        if (!matched && cId) {
+          const byContactId = dynamicDeals.find((d) => String(d.contactId || d.contact?.id || '') === cId);
+          if (byContactId) matched = byContactId;
+        }
+        if (!matched && cName && cName.toLowerCase() !== 'unknown') {
+          const cNameLower = cName.toLowerCase();
+          const byName = dynamicDeals.find((d) => {
+            const dContact = String(d.contactName || (typeof d.contact === 'object' ? (d.contact?.fullName || d.contact?.name) : '') || '').toLowerCase();
+            const dTitle = String(d.title || d.dealName || '').toLowerCase();
+            return (
+              (dContact && (dContact.includes(cNameLower) || cNameLower.includes(dContact))) ||
+              (dTitle && dTitle.includes(cNameLower))
+            );
+          });
+          if (byName && isDealBelongingToContact(byName, cName, cId)) {
+            matched = byName;
+          }
+        }
+      }
+    }
+
+    if (matched) {
+      setAssociatedDeal(matched);
+      setDealTitle(matched.title || matched.dealName || '');
+      setDealShortTitle(matched.shortTitle || matched.title || matched.dealName || '');
+      setDealPipeline(matched.pipeline || 'Obamacare 2026');
+      setDealStage(matched.stage || matched.dealStage || '');
+      setDealOwner(typeof matched.dealOwner === 'object' ? matched.dealOwner.name || '' : matched.dealOwner || '');
+      setDealCarrier(matched.carrier || '');
+    } else {
+      // Clear deal fields so no other customer's deal is displayed
+      setAssociatedDeal(null);
+      setDealTitle('');
+      setDealShortTitle('');
+      setDealPipeline('');
+      setDealStage('');
+      setDealOwner('');
+      setDealCarrier('');
+
+      // Also try API lookup asynchronously
+      getDeals()
+        .then((apiDeals) => {
+          if (Array.isArray(apiDeals) && apiDeals.length > 0) {
+            let apiMatched = null;
+            if (dId) {
+              apiMatched = apiDeals.find((d) => (String(d.id) === dId || String(d.code) === dId) && isDealBelongingToContact(d, cName, cId));
+            }
+            if (!apiMatched && cId) {
+              apiMatched = apiDeals.find((d) => String(d.contactId || d.contact?.id || '') === cId);
+            }
+            if (!apiMatched && cName && cName.toLowerCase() !== 'unknown') {
+              const cNameLower = cName.toLowerCase();
+              apiMatched = apiDeals.find((d) => {
+                const dContact = String(d.contactName || (typeof d.contact === 'object' ? (d.contact?.fullName || d.contact?.name) : '') || '').toLowerCase();
+                const dTitle = String(d.title || d.dealName || '').toLowerCase();
+                return (
+                  ((dContact && (dContact.includes(cNameLower) || cNameLower.includes(dContact))) ||
+                    (dTitle && dTitle.includes(cNameLower))) &&
+                  isDealBelongingToContact(d, cName, cId)
+                );
+              });
+            }
+            if (apiMatched) {
+              setAssociatedDeal(apiMatched);
+              setDealTitle(apiMatched.title || apiMatched.dealName || '');
+              setDealShortTitle(apiMatched.shortTitle || apiMatched.title || apiMatched.dealName || '');
+              setDealPipeline(apiMatched.pipeline || 'Obamacare 2026');
+              setDealStage(apiMatched.stage || apiMatched.dealStage || '');
+              setDealOwner(typeof apiMatched.dealOwner === 'object' ? apiMatched.dealOwner.name || '' : apiMatched.dealOwner || '');
+              setDealCarrier(apiMatched.carrier || '');
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
   // Synchronize state dynamically whenever ticket prop updates
   useEffect(() => {
     const rawTicket =
@@ -396,16 +504,16 @@ export default function StaffTicketDetail({
       ...rawTicket,
     };
 
-    setTicketTitle(current.title);
-    setTempTitle(current.title);
+    setTicketTitle(current.title || '');
+    setTempTitle(current.title || '');
     setAvatar(current.avatar || (isPaymentTicket ? 'OT' : 'A2'));
     setPriority(current.priority || (isPaymentTicket ? 'None' : 'High'));
     setOpenDays(current.openDays);
-    setCloseDate(current.closeDate);
-    setPipeline(current.pipeline);
-    setStatus(current.status);
-    setDueDate(current.dueDate);
-    setTempDueDate(current.dueDate);
+    setCloseDate(current.closeDate || '');
+    setPipeline(current.pipeline || (isPaymentTicket ? 'Payment' : 'ACA account'));
+    setStatus(current.status || (isPaymentTicket ? 'Make payment' : 'Need Create ACA Account'));
+    setDueDate(current.dueDate || '');
+    setTempDueDate(current.dueDate || '');
 
     setServiceAgent(typeof current.serviceAgent === 'string' ? current.serviceAgent : (current.serviceAgent?.name || current.serviceAgent?.label || String(current.serviceAgent || '')));
     setTicketOwner(typeof current.ticketOwner === 'string' ? current.ticketOwner : (current.ticketOwner?.name || current.ticketOwner?.label || String(current.ticketOwner || '')));
@@ -419,61 +527,84 @@ export default function StaffTicketDetail({
     setFilesList(current.files || []);
     setProofList(current.proof || []);
 
-    setContactName(String(current.contactName || 'Unknown'));
-    setContactPhone(String(current.contactPhone || ''));
-    setContactEmail(String(current.contactEmail || ''));
-    setLeadOwner(current.leadOwner);
+    const resolvedContactName = String(
+      current.contactName ||
+        (typeof current.contact === 'object' ? current.contact?.fullName || current.contact?.name : '') ||
+        ''
+    );
+    setContactName(resolvedContactName);
+    setContactPhone(String(current.contactPhone || current.contact?.phone || ''));
+    setContactEmail(String(current.contactEmail || current.contact?.email || ''));
+    setLeadOwner(current.leadOwner || current.ticketOwner || '');
 
-    setDealTitle(String(current.dealTitle || 'Unknown Deal'));
-    setDealShortTitle(String(current.dealShortTitle || current.dealTitle || 'Unknown'));
-    setDealPipeline(String(current.dealPipeline || 'Obamacare 2026'));
-    setDealStage(String(current.dealStage || 'Enrolled - Active'));
-    setDealOwner(current.dealOwner || (isPaymentTicket ? 'Khanh Nguyen' : 'Jay Ly'));
-    setDealCarrier(current.dealCarrier || (isPaymentTicket ? 'Kaiser Permanente' : 'BCBS'));
+    // Resolve associated deal strictly for this contact
+    resolveAndApplyDeal(current);
 
-    if (current.timeline && current.timeline.length > 0) {
-      setTimelineItems(current.timeline);
+    // Clean timeline items - avoid leaking Ken Ho / Kaylee Ho dummy records
+    const rawTimeline = Array.isArray(current.timeline) ? current.timeline : (base.timeline || []);
+    const cleanTimeline = rawTimeline.filter((item) => {
+      const dName = String(item.dealName || item.title || item.creator || '').toLowerCase();
+      if (dName.includes('ken ho') || dName.includes('kaylee ho') || dName.includes('kylie ho')) {
+        const cNameLower = resolvedContactName.toLowerCase();
+        if (!cNameLower.includes('ken') && !cNameLower.includes('ho')) return false;
+      }
+      return true;
+    });
+
+    if (cleanTimeline.length > 0) {
+      setTimelineItems(cleanTimeline);
     } else {
-      setTimelineItems(base.timeline || []);
+      const createdItem = {
+        id: `ticket-create-${current.id || Date.now()}`,
+        month: current.createdAt ? new Date(current.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recent',
+        type: 'ticket_created',
+        title: 'Ticket Activity',
+        timestamp: current.createdAt ? new Date(current.createdAt).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : 'Just now',
+        creator: current.ticketOwner || current.serviceAgent || 'System',
+        targetTicketName: current.title || 'Ticket',
+      };
+      setTimelineItems([createdItem]);
     }
 
     // Load customer documents for this contact from backend
-    const effectiveContactId = current.contactId || (typeof current.contact === 'object' ? current.contact?.id : current.contact) || '24';
-    getDocuments({ contactId: effectiveContactId })
-      .then((docs) => {
-        if (Array.isArray(docs) && docs.length > 0) {
-          const doc = docs[0];
-          setContactDocId(doc.id);
-          const initialMap = {};
-          (doc.files || []).forEach((f) => {
-            const fname = (f.name || f.fullName || '').toLowerCase();
-            const ftype = f.type || (fname.endsWith('.pdf') ? 'pdf' : (fname.match(/\.(png|jpg|jpeg)$/) ? 'image' : 'document'));
-            const item = {
-              id: f.id,
-              dbFileId: f.id,
-              name: f.name || f.fullName,
-              fullName: f.fullName || f.name,
-              size: f.size || '1.2 MB',
-              type: ftype,
-              url: f.url || '',
-              uploadedAt: f.createdAt ? new Date(f.createdAt).toLocaleString() : 'Uploaded',
-            };
-            if (f.category === 'identity' || fname.includes('driver') || fname.includes('license') || fname.includes('id')) {
-              if (!initialMap.id) initialMap.id = item;
-              else if (!initialMap.citizenship) initialMap.citizenship = item;
-              else if (!initialMap.ssn) initialMap.ssn = item;
-            } else if (f.category === 'tax' || fname.includes('w2') || fname.includes('income') || fname.includes('tax')) {
-              initialMap.income = item;
-            } else if (f.category === 'consentFormMkp' || f.category === 'consentFormText' || f.category === 'otherDocument') {
-              if (!initialMap.address) initialMap.address = item;
-              else if (!initialMap.other) initialMap.other = item;
-            }
-          });
-          setUploadedDocs(initialMap);
-        }
-      })
-      .catch((err) => console.warn('[StaffTicketDetail] getDocuments error:', err));
-  }, [ticket]);
+    const effectiveContactId = current.contactId || (typeof current.contact === 'object' ? current.contact?.id : current.contact);
+    if (effectiveContactId) {
+      getDocuments({ contactId: effectiveContactId })
+        .then((docs) => {
+          if (Array.isArray(docs) && docs.length > 0) {
+            const doc = docs[0];
+            setContactDocId(doc.id);
+            const initialMap = {};
+            (doc.files || []).forEach((f) => {
+              const fname = (f.name || f.fullName || '').toLowerCase();
+              const ftype = f.type || (fname.endsWith('.pdf') ? 'pdf' : (fname.match(/\.(png|jpg|jpeg)$/) ? 'image' : 'document'));
+              const item = {
+                id: f.id,
+                dbFileId: f.id,
+                name: f.name || f.fullName,
+                fullName: f.fullName || f.name,
+                size: f.size || '1.2 MB',
+                type: ftype,
+                url: f.url || '',
+                uploadedAt: f.createdAt ? new Date(f.createdAt).toLocaleString() : 'Uploaded',
+              };
+              if (f.category === 'identity' || fname.includes('driver') || fname.includes('license') || fname.includes('id')) {
+                if (!initialMap.id) initialMap.id = item;
+                else if (!initialMap.citizenship) initialMap.citizenship = item;
+                else if (!initialMap.ssn) initialMap.ssn = item;
+              } else if (f.category === 'tax' || fname.includes('w2') || fname.includes('income') || fname.includes('tax')) {
+                initialMap.income = item;
+              } else if (f.category === 'consentFormMkp' || f.category === 'consentFormText' || f.category === 'otherDocument') {
+                if (!initialMap.address) initialMap.address = item;
+                else if (!initialMap.other) initialMap.other = item;
+              }
+            });
+            setUploadedDocs(initialMap);
+          }
+        })
+        .catch((err) => console.warn('[StaffTicketDetail] getDocuments error:', err));
+    }
+  }, [ticket, resolveAndApplyDeal]);
 
   // Document Upload Handlers
   const handleDocUpload = async (catId, file) => {
@@ -2289,7 +2420,7 @@ export default function StaffTicketDetail({
             )}
           </div>
 
-          {/* Card 2: Contacts (1) */}
+          {/* Card 2: Contacts */}
           <div className="border-b border-slate-100">
             <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition">
               <button
@@ -2300,7 +2431,7 @@ export default function StaffTicketDetail({
                 <span className="material-symbols-outlined text-[17px] text-slate-700">
                   {contactsOpen ? 'expand_more' : 'chevron_right'}
                 </span>
-                <span>Contacts (1)</span>
+                <span>Contacts ({contactName && contactName !== 'Unknown' ? 1 : 0})</span>
               </button>
               <div className="flex items-center gap-2 text-slate-400">
                 <button type="button" title="Add contact" className="hover:text-blue-600">
@@ -2314,179 +2445,197 @@ export default function StaffTicketDetail({
 
             {contactsOpen && (
               <div className="p-3">
-                <div
-                  onClick={() => {
-                    const cId = ticket?.contactId || (typeof ticket?.contact === 'object' ? (ticket.contact?.id || ticket.contact?.code) : ticket?.contact) || (isPayment ? 'CT26002606' : 'CT26002600');
-                    if (onSelectContact) {
-                      onSelectContact({
-                        id: cId,
-                        code: ticket?.contact?.code || 'CT26002600',
-                        fullName: contactName,
-                        name: contactName,
-                        phone: contactPhone,
-                        email: contactEmail,
-                        leadOwner: leadOwner,
-                      });
-                    }
-                  }}
-                  className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                      {(contactName && typeof contactName === 'string') ? contactName.split(' ')[0][0] : 'U'}
-                      {(contactName && typeof contactName === 'string') ? (contactName.split(' ')[1]?.[0] || 'H') : 'H'}
-                    </div>
-                    <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
-                      {contactName}
-                    </span>
-                  </div>
+                {contactName && contactName !== 'Unknown' ? (
+                  <>
+                    <div
+                      onClick={() => {
+                        const cId =
+                          ticket?.contactId ||
+                          (typeof ticket?.contact === 'object' ? ticket.contact?.id || ticket.contact?.code : ticket?.contact) ||
+                          '';
+                        if (onSelectContact) {
+                          onSelectContact({
+                            id: cId,
+                            code: ticket?.contact?.code || cId || '',
+                            fullName: contactName,
+                            name: contactName,
+                            phone: contactPhone,
+                            email: contactEmail,
+                            leadOwner: leadOwner,
+                          });
+                        }
+                      }}
+                      className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
+                          {contactName ? contactName.split(' ')[0][0] : 'U'}
+                          {contactName ? contactName.split(' ')[1]?.[0] || 'H' : 'H'}
+                        </div>
+                        <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
+                          {contactName}
+                        </span>
+                      </div>
 
-                  <div className="space-y-1 pt-0.5 text-[11px] text-slate-600 pl-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[14px] text-slate-400">call</span>
-                      <span className="text-slate-500">{contactPhone}</span>
+                      <div className="space-y-1 pt-0.5 text-[11px] text-slate-600 pl-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[14px] text-slate-400">call</span>
+                          <span className="text-slate-500">{contactPhone || '—'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[14px] text-slate-400">mail</span>
+                          <span className="text-slate-500 truncate" title={contactEmail}>
+                            {contactEmail ? (contactEmail.length > 26 ? `${contactEmail.slice(0, 26)}...` : contactEmail) : '—'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[14px] text-slate-400">person</span>
+                          <span className="text-slate-500">Lead Owner:</span>
+                          <span className="font-semibold text-slate-800">{leadOwner || '—'}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[14px] text-slate-400">mail</span>
-                      <span className="text-slate-500 truncate" title={contactEmail}>
-                        {contactEmail.length > 26 ? `${contactEmail.slice(0, 26)}...` : contactEmail}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[14px] text-slate-400">person</span>
-                      <span className="text-slate-500">Lead Owner:</span>
-                      <span className="font-semibold text-slate-800">{leadOwner}</span>
-                    </div>
-                  </div>
-                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    const cId = ticket?.contactId || (typeof ticket?.contact === 'object' ? (ticket.contact?.id || ticket.contact?.code) : ticket?.contact) || (isPayment ? 'CT26002606' : 'CT26002600');
-                    if (onSelectContact) {
-                      onSelectContact({
-                        id: cId,
-                        code: ticket?.contact?.code || 'CT26002600',
-                        fullName: contactName,
-                        name: contactName,
-                        phone: contactPhone,
-                        email: contactEmail,
-                        leadOwner: leadOwner,
-                      });
-                    }
-                  }}
-                  className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  » View Associated Contact
-                </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cId =
+                          ticket?.contactId ||
+                          (typeof ticket?.contact === 'object' ? ticket.contact?.id || ticket.contact?.code : ticket?.contact) ||
+                          '';
+                        if (onSelectContact) {
+                          onSelectContact({
+                            id: cId,
+                            code: ticket?.contact?.code || cId || '',
+                            fullName: contactName,
+                            name: contactName,
+                            phone: contactPhone,
+                            email: contactEmail,
+                            leadOwner: leadOwner,
+                          });
+                        }
+                      }}
+                      className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      » View Associated Contact
+                    </button>
+                  </>
+                ) : (
+                  <div className="py-6 text-center text-slate-400 text-xs">
+                    <span className="material-symbols-outlined text-[28px] text-slate-300 block mb-1">person_off</span>
+                    <p className="font-medium text-slate-500">No contact linked</p>
+                    <p className="text-[11px] text-slate-400">This ticket has no associated contact.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Card 3: Deals (1) */}
-          <div className="border-b border-slate-100">
-            <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition">
-              <button
-                type="button"
-                onClick={() => setDealsOpen(!dealsOpen)}
-                className="flex items-center gap-1.5 text-xs font-bold text-[#0F2962] hover:text-blue-700 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[17px] text-slate-700">
-                  {dealsOpen ? 'expand_more' : 'chevron_right'}
-                </span>
-                <span>Deals (1)</span>
-              </button>
-              <div className="flex items-center gap-2 text-slate-400">
-                <button type="button" title="Add deal" className="hover:text-blue-600">
-                  <span className="material-symbols-outlined text-[16px]">add</span>
-                </button>
-                <button type="button" title="Refresh" className="hover:text-blue-600">
-                  <span className="material-symbols-outlined text-[15px]">refresh</span>
-                </button>
-              </div>
-            </div>
-
-            {dealsOpen && (
-              <div className="p-3">
-                <div
-                  onClick={() => {
-                    const dId = ticket?.dealId || (typeof ticket?.deal === 'object' ? (ticket.deal?.id || ticket.deal?.code) : ticket?.deal) || (isPayment ? 'D26005120' : 'D26005033');
-                    if (onSelectDeal) {
-                      onSelectDeal({
-                        id: dId,
-                        code: ticket?.deal?.code || 'D26005033',
-                        title: dealTitle,
-                        dealName: dealTitle,
-                        pipeline: dealPipeline,
-                        stage: dealStage,
-                        carrier: dealCarrier,
-                        contactName: contactName,
-                        dealOwner: dealOwner,
-                      });
-                    }
-                  }}
-                  className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                      {(dealTitle && typeof dealTitle === 'string') ? dealTitle.split(' ')[0][0] : 'U'}
-                      {(dealTitle && typeof dealTitle === 'string') ? (dealTitle.split(' ')[1]?.[0] || 'D') : 'D'}
-                    </div>
-                    <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
-                      {dealShortTitle}
+          {/* Card 3: Deals */}
+          {(() => {
+            const hasAssociatedDeal = Boolean(
+              associatedDeal && (associatedDeal.title || associatedDeal.id || associatedDeal.dealName)
+            );
+            return (
+              <div className="border-b border-slate-100">
+                <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition">
+                  <button
+                    type="button"
+                    onClick={() => setDealsOpen(!dealsOpen)}
+                    className="flex items-center gap-1.5 text-xs font-bold text-[#0F2962] hover:text-blue-700 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[17px] text-slate-700">
+                      {dealsOpen ? 'expand_more' : 'chevron_right'}
                     </span>
-                  </div>
-
-                  <div className="space-y-1 pt-0.5 text-[11px] text-slate-600 pl-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[14px] text-slate-400">bar_chart</span>
-                      <span className="text-slate-500">Pipeline:</span>
-                      <span className="font-semibold text-slate-800">{dealPipeline}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[14px] text-slate-400">trending_up</span>
-                      <span className="text-slate-500">Stage:</span>
-                      <span className="font-semibold text-slate-800">{dealStage}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[14px] text-slate-400">person</span>
-                      <span className="text-slate-500">Deal Owner:</span>
-                      <span className="font-semibold text-slate-800">{dealOwner}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[14px] text-slate-400">verified_user</span>
-                      <span className="text-slate-500">Carrier:</span>
-                      <span className="font-semibold text-slate-800">{dealCarrier || '—'}</span>
-                    </div>
+                    <span>Deals ({hasAssociatedDeal ? 1 : 0})</span>
+                  </button>
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <button type="button" title="Add deal" className="hover:text-blue-600">
+                      <span className="material-symbols-outlined text-[16px]">add</span>
+                    </button>
+                    <button
+                      type="button"
+                      title="Refresh Deal"
+                      onClick={() => resolveAndApplyDeal(ticket)}
+                      className="hover:text-blue-600 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">refresh</span>
+                    </button>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    const dId = ticket?.dealId || (typeof ticket?.deal === 'object' ? (ticket.deal?.id || ticket.deal?.code) : ticket?.deal) || (isPayment ? 'D26005120' : 'D26005033');
-                    if (onSelectDeal) {
-                      onSelectDeal({
-                        id: dId,
-                        code: ticket?.deal?.code || 'D26005033',
-                        title: dealTitle,
-                        dealName: dealTitle,
-                        pipeline: dealPipeline,
-                        stage: dealStage,
-                        carrier: dealCarrier,
-                        contactName: contactName,
-                        dealOwner: dealOwner,
-                      });
-                    }
-                  }}
-                  className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  » View Associated Deal
-                </button>
+                {dealsOpen && (
+                  <div className="p-3">
+                    {hasAssociatedDeal ? (
+                      <>
+                        <div
+                          onClick={() => {
+                            if (onSelectDeal && associatedDeal) {
+                              onSelectDeal(associatedDeal);
+                            }
+                          }}
+                          className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
+                              {dealTitle ? dealTitle.split(' ')[0][0] : 'D'}
+                              {dealTitle ? dealTitle.split(' ')[1]?.[0] || 'L' : ''}
+                            </div>
+                            <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
+                              {dealShortTitle || dealTitle}
+                            </span>
+                          </div>
+
+                          <div className="space-y-1 pt-0.5 text-[11px] text-slate-600 pl-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[14px] text-slate-400">bar_chart</span>
+                              <span className="text-slate-500">Pipeline:</span>
+                              <span className="font-semibold text-slate-800">{dealPipeline || 'Obamacare 2026'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[14px] text-slate-400">trending_up</span>
+                              <span className="text-slate-500">Stage:</span>
+                              <span className="font-semibold text-slate-800">{dealStage || 'Ready to Enroll'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[14px] text-slate-400">person</span>
+                              <span className="text-slate-500">Deal Owner:</span>
+                              <span className="font-semibold text-slate-800">{dealOwner || '—'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[14px] text-slate-400">verified_user</span>
+                              <span className="text-slate-500">Carrier:</span>
+                              <span className="font-semibold text-slate-800">{dealCarrier || '—'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onSelectDeal && associatedDeal) {
+                              onSelectDeal(associatedDeal);
+                            }
+                          }}
+                          className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          » View Associated Deal
+                        </button>
+                      </>
+                    ) : (
+                      <div className="py-6 text-center text-slate-400 text-xs">
+                        <span className="material-symbols-outlined text-[28px] text-slate-300 block mb-1">
+                          inventory_2
+                        </span>
+                        <p className="font-medium text-slate-500">No data here!</p>
+                        <p className="text-[11px] text-slate-400">There is no data to show right now.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
         </div>
       </div>
 

@@ -2,8 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getTickets, createTicket } from '../../../services/api';
 import {
   FULL_SAMPLE_TICKETS,
-  SAMPLE_ACA_TICKET,
-  SAMPLE_PAYMENT_TICKET,
   getDynamicTickets,
   addTicketToStore,
 } from '../../../data/mockCrmData';
@@ -309,54 +307,23 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
       return;
     }
 
-    if (ticket.title?.toLowerCase().includes('aca') || ticket.pipeline === 'ACA account') {
-      onSelectTicket({
-        ...SAMPLE_ACA_TICKET,
-        id: ticket.id || ticket.code,
-        code: ticket.code,
-        title: ticket.title,
-        pipeline: ticket.pipeline,
-        status: ticket.stage?.includes('DONE') ? 'DONE' : 'Need Create ACA Account',
-        priority: ticket.priority,
-        ticketOwner: ticket.ticketOwner,
-        ticketOwnerAvatar: ticket.ticketOwnerAvatar,
-        closeDate: ticket.closeDate || '07/20/2026',
-        dueDate: ticket.dueDate || '07/15/2026',
-        contactName: ticket.contactName || 'Ken xington Ho',
-        dealTitle: ticket.dealTitle || 'Ken Ho + Kylie Ho + Kaylee Ho - OB 08/2026',
-      });
-      return;
-    }
-
-    if (ticket.title?.toLowerCase().includes('pay') || ticket.pipeline === 'Payment') {
-      onSelectTicket({
-        ...SAMPLE_PAYMENT_TICKET,
-        id: ticket.id || ticket.code,
-        code: ticket.code,
-        title: ticket.title,
-        pipeline: ticket.pipeline,
-        status: 'Make payment',
-        priority: ticket.priority,
-        ticketOwner: ticket.ticketOwner,
-        ticketOwnerAvatar: ticket.ticketOwnerAvatar,
-        dueDate: ticket.dueDate || '09/20/2026',
-        contactName: ticket.contactName || 'Hoai thanh Nguyen',
-        dealTitle: ticket.dealTitle || 'Non Commission - Hoai thanh Nguyen - OB 2026',
-      });
-      return;
-    }
-
     onSelectTicket({
       id: ticket.id || ticket.code,
+      code: ticket.code || ticket.id,
       title: ticket.title,
-      pipeline: ticket.pipeline,
-      status: ticket.stage || 'In Progress',
+      pipeline: ticket.pipeline || 'ACA account',
+      status: ticket.status || ticket.stage || 'Open',
       priority: ticket.priority || 'Medium',
       ticketOwner: ticket.ticketOwner,
-      serviceAgent: 'Sean Ngo (sean75@8)',
-      dueDate: ticket.dueDate || '09/30/2026',
-      contactName: ticket.contactName,
-      dealTitle: ticket.dealTitle,
+      ticketOwnerAvatar: ticket.ticketOwnerAvatar,
+      serviceAgent: ticket.serviceAgent || ticket.ticketOwner,
+      closeDate: ticket.closeDate || '',
+      dueDate: ticket.dueDate || '',
+      contactName: ticket.contactName || '',
+      contactId: ticket.contactId || '',
+      dealTitle: ticket.dealTitle || '',
+      dealId: ticket.dealId || '',
+      carrier: ticket.carrier || '',
     });
   };
 

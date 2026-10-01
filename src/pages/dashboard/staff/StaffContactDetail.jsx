@@ -394,7 +394,7 @@ export default function StaffContactDetail({
         contactId: contact?.id || contact?.code || '',
         contactPhone: contactPhone,
         contactEmail: contactEmail,
-        carrier: contact?.dealCarrier || contactDeals[0]?.carrier || 'BCBS',
+        carrier: contact?.dealCarrier || contactDeals[0]?.carrier || '',
         dealTitle: contactDeals[0]?.title || '',
         dealId: contactDeals[0]?.id || '',
         description: `Tự động tạo Ticket khi chuyển trạng thái Need Create ACA Account cho khách hàng ${cName}`,
