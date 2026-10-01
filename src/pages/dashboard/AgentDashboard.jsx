@@ -162,15 +162,33 @@ export default function AgentDashboard() {
       const ticketId = parts[1];
       if (ticketId) {
         const cleanId = String(ticketId).replace(/\/$/, '');
+        const dynContacts = getDynamicContacts();
+        const dynDeals = getDynamicDeals();
+        const contactTickets = [...dynContacts, ...SAMPLE_CONTACTS].flatMap((c) => c.associatedTickets || c.tickets || []);
+        const dealTickets = [...dynDeals, ...SAMPLE_DEALS].flatMap((d) => d.associatedTickets || d.tickets || []);
         const allTickets = [
           ...getDynamicTickets(),
           ...SAMPLE_TICKETS,
           ...(selectedContact?.associatedTickets || selectedContact?.tickets || []),
           ...(selectedDeal?.associatedTickets || selectedDeal?.tickets || []),
+          ...contactTickets,
+          ...dealTickets,
         ];
         const localFound = allTickets.find((t) => t.id === cleanId || t.code === cleanId);
         if (localFound) {
           setSelectedTicket((prev) => ({ ...localFound, ...(prev?.id === cleanId ? prev : {}) }));
+        } else {
+          setSelectedTicket((prev) => (prev?.id === cleanId ? prev : {
+            id: cleanId,
+            code: cleanId,
+            title: cleanId.startsWith('TC26') ? `Ticket ACA - ${cleanId}` : `Support Ticket - ${cleanId}`,
+            pipeline: cleanId.toLowerCase().includes('upload') ? 'Upload document' : 'ACA account',
+            status: 'Need Create ACA Account',
+            stage: 'Need Create ACA Account (ACA account)',
+            priority: 'High',
+            ticketOwner: 'Khanh Nguyen',
+            serviceAgent: 'Platform Staff',
+          }));
         }
         getTicket(cleanId)
           .then((res) => { if (res) setSelectedTicket((prev) => ({ ...(prev || {}), ...res })); })

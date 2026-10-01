@@ -11,6 +11,7 @@ import Footer from './components/Footer';
 import QuoteModal from './components/QuoteModal';
 import MobileBottomBar from './components/MobileBottomBar';
 import CookieBanner from './components/CookieBanner';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Public Pages
 import HomePage from './pages/HomePage';
@@ -97,41 +98,43 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <ScrollToTop />
-        <Routes>
-          {/* ── Auth ─────────────────────────────────────── */}
-          <Route path="/login" element={<LoginPage />} />
+        <ErrorBoundary>
+          <Routes>
+            {/* ── Auth ─────────────────────────────────────── */}
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* ── Dashboards (protected) ───────────────────── */}
-          <Route
-            path="/dashboard/admin/*"
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/staff/*"
-            element={
-              <ProtectedRoute allowedRoles={['staff', 'support', 'telesales']}>
-                <StaffDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/agent/*"
-            element={
-              <ProtectedRoute allowedRoles={['agent']}>
-                <AgentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          {/* Generic /dashboard → redirect to role-specific */}
-          <Route path="/dashboard" element={<Navigate to="/login" replace />} />
+            {/* ── Dashboards (protected) ───────────────────── */}
+            <Route
+              path="/dashboard/admin/*"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'manager']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/staff/*"
+              element={
+                <ProtectedRoute allowedRoles={['staff', 'support', 'telesales']}>
+                  <StaffDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/agent/*"
+              element={
+                <ProtectedRoute allowedRoles={['agent']}>
+                  <AgentDashboard />
+                </ProtectedRoute>
+              }
+            />
+            {/* Generic /dashboard → redirect to role-specific */}
+            <Route path="/dashboard" element={<Navigate to="/login" replace />} />
 
-          {/* ── Public Pages ─────────────────────────────── */}
-          <Route path="/*" element={<PublicRoutes />} />
-        </Routes>
+            {/* ── Public Pages ─────────────────────────────── */}
+            <Route path="/*" element={<PublicRoutes />} />
+          </Routes>
+        </ErrorBoundary>
       </AuthProvider>
     </BrowserRouter>
   );

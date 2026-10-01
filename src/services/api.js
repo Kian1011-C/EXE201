@@ -475,9 +475,26 @@ export async function getTicket(id) {
       const found = (c.associatedTickets || c.tickets || []).find(t => String(t.id) === cleanId || String(t.code) === cleanId);
       if (found) return normalizeTicket(found);
     }
+
+    const dynDeals = typeof window !== 'undefined' ? getDynamicDeals() : [];
+    const allDeals = [...dynDeals, ...SAMPLE_DEALS];
+    for (const d of allDeals) {
+      const found = (d.associatedTickets || d.tickets || []).find(t => String(t.id) === cleanId || String(t.code) === cleanId);
+      if (found) return normalizeTicket(found);
+    }
   } catch (_) {}
 
-  return null;
+  return normalizeTicket({
+    id: cleanId,
+    code: cleanId,
+    title: cleanId.startsWith('TC26') ? `Ticket ACA - ${cleanId}` : `Support Ticket - ${cleanId}`,
+    pipeline: cleanId.toLowerCase().includes('upload') ? 'Upload document' : 'ACA account',
+    status: 'Need Create ACA Account',
+    stage: 'Need Create ACA Account (ACA account)',
+    priority: 'High',
+    ticketOwner: 'Khanh Nguyen',
+    serviceAgent: 'Platform Staff',
+  });
 }
 
 export async function createTicket(data) {

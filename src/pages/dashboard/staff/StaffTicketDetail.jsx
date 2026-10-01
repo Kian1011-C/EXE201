@@ -2142,20 +2142,20 @@ export default function StaffTicketDetail({
                     <h3 className="text-xs font-bold text-slate-700">{month}</h3>
 
                     <div className="space-y-3">
-                      {itemsInMonth.map((item) => {
+                      {itemsInMonth.map((item, itemIdx) => {
                         // 1. Deal move to Enrolled - Active / Enrolled - 1st Payment done
                         if (item.type === 'deal_move_active' || item.type === 'deal_move_payment') {
                           return (
                             <div
-                              key={item.id}
+                              key={item.id || `deal_move_${month}_${itemIdx}`}
                               className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-2xs hover:shadow-xs transition"
                             >
                               <div className="flex items-center justify-between mb-1.5">
-                                <span className="font-bold text-xs text-slate-900">{item.title}</span>
-                                <span className="text-[11px] text-slate-400">{item.timestamp}</span>
+                                <span className="font-bold text-xs text-slate-900">{String(item.title || 'Deal Activity')}</span>
+                                <span className="text-[11px] text-slate-400">{String(item.timestamp || '')}</span>
                               </div>
                               <div className="text-xs text-slate-600 leading-relaxed">
-                                <span className="font-semibold text-slate-800">{item.actor}</span> moved deal{' '}
+                                <span className="font-semibold text-slate-800">{getPersonName(item.actor, 'Staff')}</span> moved deal{' '}
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -2171,10 +2171,10 @@ export default function StaffTicketDetail({
                                   }
                                   className="text-blue-600 font-semibold hover:underline cursor-pointer inline-flex items-center gap-0.5"
                                 >
-                                  <span>{item.dealName}</span>
+                                  <span>{String(item.dealName || '')}</span>
                                   <span className="material-symbols-outlined text-[11px]">open_in_new</span>
                                 </button>{' '}
-                                to <span className="font-semibold text-slate-800">{item.targetStage}</span>.{' '}
+                                to <span className="font-semibold text-slate-800">{String(item.targetStage || '')}</span>.{' '}
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -2202,17 +2202,17 @@ export default function StaffTicketDetail({
                         if (item.type === 'ticket_move_done') {
                           return (
                             <div
-                              key={item.id}
+                              key={item.id || `ticket_move_${month}_${itemIdx}`}
                               className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-2xs hover:shadow-xs transition"
                             >
                               <div className="flex items-center justify-between mb-1.5">
-                                <span className="font-bold text-xs text-slate-900">{item.title}</span>
-                                <span className="text-[11px] text-slate-400">{item.timestamp}</span>
+                                <span className="font-bold text-xs text-slate-900">{String(item.title || 'Ticket Activity')}</span>
+                                <span className="text-[11px] text-slate-400">{String(item.timestamp || '')}</span>
                               </div>
                               <div className="text-xs text-slate-600 leading-relaxed">
-                                <span className="font-semibold text-slate-800">{item.actor}</span> moved ticket from{' '}
-                                <span className="font-semibold text-slate-800">{item.fromStatus}</span> to{' '}
-                                <span className="font-semibold text-slate-800">{item.toStatus}</span>.{' '}
+                                <span className="font-semibold text-slate-800">{getPersonName(item.actor, 'Staff')}</span> moved ticket from{' '}
+                                <span className="font-semibold text-slate-800">{String(item.fromStatus || '')}</span> to{' '}
+                                <span className="font-semibold text-slate-800">{String(item.toStatus || '')}</span>.{' '}
                                 <button
                                   type="button"
                                   onClick={() => setShowHistoryModal(true)}
@@ -2230,17 +2230,17 @@ export default function StaffTicketDetail({
                         if (item.type === 'ticket_created') {
                           return (
                             <div
-                              key={item.id}
+                              key={item.id || `ticket_create_${month}_${itemIdx}`}
                               className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-2xs hover:shadow-xs transition"
                             >
                               <div className="flex items-center justify-between mb-1.5">
-                                <span className="font-bold text-xs text-slate-900">{item.title}</span>
-                                <span className="text-[11px] text-slate-400">{item.timestamp}</span>
+                                <span className="font-bold text-xs text-slate-900">{String(item.title || 'Ticket Activity')}</span>
+                                <span className="text-[11px] text-slate-400">{String(item.timestamp || '')}</span>
                               </div>
                               <div className="text-xs text-slate-600 leading-relaxed">
                                 <span>{getPersonName(item.creator, 'System')} created ticket </span>
                                 <span className="text-blue-600 font-semibold hover:underline cursor-pointer inline-flex items-center gap-0.5">
-                                  <span>{item.targetTicketName}</span>
+                                  <span>{String(item.targetTicketName || 'Ticket')}</span>
                                   <span className="material-symbols-outlined text-[11px]">open_in_new</span>
                                 </span>
                               </div>
@@ -2252,15 +2252,15 @@ export default function StaffTicketDetail({
                         if (item.type === 'deal_created') {
                           return (
                             <div
-                              key={item.id}
+                              key={item.id || `deal_create_${month}_${itemIdx}`}
                               className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-2xs hover:shadow-xs transition"
                             >
                               <div className="flex items-center justify-between mb-1.5">
-                                <span className="font-bold text-xs text-slate-900">{item.title}</span>
-                                <span className="text-[11px] text-slate-400">{item.timestamp}</span>
+                                <span className="font-bold text-xs text-slate-900">{String(item.title || 'Deal Activity')}</span>
+                                <span className="text-[11px] text-slate-400">{String(item.timestamp || '')}</span>
                               </div>
                               <div className="text-xs text-slate-600 leading-relaxed">
-                                <span className="font-semibold text-slate-800">{item.actor}</span> created deal{' '}
+                                <span className="font-semibold text-slate-800">{getPersonName(item.actor, 'Staff')}</span> created deal{' '}
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -2276,7 +2276,7 @@ export default function StaffTicketDetail({
                                   }
                                   className="text-blue-600 font-semibold hover:underline cursor-pointer inline-flex items-center gap-0.5"
                                 >
-                                  <span>{item.dealName}</span>
+                                  <span>{String(item.dealName || '')}</span>
                                   <span className="material-symbols-outlined text-[11px]">open_in_new</span>
                                 </button>
                               </div>
@@ -2287,7 +2287,7 @@ export default function StaffTicketDetail({
                         // Note or other custom activities
                         return (
                           <div
-                            key={item.id}
+                            key={item.id || `item_${month}_${itemIdx}`}
                             className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs hover:shadow-xs transition"
                           >
                             <div className="flex items-center justify-between">
@@ -2299,10 +2299,10 @@ export default function StaffTicketDetail({
                                   {item.isExpanded ? 'expand_more' : 'chevron_right'}
                                 </span>
                                 <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
-                                  {item.title}
+                                  {String(item.title || 'Note')}
                                 </span>
                                 <span className="text-xs text-slate-600">
-                                  published by <span className="font-semibold text-slate-800">{item.actor}</span>
+                                  published by <span className="font-semibold text-slate-800">{getPersonName(item.actor, 'Staff')}</span>
                                 </span>
                                 {item.isEdited && <span className="text-[10px] text-slate-400 italic">(edited)</span>}
                               </div>
@@ -2333,7 +2333,7 @@ export default function StaffTicketDetail({
                                 )}
                                 <div className="flex items-center gap-1 text-[11px] text-slate-400">
                                   <span className="material-symbols-outlined text-[13px]">calendar_today</span>
-                                  <span>{item.timestamp}</span>
+                                  <span>{String(item.timestamp || '')}</span>
                                 </div>
                               </div>
                             </div>
@@ -2743,7 +2743,7 @@ export default function StaffTicketDetail({
                   <span>Status changed to {status}</span>
                   <span className="text-[11px] text-slate-400">07/20/2026, 15:04</span>
                 </div>
-                <p className="text-slate-600">Updated by {serviceAgent}</p>
+                <p className="text-slate-600">Updated by {getPersonName(serviceAgent, 'Platform Staff')}</p>
               </div>
 
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 space-y-1">
@@ -2752,7 +2752,7 @@ export default function StaffTicketDetail({
                   <span className="text-[11px] text-slate-400">07/15/2026, 12:18</span>
                 </div>
                 <p className="text-slate-600">
-                  Created ticket {ticketTitle} with Priority {priority}
+                  Created ticket {String(ticketTitle || 'Ticket')} with Priority {String(priority || 'Medium')}
                 </p>
               </div>
             </div>
