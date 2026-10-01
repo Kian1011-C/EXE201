@@ -69,47 +69,11 @@ export const CONTACT_DETAIL_DATA = {
     contactType: '---',
   },
   activities: [],
-  notes: [
-    {
-      id: 'note-sample-01',
-      title: 'Created ACA account, uploaded document and waiting to verify - Rosy',
-      body: 'Created ACA account, uploaded document and waiting to verify - Rosy\nRef code: RBA-N5X-8T9-N7A-1X0-B5L',
-      attachments: [],
-      author: 'Rosy Pham',
-      time: '09/24/2024, 12:23',
-    },
-  ],
+  notes: [],
   tasks: [],
-  associatedDeals: [
-    {
-      id: 'D26005033',
-      title: 'Non-CMS - Nhat H Dang - OB 10/2026 (NC)',
-      shortTitle: 'Non-CMS - Nhat H Dang - OB...',
-      pipeline: 'Obamacare 2026',
-      stage: 'Ready to Enroll',
-      dealOwner: 'Khanh Nguyen',
-      carrier: 'BCBS',
-      member: 'Nhat Huu Tuan Dan...',
-    },
-  ],
-  associatedTickets: [
-    {
-      id: 'TC2600101',
-      title: 'ACA account 2026',
-      pipeline: 'ACA account',
-      status: 'Uploaded - Waiting for...',
-      ticketOwner: 'Khanh Nguyen',
-      closeDate: '----------',
-    },
-  ],
-  associatedDocuments: [
-    {
-      id: 'DOC-01',
-      name: 'Nhat H Dang',
-      type: 'Customer Document',
-      date: '09/09/2026',
-    },
-  ],
+  associatedDeals: [],
+  associatedTickets: [],
+  associatedDocuments: [],
 };
 
 // ============================================================
@@ -183,69 +147,9 @@ export const DEAL_DETAIL_DATA = {
   householdMember: '',
   numberMember: '',
   quotedCounty: '',
-  planName: '',
-  contact: {
-    id: 'CT26002600',
-    fullName: 'Nhat Huu Tuan Dang',
-    phone: '+1 (714) 837-2396',
-    email: 'tuannhat.n2@gmail.com',
-  },
-  tickets: [
-    {
-      id: 'TC2600101',
-      title: 'ACA account 2026',
-      pipeline: 'ACA account',
-      status: 'Uploaded - Waiting for Verification',
-    },
-  ],
-  activities: [
-    {
-      id: 'deal-act-1',
-      type: 'Ticket Activity',
-      time: '09/17/2026, 09:12',
-      actor: 'Anya Nguyen (anya42@9)',
-      summary: 'moved ticket ACA account 2026 to Uploaded - Waiting for Verification.',
-      ticketTitle: 'ACA account 2026',
-      linkText: 'View Details',
-    },
-    {
-      id: 'deal-act-2',
-      type: 'Ticket Activity',
-      time: '09/11/2026, 17:45',
-      actor: 'Anya Nguyen (anya42@9)',
-      summary: 'moved ticket ACA account 2026 to VERIFIED.',
-      ticketTitle: 'ACA account 2026',
-      linkText: 'View Details',
-    },
-    {
-      id: 'deal-act-3',
-      type: 'Ticket Activity',
-      time: '09/09/2026, 15:17',
-      actor: 'Anya Nguyen (anya42@9)',
-      summary: 'moved ticket ACA account 2026 to Uploaded - Waiting for Verification.',
-      ticketTitle: 'ACA account 2026',
-      linkText: 'View Details',
-    },
-    {
-      id: 'deal-act-4',
-      type: 'Ticket Activity',
-      time: '09/09/2026, 13:05',
-      actor: 'Create ACA account 2026 Tickets - Clone3 (version 5)',
-      summary: 'created ticket ACA account 2026',
-      ticketTitle: 'ACA account 2026',
-      linkText: '',
-    },
-    {
-      id: 'deal-act-5',
-      type: 'Deal Activity',
-      time: '09/09/2026, 13:05',
-      actor: 'Khanh Nguyen (khanhnguyen31@7)',
-      summary: 'created deal Non-CMS - Nhat H Dang - OB 10/2026 (NC)',
-      dealId: 'D26005033',
-      dealTitle: 'Non-CMS - Nhat H Dang - OB 10/2026 (NC)',
-      linkText: '',
-    },
-  ],
+  contact: null,
+  tickets: [],
+  activities: [],
 };
 
 // ============================================================

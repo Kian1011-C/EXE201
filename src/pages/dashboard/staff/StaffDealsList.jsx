@@ -1001,8 +1001,10 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                               e.stopPropagation();
                               onSelectContact &&
                                 onSelectContact({
-                                  id: deal.contactId || 'CT26002600',
+                                  id: deal.contactId || (deal.contact?.id) || '',
                                   fullName: deal.contactName,
+                                  phone: deal.contactPhone || deal.contact?.phone || '',
+                                  email: deal.contactEmail || deal.contact?.email || '',
                                 });
                             }}
                             className="text-[#104882] hover:underline font-semibold text-left"

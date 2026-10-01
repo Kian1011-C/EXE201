@@ -27,6 +27,8 @@ export default function AddDealModal({
   onClose,
   initialContactName = '',
   initialContactId = '',
+  initialContactPhone = '',
+  initialContactEmail = '',
   membersList = [],
   onDealCreated,
 }) {
@@ -40,7 +42,7 @@ export default function AddDealModal({
   const [pipeline, setPipeline] = useState('--');
   const [stage, setStage] = useState('--');
   const [dealOwner, setDealOwner] = useState('--');
-  const [contactName, setContactName] = useState(initialContactName || 'Hai Nguyen');
+  const [contactName, setContactName] = useState(initialContactName || '');
   const [member, setMember] = useState('--');
   const [carrier, setCarrier] = useState('BCBS');
   const [sellingState, setSellingState] = useState('North Carolina (NC)');
@@ -52,7 +54,7 @@ export default function AddDealModal({
   // Sync initial contact when opened
   useEffect(() => {
     if (isOpen) {
-      setContactName(initialContactName || 'Hai Nguyen');
+      setContactName(initialContactName || '');
       setDealName('');
       setPipeline('--');
       setStage('--');
@@ -73,6 +75,17 @@ export default function AddDealModal({
     e.preventDefault();
     const finalTitle = dealName.trim() || `${contactName} - ${pipeline}`;
     const newCode = `D2600${Math.floor(5000 + Math.random() * 900)}`;
+    const resolvedContactId = initialContactId || '';
+    const resolvedContactName = contactName.trim();
+    const resolvedContact =
+      resolvedContactName || resolvedContactId
+        ? {
+            id: resolvedContactId,
+            fullName: resolvedContactName,
+            phone: initialContactPhone || '',
+            email: initialContactEmail || '',
+          }
+        : null;
 
     const newDeal = {
       id: newCode,
@@ -88,8 +101,11 @@ export default function AddDealModal({
       amount: '_ _ _ _ _ _ _ _ _ _',
       closeDate: '_ _ _ _ _ _ _ _ _ _',
       sellingState: sellingState,
-      contactName: contactName,
-      contactId: initialContactId || 'CT26002600',
+      contactName: resolvedContactName,
+      contactId: resolvedContactId,
+      contactPhone: initialContactPhone || '',
+      contactEmail: initialContactEmail || '',
+      contact: resolvedContact,
       member: member === '--' ? contactName : member,
       uploadRequest: needUpload === 'Yes',
       needUpload: needUpload,
@@ -364,7 +380,7 @@ export default function AddDealModal({
                     required
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
-                    placeholder="Hai Nguyen"
+                    placeholder="Tên khách hàng..."
                     className="w-full px-3 py-2 pr-9 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 shadow-2xs font-medium"
                   />
                   <span className="material-symbols-outlined absolute right-2.5 text-[15px] text-slate-400 pointer-events-none">

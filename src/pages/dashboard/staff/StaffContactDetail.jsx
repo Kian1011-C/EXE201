@@ -366,9 +366,9 @@ export default function StaffContactDetail({
       contactPhone: ticketItem.contactPhone || contactPhone || contact?.phone || '',
       contactEmail: ticketItem.contactEmail || contactEmail || contact?.email || '',
       leadOwner: ticketItem.leadOwner || leadContactOwner || contact?.contactOwner || '',
-      carrier: ticketItem.carrier || contact?.dealCarrier || contactDeals[0]?.carrier || '',
-      dealTitle: ticketItem.dealTitle || contactDeals[0]?.title || '',
-      dealId: ticketItem.dealId || contactDeals[0]?.id || '',
+      carrier: ticketItem.carrier || contact?.dealCarrier || '',
+      dealTitle: ticketItem.dealTitle || '',
+      dealId: ticketItem.dealId || '',
       ticketOwner: ticketItem.ticketOwner || leadContactOwner || 'Khanh Nguyen',
       serviceAgent: ticketItem.serviceAgent || leadContactOwner || 'Platform Staff',
       status: ticketItem.status || ticketItem.stage || 'Open',
@@ -458,9 +458,9 @@ export default function StaffContactDetail({
           contactPhone: contactPhone || contact?.phone || '',
           contactEmail: contactEmail || contact?.email || '',
           leadOwner: leadContactOwner || contact?.contactOwner || '',
-          carrier: contact?.dealCarrier || contactDeals[0]?.carrier || '',
-          dealTitle: contactDeals[0]?.title || '',
-          dealId: contactDeals[0]?.id || '',
+          carrier: contact?.dealCarrier || '',
+          dealTitle: '',
+          dealId: '',
           description: `Tự động tạo Ticket khi chuyển trạng thái Need Create ACA Account cho khách hàng ${cName}`,
           createdAt: new Date().toISOString(),
           activities: [],
@@ -4502,6 +4502,8 @@ export default function StaffContactDetail({
         onClose={() => setShowCreateDealModal(false)}
         initialContactName={currentFullName}
         initialContactId={contact?.id || contact?.code || ''}
+        initialContactPhone={contactPhone || contact?.phone || ''}
+        initialContactEmail={contactEmail || contact?.email || ''}
         membersList={membersList}
         onDealCreated={(newDeal, uploadTicket) => {
           const updatedDeals = [newDeal, ...contactDeals];

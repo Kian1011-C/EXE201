@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  DEAL_DETAIL_DATA,
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
   addTicketToStore,
   addDealToStore,
+  getDynamicContacts,
+  SAMPLE_CONTACTS,
 } from '../../../data/mockCrmData';
 import { createTicket } from '../../../services/api';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
@@ -27,20 +28,71 @@ export default function StaffDealDetail({
 }) {
   const { user } = useAuth();
   const currentActor = getCurrentActor(user);
-  const dealInfo = deal || DEAL_DETAIL_DATA;
+  const dealInfo = deal || {};
+
+  // Dynamically resolve contact linked to this deal
+  const resolvedContact = useMemo(() => {
+    if (dealInfo.contact && typeof dealInfo.contact === 'object') {
+      const c = dealInfo.contact;
+      if (c.fullName || c.name || c.id || c.phone || c.email) {
+        return {
+          id: c.id || dealInfo.contactId || '',
+          fullName: c.fullName || c.name || dealInfo.contactName || '',
+          phone: c.phone || dealInfo.contactPhone || '',
+          email: c.email || dealInfo.contactEmail || '',
+          ...c,
+        };
+      }
+    }
+
+    const cId = String(
+      dealInfo.contactId || (typeof dealInfo.contact === 'string' ? dealInfo.contact : '') || ''
+    ).trim();
+    const cName = String(dealInfo.contactName || '').trim();
+
+    if (cId || cName) {
+      const allContacts = [...getDynamicContacts(), ...SAMPLE_CONTACTS];
+      const found = allContacts.find(
+        (c) =>
+          (cId && (String(c.id) === cId || String(c.code) === cId)) ||
+          (cName && c.fullName && c.fullName.trim().toLowerCase() === cName.toLowerCase())
+      );
+      if (found) {
+        return {
+          id: found.id || found.code || cId,
+          fullName:
+            found.fullName ||
+            `${found.firstName || ''} ${found.lastName || ''}`.trim() ||
+            cName,
+          phone: found.phone || found.contactFields?.phonePrimary || dealInfo.contactPhone || '',
+          email: found.email || found.contactFields?.emailPrimary || dealInfo.contactEmail || '',
+          ...found,
+        };
+      }
+      if (cName) {
+        return {
+          id: cId || '',
+          fullName: cName,
+          phone: dealInfo.contactPhone || '',
+          email: dealInfo.contactEmail || '',
+        };
+      }
+    }
+    return null;
+  }, [dealInfo]);
 
   // State for deal editing
   const [dealTitle, setDealTitle] = useState(
-    deal?.title || (deal ? 'Deal mới' : dealInfo.title)
+    deal?.title || (deal ? 'Deal mới' : dealInfo.title || 'Deal mới')
   );
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [pipeline, setPipeline] = useState(deal?.pipeline || dealInfo.pipeline || 'Obamacare 2026');
   const [stage, setStage] = useState(
     deal?.stage || dealInfo.stage || 'Ready to Enroll (Obamacare 2026)'
   );
-  const [amount, setAmount] = useState(deal?.amount !== undefined ? deal.amount : (deal ? '_ _ _ _ _ _ _ _ _ _' : dealInfo.amount));
+  const [amount, setAmount] = useState(deal?.amount !== undefined ? deal.amount : (deal ? '_ _ _ _ _ _ _ _ _ _' : dealInfo.amount || '_ _ _ _ _ _ _ _ _ _'));
   const [closeDate, setCloseDate] = useState(
-    deal?.closeDate !== undefined ? deal.closeDate : (deal ? '_ _ _ _ _ _ _ _ _ _' : dealInfo.closeDate)
+    deal?.closeDate !== undefined ? deal.closeDate : (deal ? '_ _ _ _ _ _ _ _ _ _' : dealInfo.closeDate || '_ _ _ _ _ _ _ _ _ _')
   );
 
   // Stage dropdown & history state (Matching media_1789720398557.png)
@@ -2441,7 +2493,7 @@ export default function StaffDealDetail({
 
         {/* ── COLUMN 3: Associated Objects & Documents (Right Panel ~320px) ── */}
         <div className="w-full xl:w-[320px] bg-[#F8FAFC] border-l border-slate-200 shrink-0 flex flex-col divide-y divide-slate-200 overflow-y-auto">
-          {/* Card 1: Associated Contact (1) */}
+          {/* Card 1: Associated Contact */}
           <div>
             <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition">
               <button
@@ -2452,39 +2504,49 @@ export default function StaffDealDetail({
                 <span className="material-symbols-outlined text-[17px] text-slate-700">
                   {rightContactsOpen ? 'expand_more' : 'chevron_right'}
                 </span>
-                <span>Contacts (1)</span>
+                <span>Contacts ({resolvedContact ? 1 : 0})</span>
               </button>
             </div>
 
             {rightContactsOpen && (
               <div className="p-3">
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                      <span className="material-symbols-outlined text-[15px]">assignment_ind</span>
+                {resolvedContact ? (
+                  <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <span className="material-symbols-outlined text-[15px]">assignment_ind</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onSelectContact && onSelectContact(resolvedContact)}
+                        className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left"
+                      >
+                        {resolvedContact.fullName || 'Khách hàng'}
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onSelectContact && onSelectContact(dealInfo.contact)}
-                      className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left"
-                    >
-                      {dealInfo.contact?.fullName || 'Nhat Huu Tuan Dang'}
-                    </button>
-                  </div>
 
-                  <div className="space-y-1 text-slate-600 text-[11px] pt-1 border-t border-slate-100">
-                    <div className="flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[13px] text-slate-400">call</span>
-                      <span>Phone:</span>
-                      <span className="font-semibold text-slate-800">{dealInfo.contact?.phone || '+1 (714) 837-2395'}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[13px] text-slate-400">mail</span>
-                      <span>Email:</span>
-                      <span className="font-semibold text-slate-800">{dealInfo.contact?.email || 'tuannhat.n2@gmail.com'}</span>
+                    <div className="space-y-1 text-slate-600 text-[11px] pt-1 border-t border-slate-100">
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[13px] text-slate-400">call</span>
+                        <span>Phone:</span>
+                        <span className="font-semibold text-slate-800">{resolvedContact.phone || '—'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[13px] text-slate-400">mail</span>
+                        <span>Email:</span>
+                        <span className="font-semibold text-slate-800">{resolvedContact.email || '—'}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="py-6 text-center text-slate-400 text-xs">
+                    <span className="material-symbols-outlined text-[28px] text-slate-300 block mb-1">
+                      person_off
+                    </span>
+                    <p className="font-medium text-slate-500">No contact linked</p>
+                    <p className="text-[11px] text-slate-400">There is no contact associated with this deal.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

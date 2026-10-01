@@ -462,7 +462,7 @@ export default function StaffDashboard() {
         <StaffDealDetail
           deal={selectedDeal}
           onBack={handleBackFromDeal}
-          onSelectContact={() => handleSelectContact(selectedContact)}
+          onSelectContact={(contact) => handleSelectContact(contact || selectedContact)}
           onSelectCustomerDocument={handleSelectCustomerDocument}
           onSelectTicket={handleSelectTicket}
           onSelectTask={handleSelectTask}
@@ -490,7 +490,7 @@ export default function StaffDashboard() {
         <StaffCustomerDocumentDetail
           documentData={selectedDocument}
           onBack={handleBackFromCustomerDocument}
-          onSelectContact={() => handleSelectContact(selectedContact)}
+          onSelectContact={(contact) => handleSelectContact(contact || selectedContact)}
           onSelectDeal={() => handleSelectDeal(selectedDeal)}
           onUpdateDocument={handleUpdateDocument}
         />

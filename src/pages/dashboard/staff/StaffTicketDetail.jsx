@@ -19,34 +19,25 @@ import {
 
 export function isDealBelongingToContact(deal, contactName, contactId) {
   if (!deal) return false;
-  const dTitle = String(deal.title || deal.dealName || '').toLowerCase();
+  const dContactId = String(deal.contactId || (typeof deal.contact === 'object' ? deal.contact?.id : '') || '').trim();
+  const cId = String(contactId || '').trim();
+  const cName = String(contactName || '').trim().toLowerCase();
   const dContact = String(
     deal.contactName ||
       (typeof deal.contact === 'object' ? (deal.contact?.fullName || deal.contact?.name) : '') ||
       ''
-  ).toLowerCase();
-  const cName = String(contactName || '').trim().toLowerCase();
-  const cId = String(contactId || '').trim();
+  ).trim().toLowerCase();
 
-  // Guard against old mock Ken Ho / Kaylee Ho / Hoai thanh data leaking into other contacts
-  if (dTitle.includes('ken ho') || dTitle.includes('kaylee ho') || dTitle.includes('kylie ho')) {
-    if (!cName.includes('ken') && !cName.includes('ho')) return false;
-  }
-  if (dTitle.includes('hoai thanh')) {
-    if (!cName.includes('hoai') && !cName.includes('thanh')) return false;
+  // If both IDs exist, require exact ID match
+  if (cId && dContactId) {
+    return cId === dContactId;
   }
 
-  if (cId && String(deal.contactId || deal.contact?.id || '') === cId) {
-    return true;
+  // Exact name matching only if no ID mismatch
+  if (cName && cName !== 'unknown' && dContact && dContact !== 'unknown') {
+    return dContact === cName;
   }
-  if (cName && cName !== 'unknown') {
-    if (dContact && (dContact.includes(cName) || cName.includes(dContact))) {
-      return true;
-    }
-    if (dTitle && dTitle.includes(cName)) {
-      return true;
-    }
-  }
+
   return false;
 }
 
@@ -393,48 +384,26 @@ export default function StaffTicketDetail({
       }
     }
 
-    // 2. Direct title passed on currentTicket.dealTitle
-    if (!matched && currentTicket.dealTitle && typeof currentTicket.dealTitle === 'string' && currentTicket.dealTitle.trim()) {
-      if (isDealBelongingToContact({ title: currentTicket.dealTitle, id: dId }, cName, cId)) {
-        matched = {
-          id: dId || `DL-${Date.now()}`,
-          code: dId || 'DL26005000',
-          title: currentTicket.dealTitle,
-          shortTitle: currentTicket.dealShortTitle || currentTicket.dealTitle,
-          pipeline: currentTicket.dealPipeline || 'Obamacare 2026',
-          stage: currentTicket.dealStage || 'Ready to Enroll',
-          dealOwner: currentTicket.dealOwner || currentTicket.ticketOwner || '',
-          carrier: currentTicket.dealCarrier || currentTicket.carrier || '',
-        };
-      }
+    // 2. Direct title passed on currentTicket.dealTitle ONLY IF dId is also present
+    if (!matched && dId && currentTicket.dealTitle && typeof currentTicket.dealTitle === 'string' && currentTicket.dealTitle.trim()) {
+      matched = {
+        id: dId,
+        code: dId,
+        title: currentTicket.dealTitle,
+        shortTitle: currentTicket.dealShortTitle || currentTicket.dealTitle,
+        pipeline: currentTicket.dealPipeline || 'Obamacare 2026',
+        stage: currentTicket.dealStage || 'Ready to Enroll',
+        dealOwner: currentTicket.dealOwner || currentTicket.ticketOwner || '',
+        carrier: currentTicket.dealCarrier || currentTicket.carrier || '',
+      };
     }
 
-    // 3. Search local dynamic deals (localStorage / in-memory store)
-    if (!matched) {
+    // 3. Search local dynamic deals by exact dealId ONLY
+    if (!matched && dId) {
       const dynamicDeals = getDynamicDeals();
       if (Array.isArray(dynamicDeals) && dynamicDeals.length > 0) {
-        if (dId) {
-          const byId = dynamicDeals.find((d) => (String(d.id) === dId || String(d.code) === dId) && isDealBelongingToContact(d, cName, cId));
-          if (byId) matched = byId;
-        }
-        if (!matched && cId) {
-          const byContactId = dynamicDeals.find((d) => String(d.contactId || d.contact?.id || '') === cId);
-          if (byContactId) matched = byContactId;
-        }
-        if (!matched && cName && cName.toLowerCase() !== 'unknown') {
-          const cNameLower = cName.toLowerCase();
-          const byName = dynamicDeals.find((d) => {
-            const dContact = String(d.contactName || (typeof d.contact === 'object' ? (d.contact?.fullName || d.contact?.name) : '') || '').toLowerCase();
-            const dTitle = String(d.title || d.dealName || '').toLowerCase();
-            return (
-              (dContact && (dContact.includes(cNameLower) || cNameLower.includes(dContact))) ||
-              (dTitle && dTitle.includes(cNameLower))
-            );
-          });
-          if (byName && isDealBelongingToContact(byName, cName, cId)) {
-            matched = byName;
-          }
-        }
+        const byId = dynamicDeals.find((d) => (String(d.id) === dId || String(d.code) === dId) && isDealBelongingToContact(d, cName, cId));
+        if (byId) matched = byId;
       }
     }
 
@@ -447,7 +416,7 @@ export default function StaffTicketDetail({
       setDealOwner(typeof matched.dealOwner === 'object' ? matched.dealOwner.name || '' : matched.dealOwner || '');
       setDealCarrier(matched.carrier || '');
     } else {
-      // Clear deal fields so no other customer's deal is displayed
+      // Clear deal fields completely so no unrelated customer's deal is displayed
       setAssociatedDeal(null);
       setDealTitle('');
       setDealShortTitle('');
@@ -456,41 +425,25 @@ export default function StaffTicketDetail({
       setDealOwner('');
       setDealCarrier('');
 
-      // Also try API lookup asynchronously
-      getDeals()
-        .then((apiDeals) => {
-          if (Array.isArray(apiDeals) && apiDeals.length > 0) {
-            let apiMatched = null;
-            if (dId) {
-              apiMatched = apiDeals.find((d) => (String(d.id) === dId || String(d.code) === dId) && isDealBelongingToContact(d, cName, cId));
+      // If a specific dealId was requested, try API lookup by dealId ONLY
+      if (dId) {
+        getDeals()
+          .then((apiDeals) => {
+            if (Array.isArray(apiDeals) && apiDeals.length > 0) {
+              const apiMatched = apiDeals.find((d) => (String(d.id) === dId || String(d.code) === dId) && isDealBelongingToContact(d, cName, cId));
+              if (apiMatched) {
+                setAssociatedDeal(apiMatched);
+                setDealTitle(apiMatched.title || apiMatched.dealName || '');
+                setDealShortTitle(apiMatched.shortTitle || apiMatched.title || apiMatched.dealName || '');
+                setDealPipeline(apiMatched.pipeline || 'Obamacare 2026');
+                setDealStage(apiMatched.stage || apiMatched.dealStage || '');
+                setDealOwner(typeof apiMatched.dealOwner === 'object' ? apiMatched.dealOwner.name || '' : apiMatched.dealOwner || '');
+                setDealCarrier(apiMatched.carrier || '');
+              }
             }
-            if (!apiMatched && cId) {
-              apiMatched = apiDeals.find((d) => String(d.contactId || d.contact?.id || '') === cId);
-            }
-            if (!apiMatched && cName && cName.toLowerCase() !== 'unknown') {
-              const cNameLower = cName.toLowerCase();
-              apiMatched = apiDeals.find((d) => {
-                const dContact = String(d.contactName || (typeof d.contact === 'object' ? (d.contact?.fullName || d.contact?.name) : '') || '').toLowerCase();
-                const dTitle = String(d.title || d.dealName || '').toLowerCase();
-                return (
-                  ((dContact && (dContact.includes(cNameLower) || cNameLower.includes(dContact))) ||
-                    (dTitle && dTitle.includes(cNameLower))) &&
-                  isDealBelongingToContact(d, cName, cId)
-                );
-              });
-            }
-            if (apiMatched) {
-              setAssociatedDeal(apiMatched);
-              setDealTitle(apiMatched.title || apiMatched.dealName || '');
-              setDealShortTitle(apiMatched.shortTitle || apiMatched.title || apiMatched.dealName || '');
-              setDealPipeline(apiMatched.pipeline || 'Obamacare 2026');
-              setDealStage(apiMatched.stage || apiMatched.dealStage || '');
-              setDealOwner(typeof apiMatched.dealOwner === 'object' ? apiMatched.dealOwner.name || '' : apiMatched.dealOwner || '');
-              setDealCarrier(apiMatched.carrier || '');
-            }
-          }
-        })
-        .catch(() => {});
+          })
+          .catch(() => {});
+      }
     }
   }, []);
 
@@ -2161,7 +2114,7 @@ export default function StaffTicketDetail({
                                   onClick={() =>
                                     onSelectDeal &&
                                     onSelectDeal({
-                                      id: 'D26005121',
+                                      id: item.dealId || associatedDeal?.id || associatedDeal?.code || '',
                                       title: item.dealName,
                                       pipeline: dealPipeline,
                                       stage: item.targetStage,
@@ -2180,7 +2133,7 @@ export default function StaffTicketDetail({
                                   onClick={() =>
                                     onSelectDeal &&
                                     onSelectDeal({
-                                      id: 'D26005121',
+                                      id: item.dealId || associatedDeal?.id || associatedDeal?.code || '',
                                       title: item.dealName,
                                       pipeline: dealPipeline,
                                       stage: item.targetStage,
@@ -2266,7 +2219,7 @@ export default function StaffTicketDetail({
                                   onClick={() =>
                                     onSelectDeal &&
                                     onSelectDeal({
-                                      id: 'D26005121',
+                                      id: item.dealId || associatedDeal?.id || associatedDeal?.code || '',
                                       title: item.dealName,
                                       pipeline: dealPipeline,
                                       stage: dealStage,
