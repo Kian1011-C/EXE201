@@ -19,6 +19,7 @@ import {
   addContactNote,
   addContactTask,
   addContactActivity,
+  getUsers,
 } from '../../../services/api';
 import AddDealModal from './AddDealModal';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
@@ -77,6 +78,14 @@ export default function StaffContactDetail({
 }) {
   const { user } = useAuth();
   const currentActor = getCurrentActor(user);
+  
+  const [dbUsers, setDbUsers] = useState([]);
+  useEffect(() => {
+    getUsers().then(data => {
+      if (Array.isArray(data)) setDbUsers(data);
+    }).catch(console.error);
+  }, []);
+
   const [activeTab, setActiveTab] = useState('activity');
   // Accordion states: mở ra mở vô được
   const [sourceLeadOpen, setSourceLeadOpen] = useState(false);
@@ -1131,6 +1140,7 @@ export default function StaffContactDetail({
     recordPropertyUpdatesBatch('contact', contactId, updates, currentActor);
 
     if (contact?.id) {
+      const matchingUser = dbUsers.find(u => (u.fullName || u.name) === leadContactOwner);
       updateContact(contact.id, {
         firstName: primaryFirstName,
         middleName: primaryMiddleName,
@@ -1150,6 +1160,8 @@ export default function StaffContactDetail({
         acaStatus: acaStatusSpecial,
         sourceChannel: howDoYouKnowUs,
         sourceDetail: whoReferClient,
+        contactOwnerId: matchingUser ? matchingUser.id : null,
+        contactOwnerName: matchingUser ? (matchingUser.fullName || matchingUser.name) : leadContactOwner,
       }).catch(() => null);
     }
     if (onUpdateContact) {
@@ -1411,8 +1423,15 @@ export default function StaffContactDetail({
                             className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-12"
                           >
                             <option value="">-- Chưa chọn --</option>
-                            {AGENT_OPTIONS.map((opt) => (
-                              <option key={opt} value={opt}>{opt}</option>
+                            {dbUsers.map(u => {
+                              const name = u.fullName || u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email;
+                              return <option key={`db-${u.id}`} value={name}>{name}</option>;
+                            })}
+                            {AGENT_OPTIONS.filter(opt => !dbUsers.some(u => {
+                              const name = u.fullName || u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email;
+                              return name === opt;
+                            })).map((opt) => (
+                              <option key={`mock-${opt}`} value={opt}>{opt}</option>
                             ))}
                           </select>
                           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
