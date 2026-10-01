@@ -277,6 +277,32 @@ export default function StaffDealDetail({
     deal?.associatedTickets || deal?.tickets || []
   );
 
+  const handleOpenTicket = (ticketItem) => {
+    if (!ticketItem) return;
+    const enriched = {
+      ...ticketItem,
+      id: ticketItem.id || ticketItem.code,
+      code: ticketItem.code || ticketItem.id,
+      title: ticketItem.title || `Upload documents - ${dealTitle}`,
+      pipeline: ticketItem.pipeline || 'Upload document',
+      contactName: ticketItem.contactName || dealInfo.contactName || deal?.contactName || '',
+      contactId: ticketItem.contactId || dealInfo.contactId || deal?.contactId || '',
+      contactPhone: ticketItem.contactPhone || dealInfo.contactPhone || deal?.contactPhone || '',
+      contactEmail: ticketItem.contactEmail || dealInfo.contactEmail || deal?.contactEmail || '',
+      leadOwner: ticketItem.leadOwner || (typeof dealInfo.dealOwner === 'object' ? dealInfo.dealOwner?.name : dealInfo.dealOwner) || '',
+      carrier: ticketItem.carrier || dealInfo.carrier || deal?.carrier || '',
+      dealTitle: ticketItem.dealTitle || dealTitle,
+      dealId: ticketItem.dealId || dealInfo.id || dealInfo.code || '',
+      ticketOwner: ticketItem.ticketOwner || (typeof dealInfo.dealOwner === 'object' ? dealInfo.dealOwner?.name : dealInfo.dealOwner) || 'Khanh Nguyen',
+      serviceAgent: ticketItem.serviceAgent || 'Platform Staff',
+      status: ticketItem.status || ticketItem.stage || 'Open',
+    };
+    addTicketToStore(enriched);
+    if (onSelectTicket) {
+      onSelectTicket(enriched);
+    }
+  };
+
   function handleNeedUploadChange(newVal) {
     setNeedUpload(newVal);
     if (newVal === 'Yes') {
@@ -2510,7 +2536,7 @@ export default function StaffDealDetail({
                   dealTickets.map((associatedTicket) => (
                     <div key={associatedTicket.id || associatedTicket.code || Math.random()} className="space-y-1">
                       <div
-                        onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                        onClick={() => handleOpenTicket(associatedTicket)}
                         className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
                       >
                         {/* Title row with badge */}
@@ -2557,7 +2583,7 @@ export default function StaffDealDetail({
                       {/* Footer Link */}
                       <button
                         type="button"
-                        onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                        onClick={() => handleOpenTicket(associatedTicket)}
                         className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer pl-0.5"
                       >
                         » View Associated Ticket

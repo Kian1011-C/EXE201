@@ -211,7 +211,9 @@ export function canAgentAccessItem(item, user, entityType = 'contact') {
       isOwnerMatch(item.ticketOwner, user) ||
       isOwnerMatch(item.owner, user) ||
       isOwnerMatch(item.serviceAgent, user) ||
-      isOwnerMatch(item.agentName, user)
+      isOwnerMatch(item.agentName, user) ||
+      isOwnerMatch(item.contactOwner, user) ||
+      (item.contact && (isOwnerMatch(item.contact.contactOwner, user) || isOwnerMatch(item.contact.owner, user)))
     );
   }
 

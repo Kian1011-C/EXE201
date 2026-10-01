@@ -50,6 +50,12 @@ export function isDealBelongingToContact(deal, contactName, contactId) {
   return false;
 }
 
+export function getPersonName(val, fallback = 'Unassigned') {
+  if (!val) return fallback;
+  if (typeof val === 'string') return val;
+  return val.name || val.fullName || val.label || fallback;
+}
+
 export const ACA_TICKET_DEFAULTS = {
   id: '',
   title: 'ACA account',
@@ -277,8 +283,8 @@ export default function StaffTicketDetail({
   const [dueDate, setDueDate] = useState(initialData.dueDate);
 
   // Properties in "About this ticket"
-  const [serviceAgent, setServiceAgent] = useState(typeof initialData.serviceAgent === 'string' ? initialData.serviceAgent : (initialData.serviceAgent?.name || initialData.serviceAgent?.label || String(initialData.serviceAgent || '')));
-  const [ticketOwner, setTicketOwner] = useState(typeof initialData.ticketOwner === 'string' ? initialData.ticketOwner : (initialData.ticketOwner?.name || initialData.ticketOwner?.label || String(initialData.ticketOwner || '')));
+  const [serviceAgent, setServiceAgent] = useState(getPersonName(initialData.serviceAgent, 'Platform Staff'));
+  const [ticketOwner, setTicketOwner] = useState(getPersonName(initialData.ticketOwner, 'Khanh Nguyen'));
   const [ticketResult, setTicketResult] = useState(initialData.ticketResult || '');
   const [paymentStatus, setPaymentStatus] = useState(initialData.paymentStatus || '');
   const [changeDueDateReason, setChangeDueDateReason] = useState(initialData.changeDueDateReason || '');
@@ -296,7 +302,7 @@ export default function StaffTicketDetail({
   const [contactName, setContactName] = useState(String(initialData.contactName || ''));
   const [contactPhone, setContactPhone] = useState(String(initialData.contactPhone || ''));
   const [contactEmail, setContactEmail] = useState(String(initialData.contactEmail || ''));
-  const [leadOwner, setLeadOwner] = useState(initialData.leadOwner || '');
+  const [leadOwner, setLeadOwner] = useState(getPersonName(initialData.leadOwner || initialData.ticketOwner, ''));
 
   // Dynamic Associated Deal State
   const [associatedDeal, setAssociatedDeal] = useState(null);
@@ -515,8 +521,8 @@ export default function StaffTicketDetail({
     setDueDate(current.dueDate || '');
     setTempDueDate(current.dueDate || '');
 
-    setServiceAgent(typeof current.serviceAgent === 'string' ? current.serviceAgent : (current.serviceAgent?.name || current.serviceAgent?.label || String(current.serviceAgent || '')));
-    setTicketOwner(typeof current.ticketOwner === 'string' ? current.ticketOwner : (current.ticketOwner?.name || current.ticketOwner?.label || String(current.ticketOwner || '')));
+    setServiceAgent(getPersonName(current.serviceAgent, 'Platform Staff'));
+    setTicketOwner(getPersonName(current.ticketOwner, 'Khanh Nguyen'));
     setTicketResult(current.ticketResult || '');
     setPaymentStatus(current.paymentStatus || '');
     setChangeDueDateReason(current.changeDueDateReason || '');
@@ -535,7 +541,7 @@ export default function StaffTicketDetail({
     setContactName(resolvedContactName);
     setContactPhone(String(current.contactPhone || current.contact?.phone || ''));
     setContactEmail(String(current.contactEmail || current.contact?.email || ''));
-    setLeadOwner(current.leadOwner || current.ticketOwner || '');
+    setLeadOwner(getPersonName(current.leadOwner || current.ticketOwner, ''));
 
     // Resolve associated deal strictly for this contact
     resolveAndApplyDeal(current);
@@ -554,13 +560,14 @@ export default function StaffTicketDetail({
     if (cleanTimeline.length > 0) {
       setTimelineItems(cleanTimeline);
     } else {
+      const creatorName = getPersonName(current.ticketOwner || current.serviceAgent, 'System');
       const createdItem = {
         id: `ticket-create-${current.id || Date.now()}`,
         month: current.createdAt ? new Date(current.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recent',
         type: 'ticket_created',
         title: 'Ticket Activity',
         timestamp: current.createdAt ? new Date(current.createdAt).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : 'Just now',
-        creator: current.ticketOwner || current.serviceAgent || 'System',
+        creator: creatorName,
         targetTicketName: current.title || 'Ticket',
       };
       setTimelineItems([createdItem]);
@@ -865,6 +872,7 @@ export default function StaffTicketDetail({
     setStatus(st);
     setIsStatusOpen(false);
 
+    const safeAgent = getPersonName(serviceAgent, 'Platform Staff');
     // Timeline item
     const newAct = {
       id: `act-${Date.now()}`,
@@ -879,17 +887,24 @@ export default function StaffTicketDetail({
         minute: '2-digit',
         hour12: false,
       }),
-      actor: serviceAgent || 'Anya Nguyen (anya42@9)',
-      content: `${serviceAgent || 'Anya Nguyen (anya42@9)'} moved ticket stage to ${st}.`,
+      actor: safeAgent,
+      content: `${safeAgent} moved ticket stage to ${st}.`,
     };
     setTimelineItems((prev) => [newAct, ...prev]);
 
+    const updatedTicket = {
+      ...ticket,
+      status: st,
+      stage: `${st} (${pipeline})`,
+      pipeline,
+    };
+    addTicketToStore(updatedTicket);
+    if (ticket?.id) {
+      updateTicket(ticket.id, updatedTicket).catch(() => {});
+    }
+
     if (onUpdateTicket) {
-      onUpdateTicket({
-        ...ticket,
-        status: st,
-        pipeline,
-      });
+      onUpdateTicket(updatedTicket);
     }
 
     showToast(`Status updated to ${st}`);
@@ -936,7 +951,7 @@ export default function StaffTicketDetail({
         minute: '2-digit',
         hour12: false,
       }),
-      actor: (typeof serviceAgent === 'string' && serviceAgent) ? (serviceAgent.split(' ')[0] + ' ' + (serviceAgent.split(' ')[1] || '')).trim() : 'Unknown',
+      actor: (typeof serviceAgent === 'string' && serviceAgent) ? (serviceAgent.trim().split(/\s+/)[0] + ' ' + (serviceAgent.trim().split(/\s+/)[1] || '')).trim() : 'Unknown',
       isExpanded: true,
       content: newNoteContent.trim(),
     };
@@ -1056,8 +1071,10 @@ export default function StaffTicketDetail({
   // Group timeline items by month
   const filteredTimeline = timelineItems.filter((item) => {
     if (filterAuthor !== 'all') {
-      const matchActor = item.actor && item.actor.toLowerCase().includes(filterAuthor.toLowerCase());
-      const matchCreator = item.creator && item.creator.toLowerCase().includes(filterAuthor.toLowerCase());
+      const a = getPersonName(item.actor, '');
+      const c = getPersonName(item.creator, '');
+      const matchActor = a && a.toLowerCase().includes(filterAuthor.toLowerCase());
+      const matchCreator = c && c.toLowerCase().includes(filterAuthor.toLowerCase());
       if (!matchActor && !matchCreator) return false;
     }
     if (activeCenterTab === 'notes') return item.type === 'note';
@@ -1428,11 +1445,11 @@ export default function StaffTicketDetail({
                       <div className="flex items-center gap-1.5 min-w-0">
                         {serviceAgent ? (
                           <span className="w-5 h-5 rounded-full bg-[#0EA5E9] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                            {(serviceAgent.split(' ')[0] || '?')[0]}
-                            {serviceAgent.split(' ')[1]?.[0] || ''}
+                            {(getPersonName(serviceAgent).trim().split(/\s+/)[0]?.[0] || '?')}
+                            {getPersonName(serviceAgent).trim().split(/\s+/)[1]?.[0] || ''}
                           </span>
                         ) : null}
-                        <span className="truncate">{serviceAgent || 'Unassigned'}</span>
+                        <span className="truncate">{getPersonName(serviceAgent, 'Unassigned')}</span>
                       </div>
                       <div className="flex items-center gap-1 text-slate-400 shrink-0">
                         <span
@@ -1571,11 +1588,11 @@ export default function StaffTicketDetail({
                       <div className="flex items-center gap-1.5 min-w-0">
                         {ticketOwner ? (
                           <span className="w-5 h-5 rounded-full bg-[#10B981] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                            {(ticketOwner.split(' ')[0] || '?')[0]}
-                            {ticketOwner.split(' ')[1]?.[0] || ''}
+                            {(getPersonName(ticketOwner).trim().split(/\s+/)[0]?.[0] || '?')}
+                            {getPersonName(ticketOwner).trim().split(/\s+/)[1]?.[0] || ''}
                           </span>
                         ) : null}
-                        <span className="truncate">{ticketOwner || 'Unassigned'}</span>
+                        <span className="truncate">{getPersonName(ticketOwner, 'Unassigned')}</span>
                       </div>
                       <div className="flex items-center gap-1 text-slate-400 shrink-0">
                         <span
@@ -2221,7 +2238,7 @@ export default function StaffTicketDetail({
                                 <span className="text-[11px] text-slate-400">{item.timestamp}</span>
                               </div>
                               <div className="text-xs text-slate-600 leading-relaxed">
-                                <span>{item.creator} created ticket </span>
+                                <span>{getPersonName(item.creator, 'System')} created ticket </span>
                                 <span className="text-blue-600 font-semibold hover:underline cursor-pointer inline-flex items-center gap-0.5">
                                   <span>{item.targetTicketName}</span>
                                   <span className="material-symbols-outlined text-[11px]">open_in_new</span>
@@ -2469,8 +2486,8 @@ export default function StaffTicketDetail({
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                          {contactName ? contactName.split(' ')[0][0] : 'U'}
-                          {contactName ? contactName.split(' ')[1]?.[0] || 'H' : 'H'}
+                          {contactName ? (contactName.trim().split(/\s+/)[0]?.[0] || 'U') : 'U'}
+                          {contactName ? (contactName.trim().split(/\s+/)[1]?.[0] || '') : 'H'}
                         </div>
                         <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
                           {contactName}
@@ -2578,8 +2595,8 @@ export default function StaffTicketDetail({
                         >
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                              {dealTitle ? dealTitle.split(' ')[0][0] : 'D'}
-                              {dealTitle ? dealTitle.split(' ')[1]?.[0] || 'L' : ''}
+                              {dealTitle ? (dealTitle.trim().split(/\s+/)[0]?.[0] || 'D') : 'D'}
+                              {dealTitle ? (dealTitle.trim().split(/\s+/)[1]?.[0] || '') : ''}
                             </div>
                             <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
                               {dealShortTitle || dealTitle}

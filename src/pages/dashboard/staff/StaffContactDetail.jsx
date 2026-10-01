@@ -349,6 +349,37 @@ export default function StaffContactDetail({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleOpenTicket = (ticketItem) => {
+    if (!ticketItem) return;
+    const cName =
+      [primaryFirstName, primaryMiddleName, primaryLastName].filter(Boolean).join(' ') ||
+      contact?.fullName ||
+      'Khách hàng';
+    const enriched = {
+      ...ticketItem,
+      id: ticketItem.id || ticketItem.code,
+      code: ticketItem.code || ticketItem.id,
+      title: ticketItem.title || `Ticket - ${cName}`,
+      pipeline: ticketItem.pipeline || 'ACA account',
+      contactName: ticketItem.contactName || cName,
+      contactId: ticketItem.contactId || contact?.id || contact?.code || '',
+      contactPhone: ticketItem.contactPhone || contactPhone || contact?.phone || '',
+      contactEmail: ticketItem.contactEmail || contactEmail || contact?.email || '',
+      leadOwner: ticketItem.leadOwner || leadContactOwner || contact?.contactOwner || '',
+      carrier: ticketItem.carrier || contact?.dealCarrier || contactDeals[0]?.carrier || '',
+      dealTitle: ticketItem.dealTitle || contactDeals[0]?.title || '',
+      dealId: ticketItem.dealId || contactDeals[0]?.id || '',
+      ticketOwner: ticketItem.ticketOwner || leadContactOwner || 'Khanh Nguyen',
+      serviceAgent: ticketItem.serviceAgent || leadContactOwner || 'Platform Staff',
+      status: ticketItem.status || ticketItem.stage || 'Open',
+      stage: ticketItem.stage || (ticketItem.pipeline === 'ACA account' ? 'Need Create ACA Account (ACA account)' : ''),
+    };
+    addTicketToStore(enriched);
+    if (onSelectTicket) {
+      onSelectTicket(enriched);
+    }
+  };
+
   function handleAcaAccountStatusChange(newStatus) {
     const val = newStatus === '(Trống / Chưa chọn)' ? '' : newStatus;
     if (val === acaAccountStatus) {
@@ -369,62 +400,128 @@ export default function StaffContactDetail({
       currentActor
     );
 
-    let updatedTickets = [...contactTickets];
+    const isAca = (t) =>
+      t &&
+      (t.pipeline === 'ACA account' ||
+        (t.title && t.title.toLowerCase().includes('aca account')) ||
+        (t.title && t.title.toLowerCase().includes('create aca')));
 
-    // Quy trình: Khi chọn "Need Create ACA Account", tự động xuất Ticket ACA account
+    // Find any existing ACA ticket(s) in contactTickets
+    const existingAcaTicket = contactTickets.find(isAca);
+    // Non-ACA tickets preserved as is
+    const nonAcaTickets = contactTickets.filter((t) => !isAca(t));
+
+    let updatedTickets = [];
+
+    // Quy trình: Khi chọn "Need Create ACA Account", tự động xuất Ticket ACA account (chỉ xuất 1 lần nếu chưa có)
     if (val === 'Need Create ACA Account') {
-      const cName = [primaryFirstName, primaryMiddleName, primaryLastName].filter(Boolean).join(' ') || contact?.fullName || 'Khách hàng';
-      const acaTicket = {
-        id: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
-        code: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
-        title: `Create ACA account - ${cName}`,
-        pipeline: 'ACA account',
-        stage: 'Need Create ACA Account (ACA account)',
-        status: 'Open',
-        priority: 'High',
-        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-          month: '2-digit',
-          day: '2-digit',
-          year: 'numeric',
-        }),
-        ticketOwner: leadContactOwner,
-        ticketOwnerAvatar: (leadContactOwner || 'KN').slice(0, 2).toUpperCase(),
-        serviceAgent: leadContactOwner,
-        contactName: cName,
-        contactId: contact?.id || contact?.code || '',
-        contactPhone: contactPhone,
-        contactEmail: contactEmail,
-        carrier: contact?.dealCarrier || contactDeals[0]?.carrier || '',
-        dealTitle: contactDeals[0]?.title || '',
-        dealId: contactDeals[0]?.id || '',
-        description: `Tự động tạo Ticket khi chuyển trạng thái Need Create ACA Account cho khách hàng ${cName}`,
-        createdAt: new Date().toISOString(),
-        activities: [],
-        comments: [],
-      };
+      if (existingAcaTicket) {
+        // ACA ticket already exists -> update status & stage, DO NOT create duplicate!
+        const updatedAcaTicket = {
+          ...existingAcaTicket,
+          status: 'Need Create ACA Account',
+          stage: 'Need Create ACA Account (ACA account)',
+          pipeline: 'ACA account',
+        };
+        addTicketToStore(updatedAcaTicket);
+        if (updatedAcaTicket.id) {
+          updateTicket(updatedAcaTicket.id, updatedAcaTicket).catch(() => {});
+        }
+        updatedTickets = [updatedAcaTicket, ...nonAcaTickets];
+        setContactTickets(updatedTickets);
+        showToast('Đã chuyển trạng thái ACA và cập nhật Ticket ACA account!');
+      } else {
+        // No ACA ticket exists -> create exactly 1 new ticket
+        const cName =
+          [primaryFirstName, primaryMiddleName, primaryLastName].filter(Boolean).join(' ') ||
+          contact?.fullName ||
+          'Khách hàng';
+        const newTicketId = `TC2600${Math.floor(1000 + Math.random() * 9000)}`;
+        const acaTicket = {
+          id: newTicketId,
+          code: newTicketId,
+          title: `Create ACA account - ${cName}`,
+          pipeline: 'ACA account',
+          stage: 'Need Create ACA Account (ACA account)',
+          status: 'Need Create ACA Account',
+          priority: 'High',
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric',
+          }),
+          ticketOwner: leadContactOwner || 'Khanh Nguyen',
+          ticketOwnerAvatar: (leadContactOwner || 'KN').slice(0, 2).toUpperCase(),
+          serviceAgent: leadContactOwner || 'Platform Staff',
+          contactName: cName,
+          contactId: contact?.id || contact?.code || '',
+          contactPhone: contactPhone || contact?.phone || '',
+          contactEmail: contactEmail || contact?.email || '',
+          leadOwner: leadContactOwner || contact?.contactOwner || '',
+          carrier: contact?.dealCarrier || contactDeals[0]?.carrier || '',
+          dealTitle: contactDeals[0]?.title || '',
+          dealId: contactDeals[0]?.id || '',
+          description: `Tự động tạo Ticket khi chuyển trạng thái Need Create ACA Account cho khách hàng ${cName}`,
+          createdAt: new Date().toISOString(),
+          activities: [],
+          comments: [],
+        };
 
-      createTicket(acaTicket).catch(() => {});
-      addTicketToStore(acaTicket);
-      updatedTickets = [acaTicket, ...updatedTickets];
-      setContactTickets(updatedTickets);
+        createTicket(acaTicket).catch(() => {});
+        addTicketToStore(acaTicket);
+        updatedTickets = [acaTicket, ...nonAcaTickets];
+        setContactTickets(updatedTickets);
 
-      logActivity('Ticket Created', `Tự động xuất ticket: ${acaTicket.title} (ACA account)`);
-      showToast(`Đã chuyển trạng thái và tự động xuất Ticket: ${acaTicket.title}!`);
+        logActivity('Ticket Created', `Tự động xuất ticket: ${acaTicket.title} (ACA account)`);
+        showToast(`Đã chuyển trạng thái và tự động xuất Ticket: ${acaTicket.title}!`);
+      }
     } else {
-      showToast(`Đã cập nhật trạng thái ACA: ${val || 'Trống'}`);
+      // Khi chuyển sang trường khác (Pending, Uploaded, VERIFIED, Unverified, DONE, Plan Cancelled, hoặc trống)
+      // Nếu đã có ACA ticket thì đồng bộ status của ticket theo!
+      if (existingAcaTicket) {
+        const stageVal =
+          val === 'DONE'
+            ? 'DONE (ACA account)'
+            : val === 'Need Create ACA Account'
+            ? 'Need Create ACA Account (ACA account)'
+            : val
+            ? `${val} (ACA account)`
+            : 'ACA account';
+
+        const updatedAcaTicket = {
+          ...existingAcaTicket,
+          status: val || 'Open',
+          stage: stageVal,
+          pipeline: 'ACA account',
+        };
+        addTicketToStore(updatedAcaTicket);
+        if (updatedAcaTicket.id) {
+          updateTicket(updatedAcaTicket.id, updatedAcaTicket).catch(() => {});
+        }
+        updatedTickets = [updatedAcaTicket, ...nonAcaTickets];
+        setContactTickets(updatedTickets);
+        showToast(`Đã cập nhật trạng thái ACA: ${val || 'Trống'} và đồng bộ Ticket ACA!`);
+      } else {
+        updatedTickets = nonAcaTickets;
+        setContactTickets(updatedTickets);
+        showToast(`Đã cập nhật trạng thái ACA: ${val || 'Trống'}`);
+      }
     }
 
-    if (onUpdateContact) {
-      onUpdateContact({
-        ...contact,
+    const nextContact = {
+      ...contact,
+      acaAccountStatus: val,
+      associatedTickets: updatedTickets,
+      tickets: updatedTickets,
+      acaAccount: {
+        ...(contact?.acaAccount || {}),
         acaAccountStatus: val,
-        associatedTickets: updatedTickets,
-        acaAccount: {
-          ...(contact?.acaAccount || {}),
-          acaAccountStatus: val,
-          status: val,
-        },
-      });
+        status: val,
+      },
+    };
+    addContactToStore(nextContact);
+    if (onUpdateContact) {
+      onUpdateContact(nextContact);
     }
   }
 
@@ -607,7 +704,22 @@ export default function StaffContactDetail({
       setMembersList(contact.members || []);
 
       setContactDeals(contact.associatedDeals || contact.deals || []);
-      setContactTickets(contact.associatedTickets || contact.tickets || []);
+      const rawTickets = contact.associatedTickets || contact.tickets || [];
+      const isAca = (t) =>
+        t &&
+        (t.pipeline === 'ACA account' ||
+          (t.title && t.title.toLowerCase().includes('aca account')) ||
+          (t.title && t.title.toLowerCase().includes('create aca')));
+      let seenAca = false;
+      const deduplicatedTickets = rawTickets.filter((t) => {
+        if (isAca(t)) {
+          if (seenAca) return false;
+          seenAca = true;
+          return true;
+        }
+        return true;
+      });
+      setContactTickets(deduplicatedTickets);
 
       // Sync customer documents for this contact
       let initialDocs = [];
@@ -3140,7 +3252,7 @@ export default function StaffContactDetail({
                   contactTickets.map((associatedTicket) => (
                     <div key={associatedTicket.id || associatedTicket.code || Math.random()} className="space-y-1">
                       <div
-                        onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                        onClick={() => handleOpenTicket(associatedTicket)}
                         className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
                       >
                         {/* Title row with badge */}
@@ -3185,7 +3297,7 @@ export default function StaffContactDetail({
                       {/* Footer Link */}
                       <button
                         type="button"
-                        onClick={() => onSelectTicket && onSelectTicket(associatedTicket)}
+                        onClick={() => handleOpenTicket(associatedTicket)}
                         className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer pl-0.5"
                       >
                         <span>» View Associated Ticket</span>

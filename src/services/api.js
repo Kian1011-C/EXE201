@@ -217,11 +217,13 @@ function normalizeTicket(t) {
       name: ownerName,
       avatar: t.owner?.avatar || getUserAvatar(ownerName),
     },
-    serviceAgent: {
+    serviceAgent: serviceName,
+    ticketOwner: ownerName,
+    serviceAgentObj: {
       name: serviceName,
       avatar: t.serviceAgent?.avatar || getUserAvatar(serviceName),
     },
-    ticketOwner: {
+    ticketOwnerObj: {
       name: ownerName,
       avatar: t.ticketOwner?.avatar || getUserAvatar(ownerName),
     },
@@ -458,13 +460,21 @@ export async function getTickets(params = {}) {
 
 export async function getTicket(id) {
   if (!id) return null;
-  const data = await request(`/tickets/${encodeURIComponent(id)}`).catch(() => null);
+  const cleanId = String(id).replace(/\/$/, '');
+  const data = await request(`/tickets/${encodeURIComponent(cleanId)}`).catch(() => null);
   if (data) return normalizeTicket(data);
 
   try {
     const dynamic = typeof window !== 'undefined' ? getDynamicTickets() : [];
-    const local = [...dynamic, ...SAMPLE_TICKETS].find(t => String(t.id) === String(id) || String(t.code) === String(id));
+    const local = [...dynamic, ...SAMPLE_TICKETS].find(t => String(t.id) === cleanId || String(t.code) === cleanId);
     if (local) return normalizeTicket(local);
+
+    const dynContacts = typeof window !== 'undefined' ? getDynamicContacts() : [];
+    const allContacts = [...dynContacts, ...SAMPLE_CONTACTS];
+    for (const c of allContacts) {
+      const found = (c.associatedTickets || c.tickets || []).find(t => String(t.id) === cleanId || String(t.code) === cleanId);
+      if (found) return normalizeTicket(found);
+    }
   } catch (_) {}
 
   return null;

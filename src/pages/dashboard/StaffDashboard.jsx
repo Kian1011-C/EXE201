@@ -20,6 +20,10 @@ import {
   getDynamicContacts,
   SAMPLE_DEALS,
   getDynamicDeals,
+  SAMPLE_TICKETS,
+  getDynamicTickets,
+  addTicketToStore,
+  addContactToStore,
   CONTACT_DETAIL_DATA,
   DEAL_DETAIL_DATA,
   CUSTOMER_DOCUMENT_DATA,
@@ -61,8 +65,19 @@ export default function StaffDashboard() {
       const parts = path.split('/dashboard/staff/tickets/');
       const ticketId = parts[1];
       if (ticketId) {
-        getTicket(ticketId)
-          .then((res) => { if (res) setSelectedTicket(res); })
+        const cleanId = String(ticketId).replace(/\/$/, '');
+        const allTickets = [
+          ...getDynamicTickets(),
+          ...SAMPLE_TICKETS,
+          ...(selectedContact?.associatedTickets || selectedContact?.tickets || []),
+          ...(selectedDeal?.associatedTickets || selectedDeal?.tickets || []),
+        ];
+        const localFound = allTickets.find((t) => t.id === cleanId || t.code === cleanId);
+        if (localFound) {
+          setSelectedTicket((prev) => ({ ...localFound, ...(prev?.id === cleanId ? prev : {}) }));
+        }
+        getTicket(cleanId)
+          .then((res) => { if (res) setSelectedTicket((prev) => ({ ...(prev || {}), ...res })); })
           .catch(() => {});
       }
       setCurrentTab('tickets');
@@ -300,9 +315,13 @@ export default function StaffDashboard() {
 
   // ── Ticket Handlers ───────────────────────────────────────────────────────
   function handleSelectTicket(ticket) {
-    setSelectedTicket(ticket);
+    if (!ticket) return;
+    const ticketObj = typeof ticket === 'string' ? { id: ticket, code: ticket } : ticket;
+    addTicketToStore(ticketObj);
+    setSelectedTicket(ticketObj);
+    setCurrentTab('tickets');
     setCurrentView('ticket-detail');
-    navigate(`/dashboard/staff/tickets/${ticket?.id || ticket}`, { replace: false });
+    navigate(`/dashboard/staff/tickets/${ticketObj.id || ticketObj.code}`, { replace: false });
   }
 
   // ── Task Handlers ─────────────────────────────────────────────────────────
@@ -481,17 +500,27 @@ export default function StaffDashboard() {
                 console.warn('[StaffDashboard] Could not persist ticket update:', err)
               );
             }
-            if (updated?.pipeline === 'ACA account' && updated?.status) {
-              setSelectedContact((prev) => ({
+            setSelectedContact((prev) => {
+              if (!prev) return prev;
+              const tList = prev.associatedTickets || prev.tickets || [];
+              const nextTickets = tList.map((t) => (t.id === updated.id || t.code === updated.code ? { ...t, ...updated } : t));
+              const isAca = updated?.pipeline === 'ACA account';
+              const nextContact = {
                 ...prev,
-                acaAccountStatus: updated.status,
-                acaAccount: {
-                  ...(prev?.acaAccount || {}),
+                associatedTickets: nextTickets,
+                tickets: nextTickets,
+                ...(isAca && updated?.status ? {
                   acaAccountStatus: updated.status,
-                  status: updated.status,
-                },
-              }));
-            }
+                  acaAccount: {
+                    ...(prev?.acaAccount || {}),
+                    acaAccountStatus: updated.status,
+                    status: updated.status,
+                  },
+                } : {}),
+              };
+              addContactToStore(nextContact);
+              return nextContact;
+            });
           }}
         />
       )}
