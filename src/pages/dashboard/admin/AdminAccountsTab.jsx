@@ -171,17 +171,14 @@ export default function AdminAccountsTab({
       const created = await createAdminAccount({
         ...newAccountForm,
         statesLicensed: statesArr,
-      }).catch((err) => ({
-        id: `ACC-00${localAccounts.length + 1}`,
-        ...newAccountForm,
-        statesLicensed: statesArr,
-        avatar: (newAccountForm.name || 'U').slice(0, 2).toUpperCase(),
-        bg: newAccountForm.role === 'staff' ? 'bg-teal-600 text-white' : 'bg-blue-600 text-white',
-        status: newAccountForm.role === 'agent' ? 'Pending NPN' : 'Active',
-        dealsCount: 0,
-      }));
+      });
 
-      setLocalAccounts((prev) => [created, ...prev]);
+      // Đặt lại bộ lọc để tài khoản mới luôn hiển thị ngay lập tức
+      setRoleFilter('all');
+      setStatusFilter('all');
+      setSearch('');
+
+      setLocalAccounts((prev) => [created, ...prev.filter((a) => a.id !== created.id)]);
 
       setToastMessage(`Created new ${newAccountForm.role} account for ${newAccountForm.name}!`);
       setTimeout(() => setToastMessage(''), 4000);
