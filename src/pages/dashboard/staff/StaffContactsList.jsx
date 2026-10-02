@@ -280,12 +280,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[24px] text-slate-700">contacts</span>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Contacts</h1>
-          {isDbConnected && (
-            <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-              PostgreSQL Active ({contactsList.length})
-            </span>
-          )}
+
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">

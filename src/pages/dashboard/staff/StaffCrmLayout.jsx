@@ -623,31 +623,7 @@ export default function StaffCrmLayout({
             )}
           </div>
 
-          {/* Database Live Connectivity Indicator */}
-          <div className="flex items-center">
-            {dbStatus === 'connected' ? (
-              <span
-                title="PostgreSQL 16 & Express API Live Sync"
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 shadow-2xs"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="hidden md:inline">PostgreSQL Live</span>
-              </span>
-            ) : dbStatus === 'checking' ? (
-              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                <span className="hidden md:inline">Connecting...</span>
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                <span className="hidden md:inline">DB Offline</span>
-              </span>
-            )}
-          </div>
+
 
           {/* Agent Regulatory Badge */}
           {isAgent && (
