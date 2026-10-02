@@ -221,6 +221,18 @@ export default function HomePage({ onOpenQuote }) {
               </Link>
             </div>
 
+            
+            {/* Hero Image */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="mt-12 w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-stroke-subtle relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/20 to-transparent pointer-events-none z-10" />
+              <img src="/images/hero-illustration.jpg" alt="InsurMatch CRM Platform" className="w-full h-auto object-cover transform hover:scale-[1.02] transition-transform duration-700" />
+            </motion.div>
+
             {/* Fine Signature Subline */}
             <div className="pt-6 flex flex-wrap justify-center items-center gap-5 text-xs text-charcoal/70 max-w-xl">
               <span className="flex items-center gap-1.5 font-medium">
@@ -246,19 +258,29 @@ export default function HomePage({ onOpenQuote }) {
       {/* ─────────────────────────────────────────────────────────────
           CARRIER COMPATIBILITY STRIP
          ───────────────────────────────────────────────────────────── */}
-      <section className="py-8 bg-sand/30 border-b border-stroke-subtle">
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }} 
+        whileInView={{ opacity: 1, y: 0 }} 
+        viewport={{ once: true, margin: '-40px' }} 
+        transition={{ duration: 0.6 }} 
+        className="py-8 bg-sand/30 border-b border-stroke-subtle">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 text-center">
           <p className="text-[11px] font-bold uppercase tracking-widest text-slate-muted mb-4">
             Supports All Major Health, Medicare &amp; Life Carriers in the US
           </p>
           <CarrierLogosStrip />
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           2. THE 4 DAILY QUESTIONS (Page 3 of Proposal)
          ───────────────────────────────────────────────────────────── */}
-      <section id="workflow" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }} 
+        whileInView={{ opacity: 1, y: 0 }} 
+        viewport={{ once: true, margin: '-40px' }} 
+        transition={{ duration: 0.6 }} 
+        id="workflow" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sand text-navy-deep text-xs font-bold uppercase tracking-wider mb-3">
             <span>Built Around Daily Agent Reality</span>
@@ -295,12 +317,17 @@ export default function HomePage({ onOpenQuote }) {
             </div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           3. CORE PRODUCT CAPABILITIES (Page 3-4 of Proposal)
          ───────────────────────────────────────────────────────────── */}
-      <section id="features" className="py-20 bg-sand/30 border-y border-stroke-subtle px-4 sm:px-6 lg:px-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }} 
+        whileInView={{ opacity: 1, y: 0 }} 
+        viewport={{ once: true, margin: '-40px' }} 
+        transition={{ duration: 0.6 }} 
+        id="features" className="py-20 bg-sand/30 border-y border-stroke-subtle px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
@@ -329,12 +356,17 @@ export default function HomePage({ onOpenQuote }) {
             })}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           4. CORE USER WORKFLOW TIMELINE (Page 4 of Proposal)
          ───────────────────────────────────────────────────────────── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }} 
+        whileInView={{ opacity: 1, y: 0 }} 
+        viewport={{ once: true, margin: '-40px' }} 
+        transition={{ duration: 0.6 }} 
+        className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sand text-navy-deep text-xs font-bold uppercase tracking-wider mb-3">
             <span>Seamless Daily Workflow</span>
@@ -363,12 +395,17 @@ export default function HomePage({ onOpenQuote }) {
             </div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           5. PRICING SECTION (Page 6 of Proposal)
          ───────────────────────────────────────────────────────────── */}
-      <section id="pricing" className="py-20 bg-sand/20 border-t border-stroke-subtle px-4 sm:px-6 lg:px-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }} 
+        whileInView={{ opacity: 1, y: 0 }} 
+        viewport={{ once: true, margin: '-40px' }} 
+        transition={{ duration: 0.6 }} 
+        id="pricing" className="py-20 bg-sand/20 border-t border-stroke-subtle px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sand/80 border border-stroke-subtle text-xs font-semibold text-navy-deep mb-4">
             <Sparkles className="w-3.5 h-3.5 text-champagne" />
@@ -492,12 +529,17 @@ export default function HomePage({ onOpenQuote }) {
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           6. BUSINESS BOUNDARY & COMPLIANCE (Page 13 of Proposal)
          ───────────────────────────────────────────────────────────── */}
-      <section className="py-14 bg-navy-deep text-ivory px-4 sm:px-6 lg:px-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }} 
+        whileInView={{ opacity: 1, y: 0 }} 
+        viewport={{ once: true, margin: '-40px' }} 
+        transition={{ duration: 0.6 }} 
+        className="py-14 bg-navy-deep text-ivory px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne/15 text-champagne text-xs font-bold uppercase tracking-widest">
             <Shield className="w-3.5 h-3.5" />
@@ -510,12 +552,17 @@ export default function HomePage({ onOpenQuote }) {
             InsurMatch does not sell insurance, provide insurance advice, collect insurance premiums, or receive carrier commissions. All carrier compensation remains 100% between licensed agents, authorized clearinghouses, and carriers.
           </p>
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           7. BOTTOM CTA
          ───────────────────────────────────────────────────────────── */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }} 
+        whileInView={{ opacity: 1, y: 0 }} 
+        viewport={{ once: true, margin: '-40px' }} 
+        transition={{ duration: 0.6 }} 
+        className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="rounded-3xl bg-sand/60 border border-stroke-subtle p-8 sm:p-12 text-center space-y-4 shadow-sm">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
             Start Your 14-Day Free Trial
@@ -540,7 +587,7 @@ export default function HomePage({ onOpenQuote }) {
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }
