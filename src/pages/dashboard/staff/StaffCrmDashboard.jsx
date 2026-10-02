@@ -790,7 +790,7 @@ export default function StaffCrmDashboard({
             <span>Refresh</span>
           </button>
 
-          <button
+          <button onClick={() => alert('Tính năng đang được phát triển!')}
             type="button"
             className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition cursor-pointer shadow-2xs"
             title="Fullscreen"
@@ -916,7 +916,7 @@ export default function StaffCrmDashboard({
                     >
                       <span className="material-symbols-outlined text-[16px]">crop_free</span>
                     </button>
-                    <button type="button" className="hover:text-slate-600 p-0.5">
+                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-slate-600 p-0.5">
                       <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                     </button>
                   </div>
@@ -1001,7 +1001,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button type="button" className="hover:text-slate-600 p-0.5">
+                <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-slate-600 p-0.5">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -1198,7 +1198,7 @@ export default function StaffCrmDashboard({
                     >
                       <span className="material-symbols-outlined text-[15px]">crop_free</span>
                     </button>
-                    <button type="button" className="hover:text-slate-600 p-0.5">
+                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-slate-600 p-0.5">
                       <span className="material-symbols-outlined text-[15px]">more_horiz</span>
                     </button>
                   </div>
@@ -1838,7 +1838,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button type="button" className="hover:text-slate-600 p-0.5">
+                <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-slate-600 p-0.5">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -2048,7 +2048,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button type="button" className="hover:text-slate-600 p-0.5" title="Options">
+                <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-slate-600 p-0.5" title="Options">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -2133,7 +2133,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button type="button" className="hover:text-slate-600 p-0.5">
+                <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-slate-600 p-0.5">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -2222,7 +2222,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button type="button" className="hover:text-slate-600 p-0.5">
+                <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-slate-600 p-0.5">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -2313,7 +2313,7 @@ export default function StaffCrmDashboard({
                   >
                     <span className="material-symbols-outlined text-[16px]">crop_free</span>
                   </button>
-                  <button type="button" className="hover:text-slate-600 p-0.5">
+                  <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-slate-600 p-0.5">
                     <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                   </button>
                 </div>
@@ -2408,7 +2408,7 @@ export default function StaffCrmDashboard({
                   >
                     <span className="material-symbols-outlined text-[16px]">crop_free</span>
                   </button>
-                  <button type="button" className="hover:text-slate-600 p-0.5">
+                  <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-slate-600 p-0.5">
                     <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                   </button>
                 </div>

@@ -414,7 +414,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
 
         <button
           type="button"
-          onClick={() => {}}
+          onClick={() => alert('Tính năng đang được phát triển!')}
           className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-500 hover:text-blue-600 hover:bg-slate-100 transition cursor-pointer"
         >
           <span className="material-symbols-outlined text-[15px]">add</span>
@@ -731,7 +731,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                       className="py-2.5 px-2 text-center"
                       onClick={(e) => toggleTaskCompletion(e, t.id)}
                     >
-                      <button
+                      <button onClick={() => alert('Tính năng đang được phát triển!')}
                         type="button"
                         title={t.completed ? 'Mark incomplete' : 'Mark complete'}
                         className={`w-4 h-4 rounded-full flex items-center justify-center transition cursor-pointer ${

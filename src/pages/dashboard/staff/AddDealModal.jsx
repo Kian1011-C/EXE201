@@ -559,7 +559,7 @@ export default function AddDealModal({
                         {d.pipeline} • {d.carrier} • Stage: {d.stage}
                       </div>
                     </div>
-                    <button
+                    <button onClick={() => alert('Tính năng đang được phát triển!')}
                       type="button"
                       className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs flex items-center gap-1"
                     >

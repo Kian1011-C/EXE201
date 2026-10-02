@@ -434,7 +434,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          <button
+          <button onClick={() => alert('Tính năng đang được phát triển!')}
             type="button"
             className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
           >
@@ -443,7 +443,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             <span className="material-symbols-outlined text-[14px] text-slate-400">expand_more</span>
           </button>
 
-          <button
+          <button onClick={() => alert('Tính năng đang được phát triển!')}
             type="button"
             className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
           >
@@ -451,7 +451,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             <span>Import</span>
           </button>
 
-          <button
+          <button onClick={() => alert('Tính năng đang được phát triển!')}
             type="button"
             className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
           >
@@ -1117,14 +1117,14 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
               <option>100</option>
             </select>
             <div className="flex items-center gap-1 ml-2">
-              <button
+              <button onClick={() => alert('Tính năng đang được phát triển!')}
                 type="button"
                 className="w-7 h-7 rounded border border-slate-200 flex items-center justify-center hover:bg-slate-100 text-slate-400 cursor-not-allowed"
                 disabled
               >
                 <span className="material-symbols-outlined text-[15px]">chevron_left</span>
               </button>
-              <button
+              <button onClick={() => alert('Tính năng đang được phát triển!')}
                 type="button"
                 className="w-7 h-7 rounded border border-slate-200 flex items-center justify-center hover:bg-slate-100 text-slate-400 cursor-not-allowed"
                 disabled
