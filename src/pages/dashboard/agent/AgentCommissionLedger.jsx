@@ -473,9 +473,7 @@ export default function AgentCommissionLedger({ onSelectContact }) {
               <h1 className="text-lg font-bold text-slate-900 tracking-tight">
                 Agent Commission Engine &amp; Payouts
               </h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                PostgreSQL Live Data
-              </span>
+
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               Agent NPN #1984210 • SSS Rules Engine (NONE / PARTIAL / FULL) • Real-time Statement

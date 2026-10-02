@@ -808,7 +808,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             type="button"
             onClick={loadDealsData}
             className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 cursor-pointer transition"
-            title="Tải lại dữ liệu từ PostgreSQL"
+            title="Tải lại dữ liệu"
           >
             <span className={`material-symbols-outlined text-[16px] text-slate-500 ${loading ? 'animate-spin' : ''}`}>
               refresh
