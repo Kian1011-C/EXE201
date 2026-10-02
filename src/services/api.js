@@ -260,18 +260,32 @@ function normalizeAccount(u) {
   const role = (u.role || 'staff').toLowerCase();
   const normalizedRole = (role === 'support' || role === 'telesales') ? 'staff' : (role === 'manager' ? 'admin' : role);
   const status = u.status || (u.active !== false ? 'Active' : 'Suspended');
+  let bg = 'bg-blue-600 text-white';
+  if (normalizedRole === 'staff') bg = 'bg-teal-600 text-white';
+  else if (normalizedRole === 'admin') bg = 'bg-purple-600 text-white';
+
+  let states = u.statesLicensed || ['Texas (TDI)'];
+  if (typeof states === 'string') {
+    states = states.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+
   return {
     ...u,
     id: String(u.id),
     name,
+    fullName: name,
+    email: u.email || '',
     role: normalizedRole,
     originalRole: role,
     status,
+    complianceStatus: u.complianceStatus || 'Verified & Cleared',
     phone: u.phone || '—',
     npn: u.npn || '—',
     avatar: u.avatar || getUserAvatar(name),
-    statesLicensed: u.statesLicensed || 'Texas (TDI)',
+    bg: u.bg || bg,
+    statesLicensed: states,
     department: u.department || (normalizedRole === 'admin' ? 'Executive' : (normalizedRole === 'agent' ? 'Sales Agency' : 'Operations')),
+    dealsCount: u.dealsCount || 0,
     joinedDate: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recent',
   };
 }
@@ -607,11 +621,13 @@ export async function getAdminAccounts() {
 }
 
 export async function createAdminAccount(data) {
-  return await request('/admin/accounts', {
+  const res = await request('/admin/accounts', {
     method: 'POST',
     body: JSON.stringify(data),
   });
+  return res ? normalizeAccount(res) : res;
 }
+
 
 export async function updateAdminAccount(id, data) {
   return await request(`/admin/accounts/${encodeURIComponent(id)}`, {
