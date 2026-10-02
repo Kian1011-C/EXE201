@@ -141,10 +141,29 @@ export function filterTicketsForAgent(ticketsList, user) {
       isOwnerMatch(t.ticketOwner, user) ||
       isOwnerMatch(t.owner, user) ||
       isOwnerMatch(t.serviceAgent, user) ||
-      isOwnerMatch(t.agentName, user)
+      isOwnerMatch(t.agentName, user) ||
+      isOwnerMatch(t.contactOwner, user) ||
+      (t.contact && (isOwnerMatch(t.contact.contactOwner, user) || isOwnerMatch(t.contact.owner, user)))
     );
   });
 }
+
+/**
+ * Commission filtering for Agent
+ */
+export function filterCommissionsForAgent(commissionsList, user) {
+  if (!Array.isArray(commissionsList)) return [];
+  if (!user || user.role !== 'agent') return commissionsList;
+
+  return commissionsList.filter((c) => {
+    return (
+      isOwnerMatch(c.agentName, user) ||
+      isOwnerMatch(c.dealOwner, user) ||
+      isOwnerMatch(c.owner, user)
+    );
+  });
+}
+
 
 /**
  * Task filtering for Agent

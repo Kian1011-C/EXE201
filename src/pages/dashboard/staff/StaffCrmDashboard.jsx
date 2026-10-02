@@ -13,6 +13,7 @@ import {
   filterDealsForAgent,
   filterTicketsForAgent,
   filterTasksForAgent,
+  filterCommissionsForAgent,
   canViewSaaSPackages,
   getAgentIdentity,
 } from '../../../utils/rbac';
@@ -25,14 +26,10 @@ import {
   getDynamicTickets,
   SAMPLE_TASKS,
 } from '../../../data/mockCrmData';
-import { INITIAL_ADMIN_COMMISSIONS } from '../../../data/mockAdminAccounts';
+import { INITIAL_ADMIN_COMMISSIONS, INITIAL_ADMIN_ACCOUNTS } from '../../../data/mockAdminAccounts';
 import toast from 'react-hot-toast';
 
-const DASHBOARD_OPTIONS = [
-  'Company Overview Dashboard',
-  'Daily work of staff - All Teams',
-  'Daily work of staff - Team Tiger Truong',
-];
+const COMPANY_OVERVIEW = 'Company Overview Dashboard';
 
 export default function StaffCrmDashboard({
   onSelectTab,
@@ -66,10 +63,19 @@ export default function StaffCrmDashboard({
   const [liveTasks, setLiveTasks] = useState(() => SAMPLE_TASKS);
   const [liveCommissions, setLiveCommissions] = useState(() => INITIAL_ADMIN_COMMISSIONS);
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'obamacare' | 'medicare' | 'tickets' | 'tasks' | 'commissions'
-  const [selectedDashboard, setSelectedDashboard] = useState(
-    'Company Overview Dashboard'
-  );
+  
+  const defaultDashboard = isAgentUser
+    ? (agentName || effectiveAgent?.name || user?.name || 'Khanh Nguyen')
+    : COMPANY_OVERVIEW;
+
+  const [selectedDashboard, setSelectedDashboard] = useState(defaultDashboard);
   const [showDashboardDropdown, setShowDashboardDropdown] = useState(false);
+
+  useEffect(() => {
+    if (isAgentUser) {
+      setSelectedDashboard(agentName || effectiveAgent?.name || user?.name || 'Khanh Nguyen');
+    }
+  }, [isAgentUser, agentName, effectiveAgent?.name, user?.name]);
 
   async function fetchStats() {
     try {
@@ -213,22 +219,139 @@ export default function StaffCrmDashboard({
     }
   }
 
+  // ── Available Agent Roster (Dynamically gathered from accounts + live entities) ──
+  const availableAgents = useMemo(() => {
+    const agentMap = new Map();
+
+    // 1. Initial admin accounts with role === 'agent'
+    INITIAL_ADMIN_ACCOUNTS.forEach((acc) => {
+      if (acc.role === 'agent' && acc.name) {
+        agentMap.set(acc.name, {
+          id: acc.id,
+          name: acc.name,
+          email: acc.email || '',
+          agencyRole: acc.agencyRole || 'Licensed Agent',
+          avatar: acc.avatar || acc.name.slice(0, 2).toUpperCase(),
+          bg: acc.bg || 'bg-blue-600 text-white',
+          npn: acc.npn || '',
+        });
+      }
+    });
+
+    // Helper to register discovered owner from live entities
+    const registerDiscovered = (rawVal, defaultRole = 'Licensed Agent') => {
+      if (!rawVal) return;
+      const name = getPersonName(rawVal);
+      if (
+        !name ||
+        name === 'Unassigned' ||
+        name.toLowerCase().includes('admin') ||
+        name.toLowerCase().includes('operations') ||
+        name.toLowerCase().includes('system')
+      ) {
+        return;
+      }
+      if (!agentMap.has(name)) {
+        const initials = name
+          .split(' ')
+          .filter(Boolean)
+          .map((w) => w[0])
+          .slice(0, 2)
+          .join('')
+          .toUpperCase() || 'AG';
+        agentMap.set(name, {
+          id: `GEN-${name.replace(/\s+/g, '')}`,
+          name,
+          email: typeof rawVal === 'object' && rawVal.email ? rawVal.email : '',
+          agencyRole: defaultRole,
+          avatar: initials,
+          bg: 'bg-indigo-600 text-white',
+          npn: '',
+        });
+      }
+    };
+
+    // 2. Discover owners from live Deals
+    liveDeals.forEach((d) => {
+      registerDiscovered(d.dealOwner, 'Deal Owner');
+      registerDiscovered(d.dealOwnerName, 'Deal Owner');
+      registerDiscovered(d.leadOwner, 'Lead Owner');
+      registerDiscovered(d.agentName, 'Writing Agent');
+      registerDiscovered(d.adminOnly?.dealOwner, 'Deal Owner');
+    });
+
+    // 3. Discover owners from live Contacts
+    liveContacts.forEach((c) => {
+      registerDiscovered(c.contactOwner, 'Contact Owner');
+      registerDiscovered(c.sourceOfLead?.contactOwner, 'Contact Owner');
+      registerDiscovered(c.agentName, 'Agent');
+    });
+
+    // 4. Discover owners from live Tickets
+    liveTickets.forEach((t) => {
+      registerDiscovered(t.ticketOwner, 'Ticket Owner');
+      registerDiscovered(t.serviceAgent, 'Service Agent');
+      registerDiscovered(t.serviceAgentName, 'Service Agent');
+      registerDiscovered(t.agentName, 'Agent');
+    });
+
+    // 5. Discover owners from live Tasks
+    liveTasks.forEach((tk) => {
+      registerDiscovered(tk.assignee, 'Task Assignee');
+      registerDiscovered(tk.assignedTo, 'Task Assignee');
+    });
+
+    // 6. Discover agents from live Commissions
+    liveCommissions.forEach((cm) => {
+      registerDiscovered(cm.agentName, 'Writing Agent');
+    });
+
+    return Array.from(agentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [liveDeals, liveContacts, liveTickets, liveTasks, liveCommissions]);
+
+  // Determine active target agent & company overview mode
+  const activeTargetAgent = useMemo(() => {
+    if (isAgentUser) {
+      return agentName || effectiveAgent?.name || user?.name || 'Khanh Nguyen';
+    }
+    if (!selectedDashboard || selectedDashboard === COMPANY_OVERVIEW || selectedDashboard === 'all') {
+      return null;
+    }
+    return selectedDashboard;
+  }, [isAgentUser, agentName, effectiveAgent?.name, user?.name, selectedDashboard]);
+
+  const isCompanyOverview = !activeTargetAgent;
+
+  const activeTargetAgentUser = useMemo(() => {
+    if (!activeTargetAgent) return null;
+    const agObj = availableAgents.find((a) => a.name === activeTargetAgent);
+    return {
+      role: 'agent',
+      name: activeTargetAgent,
+      email: agObj?.email || '',
+    };
+  }, [activeTargetAgent, availableAgents]);
+
   // ── Scoped Datasets (Agent Ownership Scoping) ──────────────────────────────
   const scopedDeals = useMemo(
-    () => (isAgentUser ? filterDealsForAgent(liveDeals, effectiveUser) : liveDeals),
-    [liveDeals, isAgentUser, effectiveUser]
+    () => (activeTargetAgentUser ? filterDealsForAgent(liveDeals, activeTargetAgentUser) : liveDeals),
+    [liveDeals, activeTargetAgentUser]
   );
   const scopedContacts = useMemo(
-    () => (isAgentUser ? filterContactsForAgent(liveContacts, effectiveUser) : liveContacts),
-    [liveContacts, isAgentUser, effectiveUser]
+    () => (activeTargetAgentUser ? filterContactsForAgent(liveContacts, activeTargetAgentUser) : liveContacts),
+    [liveContacts, activeTargetAgentUser]
   );
   const scopedTickets = useMemo(
-    () => (isAgentUser ? filterTicketsForAgent(liveTickets, effectiveUser) : liveTickets),
-    [liveTickets, isAgentUser, effectiveUser]
+    () => (activeTargetAgentUser ? filterTicketsForAgent(liveTickets, activeTargetAgentUser) : liveTickets),
+    [liveTickets, activeTargetAgentUser]
   );
   const scopedTasks = useMemo(
-    () => (isAgentUser ? filterTasksForAgent(liveTasks, effectiveUser) : liveTasks),
-    [liveTasks, isAgentUser, effectiveUser]
+    () => (activeTargetAgentUser ? filterTasksForAgent(liveTasks, activeTargetAgentUser) : liveTasks),
+    [liveTasks, activeTargetAgentUser]
+  );
+  const scopedCommissions = useMemo(
+    () => (activeTargetAgentUser ? filterCommissionsForAgent(liveCommissions, activeTargetAgentUser) : liveCommissions),
+    [liveCommissions, activeTargetAgentUser]
   );
 
   // ── Dynamic Aggregations from Scoped Database Records ───────────────────────
@@ -284,7 +407,7 @@ export default function StaffCrmDashboard({
   const commissionStats = useMemo(() => {
     let monthly = 0;
     let ytd = 0;
-    liveCommissions.forEach((c) => {
+    scopedCommissions.forEach((c) => {
       const amt = Number(c.netAmount || c.grossAmount || 0);
       ytd += amt;
       if (c.status === 'SETTLED' || c.period === '2026-10') {
@@ -292,10 +415,10 @@ export default function StaffCrmDashboard({
       }
     });
     return {
-      monthly: monthly || dbStats?.commissionThisMonth || 0,
-      ytd: ytd || dbStats?.commissionYTD || 0,
+      monthly: monthly || (!activeTargetAgentUser ? dbStats?.commissionThisMonth : 0) || 0,
+      ytd: ytd || (!activeTargetAgentUser ? dbStats?.commissionYTD : 0) || 0,
     };
-  }, [liveCommissions, dbStats]);
+  }, [scopedCommissions, dbStats, activeTargetAgentUser]);
 
   // ── Card 1: Obamacare Deals by Stage (100% Real DB Data) ────────────────────
   const obStagesData = useMemo(() => {
@@ -647,6 +770,9 @@ export default function StaffCrmDashboard({
   }, [scopedTickets]);
 
   const ticketDistinctAgents = useMemo(() => {
+    if (activeTargetAgent) {
+      return [activeTargetAgent];
+    }
     const set = new Set();
     scopedTickets.forEach((t) => {
       const ag = t.serviceAgentName || t.assignedToName || getPersonName(t.serviceAgent || t.assignedTo);
@@ -654,7 +780,7 @@ export default function StaffCrmDashboard({
     });
     const arr = Array.from(set);
     return arr.length > 0 ? arr : ['Anya Nguyen', 'Sean Ngo', 'Sarah Thai', 'Ivy Le'];
-  }, [scopedTickets]);
+  }, [scopedTickets, activeTargetAgent]);
 
   const dailyCompleteTicketsData = useMemo(() => {
     const completed = scopedTickets.filter((t) => t.status === 'Closed' || t.status === 'Resolved');
@@ -733,15 +859,15 @@ export default function StaffCrmDashboard({
 
   // ── ROW 14: Commissions Summary & Ledger ──────────────────────────────────
   const commissionsSummary = useMemo(() => {
-    const totalGross = liveCommissions.reduce((sum, c) => sum + (Number(c.grossAmount) || 0), 0);
-    const totalNet = liveCommissions.reduce((sum, c) => sum + (Number(c.netAmount) || 0), 0);
-    const totalDeduction = liveCommissions.reduce((sum, c) => sum + (Number(c.supportDeduction) || 0), 0);
-    const settledCount = liveCommissions.filter((c) => c.status === 'SETTLED' || c.status === 'PAID').length;
-    const pendingCount = liveCommissions.filter((c) => c.status === 'PENDING' || c.status === 'AUDIT').length;
+    const totalGross = scopedCommissions.reduce((sum, c) => sum + (Number(c.grossAmount) || 0), 0);
+    const totalNet = scopedCommissions.reduce((sum, c) => sum + (Number(c.netAmount) || 0), 0);
+    const totalDeduction = scopedCommissions.reduce((sum, c) => sum + (Number(c.supportDeduction) || 0), 0);
+    const settledCount = scopedCommissions.filter((c) => c.status === 'SETTLED' || c.status === 'PAID').length;
+    const pendingCount = scopedCommissions.filter((c) => c.status === 'PENDING' || c.status === 'AUDIT').length;
 
     // By Carrier
     const carrierMap = {};
-    liveCommissions.forEach((c) => {
+    scopedCommissions.forEach((c) => {
       const carrier = c.carrier || 'Other Carrier';
       if (!carrierMap[carrier]) {
         carrierMap[carrier] = { carrier, gross: 0, net: 0, count: 0 };
@@ -759,62 +885,163 @@ export default function StaffCrmDashboard({
       pendingCount,
       byCarrier: Object.values(carrierMap).sort((a, b) => b.net - a.net),
     };
-  }, [liveCommissions]);
+  }, [scopedCommissions]);
 
   return (
     <div className="flex flex-col h-full bg-[#F4F6F9] overflow-y-auto">
       {/* ── Top Dashboard Header ─────────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#104882] flex items-center justify-center">
-            <span className="material-symbols-outlined text-[22px]">grid_view</span>
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-2xs shrink-0 ${
+              isCompanyOverview
+                ? 'bg-blue-50 text-[#104882] border border-blue-100'
+                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[24px]">
+              {isCompanyOverview ? 'corporate_fare' : 'badge'}
+            </span>
           </div>
+
           <div className="relative">
             <button
               type="button"
-              onClick={() => setShowDashboardDropdown((prev) => !prev)}
-              className="flex items-center gap-1.5 cursor-pointer group hover:bg-slate-50 px-2 py-1 -mx-2 rounded-lg transition"
+              onClick={() => {
+                if (!isAgentUser) setShowDashboardDropdown((prev) => !prev);
+              }}
+              className={`flex items-center gap-2 group text-left px-2.5 py-1 -mx-2.5 rounded-xl transition ${
+                isAgentUser
+                  ? 'cursor-default'
+                  : 'cursor-pointer hover:bg-slate-100/80 active:bg-slate-200/70'
+              }`}
             >
-              <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                {selectedDashboard}
-              </h1>
-              <span className="material-symbols-outlined text-[20px] text-slate-600 group-hover:text-blue-600">
-                arrow_drop_down
-              </span>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                    {isCompanyOverview ? COMPANY_OVERVIEW : `${activeTargetAgent}'s Dashboard`}
+                  </h1>
+                  {isCompanyOverview ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                      All Agency
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      {isAgentUser ? 'My Pipeline' : 'Agent Scoped'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 font-medium line-clamp-1">
+                  {isCompanyOverview
+                    ? 'Total pipeline, active deals, contacts, tickets & commissions across all teams'
+                    : `Scoped to ${activeTargetAgent} — only shows deals, contacts, tickets & tasks owned by this agent`}
+                </p>
+              </div>
+
+              {!isAgentUser && (
+                <span className="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-blue-600 transition ml-1 shrink-0">
+                  arrow_drop_down
+                </span>
+              )}
             </button>
 
-            {showDashboardDropdown && (
+            {/* Dropdown Menu for Dashboard / Agent Selection */}
+            {showDashboardDropdown && !isAgentUser && (
               <>
                 <div
                   className="fixed inset-0 z-20"
                   onClick={() => setShowDashboardDropdown(false)}
                 />
-                <div className="absolute left-0 top-full mt-1.5 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95">
-                  <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Select Dashboard View
+                <div className="absolute left-0 top-full mt-2 w-84 bg-white rounded-2xl shadow-2xl border border-slate-200/90 py-2 z-30 animate-in fade-in zoom-in-95 max-h-[480px] overflow-y-auto">
+                  <div className="px-3.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Company View
                   </div>
-                  {DASHBOARD_OPTIONS.map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => {
-                        setSelectedDashboard(opt);
-                        setShowDashboardDropdown(false);
-                      }}
-                      className={`w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition cursor-pointer ${
-                        selectedDashboard === opt
-                          ? 'bg-blue-50 text-blue-700 font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="truncate">{opt}</span>
-                      {selectedDashboard === opt && (
-                        <span className="material-symbols-outlined text-[16px] text-blue-600">
-                          check
-                        </span>
-                      )}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDashboard(COMPANY_OVERVIEW);
+                      setShowDashboardDropdown(false);
+                    }}
+                    className={`w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition cursor-pointer ${
+                      isCompanyOverview
+                        ? 'bg-blue-50/80 text-blue-900 font-bold border-l-4 border-blue-600'
+                        : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#104882] flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[20px]">corporate_fare</span>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-900 text-xs">
+                          {COMPANY_OVERVIEW}
+                        </div>
+                        <div className="text-[11px] text-slate-500 font-normal">
+                          All agents, teams & total records
+                        </div>
+                      </div>
+                    </div>
+                    {isCompanyOverview && (
+                      <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0">
+                        check_circle
+                      </span>
+                    )}
+                  </button>
+
+                  <div className="my-1.5 border-t border-slate-100" />
+
+                  <div className="px-3.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                    <span>Individual Agent Dashboards</span>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      {availableAgents.length} Agents
+                    </span>
+                  </div>
+
+                  <div className="space-y-0.5 px-1">
+                    {availableAgents.map((ag) => {
+                      const isSelected = !isCompanyOverview && activeTargetAgent === ag.name;
+                      return (
+                        <button
+                          key={ag.name}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDashboard(ag.name);
+                            setShowDashboardDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition cursor-pointer ${
+                            isSelected
+                              ? 'bg-emerald-50 text-emerald-900 font-bold'
+                              : 'text-slate-700 hover:bg-slate-100/70'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 shadow-2xs ${
+                                ag.bg || 'bg-blue-600 text-white'
+                              }`}
+                            >
+                              {ag.avatar || ag.name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-semibold text-slate-900 truncate text-xs">
+                                {ag.name}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-medium truncate">
+                                {ag.agencyRole || 'Agent'} {ag.npn ? `• NPN ${ag.npn}` : ''}
+                              </div>
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <span className="material-symbols-outlined text-[18px] text-emerald-600 shrink-0 ml-2">
+                              check_circle
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </>
             )}
@@ -822,7 +1049,19 @@ export default function StaffCrmDashboard({
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-3 text-xs text-slate-600">
+        <div className="flex items-center gap-2.5 text-xs text-slate-600">
+          {!isCompanyOverview && !isAgentUser && (
+            <button
+              type="button"
+              onClick={() => setSelectedDashboard(COMPANY_OVERVIEW)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 font-semibold transition cursor-pointer shadow-2xs"
+              title="Return to full company overview dashboard"
+            >
+              <span className="material-symbols-outlined text-[16px]">corporate_fare</span>
+              <span>Overview View</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={handleRefresh}
@@ -838,7 +1077,8 @@ export default function StaffCrmDashboard({
             <span>Refresh</span>
           </button>
 
-          <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+          <button
+            onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
             type="button"
             className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition cursor-pointer shadow-2xs"
             title="Fullscreen"
@@ -847,6 +1087,34 @@ export default function StaffCrmDashboard({
           </button>
         </div>
       </div>
+
+      {/* ── Agent Scoped Notification Banner ───────────────────────────────── */}
+      {!isCompanyOverview && (
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-b border-emerald-200/80 px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 text-emerald-900 font-medium">
+            <span className="material-symbols-outlined text-[18px] text-emerald-600 shrink-0">
+              verified
+            </span>
+            <span>
+              Dashboard đang hiển thị dữ liệu theo Agent:{' '}
+              <strong className="text-emerald-950 underline underline-offset-2">
+                {activeTargetAgent}
+              </strong>{' '}
+              (chỉ hiển thị Deals, Contacts, Tickets, Tasks &amp; Commissions do Agent này làm Owner/Assignee)
+            </span>
+          </div>
+          {!isAgentUser && (
+            <button
+              type="button"
+              onClick={() => setSelectedDashboard(COMPANY_OVERVIEW)}
+              className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline flex items-center gap-1 cursor-pointer shrink-0"
+            >
+              <span>Quay lại Dashboard tổng công ty</span>
+              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ── Category Filter Bar ───────────────────────────────────────────── */}
       <div className="px-6 py-2.5 bg-white border-b border-slate-200/90 flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs text-slate-600 shrink-0 shadow-2xs">
@@ -2543,7 +2811,7 @@ export default function StaffCrmDashboard({
                     className="text-xs font-bold text-slate-900 tracking-tight hover:text-emerald-600 cursor-pointer"
                     title="Click to view Commission Ledger"
                   >
-                    Carrier Commission Ledger &amp; Payout Summary ({liveCommissions.length} records)
+                    Carrier Commission Ledger &amp; Payout Summary ({scopedCommissions.length} records)
                   </h3>
                   <p className="text-[11px] text-slate-400">Live PMPM Carrier Remittances &amp; Platform Fee Splits</p>
                 </div>
