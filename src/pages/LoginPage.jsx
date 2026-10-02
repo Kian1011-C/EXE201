@@ -55,165 +55,201 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B172A] flex items-center justify-center p-4 sm:p-6 relative overflow-hidden selection:bg-[#C8A96B] selection:text-[#0B172A]">
-      {/* Architectural subtle background grid */}
-      <div className="absolute inset-0 bg-[radial-gradient(#1e3352_1px,transparent_1px)] [background-size:32px_32px] opacity-20 pointer-events-none" />
-      <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#14243A] rounded-full blur-3xl opacity-60 pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#14243A] rounded-full blur-3xl opacity-60 pointer-events-none" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="w-full max-w-md relative z-10"
-      >
-        {/* Card */}
-        <div className="bg-[#F7F5EF] rounded-2xl shadow-[0_24px_64px_rgba(0,0,0,0.35)] overflow-hidden border border-[#ECE8DE]">
-          {/* Header */}
-          <div className="p-8 pb-6 border-b border-[#ECE8DE] bg-[#F7F5EF]">
-            <div className="flex items-center justify-between mb-6">
-              <Link to="/" className="inline-flex items-center gap-2.5 group">
-                <img src="/images/insurmatch-logo.png" alt="InsurMatch" className="w-8 h-8 object-contain rounded-lg shadow-xs" />
-                <span className="font-black text-xl tracking-tight text-[#0B172A]">
-                  INSUR<span className="text-[#C8A96B]">MATCH</span>
-                </span>
-              </Link>
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#17202A]/60 bg-[#ECE8DE] px-2.5 py-1 rounded-full">
-                Portal Access
-              </span>
+    <div className="bg-[#0A1628] h-screen w-full flex text-slate-800 antialiased overflow-hidden">
+      
+      {/* Left Side: Branding / Visual (Hidden on mobile) */}
+      <div className="hidden lg:flex w-[45%] bg-gradient-to-br from-[#0F2962] to-[#0A1628] flex-col justify-between p-12 relative overflow-hidden">
+        {/* Abstract background elements */}
+        <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] bg-blue-500/10 rounded-full blur-[120px]"></div>
+        <div class="absolute top-[40%] -right-[20%] w-[60%] h-[60%] bg-emerald-500/10 rounded-full blur-[100px]"></div>
+        
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative z-10"
+        >
+          <div className="flex items-center gap-3 text-white mb-12">
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <img src="/images/insurmatch-logo.png" alt="InsurMatch" className="w-6 h-6 object-contain" />
             </div>
-            <h1 className="font-serif text-2xl font-bold text-[#0B172A] tracking-tight">
-              Welcome back
-            </h1>
-            <p className="text-xs sm:text-sm text-[#17202A]/60 mt-1">
-              Sign in to manage client matching, carrier contracts, and quotes.
-            </p>
+            <span className="font-bold text-2xl tracking-tight">InsurMatch</span>
+          </div>
+          
+          <h1 className="text-4xl lg:text-5xl font-bold text-white leading-[1.15] tracking-tight mb-6">
+            Streamline your <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">insurance workflow</span>
+          </h1>
+          <p className="text-blue-100/70 text-lg max-w-md leading-relaxed">
+            The all-in-one portal for agents and staff to manage client matching, carrier contracts, and policy quotes efficiently.
+          </p>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="relative z-10 flex items-center gap-4 text-sm text-blue-200/60 font-medium"
+        >
+          <span>&copy; {new Date().getFullYear()} The Best Rate Insurance</span>
+          <span className="w-1 h-1 rounded-full bg-blue-500/50"></span>
+          <span>Enterprise CRM</span>
+        </motion.div>
+      </div>
+
+      {/* Right Side: Login Form */}
+      <div className="w-full lg:w-[55%] bg-white flex flex-col justify-center items-center p-6 sm:p-12 relative overflow-y-auto">
+        
+        {/* Mobile Logo (shows only on small screens) */}
+        <div className="lg:hidden flex items-center gap-2 text-slate-900 mb-10 mt-8">
+          <div className="w-8 h-8 rounded-lg bg-[#0A1628] flex items-center justify-center shadow-sm">
+            <img src="/images/insurmatch-logo.png" alt="InsurMatch" className="w-5 h-5 object-contain" />
+          </div>
+          <span className="font-bold text-xl tracking-tight">InsurMatch</span>
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-[420px]"
+        >
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Welcome back</h2>
+            <p className="text-slate-500 text-sm">Please enter your details to sign in to your portal.</p>
           </div>
 
-          {/* Form */}
-          <div className="p-8 pt-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email */}
-              <div>
-                <label className="block text-[11px] font-bold text-[#17202A]/70 mb-1.5 uppercase tracking-wider">
-                  Work Email
-                </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8c9ba5] text-[18px] pointer-events-none">mail</span>
-                  <input
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="advisor@insurmatch.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#ECE8DE] bg-white text-sm text-[#17202A] placeholder:text-[#8c9ba5] focus:outline-none focus:border-[#0B172A] focus:ring-1 focus:ring-[#0B172A] transition"
-                  />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email Field */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">Work Email</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                  <span className="material-symbols-outlined text-[20px]">mail</span>
                 </div>
+                <input 
+                  type="email" 
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="advisor@insurmatch.com" 
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400" 
+                />
               </div>
+            </div>
 
-              {/* Password */}
-              <div>
-                <label className="block text-[11px] font-bold text-[#17202A]/70 mb-1.5 uppercase tracking-wider">
-                  Password
-                </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8c9ba5] text-[18px] pointer-events-none">lock</span>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-11 py-2.5 rounded-xl border border-[#ECE8DE] bg-white text-sm text-[#17202A] placeholder:text-[#8c9ba5] focus:outline-none focus:border-[#0B172A] focus:ring-1 focus:ring-[#0B172A] transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8c9ba5] hover:text-[#17202A] transition cursor-pointer"
-                    aria-label="Toggle password visibility"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">
-                      {showPassword ? 'visibility_off' : 'visibility'}
-                    </span>
-                  </button>
+            {/* Password Field */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">Password</label>
+                <a href="#" className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition">Forgot password?</a>
+              </div>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                  <span className="material-symbols-outlined text-[20px]">lock</span>
                 </div>
-              </div>
-
-              {/* Error */}
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs"
+                <input 
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••" 
+                  className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800 tracking-wider" 
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[16px] shrink-0">error</span>
-                  <span>{error}</span>
-                </motion.div>
-              )}
-
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 rounded-xl bg-[#0B172A] hover:bg-[#14243A] text-white text-xs sm:text-sm font-semibold tracking-wide transition shadow-sm hover:shadow flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 mt-2"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Signing in...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign In to Portal</span>
-                    <span className="text-[#C8A96B]">→</span>
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* Demo Account Hints */}
-            <div className="mt-6 pt-5 border-t border-[#ECE8DE]">
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[10px] font-bold text-[#17202A]/50 uppercase tracking-widest">
-                  Demo Quick Fill
-                </span>
-                <span className="text-[10px] text-[#17202A]/40">Click to autofill</span>
+                  <span className="material-symbols-outlined text-[18px]">
+                    {showPassword ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
               </div>
-              <div className="space-y-1.5">
-                {DEMO_HINTS.map((hint) => (
-                  <button
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs"
+              >
+                <span className="material-symbols-outlined text-[16px] shrink-0">error</span>
+                <span>{error}</span>
+              </motion.div>
+            )}
+
+            {/* Submit Button */}
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-[#0A1628] hover:bg-[#122340] disabled:bg-[#0A1628]/70 text-white font-semibold py-3.5 rounded-xl transition-colors shadow-lg shadow-slate-900/10 flex justify-center items-center gap-2 mt-2 cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In to Portal</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Demo Quick Fill Section */}
+          <div className="mt-10">
+            <div className="relative flex items-center py-5">
+              <div className="flex-grow border-t border-slate-200"></div>
+              <span className="shrink-0 mx-4 text-[10px] uppercase tracking-widest font-bold text-slate-400">Demo Quick Fill</span>
+              <div className="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {DEMO_HINTS.map((hint) => {
+                let icon = 'shield_person';
+                let colorClass = 'text-slate-600 group-hover:text-blue-600 bg-slate-100 group-hover:bg-blue-100';
+                let borderClass = 'border-slate-200 hover:border-blue-300 hover:bg-blue-50';
+                
+                if (hint.role === 'Staff') {
+                  icon = 'support_agent';
+                  colorClass = 'text-blue-600 bg-blue-100 shadow-sm';
+                  borderClass = 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500/20';
+                } else if (hint.role === 'Agent') {
+                  icon = 'cases';
+                }
+
+                return (
+                  <button 
                     key={hint.role}
                     type="button"
                     onClick={() => fillDemo(hint)}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-[#ECE8DE] bg-white hover:border-[#C8A96B] hover:bg-[#FDFBF7] transition text-left cursor-pointer group"
+                    className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all group cursor-pointer ${borderClass}`}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-[#0B172A] w-12">{hint.role}</span>
-                      <span className="text-[11px] text-[#17202A]/60 font-mono">{hint.email}</span>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${colorClass}`}>
+                      <span className="material-symbols-outlined text-[16px]">{icon}</span>
                     </div>
-                    <span className="text-[10px] text-[#C8A96B] font-semibold opacity-0 group-hover:opacity-100 transition">
-                      Fill →
-                    </span>
+                    <span className="text-xs font-bold text-slate-700 group-hover:text-blue-700">{hint.role}</span>
                   </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Back to site */}
-            <div className="mt-6 text-center">
-              <Link
-                to="/"
-                className="inline-flex items-center gap-1.5 text-xs text-[#17202A]/60 hover:text-[#0B172A] transition font-medium"
-              >
-                <span className="material-symbols-outlined text-[15px]">arrow_back</span>
-                <span>Back to InsurMatch home</span>
-              </Link>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </motion.div>
+
+          {/* Footer link */}
+          <div className="mt-8 text-center mb-8">
+            <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition">
+              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+              Back to InsurMatch home
+            </Link>
+          </div>
+
+        </motion.div>
+      </div>
     </div>
   );
 }
