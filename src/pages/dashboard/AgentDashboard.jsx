@@ -64,6 +64,72 @@ export default function AgentDashboard() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
 
+  // Navigation history stack for seamless cross-entity return
+  const [navHistory, setNavHistory] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('insurmatch_nav_history_agent');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('insurmatch_nav_history_agent', JSON.stringify(navHistory));
+    } catch {
+      // ignore
+    }
+  }, [navHistory]);
+
+  function pushHistory() {
+    setNavHistory((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && last.pathname === location.pathname && last.view === currentView) {
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          view: currentView,
+          tab: currentTab,
+          pathname: location.pathname,
+          contact: selectedContact,
+          deal: selectedDeal,
+          ticket: selectedTicket,
+          task: selectedTask,
+          document: selectedDocument,
+        },
+      ];
+    });
+  }
+
+  function handleGoBack(fallbackFn) {
+    if (navHistory.length > 0) {
+      const last = navHistory[navHistory.length - 1];
+      setNavHistory((prev) => prev.slice(0, -1));
+
+      if (last.contact) setSelectedContact(last.contact);
+      if (last.deal) setSelectedDeal(last.deal);
+      if (last.ticket) setSelectedTicket(last.ticket);
+      if (last.task) setSelectedTask(last.task);
+      if (last.document) setSelectedDocument(last.document);
+
+      setCurrentTab(last.tab);
+      setCurrentView(last.view);
+
+      if (last.pathname && last.pathname !== location.pathname) {
+        navigate(last.pathname, { replace: false });
+      }
+      return true;
+    }
+
+    if (fallbackFn) {
+      fallbackFn();
+    }
+    return false;
+  }
+
   // Sync state with URL path
   useEffect(() => {
     const path = location.pathname;
@@ -207,6 +273,9 @@ export default function AgentDashboard() {
 
   // Handlers for navigation
   function handleSelectContact(contact, updateUrl = true) {
+    if (updateUrl) {
+      pushHistory();
+    }
     const p = contact.primary || {};
     let firstName = contact.firstName || p.firstName;
     let middleName = contact.middleName || p.middleName || '';
@@ -297,15 +366,22 @@ export default function AgentDashboard() {
   }
 
   function handleSelectDeal(deal) {
-    setSelectedDeal({
+    pushHistory();
+    const dealWithContact = {
       ...DEAL_DETAIL_DATA,
       ...(deal || {}),
-    });
+      contactId: deal?.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
+      contactName: deal?.contactName || (selectedContact ? selectedContact.fullName : ''),
+      contact: deal?.contact || selectedContact,
+    };
+    setSelectedDeal(dealWithContact);
+    setCurrentTab('deals');
     setCurrentView('deal-detail');
     navigate(`/dashboard/agent/deals/${deal?.id || 'D26005033'}`, { replace: false });
   }
 
   function handleSelectCustomerDocument(doc) {
+    pushHistory();
     const targetDoc = doc || selectedContact?.customerDocument || {
       id: `doc-${selectedContact?.id || Date.now()}`,
       name: selectedContact?.fullName || 'Hai Nguyen',
@@ -371,6 +447,10 @@ export default function AgentDashboard() {
   }
 
   function handleSelectTab(tab) {
+    setNavHistory([]);
+    try {
+      sessionStorage.removeItem('insurmatch_nav_history_agent');
+    } catch {}
     setCurrentTab(tab);
     if (tab === 'dashboard') {
       setCurrentView('dashboard');
@@ -397,58 +477,115 @@ export default function AgentDashboard() {
   }
 
   function handleBackToContacts() {
-    setCurrentTab('contacts');
-    setCurrentView('contacts');
-    navigate('/dashboard/agent/contacts', { replace: false });
+    handleGoBack(() => {
+      setCurrentTab('contacts');
+      setCurrentView('contacts');
+      navigate('/dashboard/agent/contacts', { replace: false });
+    });
   }
 
   function handleBackToContactDetail() {
+    setCurrentTab('contacts');
     setCurrentView('contact-detail');
     navigate(`/dashboard/agent/contacts/${selectedContact?.id || 'CT26002600'}`, { replace: false });
   }
 
+  function handleBackToDealDetail() {
+    setCurrentTab('deals');
+    setCurrentView('deal-detail');
+    navigate(`/dashboard/agent/deals/${selectedDeal?.id || 'D26005033'}`, { replace: false });
+  }
+
+  function handleBackToTicketDetail() {
+    setCurrentTab('tickets');
+    setCurrentView('ticket-detail');
+    navigate(`/dashboard/agent/tickets/${selectedTicket?.id || 'TC26001001'}`, { replace: false });
+  }
+
   function handleBackFromCustomerDocument() {
-    if (currentTab === 'documents') {
-      setCurrentView('customer-documents-list');
-      navigate('/dashboard/agent/documents', { replace: false });
-    } else {
-      handleBackToContactDetail();
-    }
+    handleGoBack(() => {
+      if (currentTab === 'documents') {
+        setCurrentView('customer-documents-list');
+        navigate('/dashboard/agent/documents', { replace: false });
+      } else {
+        handleBackToContactDetail();
+      }
+    });
   }
 
   function handleBackFromDeal() {
-    if (currentTab === 'deals') {
-      setCurrentView('deals');
-      navigate('/dashboard/agent/deals', { replace: false });
-    } else {
-      handleBackToContactDetail();
-    }
+    handleGoBack(() => {
+      if (selectedContact && selectedContact.id && (selectedDeal?.contactId === selectedContact.id || selectedDeal?.contactId === selectedContact.code || selectedDeal?.contactName === selectedContact.fullName)) {
+        handleBackToContactDetail();
+      } else {
+        setCurrentTab('deals');
+        setCurrentView('deals');
+        navigate('/dashboard/agent/deals', { replace: false });
+      }
+    });
   }
 
   function handleSelectTicket(ticket) {
     if (!ticket) return;
+    pushHistory();
     const ticketObj = typeof ticket === 'string' ? { id: ticket, code: ticket } : ticket;
-    addTicketToStore(ticketObj);
-    setSelectedTicket(ticketObj);
+    const enriched = {
+      ...ticketObj,
+      dealId: ticketObj.dealId || (selectedDeal ? selectedDeal.id || selectedDeal.code : ''),
+      dealTitle: ticketObj.dealTitle || (selectedDeal ? selectedDeal.title : ''),
+      contactId: ticketObj.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
+      contactName: ticketObj.contactName || (selectedContact ? selectedContact.fullName : ''),
+    };
+    addTicketToStore(enriched);
+    setSelectedTicket(enriched);
     setCurrentTab('tickets');
     setCurrentView('ticket-detail');
-    navigate(`/dashboard/agent/tickets/${ticketObj.id || ticketObj.code}`, { replace: false });
+    navigate(`/dashboard/agent/tickets/${enriched.id || enriched.code}`, { replace: false });
   }
 
   function handleSelectTask(task) {
-    setSelectedTask(task);
+    if (!task) return;
+    pushHistory();
+    const enriched = {
+      ...(typeof task === 'object' ? task : { id: task, title: task }),
+      dealId: task?.dealId || (selectedDeal ? selectedDeal.id || selectedDeal.code : ''),
+      contactId: task?.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
+      ticketId: task?.ticketId || (selectedTicket ? selectedTicket.id || selectedTicket.code : ''),
+    };
+    setSelectedTask(enriched);
+    setCurrentTab('tasks');
     setCurrentView('task-detail');
-    navigate(`/dashboard/agent/tasks/${task?.id || task}`, { replace: false });
+    navigate(`/dashboard/agent/tasks/${enriched?.id || task}`, { replace: false });
   }
 
   function handleBackFromTicket() {
-    setCurrentView('tickets');
-    navigate('/dashboard/agent/tickets', { replace: false });
+    handleGoBack(() => {
+      if (selectedDeal && selectedDeal.id && (selectedTicket?.dealId === selectedDeal.id || selectedTicket?.dealId === selectedDeal.code)) {
+        handleBackToDealDetail();
+      } else if (selectedContact && selectedContact.id && (selectedTicket?.contactId === selectedContact.id || selectedTicket?.contactId === selectedContact.code)) {
+        handleBackToContactDetail();
+      } else {
+        setCurrentTab('tickets');
+        setCurrentView('tickets');
+        navigate('/dashboard/agent/tickets', { replace: false });
+      }
+    });
   }
 
   function handleBackFromTask() {
-    setCurrentView('tasks');
-    navigate('/dashboard/agent/tasks', { replace: false });
+    handleGoBack(() => {
+      if (selectedDeal && selectedDeal.id && (selectedTask?.dealId === selectedDeal.id || selectedTask?.dealId === selectedDeal.code)) {
+        handleBackToDealDetail();
+      } else if (selectedContact && selectedContact.id && (selectedTask?.contactId === selectedContact.id || selectedTask?.contactId === selectedContact.code)) {
+        handleBackToContactDetail();
+      } else if (selectedTicket && selectedTicket.id && (selectedTask?.ticketId === selectedTicket.id || selectedTask?.ticketId === selectedTicket.code)) {
+        handleBackToTicketDetail();
+      } else {
+        setCurrentTab('tasks');
+        setCurrentView('tasks');
+        navigate('/dashboard/agent/tasks', { replace: false });
+      }
+    });
   }
 
   return (

@@ -958,7 +958,7 @@ export default function StaffDealDetail({
           <button
             onClick={onBack}
             className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-700 flex items-center justify-center transition cursor-pointer"
-            title="Back to Contact Detail"
+            title="Quay lại"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>

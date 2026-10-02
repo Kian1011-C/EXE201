@@ -91,8 +91,13 @@ export default function StaffTaskDetail({ task, onBack, onSelectContact, onSelec
     <div className="p-6 max-w-7xl mx-auto flex flex-col h-full space-y-6">
       {/* Header Navigation */}
       <div>
-        <button onClick={onBack} className="text-blue-600 hover:underline text-sm font-medium flex items-center mb-4">
-          &larr; Back to Tasks
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-blue-600 hover:text-blue-800 transition text-sm font-semibold flex items-center gap-1.5 mb-4 cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          <span>Quay lại</span>
         </button>
       </div>
 

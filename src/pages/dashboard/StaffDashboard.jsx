@@ -54,6 +54,72 @@ export default function StaffDashboard() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
 
+  // Navigation history stack for seamless cross-entity return
+  const [navHistory, setNavHistory] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('insurmatch_nav_history_staff');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('insurmatch_nav_history_staff', JSON.stringify(navHistory));
+    } catch {
+      // ignore
+    }
+  }, [navHistory]);
+
+  function pushHistory() {
+    setNavHistory((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && last.pathname === location.pathname && last.view === currentView) {
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          view: currentView,
+          tab: currentTab,
+          pathname: location.pathname,
+          contact: selectedContact,
+          deal: selectedDeal,
+          ticket: selectedTicket,
+          task: selectedTask,
+          document: selectedDocument,
+        },
+      ];
+    });
+  }
+
+  function handleGoBack(fallbackFn) {
+    if (navHistory.length > 0) {
+      const last = navHistory[navHistory.length - 1];
+      setNavHistory((prev) => prev.slice(0, -1));
+
+      if (last.contact) setSelectedContact(last.contact);
+      if (last.deal) setSelectedDeal(last.deal);
+      if (last.ticket) setSelectedTicket(last.ticket);
+      if (last.task) setSelectedTask(last.task);
+      if (last.document) setSelectedDocument(last.document);
+
+      setCurrentTab(last.tab);
+      setCurrentView(last.view);
+
+      if (last.pathname && last.pathname !== location.pathname) {
+        navigate(last.pathname, { replace: false });
+      }
+      return true;
+    }
+
+    if (fallbackFn) {
+      fallbackFn();
+    }
+    return false;
+  }
+
   // Sync state with URL path
   useEffect(() => {
     const path = location.pathname;
@@ -176,6 +242,9 @@ export default function StaffDashboard() {
 
   // ── Contact Handlers ──────────────────────────────────────────────────────
   function handleSelectContact(contact, updateUrl = true) {
+    if (updateUrl) {
+      pushHistory();
+    }
     const p = contact.primary || {};
     let firstName = contact.firstName || p.firstName;
     let middleName = contact.middleName || p.middleName || '';
@@ -260,13 +329,23 @@ export default function StaffDashboard() {
 
   // ── Deal Handlers ─────────────────────────────────────────────────────────
   function handleSelectDeal(deal) {
-    setSelectedDeal({ ...DEAL_DETAIL_DATA, ...(deal || {}) });
+    pushHistory();
+    const dealWithContact = {
+      ...DEAL_DETAIL_DATA,
+      ...(deal || {}),
+      contactId: deal?.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
+      contactName: deal?.contactName || (selectedContact ? selectedContact.fullName : ''),
+      contact: deal?.contact || selectedContact,
+    };
+    setSelectedDeal(dealWithContact);
+    setCurrentTab('deals');
     setCurrentView('deal-detail');
     navigate(`/dashboard/staff/deals/${deal?.id || 'D26005033'}`, { replace: false });
   }
 
   // ── Document Handler ──────────────────────────────────────────────────────
   function handleSelectCustomerDocument(doc) {
+    pushHistory();
     const targetDoc = doc || selectedContact?.customerDocument || {
       id: `doc-${selectedContact?.id || Date.now()}`,
       name: selectedContact?.fullName || 'Hai Nguyen',
@@ -334,23 +413,44 @@ export default function StaffDashboard() {
   // ── Ticket Handlers ───────────────────────────────────────────────────────
   function handleSelectTicket(ticket) {
     if (!ticket) return;
+    pushHistory();
     const ticketObj = typeof ticket === 'string' ? { id: ticket, code: ticket } : ticket;
-    addTicketToStore(ticketObj);
-    setSelectedTicket(ticketObj);
+    const enriched = {
+      ...ticketObj,
+      dealId: ticketObj.dealId || (selectedDeal ? selectedDeal.id || selectedDeal.code : ''),
+      dealTitle: ticketObj.dealTitle || (selectedDeal ? selectedDeal.title : ''),
+      contactId: ticketObj.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
+      contactName: ticketObj.contactName || (selectedContact ? selectedContact.fullName : ''),
+    };
+    addTicketToStore(enriched);
+    setSelectedTicket(enriched);
     setCurrentTab('tickets');
     setCurrentView('ticket-detail');
-    navigate(`/dashboard/staff/tickets/${ticketObj.id || ticketObj.code}`, { replace: false });
+    navigate(`/dashboard/staff/tickets/${enriched.id || enriched.code}`, { replace: false });
   }
 
   // ── Task Handlers ─────────────────────────────────────────────────────────
   function handleSelectTask(task) {
-    setSelectedTask(task);
+    if (!task) return;
+    pushHistory();
+    const enriched = {
+      ...(typeof task === 'object' ? task : { id: task, title: task }),
+      dealId: task?.dealId || (selectedDeal ? selectedDeal.id || selectedDeal.code : ''),
+      contactId: task?.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
+      ticketId: task?.ticketId || (selectedTicket ? selectedTicket.id || selectedTicket.code : ''),
+    };
+    setSelectedTask(enriched);
+    setCurrentTab('tasks');
     setCurrentView('task-detail');
-    navigate(`/dashboard/staff/tasks/${task?.id || task}`, { replace: false });
+    navigate(`/dashboard/staff/tasks/${enriched?.id || task}`, { replace: false });
   }
 
   // ── Tab Navigation ────────────────────────────────────────────────────────
   function handleSelectTab(tab) {
+    setNavHistory([]);
+    try {
+      sessionStorage.removeItem('insurmatch_nav_history_staff');
+    } catch {}
     setCurrentTab(tab);
     if (tab === 'dashboard') {
       setCurrentView('dashboard');
@@ -378,42 +478,82 @@ export default function StaffDashboard() {
 
   // ── Back Navigation ───────────────────────────────────────────────────────
   function handleBackToContacts() {
-    setCurrentTab('contacts');
-    setCurrentView('list');
-    navigate('/dashboard/staff', { replace: false });
+    handleGoBack(() => {
+      setCurrentTab('contacts');
+      setCurrentView('list');
+      navigate('/dashboard/staff', { replace: false });
+    });
   }
 
   function handleBackToContactDetail() {
+    setCurrentTab('contacts');
     setCurrentView('contact-detail');
     navigate(`/dashboard/staff/contacts/${selectedContact?.id || 'CT26002600'}`, { replace: false });
   }
 
+  function handleBackToDealDetail() {
+    setCurrentTab('deals');
+    setCurrentView('deal-detail');
+    navigate(`/dashboard/staff/deals/${selectedDeal?.id || 'D26005033'}`, { replace: false });
+  }
+
+  function handleBackToTicketDetail() {
+    setCurrentTab('tickets');
+    setCurrentView('ticket-detail');
+    navigate(`/dashboard/staff/tickets/${selectedTicket?.id || 'TC26001001'}`, { replace: false });
+  }
+
   function handleBackFromCustomerDocument() {
-    if (currentTab === 'documents') {
-      setCurrentView('customer-documents-list');
-      navigate('/dashboard/staff/documents', { replace: false });
-    } else {
-      handleBackToContactDetail();
-    }
+    handleGoBack(() => {
+      if (currentTab === 'documents') {
+        setCurrentView('customer-documents-list');
+        navigate('/dashboard/staff/documents', { replace: false });
+      } else {
+        handleBackToContactDetail();
+      }
+    });
   }
 
   function handleBackFromDeal() {
-    if (currentTab === 'deals') {
-      setCurrentView('deals-list');
-      navigate('/dashboard/staff/deals', { replace: false });
-    } else {
-      handleBackToContactDetail();
-    }
+    handleGoBack(() => {
+      if (selectedContact && selectedContact.id && (selectedDeal?.contactId === selectedContact.id || selectedDeal?.contactId === selectedContact.code || selectedDeal?.contactName === selectedContact.fullName)) {
+        handleBackToContactDetail();
+      } else {
+        setCurrentTab('deals');
+        setCurrentView('deals-list');
+        navigate('/dashboard/staff/deals', { replace: false });
+      }
+    });
   }
 
   function handleBackFromTicket() {
-    setCurrentView('tickets-list');
-    navigate('/dashboard/staff/tickets', { replace: false });
+    handleGoBack(() => {
+      if (selectedDeal && selectedDeal.id && (selectedTicket?.dealId === selectedDeal.id || selectedTicket?.dealId === selectedDeal.code)) {
+        handleBackToDealDetail();
+      } else if (selectedContact && selectedContact.id && (selectedTicket?.contactId === selectedContact.id || selectedTicket?.contactId === selectedContact.code)) {
+        handleBackToContactDetail();
+      } else {
+        setCurrentTab('tickets');
+        setCurrentView('tickets-list');
+        navigate('/dashboard/staff/tickets', { replace: false });
+      }
+    });
   }
 
   function handleBackFromTask() {
-    setCurrentView('tasks-list');
-    navigate('/dashboard/staff/tasks', { replace: false });
+    handleGoBack(() => {
+      if (selectedDeal && selectedDeal.id && (selectedTask?.dealId === selectedDeal.id || selectedTask?.dealId === selectedDeal.code)) {
+        handleBackToDealDetail();
+      } else if (selectedContact && selectedContact.id && (selectedTask?.contactId === selectedContact.id || selectedTask?.contactId === selectedContact.code)) {
+        handleBackToContactDetail();
+      } else if (selectedTicket && selectedTicket.id && (selectedTask?.ticketId === selectedTicket.id || selectedTask?.ticketId === selectedTicket.code)) {
+        handleBackToTicketDetail();
+      } else {
+        setCurrentTab('tasks');
+        setCurrentView('tasks-list');
+        navigate('/dashboard/staff/tasks', { replace: false });
+      }
+    });
   }
 
   return (

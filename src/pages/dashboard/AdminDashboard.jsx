@@ -81,6 +81,72 @@ export default function AdminDashboard() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
 
+  // Navigation history stack for seamless cross-entity return
+  const [navHistory, setNavHistory] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('insurmatch_nav_history_admin');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('insurmatch_nav_history_admin', JSON.stringify(navHistory));
+    } catch {
+      // ignore
+    }
+  }, [navHistory]);
+
+  function pushHistory() {
+    setNavHistory((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && last.pathname === location.pathname && last.view === currentView) {
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          view: currentView,
+          tab: activeTab,
+          pathname: location.pathname,
+          contact: selectedContact,
+          deal: selectedDeal,
+          ticket: selectedTicket,
+          task: selectedTask,
+          document: selectedDocument,
+        },
+      ];
+    });
+  }
+
+  function handleGoBack(fallbackFn) {
+    if (navHistory.length > 0) {
+      const last = navHistory[navHistory.length - 1];
+      setNavHistory((prev) => prev.slice(0, -1));
+
+      if (last.contact) setSelectedContact(last.contact);
+      if (last.deal) setSelectedDeal(last.deal);
+      if (last.ticket) setSelectedTicket(last.ticket);
+      if (last.task) setSelectedTask(last.task);
+      if (last.document) setSelectedDocument(last.document);
+
+      setActiveTab(last.tab);
+      setCurrentView(last.view);
+
+      if (last.pathname && last.pathname !== location.pathname) {
+        navigate(last.pathname, { replace: false });
+      }
+      return true;
+    }
+
+    if (fallbackFn) {
+      fallbackFn();
+    }
+    return false;
+  }
+
   // Administrative Data states
   const [refreshing, setRefreshing] = useState(false);
   const [dbStatus, setDbStatus] = useState('checking'); // 'connected' | 'offline'
@@ -268,6 +334,10 @@ export default function AdminDashboard() {
 
   // ── Tab Selection Handlers ─────────────────────────────────────────────────
   function handleSelectTab(tabId) {
+    setNavHistory([]);
+    try {
+      sessionStorage.removeItem('insurmatch_nav_history_admin');
+    } catch {}
     setActiveTab(tabId);
     if (tabId === 'overview') {
       setCurrentView('overview');
@@ -304,6 +374,9 @@ export default function AdminDashboard() {
 
   // ── Contact Handlers ───────────────────────────────────────────────────────
   function handleSelectContact(contact, updateUrl = true) {
+    if (updateUrl) {
+      pushHistory();
+    }
     const p = contact.primary || {};
     let firstName = contact.firstName || p.firstName;
     let middleName = contact.middleName || p.middleName || '';
@@ -389,7 +462,15 @@ export default function AdminDashboard() {
 
   // ── Deal Handlers ──────────────────────────────────────────────────────────
   function handleSelectDeal(deal) {
-    setSelectedDeal({ ...DEAL_DETAIL_DATA, ...(deal || {}) });
+    pushHistory();
+    const dealWithContact = {
+      ...DEAL_DETAIL_DATA,
+      ...(deal || {}),
+      contactId: deal?.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
+      contactName: deal?.contactName || (selectedContact ? selectedContact.fullName : ''),
+      contact: deal?.contact || selectedContact,
+    };
+    setSelectedDeal(dealWithContact);
     setActiveTab('deals');
     setCurrentView('deal-detail');
     navigate(`/dashboard/admin/deals/${deal?.id || 'D26005033'}`, { replace: false });
@@ -397,6 +478,7 @@ export default function AdminDashboard() {
 
   // ── Document Handler ───────────────────────────────────────────────────────
   function handleSelectCustomerDocument(doc) {
+    pushHistory();
     const targetDoc = doc || selectedContact?.customerDocument || {
       id: `doc-${selectedContact?.id || Date.now()}`,
       name: selectedContact?.fullName || 'Hai Nguyen',
@@ -465,27 +547,45 @@ export default function AdminDashboard() {
   // ── Ticket Handlers ────────────────────────────────────────────────────────
   function handleSelectTicket(ticket) {
     if (!ticket) return;
+    pushHistory();
     const ticketObj = typeof ticket === 'string' ? { id: ticket, code: ticket } : ticket;
-    addTicketToStore(ticketObj);
-    setSelectedTicket(ticketObj);
+    const enriched = {
+      ...ticketObj,
+      dealId: ticketObj.dealId || (selectedDeal ? selectedDeal.id || selectedDeal.code : ''),
+      dealTitle: ticketObj.dealTitle || (selectedDeal ? selectedDeal.title : ''),
+      contactId: ticketObj.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
+      contactName: ticketObj.contactName || (selectedContact ? selectedContact.fullName : ''),
+    };
+    addTicketToStore(enriched);
+    setSelectedTicket(enriched);
     setActiveTab('tickets');
     setCurrentView('ticket-detail');
-    navigate(`/dashboard/admin/tickets/${ticketObj.id || ticketObj.code}`, { replace: false });
+    navigate(`/dashboard/admin/tickets/${enriched.id || enriched.code}`, { replace: false });
   }
 
   // ── Task Handlers ──────────────────────────────────────────────────────────
   function handleSelectTask(task) {
-    setSelectedTask(task);
+    if (!task) return;
+    pushHistory();
+    const enriched = {
+      ...(typeof task === 'object' ? task : { id: task, title: task }),
+      dealId: task?.dealId || (selectedDeal ? selectedDeal.id || selectedDeal.code : ''),
+      contactId: task?.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
+      ticketId: task?.ticketId || (selectedTicket ? selectedTicket.id || selectedTicket.code : ''),
+    };
+    setSelectedTask(enriched);
     setActiveTab('tasks');
     setCurrentView('task-detail');
-    navigate(`/dashboard/admin/tasks/${task?.id || task}`, { replace: false });
+    navigate(`/dashboard/admin/tasks/${enriched?.id || task}`, { replace: false });
   }
 
   // ── Back Navigation Handlers ───────────────────────────────────────────────
   function handleBackToContacts() {
-    setActiveTab('contacts');
-    setCurrentView('contacts-list');
-    navigate('/dashboard/admin/contacts', { replace: false });
+    handleGoBack(() => {
+      setActiveTab('contacts');
+      setCurrentView('contacts-list');
+      navigate('/dashboard/admin/contacts', { replace: false });
+    });
   }
 
   function handleBackToContactDetail() {
@@ -494,34 +594,69 @@ export default function AdminDashboard() {
     navigate(`/dashboard/admin/contacts/${selectedContact?.id || 'CT26002600'}`, { replace: false });
   }
 
+  function handleBackToDealDetail() {
+    setActiveTab('deals');
+    setCurrentView('deal-detail');
+    navigate(`/dashboard/admin/deals/${selectedDeal?.id || 'D26005033'}`, { replace: false });
+  }
+
+  function handleBackToTicketDetail() {
+    setActiveTab('tickets');
+    setCurrentView('ticket-detail');
+    navigate(`/dashboard/admin/tickets/${selectedTicket?.id || 'TC26001001'}`, { replace: false });
+  }
+
   function handleBackFromCustomerDocument() {
-    if (activeTab === 'documents') {
-      setCurrentView('customer-documents-list');
-      navigate('/dashboard/admin/documents', { replace: false });
-    } else {
-      handleBackToContactDetail();
-    }
+    handleGoBack(() => {
+      if (activeTab === 'documents') {
+        setCurrentView('customer-documents-list');
+        navigate('/dashboard/admin/documents', { replace: false });
+      } else {
+        handleBackToContactDetail();
+      }
+    });
   }
 
   function handleBackFromDeal() {
-    if (activeTab === 'deals') {
-      setCurrentView('deals-list');
-      navigate('/dashboard/admin/deals', { replace: false });
-    } else {
-      handleBackToContactDetail();
-    }
+    handleGoBack(() => {
+      if (selectedContact && selectedContact.id && (selectedDeal?.contactId === selectedContact.id || selectedDeal?.contactId === selectedContact.code || selectedDeal?.contactName === selectedContact.fullName)) {
+        handleBackToContactDetail();
+      } else {
+        setActiveTab('deals');
+        setCurrentView('deals-list');
+        navigate('/dashboard/admin/deals', { replace: false });
+      }
+    });
   }
 
   function handleBackFromTicket() {
-    setActiveTab('tickets');
-    setCurrentView('tickets-list');
-    navigate('/dashboard/admin/tickets', { replace: false });
+    handleGoBack(() => {
+      if (selectedDeal && selectedDeal.id && (selectedTicket?.dealId === selectedDeal.id || selectedTicket?.dealId === selectedDeal.code)) {
+        handleBackToDealDetail();
+      } else if (selectedContact && selectedContact.id && (selectedTicket?.contactId === selectedContact.id || selectedTicket?.contactId === selectedContact.code)) {
+        handleBackToContactDetail();
+      } else {
+        setActiveTab('tickets');
+        setCurrentView('tickets-list');
+        navigate('/dashboard/admin/tickets', { replace: false });
+      }
+    });
   }
 
   function handleBackFromTask() {
-    setActiveTab('tasks');
-    setCurrentView('tasks-list');
-    navigate('/dashboard/admin/tasks', { replace: false });
+    handleGoBack(() => {
+      if (selectedDeal && selectedDeal.id && (selectedTask?.dealId === selectedDeal.id || selectedTask?.dealId === selectedDeal.code)) {
+        handleBackToDealDetail();
+      } else if (selectedContact && selectedContact.id && (selectedTask?.contactId === selectedContact.id || selectedTask?.contactId === selectedContact.code)) {
+        handleBackToContactDetail();
+      } else if (selectedTicket && selectedTicket.id && (selectedTask?.ticketId === selectedTicket.id || selectedTask?.ticketId === selectedTicket.code)) {
+        handleBackToTicketDetail();
+      } else {
+        setActiveTab('tasks');
+        setCurrentView('tasks-list');
+        navigate('/dashboard/admin/tasks', { replace: false });
+      }
+    });
   }
 
   return (

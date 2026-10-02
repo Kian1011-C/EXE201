@@ -3020,7 +3020,8 @@ export default function StaffContactDetail({
                         />
                         <div>
                           <div
-                            className={`font-semibold text-slate-900 ${
+                            onClick={() => onSelectTask && onSelectTask(task)}
+                            className={`font-semibold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer ${
                               task.status === 'Completed' ? 'line-through text-slate-400' : ''
                             }`}
                           >
