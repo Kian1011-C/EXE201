@@ -8,6 +8,7 @@ import {
   deleteDocumentFile,
   updateDocument,
 } from '../../../services/api';
+import toast from 'react-hot-toast';
 
 export default function StaffCustomerDocumentDetail({
   documentData,
@@ -280,7 +281,7 @@ export default function StaffCustomerDocumentDetail({
 
         {/* Right Actions: View history | Refresh */}
         <div className="flex items-center gap-3 text-xs text-slate-600">
-          <button onClick={() => alert('Tính năng đang được phát triển!')}
+          <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
             type="button"
             className="flex items-center gap-1.5 text-slate-700 hover:text-blue-700 transition cursor-pointer"
           >
@@ -336,7 +337,7 @@ export default function StaffCustomerDocumentDetail({
                 <span className="material-symbols-outlined text-[16px]">menu_book</span>
                 <span>Information</span>
               </div>
-              <button onClick={() => alert('Tính năng đang được phát triển!')}
+              <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                 type="button"
                 className="flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
               >
@@ -518,7 +519,7 @@ export default function StaffCustomerDocumentDetail({
           <div className="h-11 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0">
             {/* Tab Contacts */}
             <div className="flex items-center gap-6 h-full">
-              <button onClick={() => alert('Tính năng đang được phát triển!')}
+              <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                 type="button"
                 className="flex items-center gap-1.5 text-xs font-bold text-slate-800 h-full border-b-2 border-[#104882] px-1 cursor-pointer"
               >
@@ -547,7 +548,7 @@ export default function StaffCustomerDocumentDetail({
                 <span className="material-symbols-outlined text-[15px]">refresh</span>
                 <span>Refresh</span>
               </button>
-              <button onClick={() => alert('Tính năng đang được phát triển!')}
+              <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                 type="button"
                 className="text-slate-400 hover:text-slate-700 transition"
               >

@@ -16,6 +16,7 @@ import {
   addContactTask,
   getDeals,
 } from '../../../services/api';
+import toast from 'react-hot-toast';
 
 export function isDealBelongingToContact(deal, contactName, contactId) {
   if (!deal) return false;
@@ -2364,10 +2365,10 @@ export default function StaffTicketDetail({
                 <span>Companies (0)</span>
               </button>
               <div className="flex items-center gap-2 text-slate-400">
-                <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Add company" className="hover:text-blue-600">
+                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Add company" className="hover:text-blue-600">
                   <span className="material-symbols-outlined text-[16px]">add</span>
                 </button>
-                <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Refresh" className="hover:text-blue-600">
+                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Refresh" className="hover:text-blue-600">
                   <span className="material-symbols-outlined text-[15px]">refresh</span>
                 </button>
               </div>
@@ -2404,10 +2405,10 @@ export default function StaffTicketDetail({
                 <span>Contacts ({contactName && contactName !== 'Unknown' ? 1 : 0})</span>
               </button>
               <div className="flex items-center gap-2 text-slate-400">
-                <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Add contact" className="hover:text-blue-600">
+                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Add contact" className="hover:text-blue-600">
                   <span className="material-symbols-outlined text-[16px]">add</span>
                 </button>
-                <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Refresh" className="hover:text-blue-600">
+                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Refresh" className="hover:text-blue-600">
                   <span className="material-symbols-outlined text-[15px]">refresh</span>
                 </button>
               </div>
@@ -2520,7 +2521,7 @@ export default function StaffTicketDetail({
                     <span>Deals ({hasAssociatedDeal ? 1 : 0})</span>
                   </button>
                   <div className="flex items-center gap-2 text-slate-400">
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Add deal" className="hover:text-blue-600">
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Add deal" className="hover:text-blue-600">
                       <span className="material-symbols-outlined text-[16px]">add</span>
                     </button>
                     <button

@@ -93,10 +93,13 @@ function PublicRoutes() {
   );
 }
 
+import { Toaster } from 'react-hot-toast';
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Toaster position="bottom-right" />
         <ScrollToTop />
         <ErrorBoundary>
           <Routes>

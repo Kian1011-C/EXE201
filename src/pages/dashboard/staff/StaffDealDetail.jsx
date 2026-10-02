@@ -16,6 +16,7 @@ import {
   getCurrentActor,
 } from '../../../services/propertyHistoryService';
 import { useAuth } from '../../../auth/AuthContext';
+import toast from 'react-hot-toast';
 
 export default function StaffDealDetail({
   deal,
@@ -1213,7 +1214,7 @@ export default function StaffDealDetail({
                 <span className="material-symbols-outlined text-[16px]">menu_book</span>
                 <span>Information</span>
               </div>
-              <button onClick={() => alert('Tính năng đang được phát triển!')}
+              <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                 type="button"
                 className="flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
               >
@@ -2105,13 +2106,13 @@ export default function StaffDealDetail({
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
+                      <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
                         <span>+ Collapse all</span>
                       </button>
-                      <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
+                      <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
                         <span>+ Expand all</span>
                       </button>
-                      <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
+                      <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-blue-600 flex items-center gap-1 cursor-pointer">
                         <span className="material-symbols-outlined text-[14px]">refresh</span>
                         <span>Refresh</span>
                       </button>
@@ -2324,7 +2325,7 @@ export default function StaffDealDetail({
                                 </span>
                               )}
                             </button>
-                            <button onClick={() => alert('Tính năng đang được phát triển!')}
+                            <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                               type="button"
                               className="inline-flex items-center gap-1 text-[11px] text-slate-600 hover:text-blue-600 transition cursor-pointer font-medium"
                             >
@@ -2713,14 +2714,14 @@ export default function StaffDealDetail({
                   {/* Toolbar Row */}
                   <div className="bg-[#F8FAFC] border-b border-slate-200 px-2 py-1.5 flex flex-wrap items-center gap-1 text-slate-700 text-xs select-none">
                     {/* Undo / Redo */}
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Undo"
                       className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">undo</span>
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Redo"
                       className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer"
@@ -2772,21 +2773,21 @@ export default function StaffDealDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* Bold, Italic, Underline */}
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Bold"
                       className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer"
                     >
                       B
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Italic"
                       className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer"
                     >
                       I
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Underline"
                       className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer"
@@ -2797,14 +2798,14 @@ export default function StaffDealDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* Lists */}
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Bullet List"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">format_list_bulleted</span>
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Numbered List"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
@@ -2815,28 +2816,28 @@ export default function StaffDealDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* Alignments */}
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Align Left"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">format_align_left</span>
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Align Center"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">format_align_center</span>
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Align Right"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">format_align_right</span>
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="Justify"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
@@ -2859,7 +2860,7 @@ export default function StaffDealDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* More */}
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       title="More options"
                       className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer"
@@ -3037,14 +3038,14 @@ export default function StaffDealDetail({
                 <div className="border border-slate-300 rounded-lg overflow-hidden bg-white shadow-2xs focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-400/30 transition">
                   {/* Toolbar */}
                   <div className="bg-[#F8FAFC] border-b border-slate-200 px-2 py-1.5 flex flex-wrap items-center gap-1 text-slate-700 text-xs select-none">
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Bold" className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer">B</button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Italic" className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer">I</button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Underline" className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer">U</button>
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Bold" className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer">B</button>
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Italic" className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer">I</button>
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Underline" className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer">U</button>
                     <div className="h-4 w-px bg-slate-300 mx-1" />
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Bullet List" className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer">
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Bullet List" className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">format_list_bulleted</span>
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Numbered List" className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer">
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Numbered List" className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">format_list_numbered</span>
                     </button>
                   </div>
@@ -3403,10 +3404,10 @@ export default function StaffDealDetail({
                   {/* Toolbar Row */}
                   <div className="bg-[#F8FAFC] border-b border-slate-200 px-2 py-1.5 flex flex-wrap items-center gap-1 text-slate-700 text-xs select-none">
                     {/* Undo / Redo */}
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Undo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Undo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">undo</span>
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Redo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Redo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">redo</span>
                     </button>
 
@@ -3454,20 +3455,20 @@ export default function StaffDealDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* Bold, Italic, Underline */}
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Bold" className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer">
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Bold" className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer">
                       B
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Italic" className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer">
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Italic" className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer">
                       I
                     </button>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="Underline" className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer">
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Underline" className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer">
                       U
                     </button>
 
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* More */}
-                    <button onClick={() => alert('Tính năng đang được phát triển!')} type="button" title="More options" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="More options" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                     </button>
                   </div>

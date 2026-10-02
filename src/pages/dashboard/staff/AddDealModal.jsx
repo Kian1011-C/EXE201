@@ -11,6 +11,7 @@ import {
 import { createTicket, createDeal } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
+import toast from 'react-hot-toast';
 
 const OWNER_OPTIONS = [
   '--',
@@ -559,7 +560,7 @@ export default function AddDealModal({
                         {d.pipeline} • {d.carrier} • Stage: {d.stage}
                       </div>
                     </div>
-                    <button onClick={() => alert('Tính năng đang được phát triển!')}
+                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
                       type="button"
                       className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs flex items-center gap-1"
                     >
