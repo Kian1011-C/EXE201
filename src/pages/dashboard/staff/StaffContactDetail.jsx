@@ -161,13 +161,13 @@ export default function StaffContactDetail({
   const taskFileInputRef = useRef(null);
 
   // Address fields
-  const [enrolledAddress, setEnrolledAddress] = useState(contact?.contactFields?.enrolledAddress || '');
-  const [mailingAddress, setMailingAddress] = useState(contact?.contactFields?.mailingAddress || '');
-  const [streetAddress, setStreetAddress] = useState(contact?.contactFields?.streetAddress || '');
-  const [city, setCity] = useState(contact?.contactFields?.city || '');
-  const [contactState, setContactState] = useState(contact?.contactFields?.state || '');
-  const [postalCode, setPostalCode] = useState(contact?.contactFields?.postalCode || '');
-  const [county, setCounty] = useState(contact?.contactFields?.county || '');
+  const [enrolledAddress, setEnrolledAddress] = useState(contact?.address || contact?.contactFields?.enrolledAddress || '');
+  const [mailingAddress, setMailingAddress] = useState(contact?.mailingAddress || contact?.contactFields?.mailingAddress || '');
+  const [streetAddress, setStreetAddress] = useState(contact?.streetAddress || contact?.contactFields?.streetAddress || '');
+  const [city, setCity] = useState(contact?.city || contact?.contactFields?.city || '');
+  const [contactState, setContactState] = useState(contact?.state || contact?.contactFields?.state || '');
+  const [postalCode, setPostalCode] = useState(contact?.zipCode || contact?.contactFields?.postalCode || '');
+  const [county, setCounty] = useState(contact?.county || contact?.contactFields?.county || '');
 
   // ACA Account fields & Status sync state
   const [theBestRateEmail, setTheBestRateEmail] = useState(
@@ -673,13 +673,13 @@ export default function StaffContactDetail({
       setContactEmail(contact.email || '');
 
       const cf = contact.contactFields || {};
-      setEnrolledAddress(cf.enrolledAddress || '');
-      setMailingAddress(cf.mailingAddress || '');
-      setStreetAddress(cf.streetAddress || '');
-      setCity(cf.city || '');
-      setContactState(cf.state || '');
-      setPostalCode(cf.postalCode || '');
-      setCounty(cf.county || '');
+      setEnrolledAddress(contact.address || cf.enrolledAddress || '');
+      setMailingAddress(contact.mailingAddress || cf.mailingAddress || '');
+      setStreetAddress(contact.streetAddress || cf.streetAddress || '');
+      setCity(contact.city || cf.city || '');
+      setContactState(contact.state || cf.state || '');
+      setPostalCode(contact.zipCode || cf.postalCode || '');
+      setCounty(contact.county || cf.county || '');
 
       setLeadHowDoYouKnowUs(contact.howDoYouKnowUs || '');
       setLeadWhoRefer(contact.whoReferClient || '');
