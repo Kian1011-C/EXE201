@@ -82,6 +82,17 @@ export default function LoginPage() {
           <p className="text-blue-100/70 text-lg max-w-md leading-relaxed">
             The all-in-one portal for agents and staff to manage client matching, carrier contracts, and policy quotes efficiently.
           </p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mt-12 relative z-10 rounded-2xl overflow-hidden shadow-2xl border border-white/10 max-h-[45vh] flex items-center justify-center bg-black/20"
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A1628]/80 to-transparent pointer-events-none z-10" />
+          <img src="/images/hero-illustration.jpg" alt="InsurMatch Platform" className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity" />
+        </motion.div>
+
         </motion.div>
 
         <motion.div 

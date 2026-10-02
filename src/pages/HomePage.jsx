@@ -221,18 +221,6 @@ export default function HomePage({ onOpenQuote }) {
               </Link>
             </div>
 
-            
-            {/* Hero Image */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="mt-12 w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-stroke-subtle relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/20 to-transparent pointer-events-none z-10" />
-              <img src="/images/hero-illustration.jpg" alt="InsurMatch CRM Platform" className="w-full h-auto object-cover transform hover:scale-[1.02] transition-transform duration-700" />
-            </motion.div>
-
             {/* Fine Signature Subline */}
             <div className="pt-6 flex flex-wrap justify-center items-center gap-5 text-xs text-charcoal/70 max-w-xl">
               <span className="flex items-center gap-1.5 font-medium">
