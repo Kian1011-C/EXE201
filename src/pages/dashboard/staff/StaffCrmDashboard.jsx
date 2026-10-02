@@ -28,6 +28,12 @@ import {
 import { INITIAL_ADMIN_COMMISSIONS } from '../../../data/mockAdminAccounts';
 import toast from 'react-hot-toast';
 
+export const DASHBOARD_OPTIONS = [
+  'Company Overview Dashboard',
+  'Daily work of staff - All Teams',
+  'Daily work of staff - Team Tiger Truong',
+];
+
 export default function StaffCrmDashboard({
   onSelectTab,
   onSelectDeal,
@@ -61,8 +67,9 @@ export default function StaffCrmDashboard({
   const [liveCommissions, setLiveCommissions] = useState(() => INITIAL_ADMIN_COMMISSIONS);
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'obamacare' | 'medicare' | 'tickets' | 'tasks' | 'commissions'
   const [selectedDashboard, setSelectedDashboard] = useState(
-    'Daily work of staff - Team Tiger Truong'
+    'Company Overview Dashboard'
   );
+  const [showDashboardDropdown, setShowDashboardDropdown] = useState(false);
 
   async function fetchStats() {
     try {
@@ -763,14 +770,54 @@ export default function StaffCrmDashboard({
             <span className="material-symbols-outlined text-[22px]">grid_view</span>
           </div>
           <div className="relative">
-            <div className="flex items-center gap-1.5 cursor-pointer group">
+            <button
+              type="button"
+              onClick={() => setShowDashboardDropdown((prev) => !prev)}
+              className="flex items-center gap-1.5 cursor-pointer group hover:bg-slate-50 px-2 py-1 -mx-2 rounded-lg transition"
+            >
               <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                 {selectedDashboard}
               </h1>
               <span className="material-symbols-outlined text-[20px] text-slate-600 group-hover:text-blue-600">
                 arrow_drop_down
               </span>
-            </div>
+            </button>
+
+            {showDashboardDropdown && (
+              <>
+                <div
+                  className="fixed inset-0 z-20"
+                  onClick={() => setShowDashboardDropdown(false)}
+                />
+                <div className="absolute left-0 top-full mt-1.5 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95">
+                  <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Select Dashboard View
+                  </div>
+                  {DASHBOARD_OPTIONS.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDashboard(opt);
+                        setShowDashboardDropdown(false);
+                      }}
+                      className={`w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition cursor-pointer ${
+                        selectedDashboard === opt
+                          ? 'bg-blue-50 text-blue-700 font-bold'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="truncate">{opt}</span>
+                      {selectedDashboard === opt && (
+                        <span className="material-symbols-outlined text-[16px] text-blue-600">
+                          check
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
