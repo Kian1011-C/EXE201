@@ -28,7 +28,7 @@ import {
 import { INITIAL_ADMIN_COMMISSIONS } from '../../../data/mockAdminAccounts';
 import toast from 'react-hot-toast';
 
-export const DASHBOARD_OPTIONS = [
+const DASHBOARD_OPTIONS = [
   'Company Overview Dashboard',
   'Daily work of staff - All Teams',
   'Daily work of staff - Team Tiger Truong',
