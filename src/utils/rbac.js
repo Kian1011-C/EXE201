@@ -103,6 +103,7 @@ export function filterContactsForAgent(contactsList, user) {
   return contactsList.filter((c) => {
     return (
       isOwnerMatch(c.contactOwner, user) ||
+      isOwnerMatch(c.contactOwnerName, user) ||
       isOwnerMatch(c.sourceOfLead?.contactOwner, user) ||
       isOwnerMatch(c.obShareOwner, user) ||
       isOwnerMatch(c.medicareShareOwner, user) ||
@@ -122,6 +123,7 @@ export function filterDealsForAgent(dealsList, user) {
   return dealsList.filter((d) => {
     return (
       isOwnerMatch(d.dealOwner, user) ||
+      isOwnerMatch(d.dealOwnerName, user) ||
       isOwnerMatch(d.leadOwner, user) ||
       isOwnerMatch(d.agentName, user) ||
       isOwnerMatch(d.adminOnly?.dealOwner, user)
@@ -139,11 +141,14 @@ export function filterTicketsForAgent(ticketsList, user) {
   return ticketsList.filter((t) => {
     return (
       isOwnerMatch(t.ticketOwner, user) ||
+      isOwnerMatch(t.ticketOwnerName, user) ||
       isOwnerMatch(t.owner, user) ||
       isOwnerMatch(t.serviceAgent, user) ||
+      isOwnerMatch(t.serviceAgentName, user) ||
       isOwnerMatch(t.agentName, user) ||
       isOwnerMatch(t.contactOwner, user) ||
-      (t.contact && (isOwnerMatch(t.contact.contactOwner, user) || isOwnerMatch(t.contact.owner, user)))
+      isOwnerMatch(t.contactOwnerName, user) ||
+      (t.contact && (isOwnerMatch(t.contact.contactOwner, user) || isOwnerMatch(t.contact.contactOwnerName, user) || isOwnerMatch(t.contact.owner, user)))
     );
   });
 }
@@ -159,11 +164,11 @@ export function filterCommissionsForAgent(commissionsList, user) {
     return (
       isOwnerMatch(c.agentName, user) ||
       isOwnerMatch(c.dealOwner, user) ||
+      isOwnerMatch(c.dealOwnerName, user) ||
       isOwnerMatch(c.owner, user)
     );
   });
 }
-
 
 /**
  * Task filtering for Agent
@@ -176,6 +181,7 @@ export function filterTasksForAgent(tasksList, user) {
     return (
       isOwnerMatch(t.assignee, user) ||
       isOwnerMatch(t.assignedTo, user) ||
+      isOwnerMatch(t.assignedToName, user) ||
       isOwnerMatch(t.owner, user)
     );
   });

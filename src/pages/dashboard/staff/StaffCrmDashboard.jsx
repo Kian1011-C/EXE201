@@ -18,6 +18,7 @@ import {
   getAgentIdentity,
 } from '../../../utils/rbac';
 import {
+  ALL_SYSTEM_AGENTS,
   SAMPLE_DEALS,
   getDynamicDeals,
   SAMPLE_CONTACTS,
@@ -29,7 +30,7 @@ import {
 import { INITIAL_ADMIN_COMMISSIONS, INITIAL_ADMIN_ACCOUNTS } from '../../../data/mockAdminAccounts';
 import toast from 'react-hot-toast';
 
-const COMPANY_OVERVIEW = 'Company Overview Dashboard';
+const COMPANY_OVERVIEW = 'Tất cả Owner (All Agents / Tổng Quan)';
 
 export default function StaffCrmDashboard({
   onSelectTab,
@@ -70,6 +71,7 @@ export default function StaffCrmDashboard({
 
   const [selectedDashboard, setSelectedDashboard] = useState(defaultDashboard);
   const [showDashboardDropdown, setShowDashboardDropdown] = useState(false);
+  const [agentSearchQuery, setAgentSearchQuery] = useState('');
 
   useEffect(() => {
     if (isAgentUser) {
@@ -219,46 +221,83 @@ export default function StaffCrmDashboard({
     }
   }
 
-  // ── Available Agent Roster (Dynamically gathered from accounts + live entities) ──
+  // ── Available Agent Roster (Tất cả Agent trong hệ thống - "owner tất cả") ──
   const availableAgents = useMemo(() => {
     const agentMap = new Map();
 
-    // 1. Initial admin accounts with role === 'agent'
+    const isNonAgent = (name) => {
+      const lower = (name || '').toLowerCase().trim();
+      return (
+        !name ||
+        name === 'Unassigned' ||
+        name === '---' ||
+        lower.includes('insurance') ||
+        lower.includes('platform') ||
+        lower.includes('admin') ||
+        lower.includes('operations') ||
+        lower.includes('system') ||
+        lower.includes('accounting')
+      );
+    };
+
+    // 1. First register ALL 35 system agents ("owner tất cả" from ALL_SYSTEM_AGENTS)
+    if (Array.isArray(ALL_SYSTEM_AGENTS)) {
+      ALL_SYSTEM_AGENTS.forEach((ag) => {
+        if (!ag.name || isNonAgent(ag.name)) return;
+        const initials =
+          ag.avatar ||
+          ag.name
+            .split(' ')
+            .filter(Boolean)
+            .map((w) => w[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase() ||
+          'AG';
+        agentMap.set(ag.name, {
+          id: `AG-${ag.name.replace(/\s+/g, '')}`,
+          name: ag.name,
+          handle: ag.handle || '',
+          email: ag.handle && ag.handle.includes('@') ? ag.handle : '',
+          agencyRole: 'Licensed Agent',
+          avatar: initials,
+          bg: ag.bg || 'bg-blue-600 text-white',
+          npn: '',
+        });
+      });
+    }
+
+    // 2. Enhance with detailed metadata from INITIAL_ADMIN_ACCOUNTS (NPN, full email, role, etc.)
     INITIAL_ADMIN_ACCOUNTS.forEach((acc) => {
-      if (acc.role === 'agent' && acc.name) {
+      if (acc.role === 'agent' && acc.name && !isNonAgent(acc.name)) {
+        const existing = agentMap.get(acc.name);
         agentMap.set(acc.name, {
+          ...(existing || {}),
           id: acc.id,
           name: acc.name,
-          email: acc.email || '',
-          agencyRole: acc.agencyRole || 'Licensed Agent',
-          avatar: acc.avatar || acc.name.slice(0, 2).toUpperCase(),
-          bg: acc.bg || 'bg-blue-600 text-white',
-          npn: acc.npn || '',
+          email: acc.email || existing?.email || '',
+          agencyRole: acc.agencyRole || existing?.agencyRole || 'Licensed Agent',
+          avatar: acc.avatar || existing?.avatar || acc.name.slice(0, 2).toUpperCase(),
+          bg: acc.bg || existing?.bg || 'bg-blue-600 text-white',
+          npn: acc.npn || existing?.npn || '',
         });
       }
     });
 
-    // Helper to register discovered owner from live entities
+    // 3. Register any additional discovered agents from live entities
     const registerDiscovered = (rawVal, defaultRole = 'Licensed Agent') => {
       if (!rawVal) return;
       const name = getPersonName(rawVal);
-      if (
-        !name ||
-        name === 'Unassigned' ||
-        name.toLowerCase().includes('admin') ||
-        name.toLowerCase().includes('operations') ||
-        name.toLowerCase().includes('system')
-      ) {
-        return;
-      }
+      if (isNonAgent(name)) return;
       if (!agentMap.has(name)) {
-        const initials = name
-          .split(' ')
-          .filter(Boolean)
-          .map((w) => w[0])
-          .slice(0, 2)
-          .join('')
-          .toUpperCase() || 'AG';
+        const initials =
+          name
+            .split(' ')
+            .filter(Boolean)
+            .map((w) => w[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase() || 'AG';
         agentMap.set(name, {
           id: `GEN-${name.replace(/\s+/g, '')}`,
           name,
@@ -271,50 +310,75 @@ export default function StaffCrmDashboard({
       }
     };
 
-    // 2. Discover owners from live Deals
+    // Scan deals, contacts, tickets, tasks, commissions
     liveDeals.forEach((d) => {
       registerDiscovered(d.dealOwner, 'Deal Owner');
       registerDiscovered(d.dealOwnerName, 'Deal Owner');
       registerDiscovered(d.leadOwner, 'Lead Owner');
       registerDiscovered(d.agentName, 'Writing Agent');
-      registerDiscovered(d.adminOnly?.dealOwner, 'Deal Owner');
     });
-
-    // 3. Discover owners from live Contacts
     liveContacts.forEach((c) => {
       registerDiscovered(c.contactOwner, 'Contact Owner');
+      registerDiscovered(c.contactOwnerName, 'Contact Owner');
       registerDiscovered(c.sourceOfLead?.contactOwner, 'Contact Owner');
-      registerDiscovered(c.agentName, 'Agent');
     });
-
-    // 4. Discover owners from live Tickets
     liveTickets.forEach((t) => {
       registerDiscovered(t.ticketOwner, 'Ticket Owner');
+      registerDiscovered(t.ticketOwnerName, 'Ticket Owner');
       registerDiscovered(t.serviceAgent, 'Service Agent');
       registerDiscovered(t.serviceAgentName, 'Service Agent');
-      registerDiscovered(t.agentName, 'Agent');
     });
-
-    // 5. Discover owners from live Tasks
     liveTasks.forEach((tk) => {
       registerDiscovered(tk.assignee, 'Task Assignee');
       registerDiscovered(tk.assignedTo, 'Task Assignee');
     });
-
-    // 6. Discover agents from live Commissions
     liveCommissions.forEach((cm) => {
       registerDiscovered(cm.agentName, 'Writing Agent');
     });
 
-    return Array.from(agentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+    // Compute live counts for each agent
+    const list = Array.from(agentMap.values()).map((ag) => {
+      const dealsCount = liveDeals.filter(
+        (d) =>
+          isOwnerMatch(d.dealOwner, { role: 'agent', name: ag.name }) ||
+          isOwnerMatch(d.dealOwnerName, { role: 'agent', name: ag.name }) ||
+          isOwnerMatch(d.leadOwner, { role: 'agent', name: ag.name }) ||
+          isOwnerMatch(d.agentName, { role: 'agent', name: ag.name })
+      ).length;
+      const contactsCount = liveContacts.filter(
+        (c) =>
+          isOwnerMatch(c.contactOwner, { role: 'agent', name: ag.name }) ||
+          isOwnerMatch(c.contactOwnerName, { role: 'agent', name: ag.name })
+      ).length;
+      return { ...ag, dealsCount, contactsCount };
+    });
+
+    return list.sort((a, b) => a.name.localeCompare(b.name));
   }, [liveDeals, liveContacts, liveTickets, liveTasks, liveCommissions]);
+
+  // Filtered agents for dropdown search
+  const filteredAgents = useMemo(() => {
+    const q = agentSearchQuery.trim().toLowerCase();
+    if (!q) return availableAgents;
+    return availableAgents.filter(
+      (a) =>
+        a.name.toLowerCase().includes(q) ||
+        (a.handle && a.handle.toLowerCase().includes(q)) ||
+        (a.npn && a.npn.toLowerCase().includes(q))
+    );
+  }, [availableAgents, agentSearchQuery]);
 
   // Determine active target agent & company overview mode
   const activeTargetAgent = useMemo(() => {
     if (isAgentUser) {
       return agentName || effectiveAgent?.name || user?.name || 'Khanh Nguyen';
     }
-    if (!selectedDashboard || selectedDashboard === COMPANY_OVERVIEW || selectedDashboard === 'all') {
+    if (
+      !selectedDashboard ||
+      selectedDashboard === COMPANY_OVERVIEW ||
+      selectedDashboard === 'Company Overview Dashboard' ||
+      selectedDashboard === 'all'
+    ) {
       return null;
     }
     return selectedDashboard;
@@ -900,7 +964,7 @@ export default function StaffCrmDashboard({
             }`}
           >
             <span className="material-symbols-outlined text-[24px]">
-              {isCompanyOverview ? 'corporate_fare' : 'badge'}
+              {isCompanyOverview ? 'groups' : 'badge'}
             </span>
           </div>
 
@@ -919,24 +983,24 @@ export default function StaffCrmDashboard({
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                    {isCompanyOverview ? COMPANY_OVERVIEW : `${activeTargetAgent}'s Dashboard`}
+                    {isCompanyOverview ? 'Dashboard Tổng Hợp (Tất Cả Owner)' : `Dashboard Agent: ${activeTargetAgent}`}
                   </h1>
                   {isCompanyOverview ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                      All Agency
+                      Tất cả Owner ({availableAgents.length} Agents)
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      {isAgentUser ? 'My Pipeline' : 'Agent Scoped'}
+                      {isAgentUser ? 'My Pipeline' : `Agent: ${activeTargetAgent}`}
                     </span>
                   )}
                 </div>
                 <p className="text-[11px] text-slate-500 font-medium line-clamp-1">
                   {isCompanyOverview
-                    ? 'Total pipeline, active deals, contacts, tickets & commissions across all teams'
-                    : `Scoped to ${activeTargetAgent} — only shows deals, contacts, tickets & tasks owned by this agent`}
+                    ? `Tổng quan pipeline, active deals, contacts, tickets & commissions của toàn bộ ${availableAgents.length} Agent trong hệ thống ("owner tất cả")`
+                    : `Dashboard cá nhân hóa theo quyền Owner của ${activeTargetAgent} (chỉ hiển thị Deals, Contacts, Tickets, Tasks do Agent này làm Owner)`}
                 </p>
               </div>
 
@@ -954,93 +1018,145 @@ export default function StaffCrmDashboard({
                   className="fixed inset-0 z-20"
                   onClick={() => setShowDashboardDropdown(false)}
                 />
-                <div className="absolute left-0 top-full mt-2 w-84 bg-white rounded-2xl shadow-2xl border border-slate-200/90 py-2 z-30 animate-in fade-in zoom-in-95 max-h-[480px] overflow-y-auto">
-                  <div className="px-3.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Company View
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedDashboard(COMPANY_OVERVIEW);
-                      setShowDashboardDropdown(false);
-                    }}
-                    className={`w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition cursor-pointer ${
-                      isCompanyOverview
-                        ? 'bg-blue-50/80 text-blue-900 font-bold border-l-4 border-blue-600'
-                        : 'text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#104882] flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-[20px]">corporate_fare</span>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-slate-900 text-xs">
-                          {COMPANY_OVERVIEW}
-                        </div>
-                        <div className="text-[11px] text-slate-500 font-normal">
-                          All agents, teams & total records
-                        </div>
-                      </div>
-                    </div>
-                    {isCompanyOverview && (
-                      <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0">
-                        check_circle
-                      </span>
-                    )}
-                  </button>
-
-                  <div className="my-1.5 border-t border-slate-100" />
-
+                <div className="absolute left-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-slate-200/90 py-2 z-30 animate-in fade-in zoom-in-95 max-h-[520px] flex flex-col">
                   <div className="px-3.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                    <span>Individual Agent Dashboards</span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      {availableAgents.length} Agents
+                    <span>Chế độ xem tổng hợp</span>
+                    <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                      All Records
                     </span>
                   </div>
 
-                  <div className="space-y-0.5 px-1">
-                    {availableAgents.map((ag) => {
-                      const isSelected = !isCompanyOverview && activeTargetAgent === ag.name;
-                      return (
-                        <button
-                          key={ag.name}
-                          type="button"
-                          onClick={() => {
-                            setSelectedDashboard(ag.name);
-                            setShowDashboardDropdown(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition cursor-pointer ${
-                            isSelected
-                              ? 'bg-emerald-50 text-emerald-900 font-bold'
-                              : 'text-slate-700 hover:bg-slate-100/70'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div
-                              className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 shadow-2xs ${
-                                ag.bg || 'bg-blue-600 text-white'
-                              }`}
-                            >
-                              {ag.avatar || ag.name.slice(0, 2).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <div className="font-semibold text-slate-900 truncate text-xs">
-                                {ag.name}
-                              </div>
-                              <div className="text-[10px] text-slate-500 font-medium truncate">
-                                {ag.agencyRole || 'Agent'} {ag.npn ? `• NPN ${ag.npn}` : ''}
-                              </div>
-                            </div>
-                          </div>
-                          {isSelected && (
-                            <span className="material-symbols-outlined text-[18px] text-emerald-600 shrink-0 ml-2">
-                              check_circle
+                  <div className="px-2 pt-1 pb-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDashboard(COMPANY_OVERVIEW);
+                        setShowDashboardDropdown(false);
+                      }}
+                      className={`w-full text-left px-3.5 py-2.5 text-xs rounded-xl flex items-center justify-between transition cursor-pointer ${
+                        isCompanyOverview
+                          ? 'bg-blue-50 text-blue-900 font-bold border border-blue-200 shadow-2xs'
+                          : 'text-slate-700 hover:bg-slate-50 border border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#104882] flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[20px]">groups</span>
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                            <span>Tất cả Owner (All Agents)</span>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold bg-blue-100 text-blue-800">
+                              {availableAgents.length} Agents
                             </span>
-                          )}
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-normal">
+                            Tổng quan toàn bộ 35 Agent, teams &amp; toàn sàn
+                          </div>
+                        </div>
+                      </div>
+                      {isCompanyOverview && (
+                        <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0">
+                          check_circle
+                        </span>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Search Agent in Dropdown */}
+                  <div className="px-3 py-1.5 border-t border-b border-slate-100 bg-slate-50/70">
+                    <div className="relative">
+                      <span className="material-symbols-outlined text-[16px] text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2">
+                        search
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Tìm kiếm agent theo tên hoặc handle..."
+                        value={agentSearchQuery}
+                        onChange={(e) => setAgentSearchQuery(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full pl-8 pr-7 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-slate-800 placeholder-slate-400"
+                      />
+                      {agentSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAgentSearchQuery('');
+                          }}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-[13px]"
+                        >
+                          ✕
                         </button>
-                      );
-                    })}
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="px-3.5 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                    <span>Dashboard Từng Agent</span>
+                    <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-2 py-0.5 rounded-full">
+                      {filteredAgents.length} / {availableAgents.length} Agents
+                    </span>
+                  </div>
+
+                  <div className="space-y-0.5 px-2 overflow-y-auto max-h-[280px]">
+                    {filteredAgents.length === 0 ? (
+                      <div className="py-4 text-center text-xs text-slate-400">
+                        Không tìm thấy agent "{agentSearchQuery}"
+                      </div>
+                    ) : (
+                      filteredAgents.map((ag) => {
+                        const isSelected = !isCompanyOverview && activeTargetAgent === ag.name;
+                        return (
+                          <button
+                            key={ag.name}
+                            type="button"
+                            onClick={() => {
+                              setSelectedDashboard(ag.name);
+                              setShowDashboardDropdown(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition cursor-pointer ${
+                              isSelected
+                                ? 'bg-emerald-50 text-emerald-900 font-bold border border-emerald-200 shadow-2xs'
+                                : 'text-slate-700 hover:bg-slate-100/70 border border-transparent'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div
+                                className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 shadow-2xs ${
+                                  ag.bg || 'bg-blue-600 text-white'
+                                }`}
+                              >
+                                {ag.avatar || ag.name.slice(0, 2).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-semibold text-slate-900 truncate text-xs flex items-center gap-1.5">
+                                  <span>{ag.name}</span>
+                                  {ag.dealsCount > 0 ? (
+                                    <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-blue-100 text-blue-700">
+                                      {ag.dealsCount} deals
+                                    </span>
+                                  ) : (
+                                    <span className="text-[9px] text-slate-400 font-normal">
+                                      0 deal
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-slate-500 font-medium truncate">
+                                  {ag.agencyRole || 'Licensed Agent'}{' '}
+                                  {ag.npn ? `• NPN ${ag.npn}` : ag.handle ? `• ${ag.handle}` : ''}
+                                </div>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <span className="material-symbols-outlined text-[18px] text-emerald-600 shrink-0 ml-2">
+                                check_circle
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </>
@@ -1055,10 +1171,10 @@ export default function StaffCrmDashboard({
               type="button"
               onClick={() => setSelectedDashboard(COMPANY_OVERVIEW)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 font-semibold transition cursor-pointer shadow-2xs"
-              title="Return to full company overview dashboard"
+              title="Return to full overview of all owners"
             >
-              <span className="material-symbols-outlined text-[16px]">corporate_fare</span>
-              <span>Overview View</span>
+              <span className="material-symbols-outlined text-[16px]">groups</span>
+              <span>Tất cả Owner</span>
             </button>
           )}
 
@@ -1090,17 +1206,17 @@ export default function StaffCrmDashboard({
 
       {/* ── Agent Scoped Notification Banner ───────────────────────────────── */}
       {!isCompanyOverview && (
-        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-b border-emerald-200/80 px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-b border-emerald-200/80 px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2 text-emerald-900 font-medium">
             <span className="material-symbols-outlined text-[18px] text-emerald-600 shrink-0">
               verified
             </span>
             <span>
-              Dashboard đang hiển thị dữ liệu theo Agent:{' '}
+              Dashboard đang lọc theo Agent:{' '}
               <strong className="text-emerald-950 underline underline-offset-2">
                 {activeTargetAgent}
               </strong>{' '}
-              (chỉ hiển thị Deals, Contacts, Tickets, Tasks &amp; Commissions do Agent này làm Owner/Assignee)
+              (chỉ hiển thị Deals, Contacts, Tickets, Tasks &amp; Commissions do Agent này làm Owner phụ trách)
             </span>
           </div>
           {!isAgentUser && (
@@ -1109,7 +1225,7 @@ export default function StaffCrmDashboard({
               onClick={() => setSelectedDashboard(COMPANY_OVERVIEW)}
               className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline flex items-center gap-1 cursor-pointer shrink-0"
             >
-              <span>Quay lại Dashboard tổng công ty</span>
+              <span>Quay lại Dashboard Tất cả Owner</span>
               <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
             </button>
           )}
@@ -1420,27 +1536,31 @@ export default function StaffCrmDashboard({
               <span className="font-mono text-slate-400">Live DB</span>
             </div>
             <div className="space-y-3 my-auto py-2">
-              {activeObByAgent.map((item, i) => (
-                <div
-                  key={i}
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                  title={`Click to view deals handled by ${item.agent}`}
-                >
-                  <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">
-                    {item.agent}
-                  </span>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3 overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
-                    <div
-                      style={{ width: `${(item.count / maxActiveObAgent) * 100}%` }}
-                      className="bg-[#5271ff] h-full transition-all"
-                    />
+              {activeObByAgent.length === 0 ? (
+                <div className="py-4 text-center text-xs text-slate-400">Không có deal Obamacare active</div>
+              ) : (
+                activeObByAgent.map((item, i) => (
+                  <div
+                    key={i}
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
+                    title={`Click to view deals handled by ${item.agent}`}
+                  >
+                    <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">
+                      {item.agent}
+                    </span>
+                    <div className="flex-grow bg-slate-100 rounded-sm h-3 overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                      <div
+                        style={{ width: `${(item.count / maxActiveObAgent) * 100}%` }}
+                        className="bg-[#5271ff] h-full transition-all"
+                      />
+                    </div>
+                    <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
+                      {item.count}
+                    </span>
                   </div>
-                  <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
               </div>
             )}
@@ -1469,27 +1589,31 @@ export default function StaffCrmDashboard({
               <span className="font-mono text-slate-400">Live DB</span>
             </div>
             <div className="space-y-3 my-auto py-2">
-              {medDealsByAgent.map((item, i) => (
-                <div
-                  key={i}
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="flex items-center gap-2 text-xs hover:bg-amber-50/70 p-0.5 rounded cursor-pointer transition group"
-                  title={`Click to view Medicare deals handled by ${item.agent}`}
-                >
-                  <span className="w-20 truncate text-slate-600 text-right group-hover:text-amber-700">
-                    {item.agent}
-                  </span>
-                  <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden group-hover:ring-1 group-hover:ring-amber-300">
-                    <div
-                      style={{ width: `${(item.count / maxMedAgent) * 100}%` }}
-                      className="bg-amber-400 h-full transition-all"
-                    />
+              {medDealsByAgent.length === 0 ? (
+                <div className="py-4 text-center text-xs text-slate-400">Không có deal Medicare active</div>
+              ) : (
+                medDealsByAgent.map((item, i) => (
+                  <div
+                    key={i}
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="flex items-center gap-2 text-xs hover:bg-amber-50/70 p-0.5 rounded cursor-pointer transition group"
+                    title={`Click to view Medicare deals handled by ${item.agent}`}
+                  >
+                    <span className="w-20 truncate text-slate-600 text-right group-hover:text-amber-700">
+                      {item.agent}
+                    </span>
+                    <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden group-hover:ring-1 group-hover:ring-amber-300">
+                      <div
+                        style={{ width: `${(item.count / maxMedAgent) * 100}%` }}
+                        className="bg-amber-400 h-full transition-all"
+                      />
+                    </div>
+                    <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-amber-700">
+                      {item.count}
+                    </span>
                   </div>
-                  <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-amber-700">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}
@@ -1530,33 +1654,37 @@ export default function StaffCrmDashboard({
                   </div>
                 </div>
                 <div className="space-y-3 my-auto py-2">
-                  {contactsByOwner.map((item, i) => (
-                    <div
-                      key={i}
-                      onClick={() => onSelectTab && onSelectTab('contacts')}
-                      className="flex items-center gap-2 text-xs hover:bg-slate-100/80 p-0.5 rounded cursor-pointer transition group"
-                      title={`Click to view contacts owned by ${item.agent}`}
-                    >
-                      <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">
-                        {item.agent}
-                      </span>
-                      <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
-                        <div
-                          style={{ width: `${(item.inactive / maxContactOwner) * 100}%` }}
-                          className="bg-[#5271ff] h-full"
-                          title={`Inactive: ${item.inactive}`}
-                        />
-                        <div
-                          style={{ width: `${(item.active / maxContactOwner) * 100}%` }}
-                          className="bg-[#84cc16] h-full"
-                          title={`Active: ${item.active}`}
-                        />
+                  {contactsByOwner.length === 0 ? (
+                    <div className="py-4 text-center text-xs text-slate-400">Không có khách hàng được phân công</div>
+                  ) : (
+                    contactsByOwner.map((item, i) => (
+                      <div
+                        key={i}
+                        onClick={() => onSelectTab && onSelectTab('contacts')}
+                        className="flex items-center gap-2 text-xs hover:bg-slate-100/80 p-0.5 rounded cursor-pointer transition group"
+                        title={`Click to view contacts owned by ${item.agent}`}
+                      >
+                        <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">
+                          {item.agent}
+                        </span>
+                        <div className="flex-grow bg-slate-100 rounded-sm h-3 flex overflow-hidden group-hover:ring-1 group-hover:ring-blue-300">
+                          <div
+                            style={{ width: `${(item.inactive / maxContactOwner) * 100}%` }}
+                            className="bg-[#5271ff] h-full"
+                            title={`Inactive: ${item.inactive}`}
+                          />
+                          <div
+                            style={{ width: `${(item.active / maxContactOwner) * 100}%` }}
+                            className="bg-[#84cc16] h-full"
+                            title={`Active: ${item.active}`}
+                          />
+                        </div>
+                        <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
+                          {item.total}
+                        </span>
                       </div>
-                      <span className="w-8 font-bold text-slate-800 text-[11px] group-hover:text-blue-700">
-                        {item.total}
-                      </span>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -1603,35 +1731,41 @@ export default function StaffCrmDashboard({
 
           {/* Vertical Columns - Proportional to real max */}
           <div className="h-64 flex items-end justify-between gap-4 px-6 pt-4 border-b border-slate-200">
-            {dealsByAgentChart.map((d, i) => {
-              const maxHeight = 210;
-              const totalHeight = Math.max((d.total / maxAgentDealTotal) * maxHeight, d.total > 0 ? 12 : 2);
-              const obHeight = (d.ob / (d.total || 1)) * totalHeight;
-              const medHeight = (d.med / (d.total || 1)) * totalHeight;
+            {dealsByAgentChart.length === 0 ? (
+              <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
+                Không có deal nào thuộc quyền phụ trách của agent này
+              </div>
+            ) : (
+              dealsByAgentChart.map((d, i) => {
+                const maxHeight = 210;
+                const totalHeight = Math.max((d.total / maxAgentDealTotal) * maxHeight, d.total > 0 ? 12 : 2);
+                const obHeight = (d.ob / (d.total || 1)) * totalHeight;
+                const medHeight = (d.med / (d.total || 1)) * totalHeight;
 
-              return (
-                <div
-                  key={i}
-                  onClick={() => onSelectTab && onSelectTab('deals')}
-                  className="flex-1 flex flex-col items-center gap-1 group cursor-pointer hover:scale-105 transition-transform"
-                  title={`Click to filter deals by ${d.name} (${d.total} deals)`}
-                >
-                  <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-600">
-                    {d.total}
-                  </span>
+                return (
                   <div
-                    style={{ height: `${totalHeight}px` }}
-                    className="w-7 rounded-t-sm flex flex-col justify-end overflow-hidden shadow-2xs group-hover:ring-2 group-hover:ring-blue-400 transition"
+                    key={i}
+                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    className="flex-1 flex flex-col items-center gap-1 group cursor-pointer hover:scale-105 transition-transform"
+                    title={`Click to filter deals by ${d.name} (${d.total} deals)`}
                   >
-                    <div style={{ height: `${medHeight}px` }} className="bg-[#84cc16] w-full" />
-                    <div style={{ height: `${obHeight}px` }} className="bg-[#5271ff] w-full" />
+                    <span className="text-[10px] font-bold text-slate-700 group-hover:text-blue-600">
+                      {d.total}
+                    </span>
+                    <div
+                      style={{ height: `${totalHeight}px` }}
+                      className="w-7 rounded-t-sm flex flex-col justify-end overflow-hidden shadow-2xs group-hover:ring-2 group-hover:ring-blue-400 transition"
+                    >
+                      <div style={{ height: `${medHeight}px` }} className="bg-[#84cc16] w-full" />
+                      <div style={{ height: `${obHeight}px` }} className="bg-[#5271ff] w-full" />
+                    </div>
+                    <div className="w-20 text-[10px] text-slate-600 text-center truncate rotate-45 origin-top-left mt-3 font-medium group-hover:text-blue-700">
+                      {d.name}
+                    </div>
                   </div>
-                  <div className="w-20 text-[10px] text-slate-600 text-center truncate rotate-45 origin-top-left mt-3 font-medium group-hover:text-blue-700">
-                    {d.name}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
           <div className="text-center text-[10px] text-slate-500 font-semibold mt-12">
             Deal Owner • Click any agent column to view deals
