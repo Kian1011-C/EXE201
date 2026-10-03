@@ -7,20 +7,17 @@ import {
   addTicketToStore,
   getDynamicDeals,
   SAMPLE_DEALS,
+  ALL_CARRIERS,
+  ALL_SYSTEM_AGENTS,
 } from '../../../data/mockCrmData';
-import { createTicket, createDeal } from '../../../services/api';
+import { createTicket, createDeal, getUsers } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 import toast from 'react-hot-toast';
 
 const OWNER_OPTIONS = [
   '--',
-  'Tiger Truong',
-  'Khanh Nguyen',
-  'Jay Ly',
-  'Anya Nguyen',
-  'The Best Rate Insurance',
-  'Platform Staff',
+  ...ALL_SYSTEM_AGENTS.map((a) => a.name),
 ];
 
 export default function AddDealModal({
@@ -431,14 +428,11 @@ export default function AddDealModal({
                     onChange={(e) => setCarrier(e.target.value)}
                     className="w-full px-3 py-2 rounded border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs font-semibold text-blue-700 cursor-pointer shadow-2xs"
                   >
-                    <option value="BCBS">BCBS</option>
-                    <option value="Ambetter">Ambetter</option>
-                    <option value="UnitedHealthcare">UnitedHealthcare</option>
-                    <option value="Oscar">Oscar</option>
-                    <option value="Molina Healthcare">Molina Healthcare</option>
-                    <option value="Kaiser Permanente">Kaiser Permanente</option>
-                    <option value="Aetna">Aetna</option>
-                    <option value="Cigna">Cigna</option>
+                    {ALL_CARRIERS.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

@@ -499,6 +499,66 @@ export function getAllCustomerDocuments() {
 // ============================================================
 export const SAMPLE_CUSTOMER_DOCUMENTS = [];
 
+// ============================================================
+// Standard System Carriers & Agents (Tất cả hãng & tất cả agent hiện tại)
+// ============================================================
+export const ALL_CARRIERS = [
+  'BCBS',
+  'Ambetter',
+  'UnitedHealthcare',
+  'Oscar',
+  'Molina Healthcare',
+  'Aetna',
+  'Cigna',
+  'Kaiser Permanente',
+  'Humana',
+  'Premera Blue Cross',
+  'Blue Shield of California',
+  'Anthem Blue Cross',
+  'Wellcare',
+  'CareSource',
+  'Health Net',
+  'Amerigroup',
+];
+
+export const ALL_SYSTEM_AGENTS = [
+  { name: 'Amy Vo', handle: 'amyvo27@0', avatar: 'AV', bg: 'bg-[#3B82F6]' },
+  { name: 'Andy Vo', handle: 'andy62@3', avatar: 'AV', bg: 'bg-[#2563EB]' },
+  { name: 'andynguyen', handle: 'andynguyen75@9', avatar: 'AN', bg: 'bg-[#D97706]' },
+  { name: 'Anh Pham', handle: 'anhlpham14@3', avatar: 'AP', bg: 'bg-[#C2410C]' },
+  { name: 'Anh Que Pham CPA', handle: 'anhque@insurmatch.us', avatar: 'AQ', bg: 'bg-[#B45309]' },
+  { name: 'anhthu.tran', handle: 'anhthu.tran59@4', avatar: 'AT', bg: 'bg-[#2563EB]' },
+  { name: 'Anya Nguyen', handle: 'anya42@9', avatar: 'AN', bg: 'bg-[#0F766E]' },
+  { name: 'Bao Uyen', handle: 'baouyen76@8', avatar: 'BU', bg: 'bg-[#15803D]' },
+  { name: 'Bella Nhi Nguyen', handle: 'bellan.nguyen86@0', avatar: 'BN', bg: 'bg-[#92400E]' },
+  { name: 'Bijou Tran', handle: 'bijou.trantbr164', avatar: 'BT', bg: 'bg-[#991B1B]' },
+  { name: 'Bobby Ngo', handle: 'bobby38@9', avatar: 'BN', bg: 'bg-[#B45309]' },
+  { name: 'Brian Nguyen', handle: 'briannguyen31@6', avatar: 'BN', bg: 'bg-[#78350F]' },
+  { name: 'Chaunte\' Stanley', handle: 'chauntestanley', avatar: 'CS', bg: 'bg-[#DB2777]' },
+  { name: 'Cuong Vu', handle: 'cuongvu', avatar: 'CV', bg: 'bg-[#047857]' },
+  { name: 'Ha To', handle: 'hato', avatar: 'HT', bg: 'bg-[#EA580C]' },
+  { name: 'Ivy Le', handle: 'ivyle@insurmatch.us', avatar: 'IL', bg: 'bg-[#F97316]' },
+  { name: 'Ivy Lu', handle: 'ivy', avatar: 'IL', bg: 'bg-[#0284C7]' },
+  { name: 'James Vu', handle: 'jamesvu@insurmatch.us', avatar: 'JV', bg: 'bg-[#475569]' },
+  { name: 'Jasmine Tang', handle: 'jasminetang', avatar: 'JT', bg: 'bg-[#9333EA]' },
+  { name: 'Jay Ly', handle: 'trichauly24@7', avatar: 'JL', bg: 'bg-[#059669]' },
+  { name: 'Keith Tran', handle: 'keithtran', avatar: 'KT', bg: 'bg-[#E11D48]' },
+  { name: 'Ken Hoang', handle: 'kenhoang', avatar: 'KH', bg: 'bg-[#B45309]' },
+  { name: 'Khanh Nguyen', handle: 'khanhnguyen31@7', avatar: 'KN', bg: 'bg-[#047857]' },
+  { name: 'Loc Nguyen', handle: 'locnguyen', avatar: 'LN', bg: 'bg-[#DC2626]' },
+  { name: 'Nha Nguyen', handle: 'nhanguyen', avatar: 'NN', bg: 'bg-[#1D4ED8]' },
+  { name: 'Nhi Tran', handle: 'nhitran', avatar: 'NT', bg: 'bg-[#64748B]' },
+  { name: 'oanh dinh', handle: 'Oanhdinhtest99@5', avatar: 'OD', bg: 'bg-[#D97706]' },
+  { name: 'Quyen Le', handle: 'quyenle@insurmatch.us', avatar: 'QL', bg: 'bg-[#4338CA]' },
+  { name: 'Sarah Thai', handle: 'sarahthai20@1', avatar: 'ST', bg: 'bg-[#7C3AED]' },
+  { name: 'Sean Ngo', handle: 'sean75@8', avatar: 'SN', bg: 'bg-[#0D9488]' },
+  { name: 'Tara Phu', handle: 'taraphu', avatar: 'TP', bg: 'bg-[#0D9488]' },
+  { name: 'Tiger Truong', handle: 'tigertruong86@8', avatar: 'TT', bg: 'bg-[#EA580C]' },
+  { name: 'Tri Tran', handle: 'tritran@insurmatch.us', avatar: 'TT', bg: 'bg-[#2563EB]' },
+  { name: 'Wai Wong Boo', handle: 'waiwongboo', avatar: 'WB', bg: 'bg-[#7C3AED]' },
+  { name: 'Zoey Nguyen', handle: 'zoeynguyen', avatar: 'ZN', bg: 'bg-[#4F46E5]' },
+];
+
 
 
 

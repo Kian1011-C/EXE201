@@ -6,32 +6,17 @@ import {
   getDynamicDeals,
   addDealToStore,
   addTicketToStore,
+  ALL_CARRIERS,
+  ALL_SYSTEM_AGENTS,
 } from '../../../data/mockCrmData';
-import { getDeals, updateDeal, createTicket } from '../../../services/api';
+import { getDeals, updateDeal, createTicket, getUsers } from '../../../services/api';
 import StaffDealsKanban from './StaffDealsKanban';
 import AddDealModal from './AddDealModal';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterDealsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
 
-const AGENT_DIRECTORY = [
-  { name: 'Amy Vo', handle: 'amyvo27@0', avatar: 'AV', bg: 'bg-[#3B82F6]' },
-  { name: 'Anh Pham', handle: 'anhlpham14@3', avatar: 'AP', bg: 'bg-[#C2410C]' },
-  { name: 'anhthu.tran', handle: 'anhthu.tran59@4', avatar: 'AT', bg: 'bg-[#2563EB]' },
-  { name: 'Bao Uyen', handle: 'baouyen76@8', avatar: 'BU', bg: 'bg-[#15803D]' },
-  { name: 'Bella Nhi Nguyen', handle: 'bellan.nguyen86@0', avatar: 'BN', bg: 'bg-[#92400E]' },
-  { name: 'Bijou Tran', handle: 'bijou.trantbr164', avatar: 'BT', bg: 'bg-[#991B1B]' },
-  { name: 'Bobby Ngo', handle: 'bobby38@9', avatar: 'BN', bg: 'bg-[#B45309]' },
-  { name: 'Brian Nguyen', handle: 'briannguyen31@6', avatar: 'BN', bg: 'bg-[#78350F]' },
-  { name: 'Jay Ly', handle: 'trichauly24@7', avatar: 'JL', bg: 'bg-[#059669]' },
-  { name: 'Khanh Nguyen', handle: 'khanhnguyen31@7', avatar: 'KN', bg: 'bg-[#047857]' },
-  { name: 'Sarah Thai', handle: 'sarahthai20@1', avatar: 'ST', bg: 'bg-[#7C3AED]' },
-  { name: 'Sean Ngo', handle: 'sean75@8', avatar: 'SN', bg: 'bg-[#0D9488]' },
-  { name: 'Tiger Truong', handle: 'tigertruong86@8', avatar: 'TT', bg: 'bg-[#EA580C]' },
-  { name: 'Anya Nguyen', handle: 'anya42@9', avatar: 'AN', bg: 'bg-[#0F766E]' },
-  { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
-  { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
-];
+const AGENT_DIRECTORY = ALL_SYSTEM_AGENTS;
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent = false, agentName = '' }) {
   const [dealsList, setDealsList] = useState([]);
@@ -80,6 +65,36 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showOwnerDropdown]);
+
+  // Dynamic DB users for dynamic agent roster
+  const [dbUsers, setDbUsers] = useState([]);
+  useEffect(() => {
+    getUsers()
+      .then((data) => {
+        if (Array.isArray(data)) setDbUsers(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Custom Carrier Dropdown state (Tất cả hãng hiện tại)
+  const [showCarrierDropdown, setShowCarrierDropdown] = useState(false);
+  const [carrierSearchText, setCarrierSearchText] = useState('');
+  const carrierDropdownRef = useRef(null);
+
+  // Close carrier dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (carrierDropdownRef.current && !carrierDropdownRef.current.contains(e.target)) {
+        setShowCarrierDropdown(false);
+      }
+    }
+    if (showCarrierDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCarrierDropdown]);
 
   async function loadDealsData(filters = {}) {
     setLoading(true);
@@ -149,12 +164,40 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     return Array.from(set);
   }, [scopedDeals]);
 
-  // Combined agent directory for Deal Owner dropdown (matching media_1790576252122.png)
+  // Combined agent directory for Deal Owner dropdown (Tất cả agent hiện tại)
   const allAvailableAgents = useMemo(() => {
     const list = [...AGENT_DIRECTORY];
     const existing = new Set(list.map((a) => a.name.toLowerCase()));
+
+    // Merge dynamic users from DB
+    if (Array.isArray(dbUsers)) {
+      dbUsers.forEach((u) => {
+        const uName = (u.fullName || u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || '').trim();
+        if (uName && !existing.has(uName.toLowerCase())) {
+          const lower = uName.toLowerCase();
+          if (lower.includes('insurance') || lower.includes('platform') || lower.includes('admin tbr') || lower.includes('accounting')) {
+            return;
+          }
+          const initials = uName.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'AG';
+          const handle = u.email ? u.email.split('@')[0] : uName.toLowerCase().replace(/[^a-z0-9]/g, '');
+          list.push({
+            name: uName,
+            handle,
+            avatar: initials,
+            bg: 'bg-[#2563EB]',
+          });
+          existing.add(uName.toLowerCase());
+        }
+      });
+    }
+
+    // Merge any deal owners from loaded deals
     ownerOptions.forEach((o) => {
       if (o && !existing.has(o.toLowerCase())) {
+        const lower = o.toLowerCase();
+        if (lower.includes('insurance') || lower.includes('platform') || lower.includes('admin tbr') || lower.includes('accounting')) {
+          return;
+        }
         const initials = o.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'AG';
         list.push({
           name: o,
@@ -165,8 +208,9 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         existing.add(o.toLowerCase());
       }
     });
-    return list;
-  }, [ownerOptions]);
+
+    return list.sort((a, b) => a.name.localeCompare(b.name));
+  }, [ownerOptions, dbUsers]);
 
   // Filtered agent list for dropdown search
   const filteredAgentList = useMemo(() => {
@@ -223,7 +267,15 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
 
       const matchesCarrier =
         carrierFilter === 'all' ||
-        (d.carrier && d.carrier.toLowerCase().includes(carrierFilter.toLowerCase()));
+        (d.carrier && (
+          d.carrier.toLowerCase() === carrierFilter.toLowerCase() ||
+          d.carrier.toLowerCase().includes(carrierFilter.toLowerCase()) ||
+          carrierFilter.toLowerCase().includes(d.carrier.toLowerCase()) ||
+          (carrierFilter === 'BCBS' && d.carrier.toLowerCase().includes('blue cross')) ||
+          (carrierFilter.toLowerCase().includes('blue cross') && d.carrier === 'BCBS') ||
+          (carrierFilter === 'UnitedHealthcare' && (d.carrier === 'UHC' || d.carrier.toLowerCase().includes('united'))) ||
+          (carrierFilter === 'UHC' && d.carrier.toLowerCase().includes('united'))
+        ));
 
       const matchesCommissionId =
         !commissionIdQuery ||
@@ -330,11 +382,36 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     showToast('Đã xóa view tùy chỉnh');
   }
 
-  // Unique carriers
+  // Unique carriers (Tất cả hãng bảo hiểm hiện tại trong hệ thống)
   const carrierOptions = useMemo(() => {
-    const set = new Set(dealsList.map((d) => d.carrier).filter(Boolean));
-    return Array.from(set);
+    const list = [...ALL_CARRIERS];
+    const existing = new Set(list.map((c) => c.toLowerCase()));
+    dealsList.forEach((d) => {
+      if (d.carrier && !existing.has(d.carrier.toLowerCase())) {
+        list.push(d.carrier);
+        existing.add(d.carrier.toLowerCase());
+      }
+    });
+    return list;
   }, [dealsList]);
+
+  // Filtered carriers for dropdown search
+  const filteredCarrierList = useMemo(() => {
+    const q = carrierSearchText.trim().toLowerCase();
+    if (!q) return carrierOptions;
+    return carrierOptions.filter((c) => c.toLowerCase().includes(q));
+  }, [carrierOptions, carrierSearchText]);
+
+  function handleSelectCarrier(carrierName) {
+    if (!carrierName) {
+      setCarrierFilter('all');
+    } else {
+      setCarrierFilter(carrierName);
+      showToast(`Đã chọn Hãng: ${carrierName}`);
+    }
+    setShowCarrierDropdown(false);
+    setCarrierSearchText('');
+  }
 
   // Handle stage change from Kanban drag and drop
   async function handleUpdateDealStage(dealId, newStage) {
@@ -757,23 +834,105 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             )}
           </div>
 
-          {/* Carrier Dropdown */}
-          <div className="relative">
-            <select
-              value={carrierFilter}
-              onChange={(e) => setCarrierFilter(e.target.value)}
-              className="appearance-none pl-2.5 pr-7 py-1 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+          {/* Custom Carrier Dropdown (Tất cả hãng bảo hiểm hiện tại) */}
+          <div className="relative" ref={carrierDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowCarrierDropdown(!showCarrierDropdown);
+                setCarrierSearchText('');
+              }}
+              className={`flex items-center gap-1.5 pl-2.5 pr-2 py-1 rounded-lg border text-xs font-medium cursor-pointer shadow-2xs transition ${
+                carrierFilter !== 'all'
+                  ? 'border-indigo-400 bg-indigo-50/80 text-indigo-900 font-semibold'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
             >
-              <option value="all">Carrier...</option>
-              {carrierOptions.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
-              expand_more
-            </span>
+              {carrierFilter !== 'all' ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0" />
+                  <span className="truncate max-w-[120px]">{carrierFilter}</span>
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectCarrier(null);
+                    }}
+                    className="text-slate-400 hover:text-rose-600 font-bold ml-0.5 text-[11px] px-0.5"
+                    title="Xóa bộ lọc Carrier"
+                  >
+                    ✕
+                  </span>
+                </>
+              ) : (
+                <span className="text-slate-600">Carrier...</span>
+              )}
+              <span className="material-symbols-outlined text-[15px] text-slate-400">
+                expand_more
+              </span>
+            </button>
+
+            {/* Dropdown Menu Popover */}
+            {showCarrierDropdown && (
+              <div className="absolute left-0 top-full mt-1.5 w-64 max-h-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95">
+                {/* Search Header */}
+                <div className="p-2 border-b border-slate-100 bg-slate-50/80">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={carrierSearchText}
+                      onChange={(e) => setCarrierSearchText(e.target.value)}
+                      placeholder="Tìm hãng bảo hiểm..."
+                      autoFocus
+                      className="w-full pl-7 pr-2.5 py-1 text-xs rounded border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 font-medium"
+                    />
+                    <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[14px] text-slate-400">
+                      search
+                    </span>
+                  </div>
+                </div>
+
+                {/* Carriers List */}
+                <div className="overflow-y-auto flex-grow divide-y divide-slate-50 py-1">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectCarrier(null)}
+                    className="w-full px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer"
+                  >
+                    <span className="w-5 h-5 rounded bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center">
+                      --
+                    </span>
+                    <span className="font-medium text-slate-700">Tất cả Carrier</span>
+                  </button>
+
+                  {filteredCarrierList.map((c) => {
+                    const isSelected = carrierFilter.toLowerCase() === c.toLowerCase();
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => handleSelectCarrier(c)}
+                        className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between transition cursor-pointer ${
+                          isSelected ? 'bg-indigo-50 text-indigo-900 font-semibold' : 'hover:bg-slate-50 text-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                          <span className="truncate">{c}</span>
+                        </div>
+                        {isSelected && (
+                          <span className="material-symbols-outlined text-[15px] text-indigo-600">check</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                  {filteredCarrierList.length === 0 && (
+                    <div className="p-3 text-center text-xs text-slate-400">
+                      Không tìm thấy hãng phù hợp
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Commission ID Input */}

@@ -5,6 +5,7 @@ import {
   calculateCommissions,
   updateCommission,
 } from '../../../services/api';
+import { ALL_CARRIERS } from '../../../data/mockCrmData';
 import AgentCommissionCalculator from './AgentCommissionCalculator';
 
 const INITIAL_COMMISSION_DATA = [
@@ -376,9 +377,9 @@ export default function AgentCommissionLedger({ onSelectContact }) {
     };
   }, [commissionList, dbSummary]);
 
-  // Unique carrier list for filter
+  // Unique carrier list for filter (Tất cả hãng hiện tại)
   const carrierOptions = useMemo(() => {
-    const set = new Set(commissionList.map((c) => c.carrier));
+    const set = new Set([...ALL_CARRIERS, ...commissionList.map((c) => c.carrier).filter(Boolean)]);
     return ['All', ...Array.from(set)];
   }, [commissionList]);
 

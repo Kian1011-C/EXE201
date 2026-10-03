@@ -7,8 +7,10 @@ import {
   addDealToStore,
   getDynamicContacts,
   SAMPLE_CONTACTS,
+  ALL_CARRIERS,
+  ALL_SYSTEM_AGENTS,
 } from '../../../data/mockCrmData';
-import { createTicket, updateDeal } from '../../../services/api';
+import { createTicket, updateDeal, getUsers } from '../../../services/api';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import {
   recordPropertyUpdate,
@@ -154,6 +156,10 @@ export default function StaffDealDetail({
       setSubsidyAmount(deal?.subsidyAmount || '');
       setAgencyCommission(deal?.agencyCommission || '');
       setBonusTier(deal?.bonusTier || 'Standard Tier');
+      const ownerVal = typeof deal?.dealOwner === 'object'
+        ? (deal?.dealOwner?.name || deal?.dealOwner?.fullName || '')
+        : (deal?.dealOwner || deal?.adminOnly?.dealOwner || '');
+      if (ownerVal) setDealOwner(ownerVal);
     }
   }, [deal]);
 
@@ -270,7 +276,50 @@ export default function StaffDealDetail({
   const [readyToEnrollOpen, setReadyToEnrollOpen] = useState(false);
   const [feeBonusPaymentOpen, setFeeBonusPaymentOpen] = useState(false);
 
+  // Dynamic DB users for dynamic agent roster (Tất cả agent hiện tại)
+  const [dbUsers, setDbUsers] = useState([]);
+  useEffect(() => {
+    getUsers()
+      .then((data) => {
+        if (Array.isArray(data)) setDbUsers(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const allAvailableAgents = useMemo(() => {
+    const list = [...ALL_SYSTEM_AGENTS];
+    const existing = new Set(list.map((a) => a.name.toLowerCase()));
+
+    if (Array.isArray(dbUsers)) {
+      dbUsers.forEach((u) => {
+        const uName = (u.fullName || u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || '').trim();
+        if (uName && !existing.has(uName.toLowerCase())) {
+          const lower = uName.toLowerCase();
+          if (lower.includes('insurance') || lower.includes('platform') || lower.includes('admin tbr') || lower.includes('accounting')) {
+            return;
+          }
+          const initials = uName.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'AG';
+          const handle = u.email ? u.email.split('@')[0] : uName.toLowerCase().replace(/[^a-z0-9]/g, '');
+          list.push({
+            name: uName,
+            handle,
+            avatar: initials,
+            bg: 'bg-[#2563EB]',
+          });
+          existing.add(uName.toLowerCase());
+        }
+      });
+    }
+
+    return list.sort((a, b) => a.name.localeCompare(b.name));
+  }, [dbUsers]);
+
   // Form states for ADMIN ONLY
+  const initialDealOwner = typeof dealInfo.dealOwner === 'object'
+    ? (dealInfo.dealOwner?.name || dealInfo.dealOwner?.fullName || '')
+    : (dealInfo.dealOwner || dealInfo.adminOnly?.dealOwner || 'Khanh Nguyen (khanhnguyen31@7)');
+  const [dealOwner, setDealOwner] = useState(initialDealOwner);
+
   const [primaryMemberId, setPrimaryMemberId] = useState(
     dealInfo.adminOnly?.primaryMemberId || dealInfo.primaryMemberId || ''
   );
@@ -453,6 +502,7 @@ export default function StaffDealDetail({
   function handleSaveDealChanges(options = {}) {
     const updatedDeal = {
       ...(deal || {}),
+      dealOwner: dealOwner ? { name: dealOwner } : deal?.dealOwner,
       title: dealTitle,
       pipeline,
       stage,
@@ -481,6 +531,7 @@ export default function StaffDealDetail({
       paymentVerification,
       adminOnly: {
         ...(deal?.adminOnly || {}),
+        dealOwner,
         primaryMemberId,
         carrier,
         sellingState,
@@ -498,6 +549,7 @@ export default function StaffDealDetail({
 
     const updates = [
       { fieldName: 'Deal Title', oldValue: deal?.title || dealInfo.title || '', newValue: dealTitle },
+      { fieldName: 'Deal Owner', oldValue: deal?.dealOwner?.name || deal?.adminOnly?.dealOwner || dealInfo.adminOnly?.dealOwner || '', newValue: dealOwner },
       { fieldName: 'Pipeline', oldValue: deal?.pipeline || dealInfo.pipeline || '', newValue: pipeline },
       { fieldName: 'Stage', oldValue: deal?.stage || dealInfo.stage || '', newValue: stage },
       { fieldName: 'Amount', oldValue: deal?.amount !== undefined ? deal.amount : (dealInfo.amount || ''), newValue: newAmountStr },
@@ -546,6 +598,7 @@ export default function StaffDealDetail({
   const currentDealSnapshot = useMemo(() => {
     return JSON.stringify({
       dealTitle: (dealTitle || '').trim(),
+      dealOwner: (dealOwner || '').trim(),
       pipeline: (pipeline || '').trim(),
       stage: (stage || '').trim(),
       amount: (amount || '').trim(),
@@ -584,6 +637,7 @@ export default function StaffDealDetail({
     });
   }, [
     dealTitle,
+    dealOwner,
     pipeline,
     stage,
     amount,
@@ -1521,14 +1575,31 @@ export default function StaffDealDetail({
                       required
                       onOpenHistory={handleOpenPropertyHistory}
                     />
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-800">
-                      <div className="w-4 h-4 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0">
-                        KN
+                    <div className="relative">
+                      <select
+                        value={dealOwner}
+                        onChange={(e) => setDealOwner(e.target.value)}
+                        className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
+                      >
+                        <option value="">-- Chưa chọn Deal Owner --</option>
+                        {dealOwner &&
+                          !allAvailableAgents.some(
+                            (ag) =>
+                              (ag.handle ? `${ag.name} (${ag.handle})` : ag.name) === dealOwner ||
+                              ag.name === dealOwner
+                          ) && <option value={dealOwner}>{dealOwner}</option>}
+                        {allAvailableAgents.map((ag) => {
+                          const val = ag.handle ? `${ag.name} (${ag.handle})` : ag.name;
+                          return (
+                            <option key={ag.name} value={val}>
+                              {ag.name} {ag.handle ? `(${ag.handle})` : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 flex items-center">
+                        <span className="material-symbols-outlined text-[16px]">expand_more</span>
                       </div>
-                      <span className="truncate flex-grow">
-                        {dealInfo.adminOnly?.dealOwner || 'Khanh Nguyen (khanhnguyen31@7)'}
-                      </span>
-                      <span className="text-[11px] text-slate-400">✕</span>
                     </div>
                   </div>
 
@@ -1683,14 +1754,14 @@ export default function StaffDealDetail({
                         className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-bold text-blue-700 cursor-pointer focus:outline-none focus:border-blue-500"
                       >
                         <option value="">-- Chưa chọn Carrier --</option>
-                        <option value="BCBS">BCBS</option>
-                        <option value="Ambetter">Ambetter</option>
-                        <option value="Oscar">Oscar</option>
-                        <option value="UnitedHealthcare">UnitedHealthcare</option>
-                        <option value="Molina Healthcare">Molina Healthcare</option>
-                        <option value="Aetna">Aetna</option>
-                        <option value="Cigna">Cigna</option>
-                        <option value="Kaiser">Kaiser</option>
+                        {carrier && !ALL_CARRIERS.includes(carrier) && (
+                          <option value={carrier}>{carrier}</option>
+                        )}
+                        {ALL_CARRIERS.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
                       </select>
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
                         {carrier && (
@@ -2032,14 +2103,14 @@ export default function StaffDealDetail({
                     <div className="relative">
                       <select value={carrier} onChange={(e) => setCarrier(e.target.value)} className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer">
                         <option value="">-- Chưa chọn Carrier --</option>
-                        <option value="BCBS">BCBS</option>
-                        <option value="Ambetter">Ambetter</option>
-                        <option value="Oscar">Oscar</option>
-                        <option value="UnitedHealthcare">UnitedHealthcare</option>
-                        <option value="Molina Healthcare">Molina Healthcare</option>
-                        <option value="Aetna">Aetna</option>
-                        <option value="Cigna">Cigna</option>
-                        <option value="Kaiser">Kaiser</option>
+                        {carrier && !ALL_CARRIERS.includes(carrier) && (
+                          <option value={carrier}>{carrier}</option>
+                        )}
+                        {ALL_CARRIERS.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
                       </select>
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
                         {carrier && (
