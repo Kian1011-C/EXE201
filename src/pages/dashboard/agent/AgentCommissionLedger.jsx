@@ -5,9 +5,16 @@ import {
   calculateCommissions,
   updateCommission,
 } from '../../../services/api';
-import { ALL_CARRIERS } from '../../../data/mockCrmData';
+import {
+  ALL_CARRIERS,
+  CARRIER_COMMISSION_RATES,
+  calculateCarrierDealCommission,
+  getDynamicDeals,
+  SAMPLE_DEALS,
+} from '../../../data/mockCrmData';
 import AgentCommissionCalculator from './AgentCommissionCalculator';
 
+// ── INITIAL REAL COMMISSION DATA: 100% AGENT PAYOUT (NO 7/3 SPLIT) ───────────
 const INITIAL_COMMISSION_DATA = [
   {
     id: 'COMM-2026-001',
@@ -21,12 +28,12 @@ const INITIAL_COMMISSION_DATA = [
     membersCount: 1,
     premium: 395,
     subsidy: 395,
-    commissionRate: '$30.00 PMPM (Per Member Per Month)',
+    commissionRate: '$30.00 PMPM (1 người)',
     grossAmount: 30.0,
-    supportDeduction: 0.30,
-    saleSupportStatus: 'NONE',
-    commissionAmount: 21.0,
-    annualProjected: 252.0,
+    supportDeduction: 0.0, // 0% deduction
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 30.0, // 100% payout
+    annualProjected: 360.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -44,12 +51,12 @@ const INITIAL_COMMISSION_DATA = [
     membersCount: 1,
     premium: 412,
     subsidy: 380,
-    commissionRate: '$32.00 PMPM',
+    commissionRate: '$32.00 PMPM (1 người)',
     grossAmount: 32.0,
-    supportDeduction: 0.50,
-    saleSupportStatus: 'PARTIAL',
-    commissionAmount: 16.0,
-    annualProjected: 192.0,
+    supportDeduction: 0.0,
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 32.0,
+    annualProjected: 384.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -67,12 +74,12 @@ const INITIAL_COMMISSION_DATA = [
     membersCount: 1,
     premium: 340,
     subsidy: 340,
-    commissionRate: '$28.00 PMPM',
+    commissionRate: '$28.00 PMPM (1 người)',
     grossAmount: 28.0,
-    supportDeduction: 0.30,
-    saleSupportStatus: 'NONE',
-    commissionAmount: 19.6,
-    annualProjected: 235.2,
+    supportDeduction: 0.0,
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 28.0,
+    annualProjected: 336.0,
     status: 'Pending Carrier Review',
     cycle: '2026-09',
     payoutDate: 'Pending (Next Cycle)',
@@ -90,12 +97,12 @@ const INITIAL_COMMISSION_DATA = [
     membersCount: 2,
     premium: 780,
     subsidy: 720,
-    commissionRate: '$30.00 PMPM ($60/mo for 2)',
+    commissionRate: '$30.00 PMPM ($60/mo cho 2 người)',
     grossAmount: 60.0,
-    supportDeduction: 0.50,
-    saleSupportStatus: 'PARTIAL',
-    commissionAmount: 30.0,
-    annualProjected: 360.0,
+    supportDeduction: 0.0,
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 60.0,
+    annualProjected: 720.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -115,10 +122,10 @@ const INITIAL_COMMISSION_DATA = [
     subsidy: 0,
     commissionRate: '$51.00 / mo ($612 Initial CMS)',
     grossAmount: 51.0,
-    supportDeduction: 0.30,
-    saleSupportStatus: 'NONE',
-    commissionAmount: 35.7,
-    annualProjected: 428.4,
+    supportDeduction: 0.0,
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 51.0,
+    annualProjected: 612.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -136,12 +143,12 @@ const INITIAL_COMMISSION_DATA = [
     membersCount: 1,
     premium: 450,
     subsidy: 410,
-    commissionRate: '$30.00 PMPM',
+    commissionRate: '$30.00 PMPM (1 người)',
     grossAmount: 30.0,
-    supportDeduction: 0.30,
-    saleSupportStatus: 'NONE',
-    commissionAmount: 21.0,
-    annualProjected: 252.0,
+    supportDeduction: 0.0,
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 30.0,
+    annualProjected: 360.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -159,12 +166,12 @@ const INITIAL_COMMISSION_DATA = [
     membersCount: 1,
     premium: 360,
     subsidy: 360,
-    commissionRate: '$29.00 PMPM',
+    commissionRate: '$29.00 PMPM (1 người)',
     grossAmount: 29.0,
-    supportDeduction: 0.70,
-    saleSupportStatus: 'FULL',
-    commissionAmount: 8.7,
-    annualProjected: 104.4,
+    supportDeduction: 0.0,
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 29.0,
+    annualProjected: 348.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -182,12 +189,12 @@ const INITIAL_COMMISSION_DATA = [
     membersCount: 1,
     premium: 460,
     subsidy: 420,
-    commissionRate: '$35.00 PMPM',
+    commissionRate: '$35.00 PMPM (1 người)',
     grossAmount: 35.0,
-    supportDeduction: 0.50,
-    saleSupportStatus: 'PARTIAL',
-    commissionAmount: 17.5,
-    annualProjected: 210.0,
+    supportDeduction: 0.0,
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 35.0,
+    annualProjected: 420.0,
     status: 'Pending Carrier Review',
     cycle: '2026-09',
     payoutDate: 'Pending (Next Cycle)',
@@ -205,12 +212,12 @@ const INITIAL_COMMISSION_DATA = [
     membersCount: 1,
     premium: 335,
     subsidy: 335,
-    commissionRate: '$30.00 PMPM',
+    commissionRate: '$30.00 PMPM (1 người)',
     grossAmount: 30.0,
-    supportDeduction: 0.30,
-    saleSupportStatus: 'NONE',
-    commissionAmount: 21.0,
-    annualProjected: 252.0,
+    supportDeduction: 0.0,
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 30.0,
+    annualProjected: 360.0,
     status: 'Settled',
     cycle: '2026-09',
     payoutDate: '09/15/2026',
@@ -228,12 +235,12 @@ const INITIAL_COMMISSION_DATA = [
     membersCount: 2,
     premium: 810,
     subsidy: 750,
-    commissionRate: '$32.00 PMPM ($64/mo for 2)',
+    commissionRate: '$32.00 PMPM ($64/mo cho 2 người)',
     grossAmount: 64.0,
-    supportDeduction: 0.50,
-    saleSupportStatus: 'PARTIAL',
-    commissionAmount: 32.0,
-    annualProjected: 384.0,
+    supportDeduction: 0.0,
+    saleSupportStatus: '100% DIRECT',
+    commissionAmount: 64.0,
+    annualProjected: 768.0,
     status: 'In Processing',
     cycle: '2026-09',
     payoutDate: '09/28/2026',
@@ -241,7 +248,7 @@ const INITIAL_COMMISSION_DATA = [
   },
 ];
 
-export default function AgentCommissionLedger({ onSelectContact }) {
+export default function AgentCommissionLedger({ onSelectContact, onSelectDeal }) {
   const [commissionList, setCommissionList] = useState(INITIAL_COMMISSION_DATA);
   const [dbSummary, setDbSummary] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -254,14 +261,19 @@ export default function AgentCommissionLedger({ onSelectContact }) {
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [disputeRecord, setDisputeRecord] = useState(null);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
+  const [showRateMatrix, setShowRateMatrix] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Quick Inline Calculator state
+  const [calcCarrier, setCalcCarrier] = useState('BCBS');
+  const [calcMembers, setCalcMembers] = useState(1);
 
   function showToast(msg) {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   }
 
-  // Load real commissions from PostgreSQL backend
+  // Load commissions & merge dynamic deals from CRM
   async function loadCommissionsData() {
     try {
       setLoading(true);
@@ -272,35 +284,75 @@ export default function AgentCommissionLedger({ onSelectContact }) {
 
       if (summary) setDbSummary(summary);
 
+      let baseList = INITIAL_COMMISSION_DATA;
+
       if (Array.isArray(comms) && comms.length > 0) {
-        // Map backend Prisma/Spring Boot model to Ledger shape
-        const formatted = comms.map((c) => ({
-          id: c.id,
-          policyNumber: c.policyId || `POL-${String(c.id).slice(-6)}`,
-          memberId: c.policyId || 'MID-UNKNOWN',
-          clientName: c.deal?.title?.split('–')[0]?.trim() || c.agentName || 'Client Name',
-          clientCode: c.deal?.contactId || 'CT26002600',
-          carrier: c.carrier,
-          category: c.commissionType === 'MEDICARE' ? 'Medicare' : 'Obamacare / ACA',
-          planName: c.planName || c.deal?.title || 'Standard Plan',
-          membersCount: c.memberCount || 1,
-          premium: 400,
-          subsidy: 380,
-          commissionRate: `$${(c.grossAmount / (c.memberCount || 1)).toFixed(2)} PMPM`,
-          grossAmount: c.grossAmount,
-          supportDeduction: c.supportDeduction,
-          saleSupportStatus: c.saleSupportStatus || 'NONE',
-          commissionAmount: c.netAmount,
-          annualProjected: c.netAmount * 12,
-          status: c.status === 'SETTLED' ? 'Settled' : c.status === 'PENDING' ? 'Pending Carrier Review' : c.status,
-          cycle: c.period || '2026-09',
-          payoutDate: c.status === 'SETTLED' ? '09/15/2026' : 'Pending (Next Cycle)',
-          directDepositRef: c.status === 'SETTLED' ? `ACH-${String(c.id).slice(0, 6).toUpperCase()}` : '---',
-        }));
-        setCommissionList(formatted);
+        baseList = comms.map((c) => {
+          const dealMembers = c.memberCount || 1;
+          const gross = c.grossAmount || 30.0;
+          return {
+            id: c.id,
+            policyNumber: c.policyId || `POL-${String(c.id).slice(-6)}`,
+            memberId: c.policyId || 'MID-UNKNOWN',
+            clientName: c.deal?.title?.split('–')[0]?.trim() || c.agentName || 'Khách hàng',
+            clientCode: c.deal?.contactId || 'CT26002600',
+            carrier: c.carrier,
+            category: c.commissionType === 'MEDICARE' ? 'Medicare' : 'Obamacare / ACA',
+            planName: c.planName || c.deal?.title || 'Standard Plan',
+            membersCount: dealMembers,
+            premium: 400,
+            subsidy: 380,
+            commissionRate: `$${(gross / dealMembers).toFixed(2)} PMPM`,
+            grossAmount: gross,
+            supportDeduction: 0.0, // 0% deduction
+            saleSupportStatus: '100% DIRECT',
+            commissionAmount: gross, // 100% payout to agent
+            annualProjected: gross * 12,
+            status: c.status === 'SETTLED' ? 'Settled' : c.status === 'PENDING' ? 'Pending Carrier Review' : c.status,
+            cycle: c.period || '2026-09',
+            payoutDate: c.status === 'SETTLED' ? '09/15/2026' : 'Pending (Next Cycle)',
+            directDepositRef: c.status === 'SETTLED' ? `ACH-${String(c.id).slice(0, 6).toUpperCase()}` : '---',
+          };
+        });
       }
+
+      // Check CRM dynamic deals to auto-calculate any missing deals
+      const crmDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
+      crmDeals.forEach((deal) => {
+        if (deal && deal.id && !baseList.some((item) => item.policyNumber === deal.id || item.policyNumber === deal.code)) {
+          const dealCarrier = deal.carrier || deal.dealCarrier || deal.adminOnly?.carrier || 'BCBS';
+          const members = parseInt(deal.numberMember || deal.adminOnly?.numberMember) || 1;
+          const calculated = calculateCarrierDealCommission(dealCarrier, members);
+
+          baseList.push({
+            id: `COMM-${deal.id}`,
+            policyNumber: deal.id || deal.code || 'D26005033',
+            memberId: deal.adminOnly?.primaryMemberId || `MID-${deal.id}`,
+            clientName: deal.contactName || deal.title || 'Hồ sơ bảo hiểm CRM',
+            clientCode: deal.contactId || 'CT26002600',
+            carrier: dealCarrier,
+            category: (deal.pipeline || '').toLowerCase().includes('medicare') ? 'Medicare' : 'Obamacare / ACA',
+            planName: deal.title || 'ACA Qualified Health Plan',
+            membersCount: members,
+            premium: 400,
+            subsidy: 380,
+            commissionRate: `$${calculated.pmpmRate.toFixed(2)} PMPM (${members} người)`,
+            grossAmount: calculated.monthlyCarrierPayout,
+            supportDeduction: 0.0,
+            saleSupportStatus: '100% DIRECT',
+            commissionAmount: calculated.agentNetMonthly, // 100%
+            annualProjected: calculated.agentAnnualProjected,
+            status: 'Settled',
+            cycle: '2026-09',
+            payoutDate: '09/15/2026',
+            directDepositRef: `ACH-${deal.id}-CLEARING`,
+          });
+        }
+      });
+
+      setCommissionList(baseList);
     } catch (err) {
-      console.warn('[CommissionLedger] Backend fallback:', err);
+      console.warn('[CommissionLedger] Load error:', err);
     } finally {
       setLoading(false);
     }
@@ -310,7 +362,7 @@ export default function AgentCommissionLedger({ onSelectContact }) {
     loadCommissionsData();
   }, []);
 
-  // Trigger Backend Commission Calculation Engine
+  // Trigger Commission Recalculation
   async function handleRunCalculation() {
     try {
       setCalculating(true);
@@ -318,16 +370,17 @@ export default function AgentCommissionLedger({ onSelectContact }) {
         agentName: 'Khanh Nguyen',
         period: selectedCycle === 'YTD' ? '2026-09' : selectedCycle,
       });
-      showToast(`Calculation Complete: ${res.message || 'Updated active deal commissions'}`);
+      showToast(`Đã tính toán xong hoa hồng 100% cho các deal: ${res.message || 'Cập nhật thành công!'}`);
       await loadCommissionsData();
     } catch (err) {
-      showToast(`Calculation note: Refreshed with active deals (${err.message})`);
+      await loadCommissionsData();
+      showToast('Đã làm mới và tự động tính toán lại mức chi trả của từng hãng cho toàn bộ deals!');
     } finally {
       setCalculating(false);
     }
   }
 
-  // Handle Status Update (e.g. Settle / Dispute)
+  // Handle Status Update
   async function handleUpdateStatus(id, newStatus) {
     try {
       await updateCommission(id, { status: newStatus });
@@ -342,19 +395,18 @@ export default function AgentCommissionLedger({ onSelectContact }) {
             : c
         )
       );
-      showToast(`Policy status updated to ${newStatus}`);
+      showToast(`Cập nhật trạng thái chi trả thành: ${newStatus}`);
     } catch {
-      // Local fallback
       setCommissionList((prev) =>
         prev.map((c) =>
           c.id === id ? { ...c, status: newStatus === 'SETTLED' ? 'Settled' : newStatus } : c
         )
       );
-      showToast(`Policy status updated to ${newStatus} (Local)`);
+      showToast(`Đã cập nhật trạng thái: ${newStatus}`);
     }
   }
 
-  // Summary Metrics
+  // Summary Metrics: 100% Agent Payout
   const stats = useMemo(() => {
     const settled = commissionList
       .filter((c) => c.status === 'Settled')
@@ -373,11 +425,11 @@ export default function AgentCommissionLedger({ onSelectContact }) {
       ytdSettled: dbSummary?.ytdPaid || settled * 8.5,
       annualProjected: totalProjected,
       activeCommissionPolicies: dbSummary?.activePolicies || totalPolicies,
-      avgRatePmpm: totalPolicies > 0 ? settled / totalPolicies : 30.2,
+      avgRatePmpm: totalPolicies > 0 ? settled / totalPolicies : 30.5,
     };
   }, [commissionList, dbSummary]);
 
-  // Unique carrier list for filter (Tất cả hãng hiện tại)
+  // Unique carrier list for filter
   const carrierOptions = useMemo(() => {
     const set = new Set([...ALL_CARRIERS, ...commissionList.map((c) => c.carrier).filter(Boolean)]);
     return ['All', ...Array.from(set)];
@@ -402,6 +454,11 @@ export default function AgentCommissionLedger({ onSelectContact }) {
     });
   }, [commissionList, searchQuery, carrierFilter, categoryFilter, statusFilter]);
 
+  // Quick Deal Calculation Result
+  const quickCalc = useMemo(() => {
+    return calculateCarrierDealCommission(calcCarrier, calcMembers);
+  }, [calcCarrier, calcMembers]);
+
   function handleExportCsv() {
     const headers = [
       'Transaction ID',
@@ -410,10 +467,10 @@ export default function AgentCommissionLedger({ onSelectContact }) {
       'Client Name',
       'Carrier',
       'Category',
-      'SSS Tier',
-      'Gross Payout',
-      'Support Fee %',
-      'Net Commission',
+      'Agent Payout Rate',
+      'Carrier Monthly Payout',
+      'Platform Fee Deduction',
+      'Net Commission Received (100%)',
       'Annual Projected',
       'Status',
       'Cycle',
@@ -427,9 +484,9 @@ export default function AgentCommissionLedger({ onSelectContact }) {
       `"${r.clientName}"`,
       `"${r.carrier}"`,
       `"${r.category}"`,
-      r.saleSupportStatus || 'NONE',
-      `$${(r.grossAmount || r.commissionAmount).toFixed(2)}`,
-      `${((r.supportDeduction || 0) * 100).toFixed(0)}%`,
+      '100%',
+      `$${r.grossAmount.toFixed(2)}`,
+      '$0.00 (0%)',
       `$${r.commissionAmount.toFixed(2)}`,
       `$${r.annualProjected.toFixed(2)}`,
       r.status,
@@ -445,53 +502,69 @@ export default function AgentCommissionLedger({ onSelectContact }) {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Commission_Ledger_${selectedCycle.replace('/', '-')}.csv`);
+    link.setAttribute('download', `Agent_Commission_100_Statement_${selectedCycle.replace('/', '-')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    showToast('Downloaded commission statement CSV!');
+    showToast('Đã tải xuống bảng kê hoa hồng 100% (CSV)!');
   }
 
   return (
-    <div className="p-3 sm:p-6 flex flex-col gap-5 w-full bg-[#F8FAFC]">
+    <div className="p-3 sm:p-6 flex flex-col gap-5 w-full bg-[#F8FAFC] text-left">
       {/* ── Toast Notification ────────────────────────────────────────────── */}
       {toastMessage && (
-        <div className="fixed top-14 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 text-white shadow-xl text-xs font-medium animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed top-14 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white shadow-xl text-xs font-medium animate-fade-in border border-slate-700">
           <span className="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* ── 1. Top Header with Actions ───────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-xs">
-            <span className="material-symbols-outlined text-[24px]">payments</span>
+      {/* ── 1. Top Header with 100% Policy Highlight ─────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-xs">
+            <span className="material-symbols-outlined text-[26px]">payments</span>
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg font-bold text-slate-900 tracking-tight">
-                Agent Commission Engine &amp; Payouts
+                Sổ Quyết Toán Hoa Hồng Bảo Hiểm (Agent Commission Hub)
               </h1>
-
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider">
+                100% Agent Payout (Không Trừ 7/3)
+              </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Agent NPN #1984210 • SSS Rules Engine (NONE / PARTIAL / FULL) • Real-time Statement
+              Đại lý nhận trọn 100% hoa hồng trực tiếp từ từng hãng bảo hiểm • NPN #1984210 • Tự động tính theo định mức hãng
             </p>
           </div>
         </div>
 
         {/* Header Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* SSS Calculator Trigger */}
+          {/* Rate Matrix Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowRateMatrix(!showRateMatrix)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer border ${
+              showRateMatrix
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white hover:bg-slate-50 text-blue-700 border-blue-200'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">table_chart</span>
+            <span>{showRateMatrix ? 'Ẩn Biểu Phí Hãng' : 'Xem Biểu Phí 16 Hãng'}</span>
+          </button>
+
+          {/* Calculator Trigger */}
           <button
             type="button"
             onClick={() => setShowCalculatorModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">calculate</span>
-            <span>SSS Calculator</span>
+            <span>Bộ Tính 1 Deal</span>
           </button>
 
           {/* Auto Calculate Button */}
@@ -499,124 +572,284 @@ export default function AgentCommissionLedger({ onSelectContact }) {
             type="button"
             disabled={calculating}
             onClick={handleRunCalculation}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-2xs transition cursor-pointer ${
               calculating ? 'opacity-70 cursor-wait' : ''
             }`}
           >
             <span className={`material-symbols-outlined text-[16px] ${calculating ? 'animate-spin' : ''}`}>
-              refresh
+              sync
             </span>
-            <span>{calculating ? 'Calculating...' : 'Recalculate SSS'}</span>
+            <span>{calculating ? 'Đang tính...' : 'Tính lại toàn bộ Deals'}</span>
           </button>
 
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-            <span className="px-1.5 py-1 text-slate-500 font-medium">Cycle:</span>
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+            <span className="px-1.5 py-0.5 text-slate-500 font-medium">Kỳ:</span>
             <select
               value={selectedCycle}
               onChange={(e) => setSelectedCycle(e.target.value)}
-              className="bg-white px-2 py-1 rounded text-xs font-semibold text-slate-800 border border-slate-200 focus:outline-none cursor-pointer"
+              className="bg-white px-2 py-1 rounded-lg text-xs font-semibold text-slate-800 border border-slate-200 focus:outline-none cursor-pointer"
             >
-              <option value="2026-09">Sep 2026 (Current)</option>
-              <option value="2026-08">Aug 2026</option>
-              <option value="2026-07">Jul 2026</option>
-              <option value="YTD">YTD 2026 (All Months)</option>
+              <option value="2026-09">Tháng 9/2026 (Hiện tại)</option>
+              <option value="2026-08">Tháng 8/2026</option>
+              <option value="2026-07">Tháng 7/2026</option>
+              <option value="YTD">YTD 2026 (Cả năm)</option>
             </select>
           </div>
 
           <button
             type="button"
             onClick={handleExportCsv}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px] text-slate-500">download</span>
-            <span>Export CSV</span>
+            <span>Xuất CSV</span>
           </button>
         </div>
       </div>
 
-      {/* ── B2B SaaS Provider Notice ─────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-start sm:items-center gap-2.5">
-          <span className="material-symbols-outlined text-blue-600 text-[20px] shrink-0 mt-0.5 sm:mt-0">info</span>
+      {/* ── 2. POLICY BANNER: 100% AGENT RETENTION ───────────────────────── */}
+      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/90 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-start md:items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[20px]">verified_user</span>
+          </div>
           <div>
-            <span className="font-bold text-blue-900 block sm:inline mr-1">InsurMatch Software Platform Notice:</span>
-            <span className="text-blue-800">
-              InsurMatch operates strictly as a B2B SaaS CRM provider ($39 / $79 / $199/mo). InsurMatch does not touch policy premiums or retain carrier cuts. 100% of your insurance carrier commissions are paid directly to your licensed NPN from clearinghouses. Use this ledger to audit remittances and track internal agency co-enrollment assistance splits.
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-emerald-950 text-xs">Chính Sách Hoa Hồng 100%:</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-200 text-emerald-900 uppercase">
+                Zero Split Fee
+              </span>
+            </div>
+            <p className="text-[11px] text-emerald-800 mt-0.5 leading-relaxed">
+              InsurMatch hoạt động theo mô hình phần mềm SaaS B2B thuần túy (thu phí gói CRM $39, $79, $199/tháng). 
+              <strong> 100% tiền hoa hồng bảo hiểm do các hãng chi trả được chuyển trực tiếp về đại lý</strong>, 
+              hoàn toàn không khấu trừ 7/3, không trừ phí sàn, không giữ hoa hồng của đại lý.
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0 flex items-center gap-2 bg-white/80 px-3 py-2 rounded-xl border border-emerald-200 shadow-2xs">
+          <span className="text-[11px] text-slate-500 font-medium">Khấu trừ sàn:</span>
+          <span className="font-mono font-bold text-emerald-700">$0.00 (0%)</span>
+          <span className="text-slate-300">|</span>
+          <span className="text-[11px] text-slate-500 font-medium">Đại lý nhận:</span>
+          <span className="font-mono font-bold text-blue-700">100%</span>
+        </div>
+      </div>
+
+      {/* ── 3. INTERACTIVE DEAL COMMISSION CALCULATOR BAR ─────────────────── */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[20px]">calculate</span>
+          </div>
+          <div>
+            <span className="text-xs font-bold text-slate-900 block">Tự Tính 1 Deal Cho Từng Hãng Bảo Hiểm:</span>
+            <span className="text-[11px] text-slate-500">Chọn hãng và số người để xem ngay số tiền hãng trả mỗi tháng &amp; cả năm</span>
+          </div>
+        </div>
+
+        {/* Input Controls */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] font-bold text-slate-600">Hãng:</label>
+            <select
+              value={calcCarrier}
+              onChange={(e) => setCalcCarrier(e.target.value)}
+              className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+            >
+              {ALL_CARRIERS.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] font-bold text-slate-600">Số người:</label>
+            <select
+              value={calcMembers}
+              onChange={(e) => setCalcMembers(parseInt(e.target.value) || 1)}
+              className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+            >
+              <option value="1">1 người (Cá nhân)</option>
+              <option value="2">2 người (Vợ chồng)</option>
+              <option value="3">3 người</option>
+              <option value="4">4 người (Gia đình)</option>
+              <option value="5">5 người</option>
+              <option value="6">6 người</option>
+            </select>
+          </div>
+
+          {/* Quick Result Badge */}
+          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl text-xs">
+            <span className="text-blue-900 font-medium">Hãng trả:</span>
+            <strong className="font-mono font-black text-blue-700">${quickCalc.monthlyCarrierPayout.toFixed(2)}/tháng</strong>
+            <span className="text-slate-300">→</span>
+            <span className="text-emerald-800 font-medium">Agent nhận (100%):</span>
+            <strong className="font-mono font-black text-emerald-700">${quickCalc.agentNetMonthly.toFixed(2)}/tháng</strong>
+            <span className="text-slate-400">(${quickCalc.agentAnnualProjected.toLocaleString()}/năm)</span>
           </div>
         </div>
       </div>
 
-      {/* ── 2. KPI Summary Cards ─────────────────────────────────────────── */}
+      {/* ── 4. EXPANDABLE 16 CARRIER COMMISSION RATE MATRIX TABLE ─────────── */}
+      {showRateMatrix && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <span className="material-symbols-outlined text-blue-600 text-[20px]">table_chart</span>
+                <span>Bảng Biểu Phí Hoa Hồng Chi Trả Của 16 Hãng Bảo Hiểm (Carrier Rate Sheet)</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Mức chi trả tiêu chuẩn của từng hãng cho mỗi deal theo tháng và theo năm. Đại lý hưởng 100% không cắt giảm.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowRateMatrix(false)}
+              className="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+            >
+              Đóng bảng
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px]">
+                <tr>
+                  <th className="py-2.5 px-3">Hãng Bảo Hiểm</th>
+                  <th className="py-2.5 px-3">Dòng Sản Phẩm</th>
+                  <th className="py-2.5 px-3 text-right">Đơn Giá PMPM</th>
+                  <th className="py-2.5 px-3 text-right">1 Deal (1 Người / Tháng)</th>
+                  <th className="py-2.5 px-3 text-right">1 Deal (2 Người / Tháng)</th>
+                  <th className="py-2.5 px-3 text-right">1 Deal (Gia Đình 4 Người)</th>
+                  <th className="py-2.5 px-3 text-right">Dự Phóng 1 Năm (1 Người)</th>
+                  <th className="py-2.5 px-3 text-center">Tỷ Lệ Agent Nhận</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {Object.values(CARRIER_COMMISSION_RATES).map((cr) => (
+                  <tr key={cr.code} className="hover:bg-slate-50/70 transition">
+                    <td className="py-2.5 px-3 font-bold text-slate-900">{cr.name}</td>
+                    <td className="py-2.5 px-3">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        cr.category.includes('Medicare')
+                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      }`}>
+                        {cr.category}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-700">
+                      ${cr.pmpm.toFixed(2)} {cr.rateType === 'CMS Monthly' ? '/tháng' : 'PMPM'}
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-blue-700">
+                      ${cr.monthlyPer1Member.toFixed(2)}/mo
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
+                      ${cr.monthlyPer2Members.toFixed(2)}/mo
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-indigo-700">
+                      ${cr.monthlyPer4Members.toFixed(2)}/mo
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-700">
+                      ${cr.annualPerDeal1Member.toFixed(2)}/năm
+                    </td>
+                    <td className="py-2.5 px-3 text-center">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        100%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── 5. KPI SUMMARY CARDS ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Settled Current Month */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
-            <span className="font-semibold text-slate-600">Settled This Month</span>
-            <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center material-symbols-outlined text-[18px]">
+            <span className="font-semibold text-slate-600 uppercase tracking-wider text-[10px]">
+              Thực Nhận Tháng Này (100%)
+            </span>
+            <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center material-symbols-outlined text-[18px]">
               account_balance_wallet
             </span>
           </div>
-          <div className="text-2xl font-bold text-slate-900">
+          <div className="text-2xl font-black text-slate-900 font-mono tracking-tight">
             ${stats.settledCurrentMonth.toFixed(2)}
           </div>
-          <div className="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-700 font-medium">
-            <span className="material-symbols-outlined text-[14px]">verified</span>
-            <span>Deposited to Chase Checking (****4192)</span>
+          <div className="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-700 font-bold">
+            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+            <span>Chuyển khoản trực tiếp (ACH Deposit)</span>
           </div>
         </div>
 
         {/* Card 2: Pending Carrier Review */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
-            <span className="font-semibold text-slate-600">Pending Carrier Audit</span>
-            <span className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center material-symbols-outlined text-[18px]">
+            <span className="font-semibold text-slate-600 uppercase tracking-wider text-[10px]">
+              Chờ Hãng Đối Soát
+            </span>
+            <span className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center material-symbols-outlined text-[18px]">
               hourglass_top
             </span>
           </div>
-          <div className="text-2xl font-bold text-amber-600">
+          <div className="text-2xl font-black text-amber-600 font-mono tracking-tight">
             ${stats.pendingReview.toFixed(2)}
           </div>
-          <div className="flex items-center gap-1.5 mt-2 text-[11px] text-slate-500">
-            <span>Clearinghouse auditing AOR submission</span>
+          <div className="flex items-center gap-1.5 mt-2 text-[11px] text-slate-500 font-medium">
+            <span>Hãng đang duyệt kỳ tiếp theo</span>
           </div>
         </div>
 
         {/* Card 3: YTD Settled Revenue */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
-            <span className="font-semibold text-slate-600">YTD Paid Revenue</span>
-            <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center material-symbols-outlined text-[18px]">
+            <span className="font-semibold text-slate-600 uppercase tracking-wider text-[10px]">
+              Tổng Đã Nhận YTD (Cả Năm)
+            </span>
+            <span className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center material-symbols-outlined text-[18px]">
               trending_up
             </span>
           </div>
-          <div className="text-2xl font-bold text-blue-700">
+          <div className="text-2xl font-black text-blue-700 font-mono tracking-tight">
             ${stats.ytdSettled.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="flex items-center gap-1.5 mt-2 text-[11px] text-slate-500">
-            <span>Annual Run-rate: <strong>${stats.annualProjected.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></span>
+            <span>Dự phóng 12 tháng: <strong className="text-slate-800">${stats.annualProjected.toLocaleString('en-US', { minimumFractionDigits: 0 })}</strong></span>
           </div>
         </div>
 
         {/* Card 4: Active Commission Policies */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-violet-600" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
-            <span className="font-semibold text-slate-600">Earning Policies</span>
-            <span className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center material-symbols-outlined text-[18px]">
+            <span className="font-semibold text-slate-600 uppercase tracking-wider text-[10px]">
+              Hợp Đồng Đang Sinh Lời
+            </span>
+            <span className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center material-symbols-outlined text-[18px]">
               policy
             </span>
           </div>
-          <div className="text-2xl font-bold text-purple-900">
-            {stats.activeCommissionPolicies} <span className="text-sm font-normal text-slate-500">policies</span>
+          <div className="text-2xl font-black text-purple-900 font-mono tracking-tight">
+            {stats.activeCommissionPolicies} <span className="text-sm font-normal text-slate-500">hợp đồng</span>
           </div>
-          <div className="flex items-center gap-1.5 mt-2 text-[11px] text-purple-700 font-medium">
-            <span>Avg Net PMPM: <strong>${stats.avgRatePmpm.toFixed(2)}/mo</strong></span>
+          <div className="flex items-center gap-1.5 mt-2 text-[11px] text-purple-700 font-bold">
+            <span>Đơn giá PMPM trung bình: ${stats.avgRatePmpm.toFixed(2)}/mo</span>
           </div>
         </div>
       </div>
 
-      {/* ── 3. Filters Toolbar ───────────────────────────────────────────── */}
-      <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      {/* ── 6. FILTERS TOOLBAR ───────────────────────────────────────────── */}
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5 flex-wrap flex-grow">
           {/* Search Box */}
           <div className="relative min-w-[240px] max-w-sm flex-grow">
@@ -625,20 +858,20 @@ export default function AgentCommissionLedger({ onSelectContact }) {
             </span>
             <input
               type="text"
-              placeholder="Search policy #, client name, member ID..."
+              placeholder="Tìm số hợp đồng, tên khách hàng, mã MID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-slate-800 text-xs bg-slate-50/50"
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-slate-800 text-xs bg-slate-50/50"
             />
           </div>
 
           {/* Carrier Filter */}
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-medium">Carrier:</span>
+            <span className="text-slate-500 font-medium">Hãng:</span>
             <select
               value={carrierFilter}
               onChange={(e) => setCarrierFilter(e.target.value)}
-              className="bg-white border border-slate-200 px-2 py-1.5 rounded-lg text-slate-700 text-xs focus:outline-none cursor-pointer"
+              className="bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl text-slate-700 text-xs focus:outline-none cursor-pointer"
             >
               {carrierOptions.map((c) => (
                 <option key={c} value={c}>
@@ -650,67 +883,69 @@ export default function AgentCommissionLedger({ onSelectContact }) {
 
           {/* Status Filter */}
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-medium">Status:</span>
+            <span className="text-slate-500 font-medium">Trạng thái:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-white border border-slate-200 px-2 py-1.5 rounded-lg text-slate-700 text-xs focus:outline-none cursor-pointer"
+              className="bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl text-slate-700 text-xs focus:outline-none cursor-pointer"
             >
-              <option value="All">All Statuses</option>
-              <option value="Settled">Settled (Paid)</option>
-              <option value="Pending Carrier Review">Pending Review</option>
-              <option value="In Processing">In Processing</option>
+              <option value="All">Tất cả trạng thái</option>
+              <option value="Settled">Đã quyết toán (Settled)</option>
+              <option value="Pending Carrier Review">Chờ hãng duyệt</option>
+              <option value="In Processing">Đang xử lý</option>
             </select>
           </div>
 
           {/* Line Filter */}
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-medium">Line:</span>
+            <span className="text-slate-500 font-medium">Phân loại:</span>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-white border border-slate-200 px-2 py-1.5 rounded-lg text-slate-700 text-xs focus:outline-none cursor-pointer"
+              className="bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl text-slate-700 text-xs focus:outline-none cursor-pointer"
             >
-              <option value="All">All Categories</option>
+              <option value="All">Tất cả sản phẩm</option>
               <option value="Obamacare / ACA">Obamacare / ACA</option>
               <option value="Medicare">Medicare</option>
-              <option value="Life">Life Insurance</option>
             </select>
           </div>
         </div>
 
         <div className="text-slate-500 font-medium text-xs">
-          Showing <strong className="text-slate-800">{filteredList.length}</strong> statements
-          {loading && <span className="ml-2 text-blue-600 animate-pulse">(Refreshing...)</span>}
+          Hiển thị <strong className="text-slate-800 font-mono">{filteredList.length}</strong> hợp đồng
+          {loading && <span className="ml-2 text-blue-600 animate-pulse">(Đang đồng bộ...)</span>}
         </div>
       </div>
 
-      {/* ── 4. Main Commission Ledger Table ──────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      {/* ── 7. MAIN COMMISSION LEDGER TABLE (100% Payout) ─────────────────── */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs min-w-[860px]">
+          <table className="w-full text-left border-collapse text-xs min-w-[900px]">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
-                <th className="py-3 px-3.5">Policy / Member ID</th>
-                <th className="py-3 px-3.5">Client Name</th>
-                <th className="py-3 px-3.5">Carrier &amp; Plan</th>
-                <th className="py-3 px-3.5">Category</th>
-                <th className="py-3 px-3.5 text-center">SSS Tier</th>
-                <th className="py-3 px-3.5 text-right">Gross Payout</th>
-                <th className="py-3 px-3.5 text-right">Support Fee</th>
-                <th className="py-3 px-3.5 text-right">Net Month</th>
-                <th className="py-3 px-3.5">Status</th>
-                <th className="py-3 px-3.5">Payout Date</th>
-                <th className="py-3 px-3.5 text-center">Actions</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
+                <th className="py-3 px-3.5">Hợp Đồng / Member ID</th>
+                <th className="py-3 px-3.5">Khách Hàng</th>
+                <th className="py-3 px-3.5">Hãng &amp; Gói Bảo Hiểm</th>
+                <th className="py-3 px-3.5 text-center">Tỷ Lệ Nhận</th>
+                <th className="py-3 px-3.5 text-right">Mức Hãng Trả</th>
+                <th className="py-3 px-3.5 text-right">Khấu Trừ Sàn</th>
+                <th className="py-3 px-3.5 text-right font-black text-slate-900">Agent Thực Nhận (100%)</th>
+                <th className="py-3 px-3.5 text-right">Dự Phóng Năm</th>
+                <th className="py-3 px-3.5">Trạng Thái</th>
+                <th className="py-3 px-3.5">Ngày Thanh Toán</th>
+                <th className="py-3 px-3.5 text-center">Thao Tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {filteredList.map((row) => (
                 <tr key={row.id} className="hover:bg-blue-50/40 transition">
+                  {/* Policy */}
                   <td className="py-3 px-3.5">
                     <div className="font-mono font-semibold text-slate-900">{row.policyNumber}</div>
                     <div className="text-[10px] text-slate-400 font-mono">{row.memberId}</div>
                   </td>
+
+                  {/* Client */}
                   <td className="py-3 px-3.5">
                     <button
                       type="button"
@@ -721,84 +956,61 @@ export default function AgentCommissionLedger({ onSelectContact }) {
                     </button>
                     <div className="text-[10px] text-slate-400">{row.clientCode}</div>
                   </td>
-                  <td className="py-3 px-3.5 max-w-[200px]">
-                    <div className="font-semibold text-slate-800 truncate">{row.carrier}</div>
-                    <div className="text-[11px] text-slate-500 truncate">{row.planName}</div>
-                  </td>
-                  <td className="py-3 px-3.5">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
-                        row.category.includes('Medicare')
-                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                          : row.category.includes('Life')
-                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                          : 'bg-blue-50 text-blue-700 border border-blue-200'
-                      }`}
-                    >
-                      {row.category}
-                    </span>
+
+                  {/* Carrier & Plan */}
+                  <td className="py-3 px-3.5 max-w-[220px]">
+                    <div className="font-bold text-slate-900 truncate">{row.carrier}</div>
+                    <div className="text-[11px] text-slate-500 truncate">{row.planName} ({row.membersCount || 1} người)</div>
                   </td>
 
-                  {/* SSS Tier Badge */}
+                  {/* Payout Rate Badge: 100% Direct */}
                   <td className="py-3 px-3.5 text-center">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded font-bold text-[10px] uppercase border ${
-                        (row.saleSupportStatus || '').toUpperCase().includes('NONE')
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                          : (row.saleSupportStatus || '').toUpperCase() === 'PARTIAL'
-                          ? 'bg-amber-50 text-amber-700 border-amber-300'
-                          : 'bg-rose-50 text-rose-700 border-rose-300'
-                      }`}
-                    >
-                      {(row.saleSupportStatus || '').toUpperCase().includes('NONE')
-                        ? 'NONE (7/3)'
-                        : (row.saleSupportStatus || '').toUpperCase() === 'PARTIAL'
-                        ? 'PARTIAL (5/5)'
-                        : 'FULL (3/7)'}
+                    <span className="inline-block px-2 py-0.5 rounded-full font-black text-[10px] uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      100% DIRECT
                     </span>
                   </td>
 
-                  {/* Gross Amount */}
+                  {/* Gross Carrier Payout */}
                   <td className="py-3 px-3.5 text-right font-mono text-slate-600 text-[11px]">
-                    ${(row.grossAmount || row.commissionAmount).toFixed(2)}
+                    ${(row.grossAmount || row.commissionAmount).toFixed(2)}/mo
                   </td>
 
-                  {/* Support Fee % */}
-                  <td className="py-3 px-3.5 text-right font-mono text-[11px]">
-                    {row.supportDeduction > 0 ? (
-                      <span className="text-amber-600 font-semibold">
-                        -{(row.supportDeduction * 100).toFixed(0)}%
-                      </span>
-                    ) : (
-                      <span className="text-emerald-600 font-semibold">0% (Grace)</span>
-                    )}
+                  {/* Deduction: $0.00 (0%) */}
+                  <td className="py-3 px-3.5 text-right font-mono text-[11px] text-emerald-600 font-bold">
+                    $0.00 (0%)
                   </td>
 
-                  {/* Net Amount */}
-                  <td className="py-3 px-3.5 text-right font-bold text-slate-900 font-mono">
-                    ${row.commissionAmount.toFixed(2)}
+                  {/* Net Amount (100% to agent) */}
+                  <td className="py-3 px-3.5 text-right font-bold text-blue-700 font-mono text-sm">
+                    ${row.commissionAmount.toFixed(2)}/mo
+                  </td>
+
+                  {/* Annual Projected */}
+                  <td className="py-3 px-3.5 text-right font-mono font-bold text-slate-800 text-[11px]">
+                    ${(row.annualProjected || row.commissionAmount * 12).toFixed(2)}/năm
                   </td>
 
                   {/* Status */}
                   <td className="py-3 px-3.5">
                     {row.status === 'Settled' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        Settled
+                        Đã quyết toán
                       </span>
                     ) : row.status === 'In Processing' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-spin" />
-                        Processing
+                        Đang xử lý
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                        Audit Pending
+                        Chờ đối soát
                       </span>
                     )}
                   </td>
 
+                  {/* Payout Date & Ref */}
                   <td className="py-3 px-3.5 text-slate-600 text-[11px]">
                     <div>{row.payoutDate}</div>
                     {row.directDepositRef !== '---' && (
@@ -817,19 +1029,19 @@ export default function AgentCommissionLedger({ onSelectContact }) {
                           setDisputeRecord(row);
                           setShowDisputeModal(true);
                         }}
-                        className="px-2 py-1 rounded hover:bg-slate-100 text-slate-600 hover:text-blue-600 text-xs font-medium transition cursor-pointer"
-                        title="Audit / Formula breakdown"
+                        className="px-2 py-1 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-blue-600 text-xs font-semibold transition cursor-pointer"
+                        title="Xem chi tiết tính toán"
                       >
-                        Audit
+                        Chi tiết
                       </button>
                       {row.status !== 'Settled' && (
                         <button
                           type="button"
                           onClick={() => handleUpdateStatus(row.id, 'SETTLED')}
-                          className="px-2 py-1 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-bold transition cursor-pointer"
-                          title="Mark settled"
+                          className="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-bold transition cursor-pointer"
+                          title="Đánh dấu đã nhận"
                         >
-                          Settle
+                          Xác nhận
                         </button>
                       )}
                     </div>
@@ -841,25 +1053,25 @@ export default function AgentCommissionLedger({ onSelectContact }) {
         </div>
 
         {/* Table Footer */}
-        <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500">
+        <div className="p-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[16px] text-emerald-600">lock</span>
-            <span>All payouts follow SOP §2 SSS Guidelines: NONE (100%), PARTIAL (60%), FULL (25%).</span>
+            <span className="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+            <span>Quy chế: Agent hưởng 100% hoa hồng trực tiếp từ các hãng bảo hiểm, không trừ phí 7/3.</span>
           </div>
           <div className="font-semibold text-slate-800">
-            Total Displayed: <span className="text-blue-700">${filteredList.reduce((s, r) => s + r.commissionAmount, 0).toFixed(2)}</span> / month
+            Tổng thu nhập hàng tháng: <span className="text-blue-700 font-bold font-mono text-sm">${filteredList.reduce((s, r) => s + r.commissionAmount, 0).toFixed(2)}</span> / tháng
           </div>
         </div>
       </div>
 
-      {/* ── 5. Discrepancy / Audit Modal ─────────────────────────────────── */}
+      {/* ── 8. DISPUTE / AUDIT MODAL ─────────────────────────────────────── */}
       {showDisputeModal && disputeRecord && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-lg w-full p-5 animate-in fade-in zoom-in-95 duration-150 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600">fact_check</span>
-                <span>Commission Audit &amp; SSS Formula Breakdown</span>
+                <span>Chi Tiết Hoa Hồng Deal &amp; Công Thức Hãng Chi Trả</span>
               </h3>
               <button
                 onClick={() => setShowDisputeModal(false)}
@@ -871,66 +1083,70 @@ export default function AgentCommissionLedger({ onSelectContact }) {
 
             <div className="text-xs space-y-3 text-slate-600">
               <p>
-                Policy: <strong className="text-slate-800">{disputeRecord.policyNumber}</strong> ({disputeRecord.clientName})
+                Hợp đồng: <strong className="text-slate-800 font-mono">{disputeRecord.policyNumber}</strong> ({disputeRecord.clientName})
               </p>
 
-              {/* SSS Formula Breakdown */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2 text-xs">
+              {/* Formula Breakdown */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
                 <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">
-                  SSS Calculation Formula:
+                  Công Thức Tính Chi Trả Của Hãng:
                 </div>
-                <div className="font-mono text-slate-700 bg-white p-2 rounded border border-slate-200">
-                  Gross (${(disputeRecord.grossAmount || disputeRecord.commissionAmount).toFixed(2)}) × [1 - SSS Fee ({((disputeRecord.supportDeduction || 0) * 100).toFixed(0)}%)] = <strong>${disputeRecord.commissionAmount.toFixed(2)}/mo</strong>
+                <div className="font-mono text-slate-800 bg-white p-3 rounded-xl border border-slate-200 text-xs leading-relaxed">
+                  Hãng ({disputeRecord.carrier}) chi trả: <strong>${disputeRecord.grossAmount.toFixed(2)}/tháng</strong>
+                  <br />
+                  Khấu trừ sàn / support (0%): <strong>$0.00</strong>
+                  <br />
+                  Agent thực nhận: <strong>${disputeRecord.commissionAmount.toFixed(2)}/tháng (100%)</strong>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-                  <div>SSS Tier: <strong>{disputeRecord.saleSupportStatus || 'NONE'}</strong></div>
-                  <div>Members: <strong>{disputeRecord.membersCount || 1}</strong></div>
-                  <div>Carrier: <strong>{disputeRecord.carrier}</strong></div>
-                  <div>Status: <strong>{disputeRecord.status}</strong></div>
+                  <div>Tỷ lệ Agent nhận: <strong className="text-emerald-700">100% Direct Payout</strong></div>
+                  <div>Số thành viên trong deal: <strong>{disputeRecord.membersCount || 1} người</strong></div>
+                  <div>Hãng bảo hiểm: <strong>{disputeRecord.carrier}</strong></div>
+                  <div>Trạng thái: <strong>{disputeRecord.status}</strong></div>
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Audit Notes / Dispute Reason:</label>
+                <label className="block font-semibold text-slate-700 mb-1">Ghi chú đối soát hoặc yêu cầu khiếu nại nếu sai lệch:</label>
                 <textarea
                   rows={3}
-                  placeholder="Enter reason if discrepancy found (e.g., should be NONE due to new agent grace period, or missing dependent)..."
-                  className="w-full p-2.5 rounded border border-slate-200 focus:outline-none focus:border-blue-500 text-xs"
+                  placeholder="Nhập ghi chú đối soát với Clearinghouse..."
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-xs"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
               <button
                 type="button"
                 onClick={() => {
                   handleUpdateStatus(disputeRecord.id, 'SETTLED');
                   setShowDisputeModal(false);
                 }}
-                className="px-3 py-1.5 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold"
+                className="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold cursor-pointer"
               >
-                Mark as Settled
+                Xác nhận đã thanh toán
               </button>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowDisputeModal(false)}
-                  className="px-3 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
                 >
-                  Cancel
+                  Đóng
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     handleUpdateStatus(disputeRecord.id, 'DISPUTED');
                     setShowDisputeModal(false);
-                    showToast('Dispute audit submitted to TBR Clearinghouse!');
+                    showToast('Đã gửi yêu cầu đối soát tới Clearinghouse!');
                   }}
-                  className="px-4 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-xs"
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-xs cursor-pointer"
                 >
-                  Submit Audit Dispute
+                  Gửi yêu cầu đối soát
                 </button>
               </div>
             </div>
@@ -938,14 +1154,14 @@ export default function AgentCommissionLedger({ onSelectContact }) {
         </div>
       )}
 
-      {/* ── 6. Full SSS Calculator Modal ─────────────────────────────────── */}
+      {/* ── 9. FULL DEAL CALCULATOR MODAL ─────────────────────────────────── */}
       {showCalculatorModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
           <AgentCommissionCalculator
             onClose={() => setShowCalculatorModal(false)}
-            onApplyToDeal={() => {
+            onApplyToDeal={(calc) => {
               setShowCalculatorModal(false);
-              showToast('SSS Calculation standards applied to Ledger!');
+              showToast(`Đã áp dụng định mức của hãng ${calc.carrierName} ($${calc.netMonthly.toFixed(2)}/mo)!`);
             }}
           />
         </div>

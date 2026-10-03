@@ -914,12 +914,42 @@ app.post('/api/commissions/calculate', async (req, res) => {
 
     const calculated = [];
 
+    // Standard Carrier Payout Rates ($/member/mo)
+    const CARRIER_RATE_MAP = {
+      'BCBS': 30.0,
+      'AMBETTER': 32.0,
+      'UNITEDHEALTHCARE': 30.0,
+      'OSCAR': 30.0,
+      'MOLINA': 29.0,
+      'AETNA': 31.0,
+      'CIGNA': 28.0,
+      'KAISER': 28.0,
+      'HUMANA': 51.0,
+      'BLUE SHIELD': 35.0,
+      'PREMERA': 32.0,
+      'WELLCARE': 28.0,
+      'CARESOURCE': 27.0,
+      'HEALTH NET': 29.0,
+      'AMERIGROUP': 28.0,
+    };
+
+    function getCarrierRate(carrierName) {
+      if (!carrierName) return 30.0;
+      const upper = String(carrierName).toUpperCase();
+      for (const [cName, rate] of Object.entries(CARRIER_RATE_MAP)) {
+        if (upper.includes(cName)) return rate;
+      }
+      return 30.0;
+    }
+
     for (const deal of deals) {
       const members = deal.numberMember || 1;
       let grossPerMonth = 0;
       let commissionType = 'ACA_PMPM';
 
-      if ((deal.pipeline || '').toLowerCase().includes('medicare')) {
+      const dealCarrier = deal.carrier || 'BCBS';
+
+      if ((deal.pipeline || '').toLowerCase().includes('medicare') || dealCarrier.toUpperCase().includes('HUMANA')) {
         commissionType = 'MEDICARE';
         grossPerMonth = 51.0; // CMS Initial rate ($612/yr / 12)
       } else if ((deal.pipeline || '').toLowerCase().includes('presidio')) {
@@ -928,31 +958,14 @@ app.post('/api/commissions/calculate', async (req, res) => {
         grossPerMonth = numAmt * 0.15;
       } else {
         commissionType = 'ACA_PMPM';
-        grossPerMonth = 30.0 * members; // $30 PMPM
+        const carrierPmpm = getCarrierRate(dealCarrier);
+        grossPerMonth = carrierPmpm * members; // Tự tính theo hãng × số thành viên
       }
 
-      // SSS (Sale Support Status) Split Logic:
-      // NONE: 7/3 split (Agent 70%, Support 30% deduction) -> deductionRate = 0.30
-      // PARTIAL: 5/5 split (Agent 50%, Support 50% deduction) -> deductionRate = 0.50
-      // FULL: 3/7 split (Agent 30%, Support 70% deduction) -> deductionRate = 0.70
-      let rawSss = String(deal.saleSupportStatus || '').toUpperCase();
-      let sss = 'NONE';
-      if (rawSss.includes('FULL')) sss = 'FULL';
-      else if (rawSss.includes('PARTIAL')) sss = 'PARTIAL';
-      else sss = 'NONE';
-
-      let deductionRate = 0.30; // NONE: 7/3 split (Agent 70%, Support 30%)
-      if (sss === 'PARTIAL') deductionRate = 0.50; // PARTIAL: 5/5 split (Agent 50%, Support 50%)
-      else if (sss === 'FULL') deductionRate = 0.70; // FULL: 3/7 split (Agent 30%, Support 70%)
-      else deductionRate = 0.30;
-
-      // New Agent Grace: First 20 deals or tenure <= 3 months get 100% (NONE)
-      if (isNewAgent) {
-        deductionRate = 0.0;
-        sss = 'NONE (Grace)';
-      }
-
-      const netAmount = Math.round(grossPerMonth * (1 - deductionRate) * 100) / 100;
+      // Quy chế mới: Agent nhận 100% hoa hồng trực tiếp từ hãng (0% chiết khấu sàn 7/3)
+      const deductionRate = 0.0;
+      const sss = '100% DIRECT';
+      const netAmount = Math.round(grossPerMonth * 100) / 100; // Agent hưởng trọn 100%
 
       // Check for existing
       const existing = await prisma.commission.findFirst({
