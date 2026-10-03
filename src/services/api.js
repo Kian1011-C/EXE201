@@ -11,6 +11,9 @@ import {
   SAMPLE_TICKETS,
   getDynamicTickets,
   SAMPLE_TASKS,
+  getDynamicTasks,
+  addTaskToStore,
+  updateTaskInStore,
   getDynamicCustomerDocuments,
 } from '../data/mockCrmData';
 
@@ -617,8 +620,53 @@ export async function getTasks(params = {}) {
   if (params.dealId) query.append('dealId', params.dealId);
   if (params.search) query.append('search', params.search);
   const qStr = query.toString() ? `?${query.toString()}` : '';
-  const data = await request(`/tasks${qStr}`);
-  return Array.isArray(data) ? data.map(normalizeTask) : data;
+
+  let apiTasks = [];
+  try {
+    const data = await request(`/tasks${qStr}`);
+    if (Array.isArray(data)) {
+      apiTasks = data.map(normalizeTask);
+    }
+  } catch (_) {}
+
+  const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
+  const localList = [...dynamicTasks, ...(SAMPLE_TASKS || [])].map(normalizeTask);
+
+  const combined = [...apiTasks, ...localList];
+  const seen = new Set();
+  const deduplicated = combined.filter((t) => {
+    const key = t.id || t.code;
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return deduplicated.filter((t) => {
+    if (params.status && params.status !== 'All' && params.status !== 'all') {
+      const isComp = t.status === 'Completed' || t.status === 'COMPLETED' || t.status === 'DONE';
+      if (params.status === 'Completed' && !isComp) return false;
+      if (params.status === 'Open' && isComp) return false;
+    }
+    if (params.priority && params.priority !== 'None' && params.priority !== 'none' && params.priority !== 'all') {
+      if ((t.priority || '').toLowerCase() !== params.priority.toLowerCase()) return false;
+    }
+    if (params.assignedTo && params.assignedTo !== 'all') {
+      const assigned = (typeof t.assignee === 'object' ? t.assignee?.name : t.assignee) || t.assignedToName || '';
+      if (!assigned.toLowerCase().includes(params.assignedTo.toLowerCase())) return false;
+    }
+    if (params.dealId) {
+      if (String(t.dealId || t.deal?.id || t.deal?.code) !== String(params.dealId)) return false;
+    }
+    if (params.contactId) {
+      if (String(t.contactId || t.contact?.id || t.contact?.code) !== String(params.contactId)) return false;
+    }
+    if (params.search) {
+      const q = params.search.toLowerCase();
+      const match = (t.title || '').toLowerCase().includes(q) || (t.content || t.description || '').toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    return true;
+  });
 }
 
 export async function getTask(id) {
@@ -627,7 +675,8 @@ export async function getTask(id) {
   if (data) return normalizeTask(data);
 
   try {
-    const local = (SAMPLE_TASKS || []).find(t => String(t.id) === String(id) || String(t.code) === String(id));
+    const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
+    const local = [...dynamicTasks, ...(SAMPLE_TASKS || [])].find(t => String(t.id) === String(id) || String(t.code) === String(id));
     if (local) return normalizeTask(local);
   } catch (_) {}
 
@@ -635,13 +684,25 @@ export async function getTask(id) {
 }
 
 export async function createTask(data) {
-  const res = await request('/tasks', { method: 'POST', body: JSON.stringify(data) });
-  return res ? normalizeTask(res) : res;
+  if (typeof window !== 'undefined') {
+    addTaskToStore(data);
+  }
+  const res = await request('/tasks', { method: 'POST', body: JSON.stringify(data) }).catch((err) => {
+    console.warn('[api] createTask fallback:', err);
+    return null;
+  });
+  return res ? normalizeTask(res) : normalizeTask(data);
 }
 
 export async function updateTask(id, data) {
-  const res = await request(`/tasks/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
-  return res ? normalizeTask(res) : res;
+  if (typeof window !== 'undefined') {
+    updateTaskInStore(data);
+  }
+  const res = await request(`/tasks/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }).catch((err) => {
+    console.warn('[api] updateTask fallback:', err);
+    return null;
+  });
+  return res ? normalizeTask(res) : normalizeTask(data);
 }
 
 // ── Commissions ──────────────────────────────────────────────────────────────

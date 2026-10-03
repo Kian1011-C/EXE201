@@ -295,9 +295,185 @@ export const FULL_SAMPLE_TICKETS = [];
 
 export const SAMPLE_TICKETS = FULL_SAMPLE_TICKETS;
 
-export const SAMPLE_TASKS = [];
+export const SAMPLE_TASKS = [
+  {
+    id: 'TSK-1019',
+    code: 'TSK26001019',
+    no: 1,
+    title: 'Transportation #19',
+    assignee: 'Thao Phan (therasaphan24@6)',
+    assignedToName: 'Thao Phan',
+    dueDate: '10/12/2026, 08:00',
+    sendRemind: '--',
+    taskType: 'Transportation',
+    priority: 'None',
+    status: 'OPEN',
+    completed: false,
+    content: `• Woodbrigde Dental\n• The appt. is on 10/12/26 at 12:00pm\n• Address: 11627 S Texas 6 - Sugar Land, TX 77498\n• Pick up: 25401716\n• Return: 25401719`,
+    contactName: 'Chi Trung',
+    contactId: 'CT26002702',
+    dealTitle: 'Chi Trung - Obamacare 2026',
+    dealId: 'D26005675',
+    associationsCount: 1,
+    attachments: [
+      { id: 'att-1019-1', name: 'Appointment Confirmation.pdf', size: '128 KB', type: 'application/pdf' },
+    ],
+    comments: [
+      {
+        id: 'cm-1',
+        author: 'Super Admin',
+        time: '10/03/2026, 07:34',
+        text: 'Confirmed transportation pick-up time with clinic driver.',
+      },
+    ],
+  },
+  {
+    id: 'TSK-1020',
+    code: 'TSK26001020',
+    no: 2,
+    title: 'Follow-up on ACA verification documents',
+    assignee: 'Khanh Nguyen (khanhnguyen31@7)',
+    assignedToName: 'Khanh Nguyen',
+    dueDate: '10/15/2026, 09:00',
+    sendRemind: '1 hour before',
+    taskType: 'Upload Document',
+    priority: 'High',
+    status: 'OPEN',
+    completed: false,
+    content: `• Check income proof submitted\n• Verify identity document validity\n• Update ACA marketplace verification status`,
+    contactName: 'Hai Nguyen',
+    contactId: 'CT26002600',
+    dealTitle: 'Non-CMS - Nhat H Dang - OB 10/2026 (NC)',
+    dealId: 'D26005033',
+    associationsCount: 1,
+    attachments: [],
+    comments: [],
+  },
+];
 
 // ── Dynamic In-Memory & LocalStorage Store Helpers ───────────────────────────
+export function getDynamicTasks() {
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_tasks');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addTaskToStore(task) {
+  if (!task) return;
+  const enrichedTask = {
+    ...task,
+    id: task.id || `task-${Date.now()}`,
+    code: task.code || task.id || `TSK2600${Math.floor(1000 + Math.random() * 9000)}`,
+    status: task.status || 'OPEN',
+    completed: task.completed || task.status === 'Completed' || task.status === 'DONE' || false,
+    attachments: task.attachments || [],
+    comments: task.comments || [],
+    updatedAt: new Date().toISOString(),
+  };
+
+  // 1. Update in-memory SAMPLE_TASKS
+  const sampleIdx = SAMPLE_TASKS.findIndex((t) => t.id === enrichedTask.id || t.code === enrichedTask.code);
+  if (sampleIdx >= 0) {
+    SAMPLE_TASKS[sampleIdx] = { ...SAMPLE_TASKS[sampleIdx], ...enrichedTask };
+  } else {
+    SAMPLE_TASKS.unshift(enrichedTask);
+  }
+
+  // 2. Update localStorage insurmatch_dynamic_tasks
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_tasks');
+    const list = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex((t) => t.id === enrichedTask.id || t.code === enrichedTask.code);
+    if (idx >= 0) list[idx] = { ...list[idx], ...enrichedTask };
+    else list.unshift(enrichedTask);
+    localStorage.setItem('insurmatch_dynamic_tasks', JSON.stringify(list));
+  } catch {}
+
+  // 3. Link to associated Deal if specified
+  try {
+    const dId = String(enrichedTask.dealId || enrichedTask.deal?.id || enrichedTask.deal?.code || '').trim();
+    const dTitle = String(enrichedTask.dealTitle || enrichedTask.deal?.title || '').trim().toLowerCase();
+    if (dId || dTitle) {
+      const deals = getDynamicDeals();
+      let updated = false;
+      deals.forEach((d) => {
+        if ((dId && (d.id === dId || d.code === dId)) || (dTitle && (d.title || '').toLowerCase() === dTitle)) {
+          const tList = Array.isArray(d.tasks) ? d.tasks : [];
+          const tIdx = tList.findIndex((t) => t.id === enrichedTask.id || t.code === enrichedTask.code);
+          if (tIdx >= 0) tList[tIdx] = enrichedTask;
+          else tList.unshift(enrichedTask);
+          d.tasks = tList;
+          updated = true;
+        }
+      });
+      if (updated) {
+        localStorage.setItem('insurmatch_dynamic_deals', JSON.stringify(deals));
+      }
+      SAMPLE_DEALS.forEach((d) => {
+        if ((dId && (d.id === dId || d.code === dId)) || (dTitle && (d.title || '').toLowerCase() === dTitle)) {
+          const tList = Array.isArray(d.tasks) ? d.tasks : [];
+          const tIdx = tList.findIndex((t) => t.id === enrichedTask.id || t.code === enrichedTask.code);
+          if (tIdx >= 0) tList[tIdx] = enrichedTask;
+          else tList.unshift(enrichedTask);
+          d.tasks = tList;
+        }
+      });
+    }
+  } catch {}
+
+  // 4. Link to associated Contact if specified
+  try {
+    const cId = String(enrichedTask.contactId || enrichedTask.contact?.id || enrichedTask.contact?.code || '').trim();
+    const cName = String(enrichedTask.contactName || enrichedTask.contact?.fullName || '').trim().toLowerCase();
+    if (cId || cName) {
+      const contacts = getDynamicContacts();
+      let updated = false;
+      contacts.forEach((c) => {
+        if ((cId && (c.id === cId || c.code === cId)) || (cName && (c.fullName || '').toLowerCase() === cName)) {
+          const tList = Array.isArray(c.tasks) ? c.tasks : [];
+          const tIdx = tList.findIndex((t) => t.id === enrichedTask.id || t.code === enrichedTask.code);
+          if (tIdx >= 0) tList[tIdx] = enrichedTask;
+          else tList.unshift(enrichedTask);
+          c.tasks = tList;
+          updated = true;
+        }
+      });
+      if (updated) {
+        localStorage.setItem('insurmatch_dynamic_contacts', JSON.stringify(contacts));
+      }
+      SAMPLE_CONTACTS.forEach((c) => {
+        if ((cId && (c.id === cId || c.code === cId)) || (cName && (c.fullName || '').toLowerCase() === cName)) {
+          const tList = Array.isArray(c.tasks) ? c.tasks : [];
+          const tIdx = tList.findIndex((t) => t.id === enrichedTask.id || t.code === enrichedTask.code);
+          if (tIdx >= 0) tList[tIdx] = enrichedTask;
+          else tList.unshift(enrichedTask);
+          c.tasks = tList;
+        }
+      });
+    }
+  } catch {}
+}
+
+export function updateTaskInStore(task) {
+  addTaskToStore(task);
+}
+
+export function deleteTaskFromStore(taskId) {
+  if (!taskId) return;
+  const sampleIdx = SAMPLE_TASKS.findIndex((t) => t.id === taskId || t.code === taskId);
+  if (sampleIdx >= 0) SAMPLE_TASKS.splice(sampleIdx, 1);
+  try {
+    const raw = localStorage.getItem('insurmatch_dynamic_tasks');
+    if (raw) {
+      const list = JSON.parse(raw);
+      const filtered = list.filter((t) => t.id !== taskId && t.code !== taskId);
+      localStorage.setItem('insurmatch_dynamic_tasks', JSON.stringify(filtered));
+    }
+  } catch {}
+}
 export function addTicketToStore(ticket) {
   if (!ticket) return;
   const existingIdx = FULL_SAMPLE_TICKETS.findIndex(

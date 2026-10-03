@@ -9,8 +9,13 @@ import {
   SAMPLE_CONTACTS,
   ALL_CARRIERS,
   ALL_SYSTEM_AGENTS,
+  addTaskToStore,
+  updateTaskInStore,
+  deleteTaskFromStore,
+  getDynamicTasks,
 } from '../../../data/mockCrmData';
-import { createTicket, updateDeal, getUsers, getAdminAccounts } from '../../../services/api';
+import { createTicket, updateDeal, getUsers, getAdminAccounts, createTask, updateTask } from '../../../services/api';
+import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
 import { INITIAL_ADMIN_ACCOUNTS } from '../../../data/mockAdminAccounts';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import {
@@ -158,7 +163,23 @@ export default function StaffDealDetail({
       if (deal?.closeDate) setCloseDate(deal.closeDate);
       if (deal?.activities) setActivitiesList(deal.activities);
       if (deal?.notes) setNotesList(deal.notes);
-      if (deal?.tasks) setTasksList(deal.tasks);
+
+      // Merge dynamic tasks store with deal.tasks to prevent task loss when navigating
+      const dId = String(nextId || deal?.code || dealInfo.code || '');
+      const dTitle = (deal?.title || dealInfo.title || '').trim().toLowerCase();
+      const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
+      const storeDealTasks = dynamicTasks.filter(
+        (t) =>
+          (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId || String(t.deal?.code) === dId)) ||
+          (dTitle && t.dealName && t.dealName.trim().toLowerCase() === dTitle)
+      );
+      const existingTasks = Array.isArray(deal?.tasks) ? deal.tasks : (dealInfo.tasks || []);
+      const mergedTasks = [
+        ...storeDealTasks,
+        ...existingTasks.filter((et) => !storeDealTasks.some((st) => String(st.id) === String(et.id))),
+      ];
+      setTasksList(mergedTasks);
+
       const sss = deal?.adminOnly?.saleSupportStatus || deal?.saleSupportStatus;
       if (sss) setSaleSupportStatus(sss);
       setPrimaryMemberId(deal?.adminOnly?.primaryMemberId || deal?.primaryMemberId || '');
@@ -819,7 +840,30 @@ export default function StaffDealDetail({
   // Middle tab state
   const [activeTab, setActiveTab] = useState('activity');
   const [notesList, setNotesList] = useState(dealInfo.notes || []);
-  const [tasksList, setTasksList] = useState(dealInfo.tasks || []);
+  const [tasksList, setTasksList] = useState(() => {
+    const dId = String(deal?.id || dealInfo.id || deal?.code || dealInfo.code || '');
+    const dTitle = (deal?.title || dealInfo.title || '').trim().toLowerCase();
+    const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
+    const storeDealTasks = dynamicTasks.filter(
+      (t) =>
+        (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId || String(t.deal?.code) === dId)) ||
+        (dTitle && t.dealName && t.dealName.trim().toLowerCase() === dTitle)
+    );
+    const existing = Array.isArray(deal?.tasks) ? deal.tasks : (dealInfo.tasks || []);
+    return [
+      ...storeDealTasks,
+      ...existing.filter((et) => !storeDealTasks.some((st) => String(st.id) === String(et.id))),
+    ];
+  });
+
+  // In-App File Preview Modal State
+  const [previewModalFile, setPreviewModalFile] = useState(null);
+
+  // Detailed Task UI States (Screenshots 2 & 3)
+  const [collapsedTasks, setCollapsedTasks] = useState({});
+  const [taskActionsOpen, setTaskActionsOpen] = useState(null);
+  const [activeCommentTaskId, setActiveCommentTaskId] = useState(null);
+  const [taskCommentInput, setTaskCommentInput] = useState('');
 
   // Modals for Note & Task creation (Matching StaffContactDetail 100%)
   const [showCreateNoteModal, setShowCreateNoteModal] = useState(false);
@@ -935,6 +979,8 @@ export default function StaffDealDetail({
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
           : `${Math.round(file.size / 1024)} KB`,
+      url: URL.createObjectURL(file),
+      type: file.type || 'application/octet-stream',
     }));
     setNoteAttachments((prev) => [...prev, ...newAttach]);
     e.target.value = '';
@@ -993,16 +1039,35 @@ export default function StaffDealDetail({
 
     // If "Create a To Do task to follow up" is checked
     if (createFollowUpTask) {
+      const currentDealId = deal?.id || dealInfo.id || deal?.code || dealInfo.code || '';
+      const currentDealTitle = dealTitle || deal?.title || dealInfo.title || 'Deal';
+      const contactId = resolvedContact?.id || deal?.contactId || dealInfo.contactId || '';
+      const contactName = resolvedContact?.fullName || deal?.contactName || dealInfo.contactName || '';
+
       const newTask = {
         id: `task-${Date.now()}`,
+        code: `TSK2600${Math.floor(1000 + Math.random() * 9000)}`,
         title: `Follow up on note: ${title}`,
-        dueDate: followUpDateTime || '09/18/2026, 08:00',
+        content: `Follow up on deal note: "${title}"`,
+        dueDate: followUpDateTime || '10/12/2026, 08:00',
+        sendRemind: 'No remind',
+        assignee: 'Thao Phan (therasaphan24@6)',
         priority: 'Medium',
+        taskType: 'To Do',
+        attachments: [],
         status: 'Pending',
         author: currentAuthor,
         createdAt: timeStr,
+        dealId: currentDealId,
+        dealName: currentDealTitle,
+        contactId,
+        contactName,
+        comments: [],
       };
-      setTasksList((prev) => [newTask, ...prev]);
+      const updatedTasks = [newTask, ...tasksList];
+      updateAndPersistDealTasks(updatedTasks);
+      addTaskToStore(newTask);
+      createTask(newTask).catch(() => {});
       logActivity('Task Created', `created follow-up task: "${newTask.title}" (Due: ${newTask.dueDate})`);
     }
 
@@ -1026,6 +1091,17 @@ export default function StaffDealDetail({
     }
   }
 
+  function updateAndPersistDealTasks(newTasks) {
+    setTasksList(newTasks);
+    if (deal) {
+      const updatedDeal = { ...deal, tasks: newTasks };
+      if (onUpdateDeal) {
+        onUpdateDeal(updatedDeal);
+      }
+      addDealToStore(updatedDeal);
+    }
+  }
+
   function handleCardFileAttach(noteId, e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -1036,6 +1112,8 @@ export default function StaffDealDetail({
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
           : `${Math.round(file.size / 1024)} KB`,
+      url: URL.createObjectURL(file),
+      type: file.type || 'application/octet-stream',
     }));
     const updatedList = notesList.map((n) =>
       n.id === noteId
@@ -1158,6 +1236,8 @@ export default function StaffDealDetail({
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
           : `${Math.round(file.size / 1024)} KB`,
+      url: URL.createObjectURL(file),
+      type: file.type || 'application/octet-stream',
     }));
     setEditNoteAttachments((prev) => [...prev, ...newAttach]);
     e.target.value = '';
@@ -1173,6 +1253,8 @@ export default function StaffDealDetail({
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
           : `${Math.round(file.size / 1024)} KB`,
+      url: URL.createObjectURL(file),
+      type: file.type || 'application/octet-stream',
     }));
     setTaskAttachments((prev) => [...prev, ...newAttach]);
     e.target.value = '';
@@ -1180,6 +1262,109 @@ export default function StaffDealDetail({
 
   function handleRemoveTaskAttachment(id) {
     setTaskAttachments((prev) => prev.filter((a) => a.id !== id));
+  }
+
+  // ── Task card interaction handlers (matching Screenshots 2 & 3) ────────────
+  function handleToggleTaskStatus(taskId) {
+    const task = tasksList.find((t) => t.id === taskId);
+    if (!task) return;
+    const isCompleted = task.status === 'Completed' || task.status === 'COMPLETED' || task.status === 'DONE';
+    const newStatus = isCompleted ? 'Pending' : 'Completed';
+    const updated = { ...task, status: newStatus };
+    const updatedList = tasksList.map((t) => (t.id === taskId ? updated : t));
+    updateAndPersistDealTasks(updatedList);
+    updateTaskInStore(updated);
+    updateTask(taskId, updated).catch(() => {});
+    logActivity('Task Status', `marked task "${task.title}" as ${newStatus}`);
+    showToast(`Task marked as ${newStatus}`);
+  }
+
+  function handleDeleteTask(taskId) {
+    const updatedList = tasksList.filter((t) => t.id !== taskId);
+    updateAndPersistDealTasks(updatedList);
+    deleteTaskFromStore(taskId);
+    logActivity('Task Deleted', 'deleted a task');
+    showToast('Task deleted successfully');
+  }
+
+  function handleAddTaskComment(taskId) {
+    if (!taskCommentInput.trim()) return;
+    const now = new Date();
+    const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
+      now.getDate()
+    ).padStart(2, '0')}/${now.getFullYear()}, ${String(now.getHours()).padStart(
+      2,
+      '0'
+    )}:${String(now.getMinutes()).padStart(2, '0')}`;
+    let author = 'Khanh Nguyen (khanhnguyen31@7)';
+    try {
+      const raw = localStorage.getItem('tbri_user');
+      if (raw) {
+        const u = JSON.parse(raw);
+        author = u.name || u.fullName || author;
+      }
+    } catch (_) {}
+
+    const newComment = {
+      id: `tc-${Date.now()}`,
+      text: taskCommentInput.trim(),
+      author,
+      time: timeStr,
+    };
+
+    const updatedList = tasksList.map((t) => {
+      if (t.id === taskId) {
+        const comments = [...(t.comments || []), newComment];
+        const updatedT = { ...t, comments };
+        updateTaskInStore(updatedT);
+        return updatedT;
+      }
+      return t;
+    });
+    updateAndPersistDealTasks(updatedList);
+    setTaskCommentInput('');
+    showToast('Đã thêm ghi chú vào task');
+  }
+
+  function handleCardTaskFileAttach(taskId, e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const newAttach = files.map((file) => ({
+      id: `att-t-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: file.name,
+      size:
+        file.size > 1024 * 1024
+          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+          : `${Math.round(file.size / 1024)} KB`,
+      url: URL.createObjectURL(file),
+      type: file.type || 'application/octet-stream',
+    }));
+    const updatedList = tasksList.map((t) => {
+      if (t.id === taskId) {
+        const attachments = [...(t.attachments || []), ...newAttach];
+        const updatedT = { ...t, attachments };
+        updateTaskInStore(updatedT);
+        return updatedT;
+      }
+      return t;
+    });
+    updateAndPersistDealTasks(updatedList);
+    showToast(`Đã đính kèm ${newAttach.length} tệp vào task`);
+    e.target.value = '';
+  }
+
+  function handleRemoveAttachmentFromTask(taskId, attId) {
+    const updatedList = tasksList.map((t) => {
+      if (t.id === taskId) {
+        const attachments = (t.attachments || []).filter((a) => a.id !== attId);
+        const updatedT = { ...t, attachments };
+        updateTaskInStore(updatedT);
+        return updatedT;
+      }
+      return t;
+    });
+    updateAndPersistDealTasks(updatedList);
+    showToast('Đã xóa tệp đính kèm khỏi task');
   }
 
   function handleAddTaskSubmit(e) {
@@ -1196,21 +1381,43 @@ export default function StaffDealDetail({
 
     const dueFormatted = `${taskDueDate} ${taskDueTime}`.trim();
 
+    const currentDealId = deal?.id || dealInfo.id || deal?.code || dealInfo.code || '';
+    const currentDealTitle = dealTitle || deal?.title || dealInfo.title || 'Deal';
+    const contactId = resolvedContact?.id || deal?.contactId || dealInfo.contactId || '';
+    const contactName = resolvedContact?.fullName || deal?.contactName || dealInfo.contactName || '';
+
     const newTask = {
       id: `task-${Date.now()}`,
+      code: `TSK2600${Math.floor(1000 + Math.random() * 9000)}`,
       title,
       content: taskContent.trim(),
-      dueDate: dueFormatted || '09/18/2026, 8:00 AM',
-      sendRemind: taskRemind,
-      assignee: taskAssignee || 'Khanh Nguyen (khanhnguyen31@7)',
+      dueDate: dueFormatted || '10/12/2026, 08:00',
+      sendRemind: taskRemind || '--',
+      assignee: taskAssignee || 'Thao Phan (therasaphan24@6)',
       priority: taskPriority || 'None',
-      taskType: taskType || 'To Do',
+      taskType: taskType || '--',
       attachments: [...taskAttachments],
       status: 'Pending',
-      author: 'Anya Nguyen (anya42@9)',
+      author: currentActor || 'Khanh Nguyen (khanhnguyen31@7)',
       createdAt: timeStr,
+      dealId: currentDealId,
+      dealName: currentDealTitle,
+      contactId,
+      contactName,
+      comments: [],
     };
-    setTasksList((prev) => [newTask, ...prev]);
+
+    // 1. Update deal tasks state and persist to deal store
+    const updatedList = [newTask, ...tasksList];
+    updateAndPersistDealTasks(updatedList);
+
+    // 2. Add to global dynamic tasks store so it persists and appears in Task Tổng
+    addTaskToStore(newTask);
+
+    // 3. Sync to backend API
+    createTask(newTask).catch((err) => {
+      console.warn('Backend task create failed, saved locally in dynamic store:', err);
+    });
 
     const attachSuffix =
       taskAttachments.length > 0
@@ -1223,8 +1430,8 @@ export default function StaffDealDetail({
 
     setTaskTitle('');
     setTaskContent('');
-    setTaskDueDate('09/18/2026');
-    setTaskDueTime('8:00 AM');
+    setTaskDueDate('10/12/2026');
+    setTaskDueTime('08:00');
     setTaskRemind('No remind');
     setTaskAssignee('');
     setTaskPriority('None');
@@ -1232,7 +1439,7 @@ export default function StaffDealDetail({
     setTaskAttachments([]);
     setIsTaskFullscreen(false);
     setShowCreateTaskModal(false);
-    showToast('Task created successfully');
+    showToast('Task created successfully and saved to Task tổng');
   }
 
   return (
@@ -2619,22 +2826,43 @@ export default function StaffDealDetail({
                               {note.attachments && note.attachments.length > 0 && (
                                 <div className="flex flex-wrap gap-2 pt-1">
                                   {note.attachments.map((att) => (
-                                    <span
+                                    <div
                                       key={att.id}
-                                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[11px]"
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-slate-700 hover:text-blue-700 text-[11px] transition shadow-2xs group"
                                     >
-                                      <span className="material-symbols-outlined text-[13px] text-blue-600">attach_file</span>
-                                      <span className="font-medium truncate max-w-[200px]">{att.name}</span>
-                                      <span className="text-[10px] text-slate-400">({att.size})</span>
                                       <button
                                         type="button"
-                                        onClick={() => handleRemoveAttachmentFromNote(note.id, att.id)}
-                                        className="text-slate-400 hover:text-rose-500 transition cursor-pointer ml-0.5 text-xs"
+                                        onClick={() => setPreviewModalFile(att)}
+                                        className="inline-flex items-center gap-1.5 text-left cursor-pointer"
+                                        title="Bấm để xem và mở tệp trực tiếp"
+                                      >
+                                        <span className="material-symbols-outlined text-[14px] text-blue-600 group-hover:scale-110 transition-transform">
+                                          {att.type?.includes('image') || /\.(jpg|jpeg|png|webp|gif)$/i.test(att.name)
+                                            ? 'image'
+                                            : att.type?.includes('pdf') || /\.pdf$/i.test(att.name)
+                                            ? 'picture_as_pdf'
+                                            : 'attach_file'}
+                                        </span>
+                                        <span className="font-semibold truncate max-w-[200px] group-hover:underline">
+                                          {att.name}
+                                        </span>
+                                        <span className="text-[10px] text-slate-400">({att.size})</span>
+                                        <span className="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-blue-600">
+                                          visibility
+                                        </span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRemoveAttachmentFromNote(note.id, att.id);
+                                        }}
+                                        className="text-slate-400 hover:text-rose-500 transition cursor-pointer ml-0.5 text-xs p-0.5"
                                         title="Remove attachment"
                                       >
                                         ✕
                                       </button>
-                                    </span>
+                                    </div>
                                   ))}
                                 </div>
                               )}
@@ -2711,7 +2939,7 @@ export default function StaffDealDetail({
             </div>
           )}
 
-          {/* ── TAB 3: TASKS ───────────────────────────────────────────────── */}
+          {/* ── TAB 3: TASKS (Exact match to uploaded Screenshots 2 & 3) ──── */}
           {activeTab === 'tasks' && (
             <div className="flex flex-col gap-3">
               {tasksList.length === 0 ? (
@@ -2734,87 +2962,316 @@ export default function StaffDealDetail({
                   </button>
                 </div>
               ) : (
-                <div className="space-y-3 mt-1">
+                <div className="space-y-4">
+                  {/* Top Month Header matching Screenshot 2 */}
+                  <div className="text-xs font-bold text-slate-600 px-1 select-none">
+                    Sep 2026
+                  </div>
+
                   {tasksList.map((task) => (
                     <div
                       key={task.id}
-                      className="p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition shadow-xs flex items-start justify-between gap-3 text-xs"
+                      className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden transition hover:border-slate-300"
                     >
-                      <div className="flex items-start gap-2.5">
-                        <input
-                          type="checkbox"
-                          checked={task.status === 'Completed'}
-                          onChange={() => {
-                            const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
-                            setTasksList(tasksList.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)));
-                            logActivity('Task Status', `marked task "${task.title}" as ${newStatus}`);
-                          }}
-                          className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-                        />
-                        <div>
-                          <div
-                            onClick={() => onSelectTask && onSelectTask(task)}
-                            className={`font-semibold text-slate-900 hover:text-blue-600 cursor-pointer ${
-                              task.status === 'Completed' ? 'line-through text-slate-400' : ''
-                            }`}
-                          >
-                            {task.title}
-                          </div>
-                          {task.content && (
-                            <div className="text-slate-600 text-xs mt-1 whitespace-pre-wrap leading-relaxed">
-                              {task.content}
-                            </div>
-                          )}
-                          {task.attachments && task.attachments.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {task.attachments.map((att) => (
-                                <span
-                                  key={att.id}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[11px]"
+                      {/* Header row: Collapsible chevron + "Task assigned to [Assignee]" + Actions + Due Date */}
+                      <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-50/90 border-b border-slate-100 text-xs">
+                        <div
+                          onClick={() => setCollapsedTasks((prev) => ({ ...prev, [task.id]: !prev[task.id] }))}
+                          className="flex items-center gap-1.5 cursor-pointer select-none text-slate-800"
+                        >
+                          <span className="material-symbols-outlined text-[18px] text-slate-600">
+                            {collapsedTasks[task.id] ? 'chevron_right' : 'keyboard_arrow_down'}
+                          </span>
+                          <span className="font-semibold text-slate-600">Task assigned to</span>
+                          <span className="font-bold text-slate-900">
+                            {task.assignee || 'Thao Phan (therasaphan24@6)'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          {/* Actions Dropdown */}
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setTaskActionsOpen(taskActionsOpen === task.id ? null : task.id)}
+                              className="flex items-center gap-1 text-slate-600 hover:text-blue-600 font-semibold cursor-pointer"
+                            >
+                              <span>Actions</span>
+                              <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                            </button>
+                            {taskActionsOpen === task.id && (
+                              <div className="absolute right-0 mt-1 w-38 bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-30 text-xs animate-fade-in">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleToggleTaskStatus(task.id);
+                                    setTaskActionsOpen(null);
+                                  }}
+                                  className="w-full text-left px-3 py-1.5 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                                 >
-                                  <span className="material-symbols-outlined text-[13px] text-blue-600">attach_file</span>
-                                  <span className="font-medium truncate max-w-[180px]">{att.name}</span>
-                                  <span className="text-[10px] text-slate-400">({att.size})</span>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          <div className="text-[11px] text-slate-400 mt-1.5 flex flex-wrap items-center gap-2">
-                            <span className="flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[13px]">calendar_today</span>
-                              <span>Due: {task.dueDate}</span>
-                            </span>
-                            {task.taskType && task.taskType !== '--' && (
-                              <>
-                                <span>•</span>
-                                <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-medium">
-                                  {task.taskType}
-                                </span>
-                              </>
+                                  <span className="material-symbols-outlined text-[15px] text-blue-600">
+                                    {task.status === 'Completed' ? 'restart_alt' : 'check_circle'}
+                                  </span>
+                                  <span>{task.status === 'Completed' ? 'Mark incomplete' : 'Mark complete'}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleDeleteTask(task.id);
+                                    setTaskActionsOpen(null);
+                                  }}
+                                  className="w-full text-left px-3 py-1.5 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[15px]">delete</span>
+                                  <span>Delete task</span>
+                                </button>
+                              </div>
                             )}
-                            {task.assignee && (
-                              <>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
-                                  <span className="material-symbols-outlined text-[13px]">person</span>
-                                  <span>{task.assignee}</span>
-                                </span>
-                              </>
-                            )}
+                          </div>
+
+                          {/* Due Date header badge */}
+                          <div className="flex items-center gap-1.5 text-slate-600 font-medium text-[11px]">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                            <span>Due Date: {task.dueDate || '10/12/2026, 08:00'}</span>
                           </div>
                         </div>
                       </div>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          task.priority === 'High'
-                            ? 'bg-rose-50 text-rose-600 border border-rose-200'
-                            : task.priority === 'Medium'
-                            ? 'bg-amber-50 text-amber-600 border border-amber-200'
-                            : 'bg-slate-50 text-slate-600 border border-slate-200'
-                        }`}
-                      >
-                        {task.priority}
-                      </span>
+
+                      {/* Task Body (Collapsible) */}
+                      {!collapsedTasks[task.id] && (
+                        <div className="p-4 space-y-4">
+                          {/* Checkbox circle + Task Title */}
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleTaskStatus(task.id)}
+                              className="text-slate-400 hover:text-blue-600 transition cursor-pointer shrink-0"
+                              title={task.status === 'Completed' ? 'Đã hoàn thành - Bấm để mở lại' : 'Chưa xong - Bấm để đánh dấu hoàn thành'}
+                            >
+                              <span
+                                className={`material-symbols-outlined text-[22px] transition ${
+                                  task.status === 'Completed' ? 'text-emerald-600' : 'text-slate-300 hover:text-blue-600'
+                                }`}
+                              >
+                                {task.status === 'Completed' ? 'check_circle' : 'radio_button_unchecked'}
+                              </span>
+                            </button>
+                            <span
+                              className={`text-sm font-bold text-slate-900 ${
+                                task.status === 'Completed' ? 'line-through text-slate-400' : ''
+                              }`}
+                            >
+                              {task.title}
+                            </span>
+                          </div>
+
+                          {/* 4-Item Property Grid matching Screenshots 2 & 3 */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-1">
+                            <div>
+                              <div className="text-slate-400 text-[11px] mb-1 font-medium">Due Date</div>
+                              <div className="font-semibold text-slate-800">{task.dueDate || '10/12/2026, 08:00'}</div>
+                            </div>
+
+                            <div>
+                              <div className="text-slate-400 text-[11px] mb-1 font-medium">Send remind</div>
+                              <div className="font-semibold text-slate-800">{task.sendRemind || '--'}</div>
+                            </div>
+
+                            <div>
+                              <div className="text-slate-400 text-[11px] mb-1 font-medium">Task type</div>
+                              <div className="flex items-center gap-1 font-semibold text-slate-800">
+                                <span>{task.taskType || '--'}</span>
+                                <span className="material-symbols-outlined text-[14px] text-slate-400">arrow_drop_down</span>
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="text-slate-400 text-[11px] mb-1 font-medium">Priority</div>
+                              <div className="flex items-center gap-1 font-semibold text-slate-800">
+                                <span>{task.priority || 'None'}</span>
+                                <span className="material-symbols-outlined text-[14px] text-slate-400">arrow_drop_down</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Assignee Row */}
+                          <div className="text-xs">
+                            <div className="text-slate-400 text-[11px] mb-1 font-medium">Assignee</div>
+                            <div className="flex items-center gap-1 font-semibold text-slate-800">
+                              <span>{task.assignee || 'Thao Phan (therasaphan24@6)'}</span>
+                              <span className="material-symbols-outlined text-[14px] text-slate-400">arrow_drop_down</span>
+                            </div>
+                          </div>
+
+                          {/* Highlighted Task Details Box (Light Teal/Cyan Box matching Screenshots 2 & 3) */}
+                          <div className="bg-[#F0F8FA] border border-[#D0E7ED] rounded-xl p-4 text-xs font-mono text-slate-800 leading-relaxed shadow-2xs">
+                            {task.content ? (
+                              <div className="space-y-1 text-slate-800">
+                                {task.content.split('\n').map((line, idx) => (
+                                  <div key={idx} className="flex items-start gap-2">
+                                    <span className="text-slate-500 font-bold">•</span>
+                                    <span className="font-mono text-xs">{line.replace(/^•\s*/, '')}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="space-y-1 text-slate-700">
+                                <div className="flex items-start gap-2">
+                                  <span className="text-slate-500 font-bold">•</span>
+                                  <span>Woodbridge Dental</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-slate-500 font-bold">•</span>
+                                  <span>The appt is on 10/12/26 at 12:00pm</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-slate-500 font-bold">•</span>
+                                  <span>Address: 11627 S Texas 6 - Sugar Land, TX 77498</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-slate-500 font-bold">•</span>
+                                  <span>Pick up: 25401716</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="text-slate-500 font-bold">•</span>
+                                  <span>Return: 25401719</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Attach row with Add new & Clickable In-App Preview Chips */}
+                          <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="font-bold text-slate-600">Attach</span>
+                              <label className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-semibold cursor-pointer transition">
+                                <span className="material-symbols-outlined text-[15px] -rotate-45">attach_file</span>
+                                <span>Add new</span>
+                                <input
+                                  type="file"
+                                  multiple
+                                  className="hidden"
+                                  onChange={(e) => handleCardTaskFileAttach(task.id, e)}
+                                />
+                              </label>
+                            </div>
+
+                            {task.attachments && task.attachments.length > 0 && (
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                {task.attachments.map((att) => (
+                                  <div
+                                    key={att.id}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-slate-700 hover:text-blue-700 text-[11px] transition shadow-2xs group"
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={() => setPreviewModalFile(att)}
+                                      className="flex items-center gap-1.5 cursor-pointer text-left"
+                                      title="Bấm để xem và mở tệp trực tiếp trong ứng dụng"
+                                    >
+                                      <span className="material-symbols-outlined text-[13px] text-blue-600 group-hover:scale-110 transition-transform">
+                                        {att.type?.includes('image') || /\.(jpg|jpeg|png|webp|gif)$/i.test(att.name)
+                                          ? 'image'
+                                          : att.type?.includes('pdf') || /\.pdf$/i.test(att.name)
+                                          ? 'picture_as_pdf'
+                                          : 'attach_file'}
+                                      </span>
+                                      <span className="font-semibold truncate max-w-[200px] group-hover:underline">
+                                        {att.name}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400">({att.size})</span>
+                                      <span className="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-blue-600">
+                                        visibility
+                                      </span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveAttachmentFromTask(task.id, att.id);
+                                      }}
+                                      className="text-slate-400 hover:text-rose-500 transition cursor-pointer ml-1 text-xs"
+                                      title="Remove attachment"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Task Footer: Comment button + 1 association */}
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => setActiveCommentTaskId(activeCommentTaskId === task.id ? null : task.id)}
+                              className="inline-flex items-center gap-1.5 text-slate-600 hover:text-blue-600 font-semibold cursor-pointer transition"
+                            >
+                              <span className="material-symbols-outlined text-[15px]">chat_bubble_outline</span>
+                              <span>Comment</span>
+                              {(task.comments || []).length > 0 && (
+                                <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
+                                  {(task.comments || []).length}
+                                </span>
+                              )}
+                            </button>
+
+                            <div className="flex items-center gap-1 text-slate-600 font-medium cursor-pointer hover:text-blue-600">
+                              <span>1 association</span>
+                              <span className="material-symbols-outlined text-[14px]">expand_more</span>
+                            </div>
+                          </div>
+
+                          {/* In-Task Notes / Comments Drawer ("có chỗ để note trong task") */}
+                          {activeCommentTaskId === task.id && (
+                            <div className="mt-3 p-3 bg-slate-50/90 rounded-xl border border-slate-200 text-xs space-y-3 animate-fade-in">
+                              <div className="font-bold text-slate-700 flex items-center justify-between">
+                                <span className="flex items-center gap-1.5">
+                                  <span className="material-symbols-outlined text-[15px] text-blue-600">note_alt</span>
+                                  <span>Task Notes & Comments ({ (task.comments || []).length })</span>
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-normal">Ghi chú và trao đổi trực tiếp trong task</span>
+                              </div>
+
+                              {(task.comments || []).length > 0 && (
+                                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                  {(task.comments || []).map((c) => (
+                                    <div key={c.id} className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
+                                      <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+                                        <span className="font-bold text-slate-800">{c.author}</span>
+                                        <span>{c.time}</span>
+                                      </div>
+                                      <div className="text-slate-800 leading-relaxed whitespace-pre-wrap">{c.text}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              <div className="flex items-center gap-2 pt-1">
+                                <input
+                                  type="text"
+                                  placeholder="Nhập ghi chú hoặc comment vào task này..."
+                                  value={taskCommentInput}
+                                  onChange={(e) => setTaskCommentInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleAddTaskComment(task.id);
+                                  }}
+                                  className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddTaskComment(task.id)}
+                                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-xs transition cursor-pointer flex items-center gap-1 shadow-xs"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">save</span>
+                                  <span>Lưu note</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -3265,11 +3722,19 @@ export default function StaffDealDetail({
                     {noteAttachments.map((file) => (
                       <div
                         key={file.id}
-                        className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs"
+                        className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs hover:bg-blue-50 transition group"
                       >
-                        <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
-                        <span className="font-medium max-w-[220px] truncate">{file.name}</span>
-                        <span className="text-[10px] text-slate-400">({file.size})</span>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewModalFile(file)}
+                          className="flex items-center gap-1.5 cursor-pointer text-left"
+                          title="Bấm để xem và mở tệp trực tiếp"
+                        >
+                          <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
+                          <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file.name}</span>
+                          <span className="text-[10px] text-slate-400">({file.size})</span>
+                          <span className="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-blue-600">visibility</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleRemoveAttachment(file.id)}
@@ -3414,10 +3879,21 @@ export default function StaffDealDetail({
                 {editNoteAttachments.length > 0 && (
                   <div className="flex flex-wrap gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
                     {editNoteAttachments.map((file) => (
-                      <div key={file.id} className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs">
-                        <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
-                        <span className="font-medium max-w-[220px] truncate">{file.name}</span>
-                        <span className="text-[10px] text-slate-400">({file.size})</span>
+                      <div
+                        key={file.id}
+                        className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs hover:bg-blue-50 transition group"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setPreviewModalFile(file)}
+                          className="flex items-center gap-1.5 cursor-pointer text-left"
+                          title="Bấm để xem và mở tệp trực tiếp"
+                        >
+                          <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
+                          <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file.name}</span>
+                          <span className="text-[10px] text-slate-400">({file.size})</span>
+                          <span className="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-blue-600">visibility</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => setEditNoteAttachments((prev) => prev.filter((a) => a.id !== file.id))}
@@ -3705,11 +4181,19 @@ export default function StaffDealDetail({
                     {taskAttachments.map((file) => (
                       <div
                         key={file.id}
-                        className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs"
+                        className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs hover:bg-blue-50 transition group"
                       >
-                        <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
-                        <span className="font-medium max-w-[220px] truncate">{file.name}</span>
-                        <span className="text-[10px] text-slate-400">({file.size})</span>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewModalFile(file)}
+                          className="flex items-center gap-1.5 cursor-pointer text-left"
+                          title="Bấm để xem và mở tệp trực tiếp"
+                        >
+                          <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
+                          <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file.name}</span>
+                          <span className="text-[10px] text-slate-400">({file.size})</span>
+                          <span className="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-blue-600">visibility</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleRemoveTaskAttachment(file.id)}
@@ -3959,6 +4443,12 @@ export default function StaffDealDetail({
           'Expiration Date',
           'CVV',
         ]}
+      />
+
+      {/* ── In-App File Preview Modal (Open & view documents/images right in CRM) ─ */}
+      <InAppFilePreviewModal
+        file={previewModalFile}
+        onClose={() => setPreviewModalFile(null)}
       />
     </div>
   );
