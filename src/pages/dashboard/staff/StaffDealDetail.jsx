@@ -8,7 +8,7 @@ import {
   getDynamicContacts,
   SAMPLE_CONTACTS,
 } from '../../../data/mockCrmData';
-import { createTicket } from '../../../services/api';
+import { createTicket, updateDeal } from '../../../services/api';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import {
   recordPropertyUpdate,
@@ -437,8 +437,20 @@ export default function StaffDealDetail({
   const [creditCardNumber, setCreditCardNumber] = useState(dealInfo.creditCardNumber || '');
   const [expirationDate, setExpirationDate] = useState(dealInfo.expirationDate || '');
   const [cvv, setCvv] = useState(dealInfo.cvv || '');
+  const [monthlyPremium, setMonthlyPremium] = useState(dealInfo.monthlyPremium || '');
+  const [subsidyAmount, setSubsidyAmount] = useState(dealInfo.subsidyAmount || '');
+  const [agencyCommission, setAgencyCommission] = useState(dealInfo.agencyCommission || '');
+  const [bonusTier, setBonusTier] = useState(dealInfo.bonusTier || 'Standard Tier');
+  const [paymentOption, setPaymentOption] = useState(dealInfo.paymentOption || '');
+  const [paymentVerification, setPaymentVerification] = useState(dealInfo.paymentVerification || '');
 
-  function handleSaveDealChanges() {
+  // Auto-save states for deal details
+  const [dealSaveStatus, setDealSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved'
+  const autoSaveDealTimerRef = useRef(null);
+  const isDealInitialMountRef = useRef(true);
+  const lastSavedDealJsonRef = useRef('');
+
+  function handleSaveDealChanges(options = {}) {
     const updatedDeal = {
       ...(deal || {}),
       title: dealTitle,
@@ -515,11 +527,150 @@ export default function StaffDealDetail({
     ];
 
     recordPropertyUpdatesBatch('deal', dealId, updates, currentActor);
+    addDealToStore(updatedDeal);
+
+    if (deal?.id) {
+      updateDeal(deal.id, updatedDeal).catch(() => null);
+    }
 
     if (onUpdateDeal) {
       onUpdateDeal(updatedDeal);
     }
-    showToast('Đã lưu thông tin Deal thành công!');
+
+    if (!isAutoSave) {
+      showToast('Đã lưu thông tin Deal thành công!');
+    }
+  }
+
+  // Current snapshot for debounced auto-save
+  const currentDealSnapshot = useMemo(() => {
+    return JSON.stringify({
+      dealTitle: (dealTitle || '').trim(),
+      pipeline: (pipeline || '').trim(),
+      stage: (stage || '').trim(),
+      amount: (amount || '').trim(),
+      enrollAmount: (enrollAmount || '').trim(),
+      primaryMemberId: (primaryMemberId || '').trim(),
+      carrier: (carrier || '').trim(),
+      sellingState: (sellingState || '').trim(),
+      numberMember: (numberMember || '').trim(),
+      enrolledNpn: (enrolledNpn || '').trim(),
+      brokerEffectiveDate: (brokerEffectiveDate || '').trim(),
+      terminationDate: (terminationDate || '').trim(),
+      saleSupportStatus: (saleSupportStatus || '').trim(),
+      closedLostReason: (closedLostReason || '').trim(),
+      appId: (appId || '').trim(),
+      estimateHouseholdIncome: (estimateHouseholdIncome || '').trim(),
+      householdMember: (householdMember || '').trim(),
+      enrollNumberMember: (enrollNumberMember || '').trim(),
+      enrolledAddress: (enrolledAddress || '').trim(),
+      quotedCounty: (quotedCounty || '').trim(),
+      isBackdateDeal: (isBackdateDeal || '').trim(),
+      planName: (planName || '').trim(),
+      monthlyPremium: (monthlyPremium || '').trim(),
+      subsidyAmount: (subsidyAmount || '').trim(),
+      agencyCommission: (agencyCommission || '').trim(),
+      bonusTier: (bonusTier || '').trim(),
+      paymentOption: (paymentOption || '').trim(),
+      paymentVerification: (paymentVerification || '').trim(),
+      paymentStatus: (paymentStatus || '').trim(),
+      payThroughDate: (payThroughDate || '').trim(),
+      quoteCloseDealRep: (quoteCloseDealRep || '').trim(),
+      autopayDate: (autopayDate || '').trim(),
+      nameOnCreditCard: (nameOnCreditCard || '').trim(),
+      creditCardNumber: (creditCardNumber || '').trim(),
+      expirationDate: (expirationDate || '').trim(),
+      cvv: (cvv || '').trim(),
+    });
+  }, [
+    dealTitle,
+    pipeline,
+    stage,
+    amount,
+    enrollAmount,
+    primaryMemberId,
+    carrier,
+    sellingState,
+    numberMember,
+    enrolledNpn,
+    brokerEffectiveDate,
+    terminationDate,
+    saleSupportStatus,
+    closedLostReason,
+    appId,
+    estimateHouseholdIncome,
+    householdMember,
+    enrollNumberMember,
+    enrolledAddress,
+    quotedCounty,
+    isBackdateDeal,
+    planName,
+    monthlyPremium,
+    subsidyAmount,
+    agencyCommission,
+    bonusTier,
+    paymentOption,
+    paymentVerification,
+    paymentStatus,
+    payThroughDate,
+    quoteCloseDealRep,
+    autopayDate,
+    nameOnCreditCard,
+    creditCardNumber,
+    expirationDate,
+    cvv,
+  ]);
+
+  // Debounced auto-save effect (600ms)
+  useEffect(() => {
+    if (isDealInitialMountRef.current) {
+      isDealInitialMountRef.current = false;
+      lastSavedDealJsonRef.current = currentDealSnapshot;
+      return;
+    }
+
+    if (currentDealSnapshot === lastSavedDealJsonRef.current) {
+      return;
+    }
+
+    setDealSaveStatus('saving');
+
+    if (autoSaveDealTimerRef.current) {
+      clearTimeout(autoSaveDealTimerRef.current);
+    }
+
+    autoSaveDealTimerRef.current = setTimeout(() => {
+      handleSaveDealChanges({ isAutoSave: true });
+      lastSavedDealJsonRef.current = currentDealSnapshot;
+      setDealSaveStatus('saved');
+      setTimeout(() => {
+        setDealSaveStatus((prev) => (prev === 'saved' ? 'idle' : prev));
+      }, 2500);
+    }, 600);
+
+    return () => {
+      if (autoSaveDealTimerRef.current) {
+        clearTimeout(autoSaveDealTimerRef.current);
+      }
+    };
+  }, [currentDealSnapshot]);
+
+  // Flush any pending auto-save on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveDealTimerRef.current) {
+        clearTimeout(autoSaveDealTimerRef.current);
+        handleSaveDealChanges({ isAutoSave: true });
+      }
+    };
+  }, []);
+
+  function handleBack() {
+    if (autoSaveDealTimerRef.current) {
+      clearTimeout(autoSaveDealTimerRef.current);
+      handleSaveDealChanges({ isAutoSave: true });
+    }
+    if (onBack) onBack();
   }
 
   // Middle tab state
@@ -956,7 +1107,7 @@ export default function StaffDealDetail({
         {/* Left: Back Arrow + Title */}
         <div className="flex items-center gap-2.5">
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-700 flex items-center justify-center transition cursor-pointer"
             title="Quay lại"
           >
@@ -967,16 +1118,34 @@ export default function StaffDealDetail({
           </h1>
         </div>
 
-        {/* Right: Save Deal Info | View history | Refresh */}
+        {/* Right: Auto-save status | View history | Refresh */}
         <div className="flex items-center gap-3 text-xs text-slate-600">
-          <button
-            type="button"
-            onClick={handleSaveDealChanges}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-xs"
-          >
-            <span className="material-symbols-outlined text-[16px]">save</span>
-            <span>Save Deal Info</span>
-          </button>
+          {/* Live Auto-save status feedback */}
+          {dealSaveStatus === 'saving' && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 font-semibold shadow-2xs animate-pulse">
+              <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
+              <span>Đang tự động lưu...</span>
+            </div>
+          )}
+
+          {dealSaveStatus === 'saved' && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold shadow-2xs animate-in fade-in duration-200">
+              <span className="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+              <span>Đã tự động lưu</span>
+            </div>
+          )}
+
+          {dealSaveStatus === 'idle' && (
+            <button
+              type="button"
+              onClick={() => handleSaveDealChanges({ isAutoSave: false })}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium transition cursor-pointer shadow-2xs"
+              title="Hệ thống tự động lưu mọi thông tin khi bạn điền. Bấm vào đây để lưu thủ công ngay."
+            >
+              <span className="material-symbols-outlined text-[15px] text-emerald-600">cloud_done</span>
+              <span>Tự động lưu: Bật</span>
+            </button>
+          )}
           <span className="h-3.5 w-px bg-slate-200" />
           <button
             type="button"

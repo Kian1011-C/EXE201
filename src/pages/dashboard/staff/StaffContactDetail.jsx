@@ -1157,8 +1157,13 @@ export default function StaffContactDetail({
   const dealItem = contactDeals[0] || null;
 
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved'
+  const autoSaveTimerRef = useRef(null);
+  const isInitialMountRef = useRef(true);
+  const lastSavedJsonRef = useRef('');
 
-  function handleSaveContactChanges() {
+  function handleSaveContactChanges(options = {}) {
+    const { isAutoSave = false } = options;
     const updatedContact = {
       ...(contact || {}),
       firstName: primaryFirstName,
@@ -1286,10 +1291,137 @@ export default function StaffContactDetail({
       onUpdateContact(updatedContact);
     }
 
-    logActivity('Contact Updated', `updated contact details for ${currentFullName}`);
-    setSaveSuccess(true);
-    showToast('Đã lưu thông tin liên hệ thành công!');
-    setTimeout(() => setSaveSuccess(false), 2500);
+    if (!isAutoSave) {
+      logActivity('Contact Updated', `updated contact details for ${currentFullName}`);
+      setSaveSuccess(true);
+      showToast('Đã lưu thông tin liên hệ thành công!');
+      setTimeout(() => setSaveSuccess(false), 2500);
+    }
+  }
+
+  // Serialize current field state to compare and trigger debounced auto-save
+  const currentSnapshot = useMemo(() => {
+    return JSON.stringify({
+      primaryFirstName: (primaryFirstName || '').trim(),
+      primaryMiddleName: (primaryMiddleName || '').trim(),
+      primaryLastName: (primaryLastName || '').trim(),
+      primaryDob: (primaryDob || '').trim(),
+      primarySsn: (primarySsn || '').trim(),
+      primaryRelation: (primaryRelation || '').trim(),
+      primaryGender: (primaryGender || '').trim(),
+      primaryImmigration: (primaryImmigration || '').trim(),
+      primaryAlienNumber: (primaryAlienNumber || '').trim(),
+      primaryCertificateNumber: (primaryCertificateNumber || '').trim(),
+      primaryDateExpired: (primaryDateExpired || '').trim(),
+      primaryHousehold: (primaryHousehold || '').trim(),
+      contactPhone: (contactPhone || '').trim(),
+      contactLanguage: (contactLanguage || '').trim(),
+      contactEmail: (contactEmail || '').trim(),
+      enrolledAddress: (enrolledAddress || '').trim(),
+      mailingAddress: (mailingAddress || '').trim(),
+      streetAddress: (streetAddress || '').trim(),
+      city: (city || '').trim(),
+      contactState: (contactState || '').trim(),
+      postalCode: (postalCode || '').trim(),
+      county: (county || '').trim(),
+      leadHowDoYouKnowUs: (leadHowDoYouKnowUs || '').trim(),
+      leadWhoRefer: (leadWhoRefer || '').trim(),
+      leadContactOwner: (leadContactOwner || '').trim(),
+      acaAccountStatus: (acaAccountStatus || '').trim(),
+      acaAccount: (acaAccount || '').trim(),
+      acaPass: (acaPass || '').trim(),
+      theBestRateEmail: (theBestRateEmail || '').trim(),
+      acaStatusSpecial: (acaStatusSpecial || '').trim(),
+      acaAccountSpecial: (acaAccountSpecial || '').trim(),
+      acaPassSpecial: (acaPassSpecial || '').trim(),
+      enrollCallRep: (enrollCallRep || '').trim(),
+    });
+  }, [
+    primaryFirstName,
+    primaryMiddleName,
+    primaryLastName,
+    primaryDob,
+    primarySsn,
+    primaryRelation,
+    primaryGender,
+    primaryImmigration,
+    primaryAlienNumber,
+    primaryCertificateNumber,
+    primaryDateExpired,
+    primaryHousehold,
+    contactPhone,
+    contactLanguage,
+    contactEmail,
+    enrolledAddress,
+    mailingAddress,
+    streetAddress,
+    city,
+    contactState,
+    postalCode,
+    county,
+    leadHowDoYouKnowUs,
+    leadWhoRefer,
+    leadContactOwner,
+    acaAccountStatus,
+    acaAccount,
+    acaPass,
+    theBestRateEmail,
+    acaStatusSpecial,
+    acaAccountSpecial,
+    acaPassSpecial,
+    enrollCallRep,
+  ]);
+
+  // Debounced auto-save whenever any field changes
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      lastSavedJsonRef.current = currentSnapshot;
+      return;
+    }
+
+    if (currentSnapshot === lastSavedJsonRef.current) {
+      return;
+    }
+
+    setSaveStatus('saving');
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleSaveContactChanges({ isAutoSave: true });
+      lastSavedJsonRef.current = currentSnapshot;
+      setSaveStatus('saved');
+      setTimeout(() => {
+        setSaveStatus((prev) => (prev === 'saved' ? 'idle' : prev));
+      }, 2500);
+    }, 600); // 600ms debounce
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [currentSnapshot]);
+
+  // Flush any pending auto-save on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+        handleSaveContactChanges({ isAutoSave: true });
+      }
+    };
+  }, []);
+
+  function handleBack() {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      handleSaveContactChanges({ isAutoSave: true });
+    }
+    if (onBack) onBack();
   }
 
   return (
@@ -1306,7 +1438,7 @@ export default function StaffContactDetail({
       <div className="h-11 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="flex items-center gap-1.5 text-xs font-bold text-slate-800 hover:text-blue-600 transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -1315,20 +1447,32 @@ export default function StaffContactDetail({
         </div>
 
         <div className="flex items-center gap-3 text-xs">
-          {saveSuccess && (
-            <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-xs bg-emerald-50 px-2.5 py-1 rounded-md animate-in fade-in">
-              <span className="material-symbols-outlined text-[15px]">check_circle</span>
-              <span>Changes Saved & Logged!</span>
-            </span>
+          {/* Live Auto-save status feedback */}
+          {saveStatus === 'saving' && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 font-semibold shadow-2xs animate-pulse">
+              <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
+              <span>Đang tự động lưu...</span>
+            </div>
           )}
-          <button
-            type="button"
-            onClick={handleSaveContactChanges}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-xs transition cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[15px]">save</span>
-            <span>Save Contact Info</span>
-          </button>
+
+          {saveStatus === 'saved' && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold shadow-2xs animate-in fade-in duration-200">
+              <span className="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+              <span>Đã tự động lưu</span>
+            </div>
+          )}
+
+          {saveStatus === 'idle' && (
+            <button
+              type="button"
+              onClick={() => handleSaveContactChanges({ isAutoSave: false })}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium transition cursor-pointer shadow-2xs"
+              title="Hệ thống tự động lưu mọi thông tin khi bạn điền. Bấm vào đây để lưu thủ công ngay."
+            >
+              <span className="material-symbols-outlined text-[15px] text-emerald-600">cloud_done</span>
+              <span>Tự động lưu: Bật</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => handleOpenPropertyHistory('All')}
