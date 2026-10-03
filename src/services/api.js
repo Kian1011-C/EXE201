@@ -535,6 +535,27 @@ export async function addContactActivity(contactId, data) {
   });
 }
 
+export async function addDealNote(dealId, data) {
+  return await request(`/deals/${encodeURIComponent(dealId)}/notes`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function addDealTask(dealId, data) {
+  return await request(`/deals/${encodeURIComponent(dealId)}/tasks`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function addDealActivity(dealId, data) {
+  return await request(`/deals/${encodeURIComponent(dealId)}/activities`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 // ── Seeding & Reset ──────────────────────────────────────────────────────────
 export async function resetAndSeedDatabase() {
   return await request('/seed', {
@@ -687,21 +708,121 @@ export async function createTask(data) {
   if (typeof window !== 'undefined') {
     addTaskToStore(data);
   }
-  const res = await request('/tasks', { method: 'POST', body: JSON.stringify(data) }).catch((err) => {
+
+  // Format payload to comply with Spring Boot Task entity schema
+  let dueDateIso = null;
+  if (data.dueDate) {
+    const matchSlash = String(data.dueDate).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (matchSlash) {
+      const month = matchSlash[1].padStart(2, '0');
+      const day = matchSlash[2].padStart(2, '0');
+      const year = matchSlash[3];
+      dueDateIso = `${year}-${month}-${day}`;
+    } else {
+      const matchIso = String(data.dueDate).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (matchIso) {
+        dueDateIso = matchIso[0];
+      }
+    }
+  }
+
+  const bePayload = {
+    title: data.title || 'Follow-up Task',
+    description: data.content || data.description || '',
+    priority:
+      (data.priority || '').toUpperCase() === 'HIGH'
+        ? 'HIGH'
+        : (data.priority || '').toUpperCase() === 'LOW'
+        ? 'LOW'
+        : 'MEDIUM',
+    status:
+      (data.status || '').toUpperCase() === 'COMPLETED' || (data.status || '').toUpperCase() === 'DONE'
+        ? 'COMPLETED'
+        : (data.status || '').toUpperCase() === 'IN_PROGRESS' || (data.status || '').toUpperCase() === 'IN PROGRESS'
+        ? 'IN_PROGRESS'
+        : 'OPEN',
+    taskType: data.taskType && data.taskType !== '--' ? data.taskType : 'To Do',
+  };
+
+  if (dueDateIso) {
+    bePayload.dueDate = dueDateIso;
+  }
+
+  if (data.dealId) {
+    const rawId = String(data.dealId).replace(/^[^\d]+/, '');
+    const num = Number(rawId);
+    if (!isNaN(num) && num > 0) {
+      bePayload.deal = { id: num };
+    }
+  }
+
+  if (data.contactId) {
+    const rawId = String(data.contactId).replace(/^[^\d]+/, '');
+    const num = Number(rawId);
+    if (!isNaN(num) && num > 0) {
+      bePayload.contact = { id: num };
+    }
+  }
+
+  const res = await request('/tasks', { method: 'POST', body: JSON.stringify(bePayload) }).catch((err) => {
     console.warn('[api] createTask fallback:', err);
     return null;
   });
-  return res ? normalizeTask(res) : normalizeTask(data);
+
+  if (res && res.id) {
+    const updated = {
+      ...data,
+      id: String(res.id),
+      code: res.code || `TSK2600${1000 + Number(res.id)}`,
+    };
+    if (typeof window !== 'undefined') {
+      updateTaskInStore(updated);
+    }
+    return normalizeTask(updated);
+  }
+
+  return normalizeTask(data);
 }
 
 export async function updateTask(id, data) {
   if (typeof window !== 'undefined') {
     updateTaskInStore(data);
   }
-  const res = await request(`/tasks/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }).catch((err) => {
+
+  const rawId = String(id).replace(/^[^\d]+/, '');
+  const numId = Number(rawId);
+
+  const bePayload = {};
+  if (data.title) bePayload.title = data.title;
+  if (data.content || data.description) bePayload.description = data.content || data.description;
+  if (data.priority) {
+    bePayload.priority =
+      (data.priority || '').toUpperCase() === 'HIGH'
+        ? 'HIGH'
+        : (data.priority || '').toUpperCase() === 'LOW'
+        ? 'LOW'
+        : 'MEDIUM';
+  }
+  if (data.status) {
+    bePayload.status =
+      (data.status || '').toUpperCase() === 'COMPLETED' || (data.status || '').toUpperCase() === 'DONE'
+        ? 'COMPLETED'
+        : (data.status || '').toUpperCase() === 'IN_PROGRESS' || (data.status || '').toUpperCase() === 'IN PROGRESS'
+        ? 'IN_PROGRESS'
+        : 'OPEN';
+  }
+  if (data.taskType && data.taskType !== '--') bePayload.taskType = data.taskType;
+
+  const endpointId = (!isNaN(numId) && numId > 0) ? numId : id;
+
+  const res = await request(`/tasks/${encodeURIComponent(endpointId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(bePayload),
+  }).catch((err) => {
     console.warn('[api] updateTask fallback:', err);
     return null;
   });
+
   return res ? normalizeTask(res) : normalizeTask(data);
 }
 

@@ -14,7 +14,7 @@ import {
   deleteTaskFromStore,
   getDynamicTasks,
 } from '../../../data/mockCrmData';
-import { createTicket, updateDeal, getUsers, getAdminAccounts, createTask, updateTask } from '../../../services/api';
+import { createTicket, updateDeal, getUsers, getAdminAccounts, createTask, updateTask, addDealNote } from '../../../services/api';
 import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
 import { INITIAL_ADMIN_ACCOUNTS } from '../../../data/mockAdminAccounts';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
@@ -1030,6 +1030,16 @@ export default function StaffDealDetail({
     };
     const updatedList = [newNote, ...notesList];
     updateAndPersistDealNotes(updatedList);
+
+    const currentDealIdentifier = deal?.id || dealInfo.id || deal?.code || dealInfo.code;
+    if (currentDealIdentifier) {
+      addDealNote(currentDealIdentifier, {
+        title,
+        text: noteBody.trim(),
+        author: currentAuthor,
+        attachments: JSON.stringify(noteAttachments),
+      }).catch((err) => console.warn('[StaffDealDetail] addDealNote fallback:', err));
+    }
 
     const attachSuffix =
       noteAttachments.length > 0

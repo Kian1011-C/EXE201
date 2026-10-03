@@ -993,8 +993,10 @@ export default function StaffContactDetail({
     if (targetContactId) {
       addContactNote(targetContactId, {
         title,
+        text: noteBody.trim(),
         body: noteBody.trim(),
-        author: 'Platform Staff',
+        author: currentAuthor,
+        attachments: JSON.stringify(noteAttachments),
       }).catch((err) => console.warn('[StaffContactDetail] addContactNote fallback:', err));
     }
 
