@@ -7,21 +7,7 @@ import {
   SAMPLE_CUSTOMER_DOCUMENTS,
 } from '../../../data/mockCrmData';
 
-const AGENT_OPTIONS = [
-  { name: 'Khanh Nguyen', handle: 'khanhnguyen37@7', avatar: 'KN', bg: 'bg-[#475569]' },
-  { name: 'Tiger Truong', handle: 'tigertruong86@8', avatar: 'TT', bg: 'bg-[#EA580C]' },
-  { name: 'Amy Vo', handle: 'amyvo27@0', avatar: 'AV', bg: 'bg-[#3B82F6]' },
-  { name: 'Anh Pham', handle: 'anhlpham14@3', avatar: 'AP', bg: 'bg-[#C2410C]' },
-  { name: 'anhthu.tran', handle: 'anhthu.tran59@4', avatar: 'AT', bg: 'bg-[#2563EB]' },
-  { name: 'Bao Uyen', handle: 'baouyen76@8', avatar: 'BU', bg: 'bg-[#15803D]' },
-  { name: 'Bella Nhi Nguyen', handle: 'bellan.nguyen86@0', avatar: 'BN', bg: 'bg-[#92400E]' },
-  { name: 'Bijou Tran', handle: 'bijou.trantbr164', avatar: 'BT', bg: 'bg-[#991B1B]' },
-  { name: 'Jay Ly', handle: 'trichauly24@7', avatar: 'JL', bg: 'bg-[#059669]' },
-  { name: 'Sarah Thai', handle: 'sarahthai20@1', avatar: 'ST', bg: 'bg-[#7C3AED]' },
-  { name: 'Sean Ngo', handle: 'sean75@8', avatar: 'SN', bg: 'bg-[#0D9488]' },
-  { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
-  { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
-];
+import { getAllPlatformMembers } from '../../../data/mockAdminAccounts';
 
 const CATEGORIES = [
   { key: 'identity', label: 'Identity', icon: 'badge', color: 'text-violet-600', bg: 'bg-violet-50' },
@@ -56,7 +42,26 @@ export default function CreateCustomerDocumentModal({
   const [isEditingName, setIsEditingName] = useState(false);
   const [contactName, setContactName] = useState('');
   const [isEditingContact, setIsEditingContact] = useState(false);
-  const [selectedOwner, setSelectedOwner] = useState(AGENT_OPTIONS[0]);
+
+  const [platformMembers, setPlatformMembers] = useState(() => [
+    { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
+    { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
+    ...getAllPlatformMembers(),
+  ]);
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setPlatformMembers([
+        { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
+        { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
+        ...getAllPlatformMembers(),
+      ]);
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
+
+  const [selectedOwner, setSelectedOwner] = useState(platformMembers[0]);
   const [showOwnerDropdown, setShowOwnerDropdown] = useState(false);
   const [ownerSearchQuery, setOwnerSearchQuery] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -94,7 +99,7 @@ export default function CreateCustomerDocumentModal({
       // Match owner safely whether contactOwner is object or string
       const rawOwner = contact.contactOwner || contact.leadOwner || '';
       const cOwner = typeof rawOwner === 'object' ? (rawOwner.name || rawOwner.fullName || '') : String(rawOwner || '');
-      const matched = AGENT_OPTIONS.find(
+      const matched = platformMembers.find(
         (a) =>
           cOwner &&
           (cOwner.includes(a.name) ||
@@ -111,10 +116,10 @@ export default function CreateCustomerDocumentModal({
           bg: 'bg-[#475569]',
         });
       } else {
-        setSelectedOwner(AGENT_OPTIONS[0]);
+        setSelectedOwner(platformMembers[0]);
       }
     }
-  }, [contact, isOpen]);
+  }, [contact, isOpen, platformMembers]);
 
   // Close owner dropdown on click outside
   useEffect(() => {
@@ -263,8 +268,8 @@ export default function CreateCustomerDocumentModal({
   }
 
   // Filtered owners for dropdown
-  const filteredOwners = AGENT_OPTIONS.filter((a) =>
-    `${a.name} ${a.handle}`.toLowerCase().includes(ownerSearchQuery.toLowerCase())
+  const filteredOwners = platformMembers.filter((a) =>
+    `${a.name} ${a.handle || ''}`.toLowerCase().includes(ownerSearchQuery.toLowerCase())
   );
 
   // Available existing documents

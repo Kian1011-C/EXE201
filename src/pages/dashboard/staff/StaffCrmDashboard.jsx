@@ -19,7 +19,6 @@ import {
   isOwnerMatch,
 } from '../../../utils/rbac';
 import {
-  ALL_SYSTEM_AGENTS,
   SAMPLE_DEALS,
   getDynamicDeals,
   SAMPLE_CONTACTS,
@@ -28,7 +27,11 @@ import {
   getDynamicTickets,
   SAMPLE_TASKS,
 } from '../../../data/mockCrmData';
-import { INITIAL_ADMIN_COMMISSIONS, INITIAL_ADMIN_ACCOUNTS } from '../../../data/mockAdminAccounts';
+import {
+  INITIAL_ADMIN_COMMISSIONS,
+  INITIAL_ADMIN_ACCOUNTS,
+  getActiveAgentAccounts,
+} from '../../../data/mockAdminAccounts';
 import toast from 'react-hot-toast';
 
 const COMPANY_OVERVIEW = 'Tất cả Owner (All Agents / Tổng Quan)';
@@ -66,6 +69,16 @@ export default function StaffCrmDashboard({
   const [liveCommissions, setLiveCommissions] = useState(() => INITIAL_ADMIN_COMMISSIONS);
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'obamacare' | 'medicare' | 'tickets' | 'tasks' | 'commissions'
   
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setAgentAccounts(getActiveAgentAccounts());
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
+
   const defaultDashboard = isAgentUser
     ? (agentName || effectiveAgent?.name || user?.name || 'Khanh Nguyen')
     : COMPANY_OVERVIEW;
@@ -222,123 +235,9 @@ export default function StaffCrmDashboard({
     }
   }
 
-  // ── Available Agent Roster (Tất cả Agent trong hệ thống - "owner tất cả") ──
+  // ── Available Agent Roster (Chỉ các tài khoản Agent thực tế hiện có trong hệ thống) ──
   const availableAgents = useMemo(() => {
-    const agentMap = new Map();
-
-    const isNonAgent = (name) => {
-      const lower = (name || '').toLowerCase().trim();
-      return (
-        !name ||
-        name === 'Unassigned' ||
-        name === '---' ||
-        lower.includes('insurance') ||
-        lower.includes('platform') ||
-        lower.includes('admin') ||
-        lower.includes('operations') ||
-        lower.includes('system') ||
-        lower.includes('accounting')
-      );
-    };
-
-    // 1. First register ALL 35 system agents ("owner tất cả" from ALL_SYSTEM_AGENTS)
-    if (Array.isArray(ALL_SYSTEM_AGENTS)) {
-      ALL_SYSTEM_AGENTS.forEach((ag) => {
-        if (!ag.name || isNonAgent(ag.name)) return;
-        const initials =
-          ag.avatar ||
-          ag.name
-            .split(' ')
-            .filter(Boolean)
-            .map((w) => w[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase() ||
-          'AG';
-        agentMap.set(ag.name, {
-          id: `AG-${ag.name.replace(/\s+/g, '')}`,
-          name: ag.name,
-          handle: ag.handle || '',
-          email: ag.handle && ag.handle.includes('@') ? ag.handle : '',
-          agencyRole: 'Licensed Agent',
-          avatar: initials,
-          bg: ag.bg || 'bg-blue-600 text-white',
-          npn: '',
-        });
-      });
-    }
-
-    // 2. Enhance with detailed metadata from INITIAL_ADMIN_ACCOUNTS (NPN, full email, role, etc.)
-    INITIAL_ADMIN_ACCOUNTS.forEach((acc) => {
-      if (acc.role === 'agent' && acc.name && !isNonAgent(acc.name)) {
-        const existing = agentMap.get(acc.name);
-        agentMap.set(acc.name, {
-          ...(existing || {}),
-          id: acc.id,
-          name: acc.name,
-          email: acc.email || existing?.email || '',
-          agencyRole: acc.agencyRole || existing?.agencyRole || 'Licensed Agent',
-          avatar: acc.avatar || existing?.avatar || acc.name.slice(0, 2).toUpperCase(),
-          bg: acc.bg || existing?.bg || 'bg-blue-600 text-white',
-          npn: acc.npn || existing?.npn || '',
-        });
-      }
-    });
-
-    // 3. Register any additional discovered agents from live entities
-    const registerDiscovered = (rawVal, defaultRole = 'Licensed Agent') => {
-      if (!rawVal) return;
-      const name = getPersonName(rawVal);
-      if (isNonAgent(name)) return;
-      if (!agentMap.has(name)) {
-        const initials =
-          name
-            .split(' ')
-            .filter(Boolean)
-            .map((w) => w[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase() || 'AG';
-        agentMap.set(name, {
-          id: `GEN-${name.replace(/\s+/g, '')}`,
-          name,
-          email: typeof rawVal === 'object' && rawVal.email ? rawVal.email : '',
-          agencyRole: defaultRole,
-          avatar: initials,
-          bg: 'bg-indigo-600 text-white',
-          npn: '',
-        });
-      }
-    };
-
-    // Scan deals, contacts, tickets, tasks, commissions
-    liveDeals.forEach((d) => {
-      registerDiscovered(d.dealOwner, 'Deal Owner');
-      registerDiscovered(d.dealOwnerName, 'Deal Owner');
-      registerDiscovered(d.leadOwner, 'Lead Owner');
-      registerDiscovered(d.agentName, 'Writing Agent');
-    });
-    liveContacts.forEach((c) => {
-      registerDiscovered(c.contactOwner, 'Contact Owner');
-      registerDiscovered(c.contactOwnerName, 'Contact Owner');
-      registerDiscovered(c.sourceOfLead?.contactOwner, 'Contact Owner');
-    });
-    liveTickets.forEach((t) => {
-      registerDiscovered(t.ticketOwner, 'Ticket Owner');
-      registerDiscovered(t.ticketOwnerName, 'Ticket Owner');
-      registerDiscovered(t.serviceAgent, 'Service Agent');
-      registerDiscovered(t.serviceAgentName, 'Service Agent');
-    });
-    liveTasks.forEach((tk) => {
-      registerDiscovered(tk.assignee, 'Task Assignee');
-      registerDiscovered(tk.assignedTo, 'Task Assignee');
-    });
-    liveCommissions.forEach((cm) => {
-      registerDiscovered(cm.agentName, 'Writing Agent');
-    });
-
-    // Compute live counts for each agent
-    const list = Array.from(agentMap.values()).map((ag) => {
+    const list = agentAccounts.map((ag) => {
       const dealsCount = liveDeals.filter(
         (d) =>
           isOwnerMatch(d.dealOwner, { role: 'agent', name: ag.name }) ||
@@ -355,7 +254,7 @@ export default function StaffCrmDashboard({
     });
 
     return list.sort((a, b) => a.name.localeCompare(b.name));
-  }, [liveDeals, liveContacts, liveTickets, liveTasks, liveCommissions]);
+  }, [agentAccounts, liveDeals, liveContacts]);
 
   // Filtered agents for dropdown search
   const filteredAgents = useMemo(() => {

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getContacts, createContact as apiCreateContact, getUsers } from '../../../services/api';
 import { SAMPLE_CONTACTS, addContactToStore, getDynamicContacts } from '../../../data/mockCrmData';
+import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterContactsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
@@ -22,6 +23,15 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   }
 
   const [dbUsers, setDbUsers] = useState([]);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setAgentAccounts(getActiveAgentAccounts());
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
 
   // Load contacts from PostgreSQL API
   async function loadData(filters = {}) {
@@ -109,18 +119,13 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
 
   // Unique owners for filter
   const ownerOptions = useMemo(() => {
-    const set = new Set(
-      scopedContacts
-        .map((c) => {
-          if (typeof c.contactOwner === 'object') {
-            return c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`.trim();
-          }
-          return c.contactOwner;
-        })
-        .filter(Boolean)
-    );
-    return Array.from(set);
-  }, [scopedContacts]);
+    const set = new Set(['The Best Rate Insurance', ...agentAccounts.map((a) => a.name)]);
+    scopedContacts.forEach((c) => {
+      const o = typeof c.contactOwner === 'object' ? (c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`.trim()) : c.contactOwner;
+      if (o && o !== 'all' && o !== '--') set.add(o);
+    });
+    return Array.from(set).sort();
+  }, [agentAccounts, scopedContacts]);
 
   // Handle Quick Create
   function handleCreateSubmit(e) {
@@ -138,10 +143,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         : `+1 ${phone.trim()}`
       : '—';
 
-    const selectedUser = dbUsers.find(u => String(u.id) === String(contactOwner));
-    const ownerNameResolved = selectedUser 
-      ? (selectedUser.fullName || selectedUser.name || [selectedUser.firstName, selectedUser.lastName].filter(Boolean).join(' ') || selectedUser.email)
-      : (contactOwner || 'The Best Rate Insurance');
+    const ownerNameResolved = contactOwner || 'The Best Rate Insurance';
 
     const newRecord = {
       id: newCode,
@@ -858,9 +860,9 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                   >
                     <option value="">--</option>
                     <option value="The Best Rate Insurance">The Best Rate Insurance</option>
-                    {dbUsers.map(u => (
-                      <option key={u.id} value={u.id}>
-                        {u.fullName || u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email}
+                    {agentAccounts.map((a) => (
+                      <option key={a.id} value={a.name}>
+                        {a.name}
                       </option>
                     ))}
                   </select>

@@ -685,3 +685,182 @@ export const INITIAL_ADMIN_COMMISSIONS = [
     status: 'SETTLED',
   },
 ];
+
+// ============================================================
+// Dynamic Admin Accounts Storage & Real-time Agent Synchronization
+// Single source of truth for all Agent & Staff accounts across CRM
+// ============================================================
+export const ADMIN_ACCOUNTS_STORAGE_KEY = 'insurmatch_admin_accounts';
+
+export function getAccountAvatar(name) {
+  if (!name) return 'AG';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export const ACCOUNT_BG_PALETTE = [
+  'bg-blue-600 text-white',
+  'bg-indigo-600 text-white',
+  'bg-emerald-600 text-white',
+  'bg-amber-600 text-white',
+  'bg-purple-600 text-white',
+  'bg-teal-600 text-white',
+  'bg-rose-600 text-white',
+  'bg-cyan-600 text-white',
+];
+
+export function getDynamicAdminAccounts() {
+  if (typeof window === 'undefined') return [...INITIAL_ADMIN_ACCOUNTS];
+  try {
+    const raw = localStorage.getItem(ADMIN_ACCOUNTS_STORAGE_KEY);
+    if (!raw) {
+      localStorage.setItem(ADMIN_ACCOUNTS_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_ACCOUNTS));
+      return [...INITIAL_ADMIN_ACCOUNTS];
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      localStorage.setItem(ADMIN_ACCOUNTS_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_ACCOUNTS));
+      return [...INITIAL_ADMIN_ACCOUNTS];
+    }
+
+    // Ensure all seed accounts exist in the store
+    const existingIds = new Set(parsed.map((a) => String(a.id)));
+    const missingSeeds = INITIAL_ADMIN_ACCOUNTS.filter((s) => !existingIds.has(String(s.id)));
+    if (missingSeeds.length > 0) {
+      const merged = [...parsed, ...missingSeeds];
+      localStorage.setItem(ADMIN_ACCOUNTS_STORAGE_KEY, JSON.stringify(merged));
+      return merged;
+    }
+    return parsed;
+  } catch (err) {
+    console.warn('[mockAdminAccounts] Failed to read accounts from localStorage:', err);
+    return [...INITIAL_ADMIN_ACCOUNTS];
+  }
+}
+
+export function addAdminAccountToStore(accountData) {
+  const current = getDynamicAdminAccounts();
+  const name = accountData.name || `${accountData.firstName || ''} ${accountData.lastName || ''}`.trim() || 'New Member';
+  const role = (accountData.role || 'agent').toLowerCase();
+  const id = accountData.id || `ACC-${String(current.length + 1).padStart(3, '0')}`;
+  const avatar = accountData.avatar || getAccountAvatar(name);
+  const bg = accountData.bg || (role === 'admin' ? 'bg-rose-700 text-white' : role === 'staff' ? 'bg-teal-600 text-white' : ACCOUNT_BG_PALETTE[current.length % ACCOUNT_BG_PALETTE.length]);
+  
+  let states = accountData.statesLicensed || ['TX (TDI)', 'CA (CDI)'];
+  if (typeof states === 'string') {
+    states = states.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+
+  const newAccount = {
+    id,
+    name,
+    fullName: name,
+    email: accountData.email || `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}@insurmatch.us`,
+    role,
+    avatar,
+    bg,
+    status: accountData.status || (role === 'agent' ? 'Active' : 'Active'),
+    phone: accountData.phone || '+1 (832) 555-0100',
+    agencyRole: accountData.agencyRole || (role === 'agent' ? 'Licensed Partner Agent' : role === 'staff' ? 'Platform Operations' : 'Administrator'),
+    department: accountData.department || (role === 'agent' ? 'Regional Agent Network' : role === 'staff' ? 'Intake & Policy Support' : 'System Administration'),
+    statesLicensed: states,
+    npn: accountData.npn || (role === 'agent' ? `NPN-${Math.floor(1000000 + Math.random() * 9000000)}` : 'STAFF-OPS'),
+    joinedDate: accountData.joinedDate || new Date().toISOString().slice(0, 10),
+    lastActive: 'Just now',
+    dealsCount: accountData.dealsCount || 0,
+    complianceStatus: accountData.complianceStatus || 'Verified & Cleared',
+  };
+
+  const updated = [newAccount, ...current.filter((a) => String(a.id) !== String(newAccount.id))];
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(ADMIN_ACCOUNTS_STORAGE_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('insurmatch_accounts_updated', { detail: newAccount }));
+    } catch (e) {
+      console.warn('[mockAdminAccounts] Could not persist new account:', e);
+    }
+  }
+  return newAccount;
+}
+
+export function updateAdminAccountInStore(id, updates) {
+  const current = getDynamicAdminAccounts();
+  const updated = current.map((a) => (String(a.id) === String(id) ? { ...a, ...updates } : a));
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(ADMIN_ACCOUNTS_STORAGE_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('insurmatch_accounts_updated', { detail: { id, ...updates } }));
+    } catch (e) {
+      console.warn('[mockAdminAccounts] Could not update account in store:', e);
+    }
+  }
+  return updated.find((a) => String(a.id) === String(id));
+}
+
+/**
+ * Returns only real, accredited agent accounts currently existing in the platform.
+ * Single source of truth for:
+ * 1. Deal Owner dropdown
+ * 2. Contact Owner dropdown
+ * 3. Ticket Owner / Service Agent dropdown
+ * 4. Staff CRM Dashboard agent selector
+ */
+export function getActiveAgentAccounts() {
+  const all = getDynamicAdminAccounts();
+  const isAgent = (a) => {
+    const role = (a.role || '').toLowerCase();
+    const name = (a.name || '').toLowerCase();
+    if (role !== 'agent' && role !== 'broker') return false;
+    if (name.includes('admin') || name.includes('staff') || name.includes('platform') || name.includes('insurance')) return false;
+    return true;
+  };
+
+  return all.filter(isAgent).map((a) => {
+    const email = a.email || '';
+    const handle = email.includes('@') ? email.split('@')[0] : a.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return {
+      id: String(a.id),
+      name: a.name,
+      fullName: a.name,
+      email,
+      handle,
+      role: 'agent',
+      agencyRole: a.agencyRole || 'Licensed Agent',
+      department: a.department || 'Sales Hub',
+      avatar: a.avatar || getAccountAvatar(a.name),
+      bg: a.bg || 'bg-blue-600 text-white',
+      npn: a.npn || '',
+      statesLicensed: a.statesLicensed || ['TX (TDI)'],
+      status: a.status || 'Active',
+      phone: a.phone || '',
+      dealsCount: a.dealsCount || 0,
+      complianceStatus: a.complianceStatus || 'Verified & Cleared',
+    };
+  });
+}
+
+/**
+ * Returns all platform personnel (Agents + Staff + Admins).
+ */
+export function getAllPlatformMembers() {
+  const all = getDynamicAdminAccounts();
+  return all.map((a) => {
+    const email = a.email || '';
+    const handle = email.includes('@') ? email.split('@')[0] : a.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return {
+      id: String(a.id),
+      name: a.name,
+      fullName: a.name,
+      email,
+      handle,
+      role: (a.role || 'agent').toLowerCase(),
+      avatar: a.avatar || getAccountAvatar(a.name),
+      bg: a.bg || 'bg-slate-700 text-white',
+      npn: a.npn || '',
+      status: a.status || 'Active',
+      department: a.department || 'Operations',
+    };
+  });
+}
+

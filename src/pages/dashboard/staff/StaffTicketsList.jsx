@@ -5,6 +5,7 @@ import {
   getDynamicTickets,
   addTicketToStore,
 } from '../../../data/mockCrmData';
+import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterTicketsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
@@ -21,33 +22,6 @@ const PIPELINE_OPTIONS = [
   'Not In Carrier',
 ];
 
-const OWNER_OPTIONS = [
-  { name: 'oanh dinh', handle: 'Oanhdinhtest99@5', avatar: 'OD', bg: 'bg-amber-600' },
-  { name: 'Accounting Dept', handle: 'accounting', avatar: 'AD', bg: 'bg-blue-900' },
-  { name: 'acpham90', handle: 'acpham9076@8', avatar: 'A9', bg: 'bg-stone-700' },
-  { name: 'Admin TBR', handle: 'admin93@9', avatar: 'AT', bg: 'bg-sky-700' },
-  { name: 'Amy Vo', handle: 'amyvo27@0', avatar: 'AV', bg: 'bg-blue-600' },
-  { name: 'Andy Vo', handle: 'andy62@3', avatar: 'AV', bg: 'bg-blue-500' },
-  { name: 'andynguyen', handle: 'andynguyen75...', avatar: 'A', bg: 'bg-amber-500' },
-  { name: 'Anh Pham', handle: 'anhlnpham14@3', avatar: 'AP', bg: 'bg-amber-800' },
-  { name: 'Khanh Nguyen', handle: 'khanhnguyen31@7', avatar: 'KN', bg: 'bg-emerald-600' },
-  { name: 'Jay Ly', handle: 'trichauly24@7', avatar: 'JL', bg: 'bg-[#10B981]' },
-  { name: 'Ivy Lu', handle: 'ivy', avatar: 'IL', bg: 'bg-[#0EA5E9]' },
-  { name: 'Zoey Nguyen', handle: 'zoeynguyen', avatar: 'ZN', bg: 'bg-indigo-600' },
-  { name: 'Keith Tran', handle: 'keithtran', avatar: 'KT', bg: 'bg-rose-600' },
-  { name: 'Ken Hoang', handle: 'kenhoang', avatar: 'KH', bg: 'bg-amber-700' },
-  { name: 'Jasmine Tang', handle: 'jasminetang', avatar: 'JT', bg: 'bg-purple-600' },
-  { name: 'Tara Phu', handle: 'taraphu', avatar: 'TP', bg: 'bg-teal-600' },
-  { name: 'Loc Nguyen', handle: 'locnguyen', avatar: 'LN', bg: 'bg-red-600' },
-  { name: 'Wai Wong Boo', handle: 'waiwongboo', avatar: 'WB', bg: 'bg-violet-600' },
-  { name: 'Nhi Tran', handle: 'nhitran', avatar: 'NT', bg: 'bg-slate-600' },
-  { name: "Chaunte' Stanley", handle: 'chauntestanley', avatar: 'CS', bg: 'bg-pink-600' },
-  { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
-  { name: 'Ha To', handle: 'hato', avatar: 'HT', bg: 'bg-orange-600' },
-  { name: 'Cuong Vu', handle: 'cuongvu', avatar: 'CV', bg: 'bg-emerald-700' },
-  { name: 'Nha Nguyen', handle: 'nhanguyen', avatar: 'NN', bg: 'bg-blue-700' },
-];
-
 const PRIORITY_OPTIONS = [
   { label: 'None', dotColor: 'bg-slate-400' },
   { label: 'Low', dotColor: 'bg-emerald-500' },
@@ -61,6 +35,34 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'kanban'
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [ownerOptionsList, setOwnerOptionsList] = useState(() => [
+    { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
+    { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
+    ...getActiveAgentAccounts().map((a) => ({
+      name: a.name,
+      handle: a.handle || a.email.split('@')[0],
+      avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
+      bg: a.bg || 'bg-blue-600',
+    })),
+  ]);
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setOwnerOptionsList([
+        { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
+        { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
+        ...getActiveAgentAccounts().map((a) => ({
+          name: a.name,
+          handle: a.handle || a.email.split('@')[0],
+          avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
+          bg: a.bg || 'bg-blue-600',
+        })),
+      ]);
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
 
   // 4 Top Filter states
   const [selectedPipeline, setSelectedPipeline] = useState('');
@@ -368,7 +370,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
     p.toLowerCase().includes(pipelineSearch.toLowerCase())
   );
 
-  const filteredOwnerOptions = OWNER_OPTIONS.filter(
+  const filteredOwnerOptions = ownerOptionsList.filter(
     (o) =>
       o.name.toLowerCase().includes(ownerSearch.toLowerCase()) ||
       o.handle.toLowerCase().includes(ownerSearch.toLowerCase())
@@ -1477,7 +1479,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                     onChange={(e) => setCreateOwner(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                   >
-                    {OWNER_OPTIONS.map((o) => (
+                    {ownerOptionsList.map((o) => (
                       <option key={o.name} value={o.name}>
                         {o.name}
                       </option>

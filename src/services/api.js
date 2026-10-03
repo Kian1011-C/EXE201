@@ -16,6 +16,11 @@ import {
   updateTaskInStore,
   getDynamicCustomerDocuments,
 } from '../data/mockCrmData';
+import {
+  getDynamicAdminAccounts,
+  addAdminAccountToStore,
+  updateAdminAccountInStore,
+} from '../data/mockAdminAccounts';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -344,8 +349,13 @@ function normalizeAccount(u) {
   };
 }
 
-// ── Contacts ─────────────────────────────────────────────────────────────────
-export async function getUsers() { try { const data = await request('/users'); return Array.isArray(data) ? data : []; } catch { return []; } }
+export async function getUsers() {
+  try {
+    const data = await request('/users');
+    if (Array.isArray(data) && data.length > 0) return data;
+  } catch {}
+  return getDynamicAdminAccounts();
+}
 
 export async function getContacts(params = {}) {
   const query = new URLSearchParams();
@@ -878,26 +888,43 @@ export async function getAdminStats() {
 export async function getAdminAccounts() {
   try {
     const data = await request('/admin/accounts');
-    return Array.isArray(data) ? data.map(normalizeAccount) : data;
+    if (Array.isArray(data) && data.length > 0) {
+      return data.map(normalizeAccount);
+    }
   } catch {
-    return null;
+    // fallback to dynamic storage
   }
+  return getDynamicAdminAccounts().map(normalizeAccount);
 }
 
 export async function createAdminAccount(data) {
-  const res = await request('/admin/accounts', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-  return res ? normalizeAccount(res) : res;
+  try {
+    const res = await request('/admin/accounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (res) {
+      const normalized = normalizeAccount(res);
+      addAdminAccountToStore(normalized);
+      return normalized;
+    }
+  } catch (err) {
+    console.warn('[api] createAdminAccount offline fallback:', err.message);
+  }
+  const saved = addAdminAccountToStore(data);
+  return normalizeAccount(saved);
 }
 
-
 export async function updateAdminAccount(id, data) {
-  return await request(`/admin/accounts/${encodeURIComponent(id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  });
+  try {
+    await request(`/admin/accounts/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.warn('[api] updateAdminAccount offline fallback:', err.message);
+  }
+  return updateAdminAccountInStore(id, data);
 }
 
 function normalizeQuote(q) {

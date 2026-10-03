@@ -8,7 +8,6 @@ import {
   getDynamicContacts,
   SAMPLE_CONTACTS,
   ALL_CARRIERS,
-  ALL_SYSTEM_AGENTS,
   addTaskToStore,
   updateTaskInStore,
   deleteTaskFromStore,
@@ -16,7 +15,7 @@ import {
 } from '../../../data/mockCrmData';
 import { createTicket, updateDeal, getUsers, getAdminAccounts, createTask, updateTask, addDealNote } from '../../../services/api';
 import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
-import { INITIAL_ADMIN_ACCOUNTS } from '../../../data/mockAdminAccounts';
+import { INITIAL_ADMIN_ACCOUNTS, getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import {
   recordPropertyUpdate,
@@ -323,42 +322,25 @@ export default function StaffDealDetail({
   const [feeBonusPaymentOpen, setFeeBonusPaymentOpen] = useState(false);
 
   // Dynamic DB users for dynamic agent roster (Tất cả agent hiện tại)
-  const [dbUsers, setDbUsers] = useState([]);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+
   useEffect(() => {
-    getUsers()
-      .then((data) => {
-        if (Array.isArray(data)) setDbUsers(data);
-      })
-      .catch(() => {});
+    function handleAccountsUpdated() {
+      setAgentAccounts(getActiveAgentAccounts());
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
 
   const allAvailableAgents = useMemo(() => {
-    const list = [...ALL_SYSTEM_AGENTS];
-    const existing = new Set(list.map((a) => a.name.toLowerCase()));
-
-    if (Array.isArray(dbUsers)) {
-      dbUsers.forEach((u) => {
-        const uName = (u.fullName || u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || '').trim();
-        if (uName && !existing.has(uName.toLowerCase())) {
-          const lower = uName.toLowerCase();
-          if (lower.includes('insurance') || lower.includes('platform') || lower.includes('admin tbr') || lower.includes('accounting')) {
-            return;
-          }
-          const initials = uName.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'AG';
-          const handle = u.email ? u.email.split('@')[0] : uName.toLowerCase().replace(/[^a-z0-9]/g, '');
-          list.push({
-            name: uName,
-            handle,
-            avatar: initials,
-            bg: 'bg-[#2563EB]',
-          });
-          existing.add(uName.toLowerCase());
-        }
-      });
-    }
-
+    const list = agentAccounts.map((a) => ({
+      name: a.name,
+      handle: a.handle || a.email.split('@')[0],
+      avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
+      bg: a.bg || 'bg-[#2563EB]',
+    }));
     return list.sort((a, b) => a.name.localeCompare(b.name));
-  }, [dbUsers]);
+  }, [agentAccounts]);
 
   // Form states for ADMIN ONLY
   const initialDealOwner = typeof dealInfo.dealOwner === 'object'
@@ -393,39 +375,6 @@ export default function StaffDealDetail({
   const [closedLostReason, setClosedLostReason] = useState(
     dealInfo.adminOnly?.closedLostReason || dealInfo.closedLostReason || '---'
   );
-
-  // ── Dynamic Agent Roster & Enrolled NPN Options (Every registered Agent has an Enroll NPN) ──
-  const [agentAccounts, setAgentAccounts] = useState(() => {
-    try {
-      const stored = localStorage.getItem('insurmatch_admin_accounts');
-      const list = stored ? JSON.parse(stored) : INITIAL_ADMIN_ACCOUNTS;
-      return Array.isArray(list) ? list.filter((a) => (a.role || '').toLowerCase() === 'agent') : [];
-    } catch {
-      return INITIAL_ADMIN_ACCOUNTS.filter((a) => (a.role || '').toLowerCase() === 'agent');
-    }
-  });
-
-  useEffect(() => {
-    getAdminAccounts()
-      .then((accs) => {
-        if (Array.isArray(accs) && accs.length > 0) {
-          const agents = accs.filter((a) => (a.role || '').toLowerCase() === 'agent');
-          if (agents.length > 0) {
-            setAgentAccounts((prev) => {
-              const combined = [...agents, ...prev];
-              const seen = new Set();
-              return combined.filter((a) => {
-                const key = a.id || a.email || a.name;
-                if (!key || seen.has(key)) return false;
-                seen.add(key);
-                return true;
-              });
-            });
-          }
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   const enrolledNpnOptions = useMemo(() => {
     const baseline = [

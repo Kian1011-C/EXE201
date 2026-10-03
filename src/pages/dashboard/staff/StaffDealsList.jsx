@@ -7,16 +7,14 @@ import {
   addDealToStore,
   addTicketToStore,
   ALL_CARRIERS,
-  ALL_SYSTEM_AGENTS,
 } from '../../../data/mockCrmData';
+import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { getDeals, updateDeal, createTicket, getUsers } from '../../../services/api';
 import StaffDealsKanban from './StaffDealsKanban';
 import AddDealModal from './AddDealModal';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterDealsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
-
-const AGENT_DIRECTORY = ALL_SYSTEM_AGENTS;
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent = false, agentName = '' }) {
   const [dealsList, setDealsList] = useState([]);
@@ -150,6 +148,16 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   const activeIsAgent = isAgent || user?.role === 'agent';
   const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
 
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setAgentAccounts(getActiveAgentAccounts());
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
+
   // Scoped deals by RBAC
   const scopedDeals = useMemo(() => {
     if (activeIsAgent) {
@@ -158,59 +166,26 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     return dealsList;
   }, [dealsList, activeIsAgent, user, effectiveAgent.name]);
 
-  // Unique owners from deals
-  const ownerOptions = useMemo(() => {
-    const set = new Set(scopedDeals.map((d) => d.dealOwner?.name).filter(Boolean));
-    return Array.from(set);
-  }, [scopedDeals]);
-
   // Combined agent directory for Deal Owner dropdown (Tất cả agent hiện tại)
   const allAvailableAgents = useMemo(() => {
-    const list = [...AGENT_DIRECTORY];
-    const existing = new Set(list.map((a) => a.name.toLowerCase()));
-
-    // Merge dynamic users from DB
-    if (Array.isArray(dbUsers)) {
-      dbUsers.forEach((u) => {
-        const uName = (u.fullName || u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || '').trim();
-        if (uName && !existing.has(uName.toLowerCase())) {
-          const lower = uName.toLowerCase();
-          if (lower.includes('insurance') || lower.includes('platform') || lower.includes('admin tbr') || lower.includes('accounting')) {
-            return;
-          }
-          const initials = uName.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'AG';
-          const handle = u.email ? u.email.split('@')[0] : uName.toLowerCase().replace(/[^a-z0-9]/g, '');
-          list.push({
-            name: uName,
-            handle,
-            avatar: initials,
-            bg: 'bg-[#2563EB]',
-          });
-          existing.add(uName.toLowerCase());
-        }
-      });
-    }
-
-    // Merge any deal owners from loaded deals
-    ownerOptions.forEach((o) => {
-      if (o && !existing.has(o.toLowerCase())) {
-        const lower = o.toLowerCase();
-        if (lower.includes('insurance') || lower.includes('platform') || lower.includes('admin tbr') || lower.includes('accounting')) {
-          return;
-        }
-        const initials = o.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'AG';
-        list.push({
-          name: o,
-          handle: o.toLowerCase().replace(/[^a-z0-9]/g, ''),
-          avatar: initials,
-          bg: 'bg-slate-600',
-        });
-        existing.add(o.toLowerCase());
-      }
-    });
-
+    const list = agentAccounts.map((a) => ({
+      name: a.name,
+      handle: a.handle || a.email.split('@')[0],
+      avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
+      bg: a.bg || 'bg-[#2563EB]',
+    }));
     return list.sort((a, b) => a.name.localeCompare(b.name));
-  }, [ownerOptions, dbUsers]);
+  }, [agentAccounts]);
+
+  // Unique owners from deals & registered agents
+  const ownerOptions = useMemo(() => {
+    const set = new Set(allAvailableAgents.map((a) => a.name));
+    scopedDeals.forEach((d) => {
+      const oName = typeof d.dealOwner === 'object' ? (d.dealOwner?.name || `${d.dealOwner?.firstName || ''} ${d.dealOwner?.lastName || ''}`.trim()) : d.dealOwner;
+      if (oName && oName !== 'all' && oName !== '--') set.add(oName);
+    });
+    return Array.from(set).sort();
+  }, [allAvailableAgents, scopedDeals]);
 
   // Filtered agent list for dropdown search
   const filteredAgentList = useMemo(() => {

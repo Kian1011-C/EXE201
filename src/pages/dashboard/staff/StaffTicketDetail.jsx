@@ -16,6 +16,7 @@ import {
   addContactTask,
   getDeals,
 } from '../../../services/api';
+import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import toast from 'react-hot-toast';
 
 export function isDealBelongingToContact(deal, contactName, contactId) {
@@ -125,15 +126,6 @@ export const PAYMENT_TICKET_DEFAULTS = {
   dealCarrier: '',
   timeline: [],
 };
-
-const AGENT_OPTIONS = [
-  { name: 'Ivy Lu (ivy)', avatar: 'IL', bg: 'bg-[#0EA5E9]' },
-  { name: 'Jay Ly (trichauly24@7)', avatar: 'JL', bg: 'bg-[#10B981]' },
-  { name: 'Anya Nguyen (anya42@9)', avatar: 'AN', bg: 'bg-slate-600' },
-  { name: 'Khanh Nguyen (khanhnguyen31@7)', avatar: 'KN', bg: 'bg-slate-600' },
-  { name: 'Sean Ngo (sean75@8)', avatar: 'SN', bg: 'bg-[#B25E3B]' },
-  { name: 'Tri Tran (tritran92@5)', avatar: 'TT', bg: 'bg-[#B91C1C]' },
-];
 
 const PIPELINE_OPTIONS = [
   'ACA account',
@@ -275,6 +267,32 @@ export default function StaffTicketDetail({
   const [dueDate, setDueDate] = useState(initialData.dueDate);
 
   // Properties in "About this ticket"
+  const [platformMembers, setPlatformMembers] = useState(() => [
+    { name: 'Platform Staff', avatar: 'PS', bg: 'bg-slate-600' },
+    { name: 'The Best Rate Insurance', avatar: 'TB', bg: 'bg-cyan-700' },
+    ...getActiveAgentAccounts().map((a) => ({
+      name: a.name,
+      avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
+      bg: a.bg || 'bg-blue-600',
+    })),
+  ]);
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setPlatformMembers([
+        { name: 'Platform Staff', avatar: 'PS', bg: 'bg-slate-600' },
+        { name: 'The Best Rate Insurance', avatar: 'TB', bg: 'bg-cyan-700' },
+        ...getActiveAgentAccounts().map((a) => ({
+          name: a.name,
+          avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
+          bg: a.bg || 'bg-blue-600',
+        })),
+      ]);
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
+
   const [serviceAgent, setServiceAgent] = useState(getPersonName(initialData.serviceAgent, 'Platform Staff'));
   const [ticketOwner, setTicketOwner] = useState(getPersonName(initialData.ticketOwner, 'Khanh Nguyen'));
   const [ticketResult, setTicketResult] = useState(initialData.ticketResult || '');
@@ -1421,7 +1439,7 @@ export default function StaffTicketDetail({
 
                     {isServiceAgentOpen && (
                       <div className="absolute left-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-full">
-                        {AGENT_OPTIONS.map((ag) => (
+                        {platformMembers.map((ag) => (
                           <button
                             key={ag.name}
                             type="button"
@@ -1564,7 +1582,7 @@ export default function StaffTicketDetail({
 
                     {isTicketOwnerOpen && (
                       <div className="absolute left-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-full">
-                        {AGENT_OPTIONS.map((ag) => (
+                        {platformMembers.map((ag) => (
                           <button
                             key={ag.name}
                             type="button"

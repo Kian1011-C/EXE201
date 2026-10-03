@@ -68,14 +68,16 @@ export function getPersonName(val, fallback = 'Unassigned') {
   return String(val);
 }
 
+import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
+
 export const AGENT_OPTIONS = [
   'The Best Rate Insurance',
   'Platform Staff',
-  'Khanh Nguyen (khanhnguyen31@7)',
-  'Sean Ngo (sean75@8)',
-  'Sarah Thai (sarahthai20@1)',
-  'Ivy Le (ivyle15@3)',
-  'Jay Ly (trichauly24@7)',
+  'Khanh Nguyen',
+  'Anh Que Pham CPA',
+  'Sean Ngo',
+  'Ivy Le',
+  'James Vu',
 ];
 
 export default function StaffContactDetail({
@@ -91,6 +93,15 @@ export default function StaffContactDetail({
   const currentActor = getCurrentActor(user);
   
   const [dbUsers, setDbUsers] = useState([]);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setAgentAccounts(getActiveAgentAccounts());
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
   useEffect(() => {
     getUsers().then(data => {
       if (Array.isArray(data)) setDbUsers(data);
@@ -1971,15 +1982,10 @@ export default function StaffContactDetail({
                             className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-12"
                           >
                             <option value="">-- Chưa chọn --</option>
-                            {dbUsers.map(u => {
-                              const name = u.fullName || u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email;
-                              return <option key={`db-${u.id}`} value={name}>{name}</option>;
-                            })}
-                            {AGENT_OPTIONS.filter(opt => !dbUsers.some(u => {
-                              const name = u.fullName || u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email;
-                              return name === opt;
-                            })).map((opt) => (
-                              <option key={`mock-${opt}`} value={opt}>{opt}</option>
+                            <option value="The Best Rate Insurance">The Best Rate Insurance</option>
+                            <option value="Platform Staff">Platform Staff</option>
+                            {agentAccounts.map((a) => (
+                              <option key={`agent-${a.id}`} value={a.name}>{a.name}</option>
                             ))}
                           </select>
                           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">

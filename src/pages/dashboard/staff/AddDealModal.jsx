@@ -8,19 +8,14 @@ import {
   getDynamicDeals,
   SAMPLE_DEALS,
   ALL_CARRIERS,
-  ALL_SYSTEM_AGENTS,
   getDynamicContacts,
   SAMPLE_CONTACTS,
 } from '../../../data/mockCrmData';
+import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { createTicket, createDeal, getUsers } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 import toast from 'react-hot-toast';
-
-const OWNER_OPTIONS = [
-  '--',
-  ...ALL_SYSTEM_AGENTS.map((a) => a.name),
-];
 
 export default function AddDealModal({
   isOpen,
@@ -36,6 +31,18 @@ export default function AddDealModal({
   const currentActor = getCurrentActor(user);
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'existing'
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setAgentAccounts(getActiveAgentAccounts());
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
+
+  const ownerOptions = ['--', ...agentAccounts.map((a) => a.name)];
 
   // Form states matching media_1790575726166.png
   const [dealName, setDealName] = useState('');
@@ -369,7 +376,7 @@ export default function AddDealModal({
                   onChange={(e) => setDealOwner(e.target.value)}
                   className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
                 >
-                  {OWNER_OPTIONS.map((o) => (
+                  {ownerOptions.map((o) => (
                     <option key={o} value={o}>
                       {o}
                     </option>

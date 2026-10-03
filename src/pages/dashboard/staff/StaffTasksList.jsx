@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getTasks, createTask, updateTask } from '../../../services/api';
 import { SAMPLE_TASKS } from '../../../data/mockCrmData';
+import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterTasksForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
@@ -14,33 +15,39 @@ const PRIORITY_OPTIONS = [
   { label: 'Urgent', dotColor: 'bg-red-700' },
 ];
 
-const ASSIGNEE_OPTIONS = [
-  { name: 'oanh dinh', handle: 'Oanhdinhtest99@5', avatar: 'OD', bg: 'bg-amber-600' },
-  { name: 'Accounting Dept', handle: 'accounting', avatar: 'AD', bg: 'bg-blue-900' },
-  { name: 'acpham90', handle: 'acpham9076@8', avatar: 'A9', bg: 'bg-stone-700' },
-  { name: 'Admin TBR', handle: 'admin93@9', avatar: 'AT', bg: 'bg-sky-700' },
-  { name: 'Amy Vo', handle: 'amyvo27@0', avatar: 'AV', bg: 'bg-blue-600' },
-  { name: 'Andy Vo', handle: 'andy62@3', avatar: 'AV', bg: 'bg-blue-500' },
-  { name: 'andynguyen', handle: 'andynguyen75@3', avatar: 'A', bg: 'bg-amber-500' },
-  { name: 'Anh Pham', handle: 'anhlnpham14@3', avatar: 'AP', bg: 'bg-amber-800' },
-  { name: 'Jessica Nguyen', handle: 'jessicanguyen', avatar: 'JN', bg: 'bg-amber-600' },
-  { name: 'Luyen Tina', handle: 'luyentina', avatar: 'LT', bg: 'bg-blue-600' },
-  { name: 'Victoria Nguyen', handle: 'victorianguyen', avatar: 'VN', bg: 'bg-rose-600' },
-  { name: 'Lisa Le', handle: 'lisale', avatar: 'LL', bg: 'bg-amber-500' },
-  { name: 'Thao Phan', handle: 'thaophan', avatar: 'TP', bg: 'bg-teal-600' },
-  { name: 'Hieu Violent', handle: 'hieuviolent', avatar: 'HV', bg: 'bg-indigo-600' },
-  { name: 'Viktor Pham', handle: 'viktorpham', avatar: 'VP', bg: 'bg-purple-600' },
-  { name: 'Jessica Sanchez', handle: 'jessicasanchez', avatar: 'JS', bg: 'bg-rose-500' },
-  { name: 'Khanh Nguyen', handle: 'khanhnguyen31@7', avatar: 'KN', bg: 'bg-emerald-600' },
-  { name: 'Jay Ly', handle: 'trichauly24@7', avatar: 'JL', bg: 'bg-[#10B981]' },
-  { name: 'Ivy Lu', handle: 'ivy', avatar: 'IL', bg: 'bg-[#0EA5E9]' },
-];
-
 export default function StaffTasksList({ onSelectTask, onSelectContact, onSelectDeal, isAgent = false, agentName = '' }) {
   const [tasksList, setTasksList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [assigneeOptionsList, setAssigneeOptionsList] = useState(() => [
+    { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
+    { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
+    ...getActiveAgentAccounts().map((a) => ({
+      name: a.name,
+      handle: a.handle || a.email.split('@')[0],
+      avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
+      bg: a.bg || 'bg-blue-600',
+    })),
+  ]);
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setAssigneeOptionsList([
+        { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
+        { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
+        ...getActiveAgentAccounts().map((a) => ({
+          name: a.name,
+          handle: a.handle || a.email.split('@')[0],
+          avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
+          bg: a.bg || 'bg-blue-600',
+        })),
+      ]);
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
 
   // Dropdown filter states
   const [selectedPriority, setSelectedPriority] = useState('');
@@ -63,7 +70,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
   // Create Task Modal
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createTitle, setCreateTitle] = useState('');
-  const [createAssignee, setCreateAssignee] = useState('Jessica Nguyen');
+  const [createAssignee, setCreateAssignee] = useState('Khanh Nguyen');
   const [createDueDate, setCreateDueDate] = useState('09/25/2026');
   const [createTaskType, setCreateTaskType] = useState('Call');
   const [createPriority, setCreatePriority] = useState('High');
@@ -325,7 +332,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
     pr.label.toLowerCase().includes(prioritySearch.toLowerCase())
   );
 
-  const filteredAssigneeOptions = ASSIGNEE_OPTIONS.filter(
+  const filteredAssigneeOptions = assigneeOptionsList.filter(
     (o) =>
       o.name.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
       o.handle.toLowerCase().includes(assigneeSearch.toLowerCase())
@@ -975,7 +982,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                     onChange={(e) => setCreateAssignee(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                   >
-                    {ASSIGNEE_OPTIONS.map((a) => (
+                    {assigneeOptionsList.map((a) => (
                       <option key={a.name} value={a.name}>
                         {a.name} ({a.handle})
                       </option>
