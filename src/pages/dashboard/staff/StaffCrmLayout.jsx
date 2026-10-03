@@ -87,10 +87,10 @@ export default function StaffCrmLayout({
   // Navigation Items Specification
   const adminNavItems = [
     {
-      id: 'overview',
-      label: 'Overview',
+      id: 'dashboard',
+      label: 'Dashboard',
       icon: 'dashboard',
-      desc: 'Báo cáo & Tổng quan điều hành nền tảng',
+      desc: 'Báo cáo & Tổng quan điều hành',
     },
     {
       id: 'contacts',
@@ -539,7 +539,7 @@ export default function StaffCrmLayout({
         <aside className="hidden md:flex w-14 bg-[#0A1628] shrink-0 flex-col items-center py-3.5 gap-2 z-30 shadow-lg border-r border-slate-800/50">
           {/* Top Home Button */}
           <Link
-            to="/dashboard/staff"
+            to={isAdmin ? '/dashboard/admin' : isAgent ? '/dashboard/agent' : '/dashboard/staff'}
             title="Dashboard Home"
             className="w-9 h-9 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition-all duration-150 cursor-pointer mb-2"
           >

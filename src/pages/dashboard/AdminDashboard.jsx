@@ -12,7 +12,7 @@ import StaffTicketDetail from './staff/StaffTicketDetail';
 import StaffTasksList from './staff/StaffTasksList';
 import StaffTaskDetail from './staff/StaffTaskDetail';
 
-import AdminOverviewTab from './admin/AdminOverviewTab';
+import StaffCrmDashboard from './staff/StaffCrmDashboard';
 import AdminQuotesTab from './admin/AdminQuotesTab';
 import AdminAccountsTab from './admin/AdminAccountsTab';
 import AdminDealsTab from './admin/AdminDealsTab';
@@ -67,10 +67,10 @@ export default function AdminDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Active Tab state: 'overview' | 'contacts' | 'deals' | 'tickets' | 'tasks' | 'quotes' | 'accounts' | 'commissions' | 'system'
-  const [activeTab, setActiveTab] = useState('overview');
-  // Current View state: 'overview' | 'contacts-list' | 'contact-detail' | 'deals-list' | 'deal-detail' | 'customer-document-detail' | 'tickets-list' | 'ticket-detail' | 'tasks-list' | 'task-detail' | 'quotes' | 'accounts' | 'commissions' | 'system'
-  const [currentView, setCurrentView] = useState('overview');
+  // Active Tab state: 'dashboard' | 'contacts' | 'deals' | 'tickets' | 'tasks' | 'quotes' | 'accounts' | 'commissions' | 'system'
+  const [activeTab, setActiveTab] = useState('dashboard');
+  // Current View state: 'dashboard' | 'contacts-list' | 'contact-detail' | 'deals-list' | 'deal-detail' | 'customer-document-detail' | 'tickets-list' | 'ticket-detail' | 'tasks-list' | 'task-detail' | 'quotes' | 'accounts' | 'commissions' | 'system'
+  const [currentView, setCurrentView] = useState('dashboard');
   // Sub-view mode for Deals in Admin: 'pipeline' (Kanban/Table) | 'governance' (Master Deals AOR)
   const [dealsViewMode, setDealsViewMode] = useState('pipeline');
 
@@ -288,8 +288,8 @@ export default function AdminDashboard() {
       setActiveTab('system');
       setCurrentView('system');
     } else {
-      setActiveTab('overview');
-      setCurrentView('overview');
+      setActiveTab('dashboard');
+      setCurrentView('dashboard');
     }
   }, [location.pathname]);
 
@@ -338,9 +338,9 @@ export default function AdminDashboard() {
     try {
       sessionStorage.removeItem('insurmatch_nav_history_admin');
     } catch {}
-    setActiveTab(tabId);
-    if (tabId === 'overview') {
-      setCurrentView('overview');
+    setActiveTab(tabId === 'overview' ? 'dashboard' : tabId);
+    if (tabId === 'dashboard' || tabId === 'overview') {
+      setCurrentView('dashboard');
       navigate('/dashboard/admin');
     } else if (tabId === 'contacts') {
       setCurrentView('contacts-list');
@@ -669,19 +669,15 @@ export default function AdminDashboard() {
       onManualRefresh={handleManualRefresh}
       isRefreshing={refreshing}
     >
-      {/* ── Overview Cockpit ──────────────────────────────────────────────── */}
-      {currentView === 'overview' && (
-        <div className="flex-grow p-3.5 sm:p-4 lg:p-8 max-w-[1700px] mx-auto w-full">
-          <AdminOverviewTab
-            stats={stats}
-            accounts={accounts}
-            deals={deals}
-            quotes={quotes}
-            commissions={commissions}
-            dbStatus={dbStatus}
-            onNavigateTab={handleSelectTab}
-          />
-        </div>
+      {/* ── Dashboard Tổng (Giống Staff) ─────────────────────────────────── */}
+      {(currentView === 'dashboard' || currentView === 'overview') && (
+        <StaffCrmDashboard
+          onSelectTab={handleSelectTab}
+          onSelectDeal={handleSelectDeal}
+          onSelectContact={handleSelectContact}
+          onSelectTicket={handleSelectTicket}
+          onSelectTask={handleSelectTask}
+        />
       )}
 
       {/* ── Operational Contacts Views ────────────────────────────────────── */}
