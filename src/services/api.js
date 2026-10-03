@@ -150,7 +150,58 @@ function normalizeContact(c) {
       acaPassSpecial: '',
       enrollCallRep: '',
     },
-    deals: Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : [],
+    deals: (() => {
+      const cId = String(c.id || '');
+      const cCode = String(c.code || '');
+      const cName = String(fullName || '').trim().toLowerCase();
+      let dList = Array.isArray(c.deals) && c.deals.length > 0
+        ? c.deals.map(normalizeDeal)
+        : (Array.isArray(c.associatedDeals) && c.associatedDeals.length > 0 ? c.associatedDeals.map(normalizeDeal) : []);
+      if (dList.length === 0 && typeof window !== 'undefined') {
+        try {
+          const allDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
+          const matched = allDeals.filter(d => {
+            const dContactId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
+            const dContactName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
+            const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
+            return (
+              (cId && (dContactId === cId || dContactId.toLowerCase() === cId.toLowerCase())) ||
+              (cCode && (dContactId === cCode || dContactId.toLowerCase() === cCode.toLowerCase())) ||
+              (cName && dContactName && dContactName === cName) ||
+              (cName && (dTitle.startsWith(cName) || dTitle.includes(cName)))
+            );
+          });
+          dList = matched.map(normalizeDeal);
+        } catch (_) {}
+      }
+      return dList;
+    })(),
+    associatedDeals: (() => {
+      const cId = String(c.id || '');
+      const cCode = String(c.code || '');
+      const cName = String(fullName || '').trim().toLowerCase();
+      let dList = Array.isArray(c.associatedDeals) && c.associatedDeals.length > 0
+        ? c.associatedDeals.map(normalizeDeal)
+        : (Array.isArray(c.deals) && c.deals.length > 0 ? c.deals.map(normalizeDeal) : []);
+      if (dList.length === 0 && typeof window !== 'undefined') {
+        try {
+          const allDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
+          const matched = allDeals.filter(d => {
+            const dContactId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
+            const dContactName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
+            const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
+            return (
+              (cId && (dContactId === cId || dContactId.toLowerCase() === cId.toLowerCase())) ||
+              (cCode && (dContactId === cCode || dContactId.toLowerCase() === cCode.toLowerCase())) ||
+              (cName && dContactName && dContactName === cName) ||
+              (cName && (dTitle.startsWith(cName) || dTitle.includes(cName)))
+            );
+          });
+          dList = matched.map(normalizeDeal);
+        } catch (_) {}
+      }
+      return dList;
+    })(),
     tasks: Array.isArray(c.tasks) ? c.tasks.map(normalizeTask) : [],
     tickets: Array.isArray(c.tickets) ? c.tickets.map(normalizeTicket) : [],
   };
@@ -302,11 +353,42 @@ export async function getContacts(params = {}) {
   return Array.isArray(data) ? data.map(normalizeContact) : data;
 }
 
+export async function getContactDeals(contactId) {
+  if (!contactId) return [];
+  try {
+    const data = await request(`/contacts/${encodeURIComponent(contactId)}/deals`);
+    return Array.isArray(data) ? data.map(normalizeDeal) : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function getContact(id) {
   if (!id) return null;
+  // 1. Ưu tiên endpoint 360° detail (đầy đủ contact + deals + tickets + documents + tasks + notes)
+  try {
+    const detail = await request(`/contacts/${encodeURIComponent(id)}/detail`).catch(() => null);
+    if (detail && detail.contact) {
+      const fullContact = {
+        ...detail.contact,
+        deals: detail.deals || [],
+        associatedDeals: detail.deals || [],
+        tickets: detail.tickets || [],
+        associatedTickets: detail.tickets || [],
+        customerDocuments: detail.documents || [],
+        tasks: detail.tasks || [],
+        notes: detail.notes || [],
+        activities: detail.activities || [],
+      };
+      return normalizeContact(fullContact);
+    }
+  } catch (_) {}
+
+  // 2. Fallback sang endpoint contact thông thường
   const data = await request(`/contacts/${encodeURIComponent(id)}`).catch(() => null);
   if (data) return normalizeContact(data);
 
+  // 3. Fallback sang dynamic / sample contacts
   try {
     const dynamic = typeof window !== 'undefined' ? getDynamicContacts() : [];
     const local = [...dynamic, ...SAMPLE_CONTACTS].find(c => String(c.id) === String(id) || String(c.code) === String(id));

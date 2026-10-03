@@ -10,7 +10,8 @@ import {
   ALL_CARRIERS,
   ALL_SYSTEM_AGENTS,
 } from '../../../data/mockCrmData';
-import { createTicket, updateDeal, getUsers } from '../../../services/api';
+import { createTicket, updateDeal, getUsers, getAdminAccounts } from '../../../services/api';
+import { INITIAL_ADMIN_ACCOUNTS } from '../../../data/mockAdminAccounts';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import {
   recordPropertyUpdate,
@@ -35,10 +36,11 @@ export default function StaffDealDetail({
 
   // Dynamically resolve contact linked to this deal
   const resolvedContact = useMemo(() => {
+    let base = null;
     if (dealInfo.contact && typeof dealInfo.contact === 'object') {
       const c = dealInfo.contact;
       if (c.fullName || c.name || c.id || c.phone || c.email) {
-        return {
+        base = {
           id: c.id || dealInfo.contactId || '',
           fullName: c.fullName || c.name || dealInfo.contactName || '',
           phone: c.phone || dealInfo.contactPhone || '',
@@ -53,7 +55,7 @@ export default function StaffDealDetail({
     ).trim();
     const cName = String(dealInfo.contactName || '').trim();
 
-    if (cId || cName) {
+    if (!base && (cId || cName)) {
       const allContacts = [...getDynamicContacts(), ...SAMPLE_CONTACTS];
       const found = allContacts.find(
         (c) =>
@@ -61,7 +63,7 @@ export default function StaffDealDetail({
           (cName && c.fullName && c.fullName.trim().toLowerCase() === cName.toLowerCase())
       );
       if (found) {
-        return {
+        base = {
           id: found.id || found.code || cId,
           fullName:
             found.fullName ||
@@ -71,9 +73,8 @@ export default function StaffDealDetail({
           email: found.email || found.contactFields?.emailPrimary || dealInfo.contactEmail || '',
           ...found,
         };
-      }
-      if (cName) {
-        return {
+      } else if (cName) {
+        base = {
           id: cId || '',
           fullName: cName,
           phone: dealInfo.contactPhone || '',
@@ -81,8 +82,32 @@ export default function StaffDealDetail({
         };
       }
     }
-    return null;
-  }, [dealInfo]);
+
+    if (!base) return null;
+
+    // Attach current deal snapshot so navigating back to contact never loses this deal
+    const currentDealItem = {
+      ...dealInfo,
+      id: deal?.id || dealInfo.id || deal?.code || dealInfo.code,
+      code: deal?.code || dealInfo.code || deal?.id || dealInfo.id,
+      title: deal?.title || dealInfo.title || 'Deal',
+      contactId: base.id || dealInfo.contactId || '',
+      contactName: base.fullName || dealInfo.contactName || '',
+    };
+    const existingDeals = Array.isArray(base.associatedDeals)
+      ? base.associatedDeals
+      : (Array.isArray(base.deals) ? base.deals : []);
+    const filteredDeals = existingDeals.filter(
+      (d) => (d.id || d.code) !== currentDealItem.id
+    );
+    const updatedDeals = [currentDealItem, ...filteredDeals];
+
+    return {
+      ...base,
+      associatedDeals: updatedDeals,
+      deals: updatedDeals,
+    };
+  }, [dealInfo, deal]);
 
   // State for deal editing
   const [dealTitle, setDealTitle] = useState(
@@ -348,6 +373,68 @@ export default function StaffDealDetail({
     dealInfo.adminOnly?.closedLostReason || dealInfo.closedLostReason || '---'
   );
 
+  // ── Dynamic Agent Roster & Enrolled NPN Options (Every registered Agent has an Enroll NPN) ──
+  const [agentAccounts, setAgentAccounts] = useState(() => {
+    try {
+      const stored = localStorage.getItem('insurmatch_admin_accounts');
+      const list = stored ? JSON.parse(stored) : INITIAL_ADMIN_ACCOUNTS;
+      return Array.isArray(list) ? list.filter((a) => (a.role || '').toLowerCase() === 'agent') : [];
+    } catch {
+      return INITIAL_ADMIN_ACCOUNTS.filter((a) => (a.role || '').toLowerCase() === 'agent');
+    }
+  });
+
+  useEffect(() => {
+    getAdminAccounts()
+      .then((accs) => {
+        if (Array.isArray(accs) && accs.length > 0) {
+          const agents = accs.filter((a) => (a.role || '').toLowerCase() === 'agent');
+          if (agents.length > 0) {
+            setAgentAccounts((prev) => {
+              const combined = [...agents, ...prev];
+              const seen = new Set();
+              return combined.filter((a) => {
+                const key = a.id || a.email || a.name;
+                if (!key || seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              });
+            });
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const enrolledNpnOptions = useMemo(() => {
+    const baseline = [
+      'Anh Que Pham 20011862',
+      'Trono Truong 19823412',
+      'Nancy Pham 20491823',
+      'Khanh Nguyen 1984210',
+      'Sean Ngo 1994321',
+      'Ivy Le PENDING_CDI_092',
+      'James Vu 1854201',
+    ];
+
+    const fromAgents = agentAccounts.map((a) => {
+      const npnStr = a.npn ? ` ${a.npn}` : '';
+      return `${a.name}${npnStr}`.trim();
+    });
+
+    const combined = [...fromAgents, ...baseline];
+    if (enrolledNpn && enrolledNpn.trim()) {
+      combined.unshift(enrolledNpn.trim());
+    }
+
+    const seen = new Set();
+    return combined.filter((item) => {
+      if (!item || seen.has(item.toLowerCase())) return false;
+      seen.add(item.toLowerCase());
+      return true;
+    });
+  }, [agentAccounts, enrolledNpn]);
+
   // Form states for READY TO ENROLL (Matching media_1790520741199.png & media_1790520762566.png)
   const [appId, setAppId] = useState(dealInfo.applicationId || dealInfo.appId || '');
   const [estimateHouseholdIncome, setEstimateHouseholdIncome] = useState(
@@ -584,6 +671,8 @@ export default function StaffDealDetail({
     if (deal?.id) {
       updateDeal(deal.id, updatedDeal).catch(() => null);
     }
+
+    addDealToStore(updatedDeal);
 
     if (onUpdateDeal) {
       onUpdateDeal(updatedDeal);
@@ -1478,9 +1567,11 @@ export default function StaffDealDetail({
                         className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:border-blue-500 font-medium cursor-pointer"
                       >
                         <option value="">-- Chưa chọn NPN --</option>
-                        <option value="Anh Que Pham 20011862">Anh Que Pham 20011862</option>
-                        <option value="Trono Truong 19823412">Trono Truong 19823412</option>
-                        <option value="Nancy Pham 20491823">Nancy Pham 20491823</option>
+                        {enrolledNpnOptions.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
                       </select>
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
                         {enrolledNpn && (

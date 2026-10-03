@@ -12,6 +12,8 @@ import {
   SAMPLE_CUSTOMER_DOCUMENTS,
   OBAMACARE_DEAL_STAGES,
   MEDICARE_DEAL_STAGES,
+  getDynamicDeals,
+  SAMPLE_DEALS,
 } from '../../../data/mockCrmData';
 import {
   createTicket,
@@ -20,6 +22,7 @@ import {
   addContactTask,
   addContactActivity,
   getUsers,
+  getContactDeals,
 } from '../../../services/api';
 import AddDealModal from './AddDealModal';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
@@ -201,13 +204,93 @@ export default function StaffContactDetail({
   const [isAcaStatusDropdownOpen, setIsAcaStatusDropdownOpen] = useState(false);
   const acaStatusDropdownRef = useRef(null);
 
-  // Deals and Tickets in right sidebar
-  const [contactDeals, setContactDeals] = useState(
-    contact?.associatedDeals || contact?.deals || []
-  );
+  // Deals and Tickets in right sidebar (Tự động quét từ props, local store và live API)
+  const resolveDealsForContact = React.useCallback(() => {
+    if (!contact) return [];
+    const fromProps = contact.associatedDeals || contact.deals || [];
+    const cId = String(contact.id || '').trim();
+    const cCode = String(contact.code || '').trim();
+    const cName = String(contact.fullName || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || '').trim().toLowerCase();
+
+    const localDeals = [...getDynamicDeals(), ...SAMPLE_DEALS].filter((d) => {
+      const dContactId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
+      const dContactName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
+      const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
+      return (
+        (cId && (dContactId === cId || dContactId.toLowerCase() === cId.toLowerCase())) ||
+        (cCode && (dContactId === cCode || dContactId.toLowerCase() === cCode.toLowerCase())) ||
+        (cName && dContactName && dContactName === cName) ||
+        (cName && (dTitle.startsWith(cName) || dTitle.includes(cName)))
+      );
+    });
+
+    const combined = [...fromProps, ...localDeals];
+    const seen = new Set();
+    return combined.filter((d) => {
+      const key = d.id || d.code;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [contact]);
+
+  const [contactDeals, setContactDeals] = useState(() => resolveDealsForContact());
   const [contactTickets, setContactTickets] = useState(
     contact?.associatedTickets || contact?.tickets || []
   );
+
+  useEffect(() => {
+    const deals = resolveDealsForContact();
+    setContactDeals(deals);
+
+    // Đồng bộ live từ Backend API nếu có ID hoặc Code
+    const cIdentifier = contact?.id || contact?.code;
+    if (cIdentifier) {
+      getContactDeals(cIdentifier)
+        .then((apiDeals) => {
+          if (Array.isArray(apiDeals) && apiDeals.length > 0) {
+            setContactDeals((prev) => {
+              const merged = [...apiDeals, ...prev];
+              const seen = new Set();
+              return merged.filter((d) => {
+                const key = d.id || d.code;
+                if (!key || seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              });
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [contact, resolveDealsForContact]);
+
+  const handleRefreshDeals = () => {
+    const deals = resolveDealsForContact();
+    setContactDeals(deals);
+    const cIdentifier = contact?.id || contact?.code;
+    if (cIdentifier) {
+      getContactDeals(cIdentifier)
+        .then((apiDeals) => {
+          if (Array.isArray(apiDeals) && apiDeals.length > 0) {
+            setContactDeals((prev) => {
+              const merged = [...apiDeals, ...prev];
+              const seen = new Set();
+              return merged.filter((d) => {
+                const key = d.id || d.code;
+                if (!key || seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              });
+            });
+          }
+          showToast('Đã làm mới danh sách Deal!');
+        })
+        .catch(() => showToast('Đã làm mới danh sách Deal!'));
+    } else {
+      showToast('Đã làm mới danh sách Deal!');
+    }
+  };
 
   // Create Deal modal state
   const [showCreateDealModal, setShowCreateDealModal] = useState(false);
@@ -3261,7 +3344,7 @@ export default function StaffContactDetail({
                 </button>
                 <button
                   type="button"
-                  onClick={() => showToast('Đang làm mới danh sách Deal...')}
+                  onClick={handleRefreshDeals}
                   title="Refresh"
                   className="hover:text-blue-600 p-0.5 rounded cursor-pointer text-slate-500"
                 >

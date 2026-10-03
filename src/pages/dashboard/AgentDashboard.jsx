@@ -366,6 +366,39 @@ export default function AgentDashboard() {
         .toUpperCase(),
     };
 
+    // Ensure all matching deals from dynamic store and sample data are linked
+    const resolvedContactId = String(contact.id || contact.code || '').trim();
+    const resolvedContactName = String(
+      mergedContact.fullName || contact.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || ''
+    ).trim().toLowerCase();
+
+    const existingDeals = Array.isArray(contact.associatedDeals) && contact.associatedDeals.length > 0
+      ? contact.associatedDeals
+      : (Array.isArray(contact.deals) && contact.deals.length > 0 ? contact.deals : []);
+
+    const matchingLocalDeals = [...getDynamicDeals(), ...SAMPLE_DEALS].filter((d) => {
+      const dCId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
+      const dCName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
+      const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
+      return (
+        (resolvedContactId && (dCId === resolvedContactId || dCId.toLowerCase() === resolvedContactId.toLowerCase())) ||
+        (resolvedContactName && dCName && dCName === resolvedContactName) ||
+        (resolvedContactName && (dTitle.startsWith(resolvedContactName) || dTitle.includes(resolvedContactName)))
+      );
+    });
+
+    const allResolvedDeals = [...existingDeals, ...matchingLocalDeals];
+    const seenDealKeys = new Set();
+    const finalAssociatedDeals = allResolvedDeals.filter((d) => {
+      const key = d.id || d.code;
+      if (!key || seenDealKeys.has(key)) return false;
+      seenDealKeys.add(key);
+      return true;
+    });
+
+    mergedContact.associatedDeals = finalAssociatedDeals;
+    mergedContact.deals = finalAssociatedDeals;
+
     setSelectedContact(mergedContact);
     setCurrentView('contact-detail');
     if (updateUrl && location.pathname !== `/dashboard/agent/contacts/${contact.id}`) {
@@ -526,7 +559,14 @@ export default function AgentDashboard() {
 
   function handleBackFromDeal() {
     handleGoBack(() => {
-      if (selectedContact && selectedContact.id && (selectedDeal?.contactId === selectedContact.id || selectedDeal?.contactId === selectedContact.code || selectedDeal?.contactName === selectedContact.fullName)) {
+      if (
+        selectedContact &&
+        (
+          (selectedDeal?.contactId && (selectedDeal.contactId === selectedContact.id || selectedDeal.contactId === selectedContact.code)) ||
+          (selectedDeal?.contactName && (selectedContact.fullName || '').toLowerCase().includes(selectedDeal.contactName.toLowerCase())) ||
+          (selectedDeal?.title && (selectedContact.fullName || '').toLowerCase().includes(selectedDeal.title.toLowerCase()))
+        )
+      ) {
         handleBackToContactDetail();
       } else {
         setCurrentTab('deals');

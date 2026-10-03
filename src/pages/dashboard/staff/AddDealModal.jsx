@@ -9,6 +9,8 @@ import {
   SAMPLE_DEALS,
   ALL_CARRIERS,
   ALL_SYSTEM_AGENTS,
+  getDynamicContacts,
+  SAMPLE_CONTACTS,
 } from '../../../data/mockCrmData';
 import { createTicket, createDeal, getUsers } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
@@ -73,8 +75,22 @@ export default function AddDealModal({
     e.preventDefault();
     const finalTitle = dealName.trim() || `${contactName} - ${pipeline}`;
     const newCode = `D2600${Math.floor(5000 + Math.random() * 900)}`;
-    const resolvedContactId = initialContactId || '';
+    let resolvedContactId = initialContactId || '';
     const resolvedContactName = contactName.trim();
+
+    if (!resolvedContactId && resolvedContactName) {
+      try {
+        const allContacts = [...getDynamicContacts(), ...SAMPLE_CONTACTS];
+        const matched = allContacts.find((c) =>
+          (c.fullName && c.fullName.trim().toLowerCase() === resolvedContactName.toLowerCase()) ||
+          (c.name && c.name.trim().toLowerCase() === resolvedContactName.toLowerCase())
+        );
+        if (matched) {
+          resolvedContactId = matched.id || matched.code || '';
+        }
+      } catch (_) {}
+    }
+
     const resolvedContact =
       resolvedContactName || resolvedContactId
         ? {

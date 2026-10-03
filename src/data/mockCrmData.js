@@ -338,11 +338,78 @@ export function addDealToStore(deal) {
   try {
     const raw = localStorage.getItem('insurmatch_dynamic_deals');
     const list = raw ? JSON.parse(raw) : [];
-    const idx = list.findIndex((d) => d.id === deal.id);
+    const idx = list.findIndex((d) => d.id === deal.id || d.code === deal.code);
     if (idx >= 0) list[idx] = deal;
     else list.unshift(deal);
     localStorage.setItem('insurmatch_dynamic_deals', JSON.stringify(list));
   } catch {}
+
+  // Tự động gắn deal vào Contact tương ứng để không bao giờ bị mất deal khi lùi về contact
+  try {
+    const cId = String(deal.contactId || deal.contact?.id || deal.contact?.code || '').trim();
+    const cName = String(deal.contactName || deal.contact?.fullName || deal.contact?.name || '').trim().toLowerCase();
+
+    const linkToContactObj = (c) => {
+      const deals = Array.isArray(c.associatedDeals) ? c.associatedDeals : (Array.isArray(c.deals) ? c.deals : []);
+      const dIdx = deals.findIndex((d) => d.id === deal.id || d.code === deal.code);
+      if (dIdx >= 0) {
+        deals[dIdx] = deal;
+      } else {
+        deals.unshift(deal);
+      }
+      c.associatedDeals = deals;
+      c.deals = deals;
+    };
+
+    // 1. Cập nhật trong SAMPLE_CONTACTS
+    SAMPLE_CONTACTS.forEach((c) => {
+      const idMatch = cId && (String(c.id) === cId || String(c.code) === cId);
+      const nameMatch = cName && String(c.fullName || c.name || '').trim().toLowerCase() === cName;
+      const titleMatch = cName && String(deal.title || deal.dealName || '').toLowerCase().includes(cName);
+      if (idMatch || nameMatch || titleMatch) {
+        linkToContactObj(c);
+      }
+    });
+
+    // 2. Cập nhật trong localStorage insurmatch_dynamic_contacts
+    const rawC = localStorage.getItem('insurmatch_dynamic_contacts');
+    if (rawC) {
+      const contacts = JSON.parse(rawC);
+      let updated = false;
+      contacts.forEach((c) => {
+        const idMatch = cId && (String(c.id) === cId || String(c.code) === cId);
+        const nameMatch = cName && String(c.fullName || c.name || '').trim().toLowerCase() === cName;
+        const titleMatch = cName && String(deal.title || deal.dealName || '').toLowerCase().includes(cName);
+        if (idMatch || nameMatch || titleMatch) {
+          linkToContactObj(c);
+          updated = true;
+        }
+      });
+      if (updated) {
+        localStorage.setItem('insurmatch_dynamic_contacts', JSON.stringify(contacts));
+      } else if (cId || cName) {
+        contacts.unshift({
+          id: cId || `CT2600${Math.floor(2000 + Math.random() * 900)}`,
+          code: cId || `CT2600${Math.floor(2000 + Math.random() * 900)}`,
+          fullName: deal.contactName || deal.contact?.fullName || 'Client',
+          associatedDeals: [deal],
+          deals: [deal],
+        });
+        localStorage.setItem('insurmatch_dynamic_contacts', JSON.stringify(contacts));
+      }
+    } else if (cId || cName) {
+      const initialContact = {
+        id: cId || `CT2600${Math.floor(2000 + Math.random() * 900)}`,
+        code: cId || `CT2600${Math.floor(2000 + Math.random() * 900)}`,
+        fullName: deal.contactName || deal.contact?.fullName || 'Client',
+        associatedDeals: [deal],
+        deals: [deal],
+      };
+      localStorage.setItem('insurmatch_dynamic_contacts', JSON.stringify([initialContact]));
+    }
+  } catch (err) {
+    console.warn('[addDealToStore] link to contact err:', err);
+  }
 }
 
 export function getDynamicDeals() {
