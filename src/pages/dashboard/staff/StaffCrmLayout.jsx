@@ -21,13 +21,11 @@ export default function StaffCrmLayout({
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(3);
   const [dbStatus, setDbStatus] = useState('checking'); // 'connected' | 'offline' | 'checking'
   const userMenuRef = useRef(null);
-  const quickCreateRef = useRef(null);
   const notificationsRef = useRef(null);
 
   // Global Ctrl+K / Cmd+K listener for Command Palette
@@ -70,9 +68,6 @@ export default function StaffCrmLayout({
     function handleClickOutside(event) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setShowUserMenu(false);
-      }
-      if (quickCreateRef.current && !quickCreateRef.current.contains(event.target)) {
-        setShowQuickCreate(false);
       }
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setShowNotifications(false);
@@ -445,183 +440,7 @@ export default function StaffCrmLayout({
             )}
           </div>
 
-          {/* Quick Create / Admin Actions Button + Dropdown */}
-          <div className="relative" ref={quickCreateRef}>
-            <button
-              type="button"
-              onClick={() => setShowQuickCreate(!showQuickCreate)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold shadow-xs transition-all duration-150 cursor-pointer hover:shadow-sm ${
-                isAdmin
-                  ? 'bg-rose-600 hover:bg-rose-700 active:bg-rose-800'
-                  : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[16px]">
-                {isAdmin ? 'bolt' : 'add'}
-              </span>
-              <span className="hidden sm:inline">{isAdmin ? 'Actions' : 'Create'}</span>
-              <span
-                className={`material-symbols-outlined text-[14px] ${
-                  isAdmin ? 'text-rose-200' : 'text-blue-200'
-                }`}
-              >
-                expand_more
-              </span>
-            </button>
 
-            {showQuickCreate && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-fade-in-up">
-                {isAdmin ? (
-                  <>
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                      Administrative Actions
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('quotes');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-rose-50 hover:text-rose-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-rose-600">contact_support</span>
-                      <span>Dispatch Match Queue</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('accounts');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-amber-600">person_add</span>
-                      <span>Add Member / Agent</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('commissions');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-emerald-600">calculate</span>
-                      <span>Run SSS Settlement</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('system');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-purple-600">dns</span>
-                      <span>System &amp; Audit Trail</span>
-                    </button>
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-t border-b border-slate-100 mt-1">
-                      Quick Create Record
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('contacts');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-blue-600">person_add</span>
-                      <span>New Contact</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('deals');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-emerald-600">add_business</span>
-                      <span>New Deal / Policy</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('tickets');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-amber-600">confirmation_number</span>
-                      <span>New Ticket</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('tasks');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-purple-600">add_task</span>
-                      <span>New Task</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                      Quick Create Record
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('contacts');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-blue-600">person_add</span>
-                      <span>New Contact</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('deals');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-emerald-600">add_business</span>
-                      <span>New Deal / Policy</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('tickets');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-amber-600">confirmation_number</span>
-                      <span>New Ticket</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false);
-                        onSelectTab && onSelectTab('tasks');
-                      }}
-                      className="w-full px-3 py-2 flex items-center gap-2.5 text-xs text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition cursor-pointer text-left font-medium"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-purple-600">add_task</span>
-                      <span>New Task</span>
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
 
 
 
