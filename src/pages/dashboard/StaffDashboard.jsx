@@ -710,13 +710,11 @@ export default function StaffDashboard() {
         />
       )}
 
-      {/* ── Commission / Package View (Admin Only) ────────────────────── */}
+      {/* ── Commission / Package View ─────────────────────────────────── */}
       {currentView === 'commission-ledger' && (
-        <AccessRestrictedCard
-          title="Quyền xem thông tin gói mua & Doanh thu bị giới hạn"
-          message="Thông tin gói thuê bao CRM của các agency (Starter $39, Professional $79, Agency $199) và quyết toán hoa hồng chỉ dành riêng cho Quản trị viên (Admin)."
-          onBack={() => handleSelectTab('dashboard')}
-          backLabel="Quay lại Dashboard"
+        <StaffCommissionView
+          onSelectDeal={handleSelectDeal}
+          onSelectContact={handleSelectContact}
         />
       )}
     </StaffCrmLayout>

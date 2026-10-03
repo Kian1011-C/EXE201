@@ -190,7 +190,72 @@ export default function StaffCrmLayout({
     },
   ];
 
-  const navItems = isAdmin ? adminNavItems : standardNavItems;
+  const agentNavItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: 'dashboard',
+      desc: 'Báo cáo & Tổng quan đại lý',
+    },
+    {
+      id: 'contacts',
+      label: 'Contacts',
+      icon: 'person_search',
+      desc: 'Khách hàng phụ trách của tôi',
+    },
+    {
+      id: 'deals',
+      label: 'Deals',
+      icon: 'handshake',
+      desc: 'Hồ sơ bảo hiểm của tôi',
+    },
+    {
+      id: 'tickets',
+      label: 'Tickets',
+      icon: 'confirmation_number',
+      desc: 'Hỗ trợ dịch vụ & SLA phụ trách',
+    },
+    {
+      id: 'tasks',
+      label: 'Tasks',
+      icon: 'checklist',
+      desc: 'Công việc & Lịch nhắc việc',
+    },
+    {
+      id: 'documents',
+      label: 'Documents',
+      icon: 'folder_shared',
+      desc: 'Tài liệu khách hàng của tôi',
+    },
+    {
+      id: 'subscription',
+      label: 'Gói cước CRM',
+      icon: 'card_membership',
+      desc: 'Xem gói hiện tại & Mua/Nâng cấp gói',
+    },
+    {
+      id: 'commission',
+      label: 'Hoa hồng',
+      icon: 'payments',
+      desc: 'Sổ hoa hồng bảo hiểm PMPM & Quyết toán',
+    },
+  ];
+
+  const staffNavItems = [
+    ...standardNavItems,
+    ...(showCommission
+      ? [
+          {
+            id: 'commission',
+            label: 'Commission',
+            icon: 'payments',
+            desc: 'Doanh thu thuê bao SaaS & Hoa hồng Sales',
+          },
+        ]
+      : []),
+  ];
+
+  const navItems = isAdmin ? adminNavItems : isAgent ? agentNavItems : staffNavItems;
 
   const currentTabObj = navItems.find((n) => n.id === currentTab) || navItems[0];
 
@@ -510,6 +575,32 @@ export default function StaffCrmLayout({
                 </div>
 
                 <div className="py-1">
+                  {isAgent && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        onSelectTab && onSelectTab('subscription');
+                      }}
+                      className="w-full flex items-center gap-2 px-3.5 py-2 text-xs text-blue-600 hover:bg-blue-50 text-left transition cursor-pointer font-medium"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">card_membership</span>
+                      <span>Gói thuê bao CRM của tôi</span>
+                    </button>
+                  )}
+                  {isAgent && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        onSelectTab && onSelectTab('commission');
+                      }}
+                      className="w-full flex items-center gap-2 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left transition cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">payments</span>
+                      <span>Sổ hoa hồng bảo hiểm</span>
+                    </button>
+                  )}
                   <Link
                     to="/"
                     className="flex items-center gap-2 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 transition"

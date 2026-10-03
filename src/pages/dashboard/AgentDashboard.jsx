@@ -12,6 +12,8 @@ import StaffTicketsList from './staff/StaffTicketsList';
 import StaffTicketDetail from './staff/StaffTicketDetail';
 import StaffTasksList from './staff/StaffTasksList';
 import StaffTaskDetail from './staff/StaffTaskDetail';
+import AgentSubscriptionPlanView from './agent/AgentSubscriptionPlanView';
+import AgentCommissionLedger from './agent/AgentCommissionLedger';
 import { useAuth } from '../../auth/AuthContext';
 import {
   canAgentAccessItem,
@@ -265,6 +267,12 @@ export default function AgentDashboard() {
     } else if (path.includes('/dashboard/agent/documents')) {
       setCurrentTab('documents');
       setCurrentView('customer-documents-list');
+    } else if (path.includes('/dashboard/agent/subscription')) {
+      setCurrentTab('subscription');
+      setCurrentView('subscription');
+    } else if (path.includes('/dashboard/agent/commission')) {
+      setCurrentTab('commission');
+      setCurrentView('commission');
     } else {
       setCurrentTab('dashboard');
       setCurrentView('dashboard');
@@ -461,6 +469,9 @@ export default function AgentDashboard() {
     } else if (tab === 'contacts') {
       setCurrentView('contacts');
       navigate('/dashboard/agent/contacts', { replace: false });
+    } else if (tab === 'subscription') {
+      setCurrentView('subscription');
+      navigate('/dashboard/agent/subscription', { replace: false });
     } else if (tab === 'commission') {
       setCurrentView('commission');
       navigate('/dashboard/agent/commission', { replace: false });
@@ -595,7 +606,7 @@ export default function AgentDashboard() {
       isAgent={true}
       agentName={currentAgent.name}
       agentNpn="#1984210"
-      showCommission={false}
+      showCommission={true}
     >
       {/* ── 1. DASHBOARD VIEW ───────────────────────────────────────────── */}
       {currentView === 'dashboard' && (
@@ -721,13 +732,19 @@ export default function AgentDashboard() {
         )
       )}
 
-      {/* ── 7. COMMISSION / SAAS REVENUE (Admin Only) ─────────────────── */}
+      {/* ── 7. SUBSCRIPTION / CRM PACKAGES ────────────────────────────── */}
+      {currentView === 'subscription' && (
+        <AgentSubscriptionPlanView
+          agentName={currentAgent.name}
+          agentEmail={user?.email || 'khanh@insurmatch.us'}
+        />
+      )}
+
+      {/* ── 7b. COMMISSION LEDGER ─────────────────────────────────────── */}
       {currentView === 'commission' && (
-        <AccessRestrictedCard
-          title="Quyền xem thông tin gói mua & Doanh thu bị giới hạn"
-          message="Thông tin gói thuê bao CRM của các agency (Starter $39, Professional $79, Agency $199) và quyết toán hoa hồng chỉ dành riêng cho Quản trị viên (Admin)."
-          onBack={() => handleSelectTab('dashboard')}
-          backLabel="Quay lại Dashboard"
+        <AgentCommissionLedger
+          onSelectContact={handleSelectContact}
+          onSelectDeal={handleSelectDeal}
         />
       )}
 
