@@ -557,6 +557,7 @@ export default function StaffDealDetail({
   const lastSavedDealJsonRef = useRef('');
 
   function handleSaveDealChanges(options = {}) {
+    const { isAutoSave = false } = options;
     const updatedDeal = {
       ...(deal || {}),
       dealOwner: dealOwner ? { name: dealOwner } : deal?.dealOwner,
