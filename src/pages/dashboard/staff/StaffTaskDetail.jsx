@@ -12,6 +12,17 @@ import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { useAuth } from '../../../auth/AuthContext';
 import toast from 'react-hot-toast';
 
+function getAssigneeName(assignee) {
+  if (!assignee) return '';
+  if (typeof assignee === 'object') return assignee.name || assignee.fullName || '';
+  return String(assignee);
+}
+
+function getAssigneeInitials(assignee, fallback = 'JN') {
+  const name = getAssigneeName(assignee) || fallback;
+  return String(name).slice(0, 2).toUpperCase();
+}
+
 export default function StaffTaskDetail({
   task,
   onBack,
@@ -35,7 +46,7 @@ export default function StaffTaskDetail({
 
   // Internal task state
   const [currentTask, setCurrentTask] = useState(() => {
-    return task || {
+    const base = task || {
       id: 'TSK-1001',
       code: 'TSK26001001',
       title: '[Follow-up] E&O Expiration Date for Tracy Nguyen Le (CA)',
@@ -52,6 +63,17 @@ export default function StaffTaskDetail({
         'Please follow up with Tracy Nguyen Le (CA) regarding their E&O Expiration Date, which is set to expire soon.\nConfirm renewal has been completed or escalate as needed.',
       attachments: [],
       comments: [],
+    };
+    return {
+      ...base,
+      title: base.title || 'Task Details',
+      content: base.content || base.description || '',
+      assignee:
+        typeof base.assignee === 'object'
+          ? base.assignee?.name || 'Jena Le (jena78@9)'
+          : base.assignee || 'Jena Le (jena78@9)',
+      attachments: Array.isArray(base.attachments) ? base.attachments : [],
+      comments: Array.isArray(base.comments) ? base.comments : [],
     };
   });
 
@@ -517,7 +539,7 @@ export default function StaffTaskDetail({
                 <div className="flex items-center gap-2 text-slate-800 font-medium">
                   <input
                     type="text"
-                    value={`${currentTask.dueDate} ${currentTask.dueTime || ''}`.trim()}
+                    value={`${currentTask.dueDate || ''} ${currentTask.dueTime || ''}`.trim()}
                     onChange={(e) => handleFieldChange('dueDate', e.target.value)}
                     className="border border-transparent hover:border-slate-300 focus:border-blue-500 rounded px-2 py-0.5 text-xs text-slate-800 font-semibold focus:outline-none"
                   />
@@ -562,14 +584,10 @@ export default function StaffTaskDetail({
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                    {(currentTask.assignee || 'JN').slice(0, 2).toUpperCase()}
+                    {getAssigneeInitials(currentTask.assignee, 'JN')}
                   </div>
                   <select
-                    value={
-                      typeof currentTask.assignee === 'object'
-                        ? currentTask.assignee?.name
-                        : currentTask.assignee
-                    }
+                    value={getAssigneeName(currentTask.assignee)}
                     onChange={(e) => handleFieldChange('assignee', e.target.value)}
                     className="bg-transparent border border-slate-200 hover:border-slate-300 rounded px-2 py-1 text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
                   >
@@ -784,10 +802,10 @@ export default function StaffTaskDetail({
                   <div key={cm.id} className="pt-3 first:pt-0">
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold flex items-center justify-center">
-                        {(cm.author || 'U').slice(0, 2).toUpperCase()}
+                        {String(typeof cm.author === 'object' ? cm.author?.name || 'U' : cm.author || 'U').slice(0, 2).toUpperCase()}
                       </div>
                       <span className="text-xs font-bold text-slate-800">
-                        {cm.author}
+                        {typeof cm.author === 'object' ? cm.author?.name || 'User' : cm.author}
                       </span>
                       <span className="text-[10px] text-slate-400">{cm.time}</span>
                     </div>
@@ -991,13 +1009,11 @@ export default function StaffTaskDetail({
                 {currentTask.assignee ? (
                   <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/60 flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">
-                      {(currentTask.assignee || 'JL').slice(0, 2).toUpperCase()}
+                      {getAssigneeInitials(currentTask.assignee, 'JL')}
                     </div>
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-slate-800 truncate">
-                        {typeof currentTask.assignee === 'object'
-                          ? currentTask.assignee.name
-                          : currentTask.assignee}
+                        {getAssigneeName(currentTask.assignee) || 'Assigned Agent'}
                       </div>
                       <div className="text-[10px] text-slate-400">Assigned Agent</div>
                     </div>

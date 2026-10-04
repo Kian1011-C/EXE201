@@ -794,12 +794,19 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                       <div className="flex items-center gap-2">
                         <span
                           className={`w-5 h-5 rounded-full ${
-                            t.assignee?.bg || 'bg-amber-600'
+                            t.assignee?.bg || 'bg-blue-600'
                           } text-white font-bold text-[9px] flex items-center justify-center shrink-0 shadow-2xs`}
                         >
-                          {t.assignee?.avatar || t.assignee?.name?.slice(0, 2).toUpperCase()}
+                          {t.assignee?.avatar ||
+                            (typeof t.assignee === 'object'
+                              ? t.assignee?.name
+                              : t.assignee || 'JN')
+                              ?.slice(0, 2)
+                              .toUpperCase()}
                         </span>
-                        <span className="truncate">{t.assignee?.name}</span>
+                        <span className="truncate">
+                          {typeof t.assignee === 'object' ? t.assignee?.name : t.assignee}
+                        </span>
                       </div>
                     </td>
 
@@ -854,9 +861,17 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                             } text-white font-bold text-[9px] flex items-center justify-center shrink-0`}
                           >
                             {t.lastModifiedBy?.avatar ||
-                              t.lastModifiedBy?.name?.slice(0, 2).toUpperCase()}
+                              (typeof t.lastModifiedBy === 'object'
+                                ? t.lastModifiedBy?.name
+                                : t.lastModifiedBy || 'KN')
+                                ?.slice(0, 2)
+                                .toUpperCase()}
                           </span>
-                          <span className="truncate">{t.lastModifiedBy?.name}</span>
+                          <span className="truncate">
+                            {typeof t.lastModifiedBy === 'object'
+                              ? t.lastModifiedBy?.name
+                              : t.lastModifiedBy}
+                          </span>
                         </div>
                       ) : (
                         <span className="text-slate-300"></span>
