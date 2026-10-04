@@ -144,6 +144,18 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
             lastModifiedTime: t.updatedAt
               ? new Date(t.updatedAt).toLocaleString()
               : '09/23/2026, 11:21',
+            content: t.content || t.description || '',
+            description: t.description || t.content || '',
+            contact: t.contact || null,
+            contactId: t.contactId || t.contact?.id || t.contact?.code || null,
+            contactName: t.contactName || t.contact?.fullName || t.contact?.name || '',
+            deal: t.deal || null,
+            dealId: t.dealId || t.deal?.id || t.deal?.code || null,
+            dealTitle: t.dealTitle || t.deal?.dealName || t.deal?.title || '',
+            ticket: t.ticket || null,
+            ticketId: t.ticketId || t.ticket?.id || null,
+            attachments: Array.isArray(t.attachments) ? t.attachments : [],
+            comments: Array.isArray(t.comments) ? t.comments : [],
             rawTask: t,
           };
         });
@@ -269,13 +281,29 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
     if (onSelectTask) {
       onSelectTask({
         id: task.id,
+        code: task.code || task.id,
         title: task.title,
-        status: task.completed ? 'Completed' : 'Not Started',
+        status: task.completed ? 'Completed' : (task.status || 'Not Started'),
+        completed: task.completed,
         priority: task.priority || 'Medium',
         assignee: task.assignee || { name: 'Jessica Nguyen' },
         dueDate: task.dueDate || '09/25/2026',
-        dueTime: '09:00 AM',
+        dueTime: task.dueTime || '09:00 AM',
         type: task.taskType || 'General',
+        taskType: task.taskType || 'General',
+        content: task.content || task.description || task.rawTask?.content || task.rawTask?.description || '',
+        description: task.description || task.content || task.rawTask?.description || '',
+        contact: task.contact || task.rawTask?.contact || null,
+        contactId: task.contactId || task.rawTask?.contactId || task.contact?.id || null,
+        contactName: task.contactName || task.rawTask?.contactName || task.contact?.fullName || task.contact?.name || '',
+        deal: task.deal || task.rawTask?.deal || null,
+        dealId: task.dealId || task.rawTask?.dealId || task.deal?.id || task.deal?.code || null,
+        dealTitle: task.dealTitle || task.rawTask?.dealTitle || task.deal?.title || task.deal?.dealName || '',
+        ticket: task.ticket || task.rawTask?.ticket || null,
+        ticketId: task.ticketId || task.rawTask?.ticketId || task.ticket?.id || null,
+        attachments: task.attachments || task.rawTask?.attachments || [],
+        comments: task.comments || task.rawTask?.comments || [],
+        lastModifiedTime: task.lastModifiedTime || '10/03/2026, 17:07',
         rawTask: task,
       });
     }
