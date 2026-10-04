@@ -32,6 +32,8 @@ import {
 } from '../../../services/api';
 import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
 import AddDealModal from './AddDealModal';
+import AddMemberPanel from './AddMemberPanel';
+import MemberSection from './MemberSection';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import {
@@ -131,11 +133,8 @@ export default function StaffContactDetail({
 
   // Add Member Modal State
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [newlyAddedMemberId, setNewlyAddedMemberId] = useState(null);
   const [membersList, setMembersList] = useState([]);
-  const [newMemberName, setNewMemberName] = useState('');
-  const [newMemberRelation, setNewMemberRelation] = useState('Spouse');
-  const [newMemberDob, setNewMemberDob] = useState('');
-  const [newMemberGender, setNewMemberGender] = useState('Female');
 
   // Activities, Notes, and Tasks lists
   const [activitiesList, setActivitiesList] = useState(contact?.activities || []);
@@ -910,24 +909,83 @@ export default function StaffContactDetail({
     }
   }, [contact]);
 
-  function handleAddMemberSubmit(e) {
-    e.preventDefault();
-    if (!newMemberName.trim()) return;
-    const memberName = newMemberName.trim();
-    setMembersList([
-      ...membersList,
-      {
-        id: Date.now(),
-        name: memberName,
-        relation: newMemberRelation,
-        dob: newMemberDob || '—',
-        gender: newMemberGender,
-      },
-    ]);
-    logActivity('Member Added', `added family member: ${memberName} (${newMemberRelation})`);
-    setNewMemberName('');
-    setNewMemberDob('');
+  function handleSaveMember(formData) {
+    let relation = 'Dependent';
+    if (!membersList.some(m => m.relation === 'Spouse') && formData.isSpouse) {
+      relation = 'Spouse';
+    }
+
+    const newMember = {
+      id: Date.now(),
+      ...formData,
+      relation: relation
+    };
+
+    let updatedList = [...membersList, newMember];
+    
+    let depCount = 1;
+    updatedList = updatedList.map(m => {
+      if (m.relation !== 'Spouse') {
+        return { ...m, relation: `Dependent ${depCount++}` };
+      }
+      return m;
+    });
+
+    setMembersList(updatedList);
+    
+    const updatedContact = {
+      ...(contact || {}),
+      members: updatedList
+    };
+    addContactToStore(updatedContact);
+    if (onUpdateContact) onUpdateContact(updatedContact);
+    
+    logActivity('Member Added', `added family member: ${formData.firstName} (${relation})`);
     setShowAddMemberModal(false);
+    setNewlyAddedMemberId(newMember.id);
+  }
+
+  function handleUpdateMember(id, updatedMember) {
+    let updatedList = membersList.map(m => m.id === id ? updatedMember : m);
+    // Recalculate dependents just in case (though relation isn't edited directly)
+    let depCount = 1;
+    updatedList = updatedList.map(m => {
+      if (m.relation !== 'Spouse') {
+        return { ...m, relation: `Dependent ${depCount++}` };
+      }
+      return m;
+    });
+    setMembersList(updatedList);
+
+    const updatedContact = {
+      ...(contact || {}),
+      members: updatedList
+    };
+    addContactToStore(updatedContact);
+    if (onUpdateContact) {
+      onUpdateContact(updatedContact);
+    }
+  }
+
+  function handleDeleteMember(id) {
+    let updatedList = membersList.filter(x => x.id !== id);
+    let depCount = 1;
+    updatedList = updatedList.map(m => {
+      if (m.relation !== 'Spouse') {
+        return { ...m, relation: `Dependent ${depCount++}` };
+      }
+      return m;
+    });
+    setMembersList(updatedList);
+    
+    const updatedContact = {
+      ...(contact || {}),
+      members: updatedList
+    };
+    addContactToStore(updatedContact);
+    if (onUpdateContact) {
+      onUpdateContact(updatedContact);
+    }
   }
 
   // Close note actions dropdown when clicking outside
@@ -2990,32 +3048,16 @@ export default function StaffContactDetail({
 
                       {/* Display added members if any */}
                       {membersList.length > 0 && (
-                        <div className="pt-2 border-t border-slate-200">
-                          <label className="block text-slate-700 font-semibold mb-1.5 text-[11px]">
-                            Dependent / Family Members ({membersList.length})
-                          </label>
-                          <div className="space-y-1.5">
-                            {membersList.map((m) => (
-                              <div
-                                key={m.id}
-                                className="p-2 rounded border border-slate-200 bg-white flex items-center justify-between text-xs"
-                              >
-                                <div>
-                                  <div className="font-semibold text-slate-800">{m.name}</div>
-                                  <div className="text-[10px] text-slate-500">
-                                    {m.relation} • {m.dob} • {m.gender}
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setMembersList(membersList.filter((x) => x.id !== m.id))}
-                                  className="text-rose-500 hover:text-rose-700 text-xs px-1"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            ))}
-                          </div>
+                        <div className="pt-2">
+                          {membersList.map((m) => (
+                            <MemberSection 
+                              key={m.id} 
+                              member={m} 
+                              onDelete={() => handleDeleteMember(m.id)} 
+                              onUpdate={(updated) => handleUpdateMember(m.id, updated)}
+                              defaultOpen={m.id === newlyAddedMemberId} 
+                            />
+                          ))}
                         </div>
                       )}
                     </div>
@@ -4192,95 +4234,12 @@ export default function StaffContactDetail({
         </div>
         </div>
       {/* ── Add Member Modal ────────────────────────────────────────────── */}
-      {showAddMemberModal && createPortal(
-        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150 my-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600">person_add</span>
-                <span>Add Family / Dependent Member</span>
-              </h3>
-              <button
-                onClick={() => setShowAddMemberModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddMemberSubmit} className="space-y-3.5 mt-4 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Member Full Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newMemberName}
-                  onChange={(e) => setNewMemberName(e.target.value)}
-                  placeholder="e.g. Mary Dang"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-slate-800"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Relationship</label>
-                  <select
-                    value={newMemberRelation}
-                    onChange={(e) => setNewMemberRelation(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-slate-800 bg-white"
-                  >
-                    <option value="Spouse">Spouse (Vợ/Chồng)</option>
-                    <option value="Child">Child (Con cái)</option>
-                    <option value="Parent">Parent (Bố/Mẹ)</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Gender</label>
-                  <select
-                    value={newMemberGender}
-                    onChange={(e) => setNewMemberGender(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-slate-800 bg-white"
-                  >
-                    <option value="Female">Female</option>
-                    <option value="Male">Male</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Date of Birth</label>
-                <input
-                  type="date"
-                  value={newMemberDob}
-                  onChange={(e) => setNewMemberDob(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 text-slate-800"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddMemberModal(false)}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-xs transition cursor-pointer"
-                >
-                  Save Member
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+      <AddMemberPanel 
+        isOpen={showAddMemberModal} 
+        onClose={() => setShowAddMemberModal(false)} 
+        onSave={handleSaveMember} 
+        hasSpouse={membersList.some(m => m.relation === 'Spouse')} 
+      />
 
       {/* ── Create Note Modal (Exact match to uploaded image) ────────────── */}
       {showCreateNoteModal && createPortal(
