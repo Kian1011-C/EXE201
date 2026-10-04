@@ -2458,8 +2458,8 @@ export default function StaffTicketDetail({
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                          {contactName ? (contactName.trim().split(/\s+/)[0]?.[0] || 'U') : 'U'}
-                          {contactName ? (contactName.trim().split(/\s+/)[1]?.[0] || '') : 'H'}
+                          {contactName ? (String(contactName).trim().split(/\s+/)[0]?.[0] || 'U') : 'U'}
+                          {contactName ? (String(contactName).trim().split(/\s+/)[1]?.[0] || '') : 'H'}
                         </div>
                         <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
                           {contactName}
@@ -2567,8 +2567,8 @@ export default function StaffTicketDetail({
                         >
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                              {dealTitle ? (dealTitle.trim().split(/\s+/)[0]?.[0] || 'D') : 'D'}
-                              {dealTitle ? (dealTitle.trim().split(/\s+/)[1]?.[0] || '') : ''}
+                              {dealTitle ? (String(dealTitle).trim().split(/\s+/)[0]?.[0] || 'D') : 'D'}
+                              {dealTitle ? (String(dealTitle).trim().split(/\s+/)[1]?.[0] || '') : ''}
                             </div>
                             <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
                               {dealShortTitle || dealTitle}

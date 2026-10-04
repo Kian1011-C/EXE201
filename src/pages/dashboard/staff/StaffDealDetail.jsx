@@ -165,12 +165,12 @@ export default function StaffDealDetail({
 
       // Merge dynamic tasks store with deal.tasks to prevent task loss when navigating
       const dId = String(nextId || deal?.code || dealInfo.code || '');
-      const dTitle = (deal?.title || dealInfo.title || '').trim().toLowerCase();
+      const dTitle = String(deal?.title || dealInfo.title || '').trim().toLowerCase();
       const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
       const storeDealTasks = dynamicTasks.filter(
         (t) =>
           (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId || String(t.deal?.code) === dId)) ||
-          (dTitle && t.dealName && t.dealName.trim().toLowerCase() === dTitle)
+          (dTitle && t.dealName && String(t.dealName).trim().toLowerCase() === dTitle)
       );
       const existingTasks = Array.isArray(deal?.tasks) ? deal.tasks : (dealInfo.tasks || []);
       const mergedTasks = [
@@ -656,43 +656,43 @@ export default function StaffDealDetail({
   // Current snapshot for debounced auto-save
   const currentDealSnapshot = useMemo(() => {
     return JSON.stringify({
-      dealTitle: (dealTitle || '').trim(),
-      dealOwner: (dealOwner || '').trim(),
-      pipeline: (pipeline || '').trim(),
-      stage: (stage || '').trim(),
-      amount: (amount || '').trim(),
-      enrollAmount: (enrollAmount || '').trim(),
-      primaryMemberId: (primaryMemberId || '').trim(),
-      carrier: (carrier || '').trim(),
-      sellingState: (sellingState || '').trim(),
-      numberMember: (numberMember || '').trim(),
-      enrolledNpn: (enrolledNpn || '').trim(),
-      brokerEffectiveDate: (brokerEffectiveDate || '').trim(),
-      terminationDate: (terminationDate || '').trim(),
-      saleSupportStatus: (saleSupportStatus || '').trim(),
-      closedLostReason: (closedLostReason || '').trim(),
-      appId: (appId || '').trim(),
-      estimateHouseholdIncome: (estimateHouseholdIncome || '').trim(),
-      householdMember: (householdMember || '').trim(),
-      enrollNumberMember: (enrollNumberMember || '').trim(),
-      enrolledAddress: (enrolledAddress || '').trim(),
-      quotedCounty: (quotedCounty || '').trim(),
-      isBackdateDeal: (isBackdateDeal || '').trim(),
-      planName: (planName || '').trim(),
-      monthlyPremium: (monthlyPremium || '').trim(),
-      subsidyAmount: (subsidyAmount || '').trim(),
-      agencyCommission: (agencyCommission || '').trim(),
-      bonusTier: (bonusTier || '').trim(),
-      paymentOption: (paymentOption || '').trim(),
-      paymentVerification: (paymentVerification || '').trim(),
-      paymentStatus: (paymentStatus || '').trim(),
-      payThroughDate: (payThroughDate || '').trim(),
-      quoteCloseDealRep: (quoteCloseDealRep || '').trim(),
-      autopayDate: (autopayDate || '').trim(),
-      nameOnCreditCard: (nameOnCreditCard || '').trim(),
-      creditCardNumber: (creditCardNumber || '').trim(),
-      expirationDate: (expirationDate || '').trim(),
-      cvv: (cvv || '').trim(),
+      dealTitle: String(dealTitle || '').trim(),
+      dealOwner: String(typeof dealOwner === 'object' ? dealOwner?.name || '' : dealOwner || '').trim(),
+      pipeline: String(pipeline || '').trim(),
+      stage: String(stage || '').trim(),
+      amount: String(amount !== undefined && amount !== null ? amount : '').trim(),
+      enrollAmount: String(enrollAmount !== undefined && enrollAmount !== null ? enrollAmount : '').trim(),
+      primaryMemberId: String(primaryMemberId || '').trim(),
+      carrier: String(carrier || '').trim(),
+      sellingState: String(sellingState || '').trim(),
+      numberMember: String(numberMember !== undefined && numberMember !== null ? numberMember : '').trim(),
+      enrolledNpn: String(enrolledNpn || '').trim(),
+      brokerEffectiveDate: String(brokerEffectiveDate || '').trim(),
+      terminationDate: String(terminationDate || '').trim(),
+      saleSupportStatus: String(saleSupportStatus || '').trim(),
+      closedLostReason: String(closedLostReason || '').trim(),
+      appId: String(appId || '').trim(),
+      estimateHouseholdIncome: String(estimateHouseholdIncome !== undefined && estimateHouseholdIncome !== null ? estimateHouseholdIncome : '').trim(),
+      householdMember: String(householdMember !== undefined && householdMember !== null ? householdMember : '').trim(),
+      enrollNumberMember: String(enrollNumberMember !== undefined && enrollNumberMember !== null ? enrollNumberMember : '').trim(),
+      enrolledAddress: String(enrolledAddress || '').trim(),
+      quotedCounty: String(quotedCounty || '').trim(),
+      isBackdateDeal: String(isBackdateDeal || '').trim(),
+      planName: String(planName || '').trim(),
+      monthlyPremium: String(monthlyPremium !== undefined && monthlyPremium !== null ? monthlyPremium : '').trim(),
+      subsidyAmount: String(subsidyAmount !== undefined && subsidyAmount !== null ? subsidyAmount : '').trim(),
+      agencyCommission: String(agencyCommission !== undefined && agencyCommission !== null ? agencyCommission : '').trim(),
+      bonusTier: String(bonusTier || '').trim(),
+      paymentOption: String(paymentOption || '').trim(),
+      paymentVerification: String(paymentVerification || '').trim(),
+      paymentStatus: String(paymentStatus || '').trim(),
+      payThroughDate: String(payThroughDate || '').trim(),
+      quoteCloseDealRep: String(quoteCloseDealRep || '').trim(),
+      autopayDate: String(autopayDate || '').trim(),
+      nameOnCreditCard: String(nameOnCreditCard || '').trim(),
+      creditCardNumber: String(creditCardNumber || '').trim(),
+      expirationDate: String(expirationDate || '').trim(),
+      cvv: String(cvv || '').trim(),
     });
   }, [
     dealTitle,
@@ -791,12 +791,12 @@ export default function StaffDealDetail({
   const [notesList, setNotesList] = useState(dealInfo.notes || []);
   const [tasksList, setTasksList] = useState(() => {
     const dId = String(deal?.id || dealInfo.id || deal?.code || dealInfo.code || '');
-    const dTitle = (deal?.title || dealInfo.title || '').trim().toLowerCase();
+    const dTitle = String(deal?.title || dealInfo.title || '').trim().toLowerCase();
     const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
     const storeDealTasks = dynamicTasks.filter(
       (t) =>
         (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId || String(t.deal?.code) === dId)) ||
-        (dTitle && t.dealName && t.dealName.trim().toLowerCase() === dTitle)
+        (dTitle && t.dealName && String(t.dealName).trim().toLowerCase() === dTitle)
     );
     const existing = Array.isArray(deal?.tasks) ? deal.tasks : (dealInfo.tasks || []);
     return [
