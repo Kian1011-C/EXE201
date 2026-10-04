@@ -25,7 +25,6 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   const [ownerFilter, setOwnerFilter] = useState('all');
   const [pipelineFilter, setPipelineFilter] = useState('all');
   const [carrierFilter, setCarrierFilter] = useState('all');
-  const [commissionIdQuery, setCommissionIdQuery] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
   const [activeViewTab, setActiveViewTab] = useState('all');
   const [collapsedColumns, setCollapsedColumns] = useState({});
@@ -145,7 +144,11 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   }
 
   const { user } = useAuth();
-  const activeIsAgent = isAgent || user?.role === 'agent';
+  const activeIsAgent =
+    Boolean(isAgent) ||
+    user?.role === 'agent' ||
+    user?.role === 'broker' ||
+    window.location.pathname.includes('/agent');
   const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
 
   const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
@@ -227,9 +230,9 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         (d.contactName && d.contactName.toLowerCase().includes(q)) ||
         (d.carrier && d.carrier.toLowerCase().includes(q));
 
-      // 3. Dropdown owner matching (if on All Deals tab)
+      // 3. Dropdown owner matching (if on All Deals tab and not agent)
       let matchesOwner = true;
-      if (activeViewTab === 'all') {
+      if (!activeIsAgent && activeViewTab === 'all') {
         matchesOwner =
           ownerFilter === 'all' ||
           ownerFilter === '__none__' ||
@@ -252,11 +255,6 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
           (carrierFilter === 'UHC' && d.carrier.toLowerCase().includes('united'))
         ));
 
-      const matchesCommissionId =
-        !commissionIdQuery ||
-        (d.code && d.code.toLowerCase().includes(commissionIdQuery.toLowerCase())) ||
-        (d.primaryMemberId && d.primaryMemberId.toLowerCase().includes(commissionIdQuery.toLowerCase()));
-
       const matchesStage =
         stageFilter === 'all' ||
         (d.stage && d.stage.toLowerCase().includes(stageFilter.toLowerCase()));
@@ -266,7 +264,6 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         matchesOwner &&
         matchesPipeline &&
         matchesCarrier &&
-        matchesCommissionId &&
         matchesStage
       );
     });
@@ -276,7 +273,6 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     ownerFilter,
     pipelineFilter,
     carrierFilter,
-    commissionIdQuery,
     stageFilter,
     activeViewTab,
     customViews,
@@ -698,8 +694,9 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             </span>
           </div>
 
-          {/* Custom Deal Owner Dropdown (Matching Screenshot media_1790576252122.png) */}
-          <div className="relative" ref={ownerDropdownRef}>
+          {/* Custom Deal Owner Dropdown (Matching Screenshot media_1790576252122.png) - Hidden for Agent Accounts */}
+          {!activeIsAgent && (
+            <div className="relative" ref={ownerDropdownRef}>
             <button
               type="button"
               onClick={() => {
@@ -807,7 +804,8 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                 </div>
               </div>
             )}
-          </div>
+            </div>
+          )}
 
           {/* Custom Carrier Dropdown (Tất cả hãng bảo hiểm hiện tại) */}
           <div className="relative" ref={carrierDropdownRef}>
@@ -910,31 +908,6 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             )}
           </div>
 
-          {/* Commission ID Input */}
-          <div className="relative w-36">
-            <input
-              type="text"
-              value={commissionIdQuery}
-              onChange={(e) => setCommissionIdQuery(e.target.value)}
-              placeholder="Commission ID..."
-              className="w-full pl-2.5 pr-6 py-1 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 bg-white shadow-2xs"
-            />
-            <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
-              search
-            </span>
-          </div>
-
-          {/* Advanced Filters Button with Red Badge '1' */}
-          <button
-            type="button"
-            onClick={() => showToast('Advanced Filters: Active (1 rule applied)')}
-            className="relative px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs cursor-pointer transition"
-          >
-            <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">
-              1
-            </span>
-            <span>Advanced Filters</span>
-          </button>
         </div>
 
         {/* Right Side: Refresh, Collapse All, Expand All */}
