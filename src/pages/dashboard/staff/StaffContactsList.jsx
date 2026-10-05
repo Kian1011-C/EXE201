@@ -128,22 +128,27 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   }, [agentAccounts, scopedContacts]);
 
   // Handle Quick Create
-  function handleCreateSubmit(e) {
+  async function handleCreateSubmit(e) {
     e.preventDefault();
     const fName = firstName.trim();
     const mName = middleName.trim();
     const lName = lastName.trim();
     const fullNameParts = [fName, mName, lName].filter(Boolean);
-    const fullName = fullNameParts.length > 0 ? fullNameParts.join(' ') : 'New Contact';
+    const fullName = fullNameParts.length > 0 ? fullNameParts.join(' ') : (fName || 'New Contact');
 
-    const newCode = `CT2600${Math.floor(2000 + Math.random() * 900)}`;
+    const newCode = `CT2600${Math.floor(10000 + Math.random() * 90000)}`;
     const formattedPhone = phone.trim()
       ? phone.trim().startsWith('+1')
         ? phone.trim()
         : `+1 ${phone.trim()}`
       : '—';
 
-    const ownerNameResolved = contactOwner || 'The Best Rate Insurance';
+    const ownerNameResolved = contactOwner || (activeIsAgent ? effectiveAgent.name : 'The Best Rate Insurance');
+
+    const matchedUser = dbUsers.find(
+      (u) => u.name === ownerNameResolved || u.fullName === ownerNameResolved || u.id === ownerNameResolved
+    );
+    const contactOwnerId = matchedUser ? matchedUser.id : null;
 
     const newRecord = {
       id: newCode,
@@ -159,9 +164,10 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       language: language || 'Vietnamese',
       contactOwner: {
         name: ownerNameResolved,
-        avatar: (ownerNameResolved).slice(0, 2).toUpperCase(),
+        avatar: (ownerNameResolved || 'TB').slice(0, 2).toUpperCase(),
         bg: 'bg-blue-600 text-white',
       },
+      contactOwnerName: ownerNameResolved,
       howDoYouKnowUs: howDoYouKnowUs || '',
       whoReferClient: whoReferClient || '',
       teleSaleTeam: teleSaleTeam || '',
@@ -169,8 +175,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       status: 'Active',
       isNew: true,
       lastModifiedBy: {
-        name: 'Platform Staff',
-        avatar: 'PS',
+        name: activeIsAgent ? effectiveAgent.name : 'Platform Staff',
+        avatar: (activeIsAgent ? effectiveAgent.name : 'PS').slice(0, 2).toUpperCase(),
         bg: 'bg-teal-600 text-white',
       },
       lastModifiedTime: 'Just now',
@@ -226,32 +232,43 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       members: [],
     };
 
-    // Call API to persist contact (without auto-creating deal)
-    apiCreateContact({
-      code: newCode,
-      firstName: fName,
-      middleName: mName,
-      lastName: lName,
-      fullName: fullName,
-      phone: formattedPhone,
-      email: email.trim(),
-      language: language || 'Vietnamese',
-      howDoYouKnowUs: howDoYouKnowUs,
-      whoReferClient: whoReferClient,
-      teleSaleTeam: teleSaleTeam,
-      contactOwnerId: selectedUser ? selectedUser.id : null,
-      contactOwnerName: ownerNameResolved,
-      status: 'Active',
-      acaAccountStatus: '',
-    }).catch((err) => console.warn('Could not save to DB:', err));
-
     addContactToStore(newRecord);
 
     // Initialize real property history with current actor
     getPropertyHistory('contact', newCode, newRecord, currentActor);
 
-    setContactsList([newRecord, ...contactsList]);
+    setContactsList((prev) => [newRecord, ...prev]);
     showToast(`Đã tạo liên hệ mới: ${fullName}`);
+
+    // Call API to persist contact (without auto-creating deal)
+    try {
+      const saved = await apiCreateContact({
+        code: newCode,
+        firstName: fName,
+        middleName: mName,
+        lastName: lName,
+        fullName: fullName,
+        phone: formattedPhone,
+        email: email.trim(),
+        language: language || 'Vietnamese',
+        howDoYouKnowUs: howDoYouKnowUs,
+        whoReferClient: whoReferClient,
+        teleSaleTeam: teleSaleTeam,
+        contactOwnerId: contactOwnerId,
+        contactOwnerName: ownerNameResolved,
+        status: 'Active',
+        acaAccountStatus: '',
+      });
+      if (saved && (saved.id || saved.code)) {
+        setContactsList((prev) =>
+          prev.map((c) =>
+            c.code === newCode ? { ...newRecord, ...saved, id: saved.id || c.id, code: saved.code || c.code } : c
+          )
+        );
+      }
+    } catch (err) {
+      console.warn('Could not save to DB:', err);
+    }
 
     // Reset form
     setFirstName('');
@@ -263,8 +280,17 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     setWhoReferClient('');
     setLanguage('Vietnamese');
     setTeleSaleTeam('');
-    setContactOwner('The Best Rate Insurance');
+    setContactOwner(activeIsAgent ? effectiveAgent.name : 'The Best Rate Insurance');
     setShowCreateModal(false);
+  }
+
+  function openCreateContactModal() {
+    if (activeIsAgent && effectiveAgent.name) {
+      setContactOwner(effectiveAgent.name);
+    } else {
+      setContactOwner('The Best Rate Insurance');
+    }
+    setShowCreateModal(true);
   }
 
   return (
@@ -288,7 +314,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
-            onClick={() => setShowCreateModal(true)}
+            onClick={openCreateContactModal}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">add</span>
@@ -467,7 +493,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                       <div className="flex items-center gap-2.5 mt-2">
                         <button
                           type="button"
-                          onClick={() => setShowCreateModal(true)}
+                          onClick={openCreateContactModal}
                           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[15px]">add</span>
