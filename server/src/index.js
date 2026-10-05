@@ -237,6 +237,18 @@ app.get('/api/contacts/:id', async (req, res) => {
             },
           ]
         : [],
+      customerDocuments: doc
+        ? [
+            {
+              id: doc.id,
+              name: doc.name,
+              contactId: contact.id,
+              contactName: contact.fullName,
+              initials: doc.initials,
+              filesByCategory,
+            },
+          ]
+        : [],
       activities: contact.activities,
       notes: contact.notes.map((n) => ({
         ...n,

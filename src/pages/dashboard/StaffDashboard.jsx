@@ -281,6 +281,8 @@ export default function StaffDashboard() {
       associatedDeals: [],
       associatedTickets: [],
       associatedDocuments: [],
+      customerDocuments: [],
+      customerDocument: null,
       activities: [],
       notes: [],
       tasks: [],
@@ -290,6 +292,9 @@ export default function StaffDashboard() {
     const mergedContact = {
       ...defaultData,
       ...contact,
+      customerDocuments: contact.isNew ? [] : (contact.customerDocuments || []),
+      customerDocument: contact.isNew ? null : (contact.customerDocument || null),
+      isNew: Boolean(contact.isNew),
       firstName: firstName || (isDemoSample ? 'Nhat Huu Tuan' : ''),
       middleName: middleName || '',
       lastName: lastName || (isDemoSample ? 'Dang' : ''),

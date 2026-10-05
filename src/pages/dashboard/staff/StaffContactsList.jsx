@@ -226,6 +226,9 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       associatedDeals: [], // Trống ban đầu khi mới tạo contact
       associatedTickets: [], // Trống ban đầu
       associatedDocuments: [],
+      customerDocuments: [],
+      customerDocument: null,
+      isNew: true,
       activities: [],
       notes: [],
       tasks: [],
@@ -262,7 +265,17 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       if (saved && (saved.id || saved.code)) {
         setContactsList((prev) =>
           prev.map((c) =>
-            c.code === newCode ? { ...newRecord, ...saved, id: saved.id || c.id, code: saved.code || c.code } : c
+            c.code === newCode
+              ? {
+                  ...newRecord,
+                  ...saved,
+                  id: saved.id || c.id,
+                  code: saved.code || c.code,
+                  customerDocuments: [],
+                  customerDocument: null,
+                  isNew: true,
+                }
+              : c
           )
         );
       }

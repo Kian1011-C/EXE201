@@ -347,6 +347,10 @@ export default function StaffContactDetail({
   };
 
   const [customerDocuments, setCustomerDocuments] = useState(() => {
+    // Brand new contact or explicitly empty documents list -> no documents!
+    if (contact?.isNew || (Array.isArray(contact?.customerDocuments) && contact.customerDocuments.length === 0)) {
+      return [];
+    }
     let initialList = [];
     if (contact?.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
       initialList = contact.customerDocuments;
@@ -354,17 +358,16 @@ export default function StaffContactDetail({
       initialList = [contact.customerDocument];
     } else {
       const allDocs = getAllCustomerDocuments();
+      const contactId = String(contact?.id || '').trim();
+      const contactCode = String(contact?.code || '').trim();
+      // Strictly match only by contactId or contact code. Never match loosely by contact name!
       const found = allDocs.filter(
         (d) =>
-          (contact?.id && d.contactId === contact.id) ||
-          (contact?.code && d.contactId === contact.code) ||
-          (contact?.fullName && (d.contactName === contact.fullName || d.name === contact.fullName))
+          (contactId && String(d.contactId).trim() === contactId) ||
+          (contactCode && String(d.contactId).trim() === contactCode)
       );
       if (found.length > 0) {
         initialList = found;
-      } else if (contact?.id === 'CT26002600' || contact?.id === 'CT26002601') {
-        const s = SAMPLE_CUSTOMER_DOCUMENTS.find((d) => d.contactId === contact.id);
-        if (s) initialList = [s];
       }
     }
     // Deduplicate by id or (name + contactId)
@@ -847,23 +850,24 @@ export default function StaffContactDetail({
 
       // Sync customer documents for this contact
       let initialDocs = [];
-      if (contact.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
+      if (contact.isNew || (Array.isArray(contact.customerDocuments) && contact.customerDocuments.length === 0)) {
+        initialDocs = [];
+      } else if (contact.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
         initialDocs = contact.customerDocuments;
       } else if (contact.customerDocument) {
         initialDocs = [contact.customerDocument];
       } else {
         const allDocs = getAllCustomerDocuments();
+        const contactId = String(contact.id || '').trim();
+        const contactCode = String(contact.code || '').trim();
+        // Strictly match only by contactId or contact code. Never match loosely by contact name!
         const found = allDocs.filter(
           (d) =>
-            (contact.id && d.contactId === contact.id) ||
-            (contact.code && d.contactId === contact.code) ||
-            (contact.fullName && (d.contactName === contact.fullName || d.name === contact.fullName))
+            (contactId && String(d.contactId).trim() === contactId) ||
+            (contactCode && String(d.contactId).trim() === contactCode)
         );
         if (found.length > 0) {
           initialDocs = found;
-        } else if (contact.id === 'CT26002600' || contact.id === 'CT26002601') {
-          const s = SAMPLE_CUSTOMER_DOCUMENTS.find((d) => d.contactId === contact.id);
-          if (s) initialDocs = [s];
         }
       }
       // Deduplicate by id or (name + contactId)
@@ -876,8 +880,8 @@ export default function StaffContactDetail({
           uniqueDocs.push(d);
         }
       }
-      // If contact has customerDocument with newer files, merge into uniqueDocs
-      if (contact.customerDocument) {
+      // If contact has customerDocument with newer files, merge into uniqueDocs (only if not newly created)
+      if (contact.customerDocument && !contact.isNew) {
         const docIdx = uniqueDocs.findIndex(
           (d) => d.id === contact.customerDocument.id || d.name === contact.customerDocument.name
         );
