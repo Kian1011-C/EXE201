@@ -739,37 +739,93 @@ export function getDynamicAdminAccounts() {
   }
 }
 
+// ── Validation helpers (shared by the Admin Accounts form and the offline store) ──
+export const VALID_ACCOUNT_ROLES = ['agent', 'staff', 'admin'];
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const NPN_REGEX = /^\d{7,8}$/;
+
+export function isValidEmail(email) {
+  return EMAIL_REGEX.test(String(email || '').trim());
+}
+
+export function isValidNpn(npn) {
+  return NPN_REGEX.test(String(npn || '').trim());
+}
+
+/**
+ * Next sequential ID (ACC-001, ACC-002...) based on the highest existing numeric
+ * suffix + 1 — never list length + 1, so deletions/merges can't cause collisions.
+ */
+export function getNextAccountId(accounts = []) {
+  const maxSuffix = accounts.reduce((max, a) => {
+    const m = /^ACC-(\d+)$/i.exec(String(a?.id || ''));
+    return m ? Math.max(max, parseInt(m[1], 10)) : max;
+  }, 0);
+  return `ACC-${String(maxSuffix + 1).padStart(3, '0')}`;
+}
+
 export function addAdminAccountToStore(accountData) {
   const current = getDynamicAdminAccounts();
-  const name = accountData.name || `${accountData.firstName || ''} ${accountData.lastName || ''}`.trim() || 'New Member';
+  const name = (accountData.name || `${accountData.firstName || ''} ${accountData.lastName || ''}`).trim();
   const role = (accountData.role || 'agent').toLowerCase();
-  const id = accountData.id || `ACC-${String(current.length + 1).padStart(3, '0')}`;
-  const avatar = accountData.avatar || getAccountAvatar(name);
-  const bg = accountData.bg || (role === 'admin' ? 'bg-rose-700 text-white' : role === 'staff' ? 'bg-teal-600 text-white' : ACCOUNT_BG_PALETTE[current.length % ACCOUNT_BG_PALETTE.length]);
+  const email = String(accountData.email || '').trim();
+  const npnInput = String(accountData.npn || '').trim();
+
+  // An incoming id means this is a mirror of a record already created by the backend
+  // (already validated there). Locally-created accounts must pass validation here.
+  const isMirror = Boolean(accountData.id);
+  if (!isMirror) {
+    if (!VALID_ACCOUNT_ROLES.includes(role)) throw new Error('Role must be one of: agent, staff, admin.');
+    if (!name) throw new Error('Full name is required.');
+    if (!email) throw new Error('Email address is required.');
+    if (!isValidEmail(email)) throw new Error('Please enter a valid email address.');
+    if (current.some((a) => String(a.email || '').trim().toLowerCase() === email.toLowerCase())) {
+      throw new Error(`An account with email ${email} already exists.`);
+    }
+    if (role === 'agent') {
+      if (!String(accountData.phone || '').trim()) throw new Error('Phone number is required for agents.');
+      if (!npnInput) throw new Error('NPN is required for agents.');
+      if (!isValidNpn(npnInput)) throw new Error('NPN must be 7-8 digits (numbers only).');
+      if (current.some((a) => String(a.npn || '').trim() === npnInput)) {
+        throw new Error(`NPN ${npnInput} is already registered to another account.`);
+      }
+    }
+  }
+
+  const id = accountData.id || getNextAccountId(current);
+  const idNum = parseInt(String(id).replace(/\D/g, ''), 10) || current.length;
+  const avatar = accountData.avatar || getAccountAvatar(name || 'New Member');
+  const bg = accountData.bg || (role === 'admin' ? 'bg-rose-700 text-white' : role === 'staff' ? 'bg-teal-600 text-white' : ACCOUNT_BG_PALETTE[idNum % ACCOUNT_BG_PALETTE.length]);
   
   let states = accountData.statesLicensed || ['TX (TDI)', 'CA (CDI)'];
   if (typeof states === 'string') {
     states = states.split(',').map((s) => s.trim()).filter(Boolean);
   }
 
+  // Business rule: a newly created agent starts Pending until NPN is verified & approved.
+  const status = accountData.status || (role === 'agent' ? 'Pending' : 'Active');
+  const defaultCompliance = String(status).includes('Pending')
+    ? 'Pending NPN Verification'
+    : 'Verified & Cleared';
+
   const newAccount = {
     id,
-    name,
-    fullName: name,
-    email: accountData.email || `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}@insurmatch.us`,
+    name: name || 'New Member',
+    fullName: name || 'New Member',
+    email,
     role,
     avatar,
     bg,
-    status: accountData.status || (role === 'agent' ? 'Active' : 'Active'),
-    phone: accountData.phone || '+1 (832) 555-0100',
+    status,
+    phone: String(accountData.phone || '').trim(),
     agencyRole: accountData.agencyRole || (role === 'agent' ? 'Licensed Partner Agent' : role === 'staff' ? 'Platform Operations' : 'Administrator'),
     department: accountData.department || (role === 'agent' ? 'Regional Agent Network' : role === 'staff' ? 'Intake & Policy Support' : 'System Administration'),
     statesLicensed: states,
-    npn: accountData.npn || (role === 'agent' ? `NPN-${Math.floor(1000000 + Math.random() * 9000000)}` : 'STAFF-OPS'),
+    npn: npnInput || (role === 'agent' ? '' : 'STAFF-OPS'),
     joinedDate: accountData.joinedDate || new Date().toISOString().slice(0, 10),
     lastActive: 'Just now',
     dealsCount: accountData.dealsCount || 0,
-    complianceStatus: accountData.complianceStatus || 'Verified & Cleared',
+    complianceStatus: accountData.complianceStatus || defaultCompliance,
   };
 
   const updated = [newAccount, ...current.filter((a) => String(a.id) !== String(newAccount.id))];

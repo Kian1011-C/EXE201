@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import crypto from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
@@ -1132,6 +1133,7 @@ let ADMIN_ACCOUNTS = [
     joinedDate: '2025-01-10',
     lastActive: 'Just now',
     dealsCount: 0,
+    complianceStatus: 'Verified & Cleared',
   },
   {
     id: 'ACC-002',
@@ -1202,6 +1204,7 @@ let ADMIN_ACCOUNTS = [
     joinedDate: '2025-01-20',
     lastActive: '5 mins ago',
     dealsCount: 115,
+    complianceStatus: 'Verified & Cleared',
   },
   {
     id: 'ACC-006',
@@ -1218,6 +1221,7 @@ let ADMIN_ACCOUNTS = [
     joinedDate: '2025-02-15',
     lastActive: '35 mins ago',
     dealsCount: 78,
+    complianceStatus: 'Verified & Cleared',
   },
   {
     id: 'ACC-007',
@@ -1226,7 +1230,7 @@ let ADMIN_ACCOUNTS = [
     role: 'agent',
     avatar: 'IL',
     bg: 'bg-orange-500 text-white',
-    status: 'Pending NPN',
+    status: 'Pending',
     phone: '+1 (408) 555-8812',
     agencyRole: 'Associate Agent Applicant',
     department: 'California Regional Hub',
@@ -1235,7 +1239,7 @@ let ADMIN_ACCOUNTS = [
     joinedDate: '2026-09-10',
     lastActive: 'Yesterday',
     dealsCount: 0,
-    complianceStatus: 'State License Check in Progress',
+    complianceStatus: 'Pending NPN Verification',
   },
   {
     id: 'ACC-008',
@@ -1296,6 +1300,265 @@ let ADMIN_AUDIT_LOGS = [
     type: 'security',
   },
 ];
+
+// ── Account Management Helpers (credentials, validation, auth) ────────────────
+// Credentials are kept OUT of ADMIN_ACCOUNTS so a password hash can never leak through
+// GET /api/admin/accounts. Keyed by lower-cased email.
+const ACCOUNT_CREDENTIALS = new Map(); // email -> { passwordHash, mustChangePassword }
+
+const ACCOUNT_ROLES = ['agent', 'staff', 'admin'];
+const ACCOUNT_STATUSES = ['Pending', 'Active', 'Suspended'];
+const ALLOWED_STATUS_TRANSITIONS = {
+  Pending: ['Active'], // approve
+  Active: ['Suspended'], // suspend (reason required)
+  Suspended: ['Active'], // reinstate
+};
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const NPN_REGEX = /^\d{7,8}$/;
+const TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
+const TOKEN_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+
+function isValidPhone(phone) {
+  const digits = String(phone).replace(/\D/g, '');
+  return /^[\d\s()+.\-]+$/.test(phone) && digits.length >= 7 && digits.length <= 15;
+}
+
+function normalizeStates(value, role) {
+  let list = value;
+  if (typeof list === 'string') list = list.split(',');
+  if (Array.isArray(list)) {
+    list = list.map((s) => String(s).trim()).filter(Boolean);
+    if (list.length > 0) return list;
+  }
+  return role === 'staff' ? ['National Hub'] : role === 'admin' ? ['National'] : [];
+}
+
+// ACC-001, ACC-002 ... computed from the highest existing numeric suffix (never from the array length)
+function nextAccountId() {
+  const max = ADMIN_ACCOUNTS.reduce((m, a) => {
+    const n = parseInt(String(a.id).replace(/^ACC-/, ''), 10);
+    return Number.isFinite(n) && n > m ? n : m;
+  }, 0);
+  return `ACC-${String(max + 1).padStart(3, '0')}`;
+}
+
+// Account shape returned to clients (never includes any credential data)
+function toPublicAccount(acc) {
+  return {
+    ...acc,
+    id: acc.id,
+    name: acc.name,
+    email: acc.email,
+    role: acc.role,
+    status: acc.status,
+    complianceStatus: acc.complianceStatus ?? null,
+    npn: acc.npn ?? null,
+    phone: acc.phone ?? '',
+    statesLicensed: Array.isArray(acc.statesLicensed) ? acc.statesLicensed : [],
+    department: acc.department ?? '',
+    joinedDate: acc.joinedDate,
+    suspensionReason: acc.suspensionReason ?? null,
+  };
+}
+
+// 14-char random password with at least one upper, lower, digit and symbol (CSPRNG, ambiguous chars excluded)
+function generateTempPassword(length = 14) {
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghijkmnopqrstuvwxyz';
+  const digits = '23456789';
+  const symbols = '!@#$%^&*-_=+?';
+  const all = upper + lower + digits + symbols;
+  const pick = (set) => set[crypto.randomInt(set.length)];
+  const chars = [pick(upper), pick(lower), pick(digits), pick(symbols)];
+  while (chars.length < length) chars.push(pick(all));
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join('');
+}
+
+// Password hashing with Node's built-in scrypt (the project has no bcrypt dependency)
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16);
+  const hash = crypto.scryptSync(password, salt, 64);
+  return `scrypt$${salt.toString('hex')}$${hash.toString('hex')}`;
+}
+
+function verifyPassword(password, stored) {
+  const [scheme, saltHex, hashHex] = String(stored).split('$');
+  if (scheme !== 'scrypt' || !saltHex || !hashHex) return false;
+  const expected = Buffer.from(hashHex, 'hex');
+  const actual = crypto.scryptSync(password, Buffer.from(saltHex, 'hex'), expected.length);
+  return crypto.timingSafeEqual(actual, expected);
+}
+
+// Signed session token: base64url(payload).hmac
+function signToken(account) {
+  const payload = Buffer.from(
+    JSON.stringify({ sub: account.id, email: account.email, role: account.role, exp: Date.now() + TOKEN_TTL_MS }),
+  ).toString('base64url');
+  const sig = crypto.createHmac('sha256', TOKEN_SECRET).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+}
+
+function verifyToken(token) {
+  const [payload, sig] = String(token || '').split('.');
+  if (!payload || !sig) return null;
+  const expected = crypto.createHmac('sha256', TOKEN_SECRET).update(payload).digest('base64url');
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    return data.exp > Date.now() ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+// Auth middleware: requires a valid token belonging to an Active ADMIN account.
+// The frontend's offline demo login issues `mock-token-admin-*` tokens; those are accepted ONLY outside production.
+function requireAdmin(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+  const payload = verifyToken(token);
+  if (payload) {
+    const account = ADMIN_ACCOUNTS.find((a) => a.id === payload.sub);
+    if (!account || account.role !== 'admin' || account.status !== 'Active') {
+      return res.status(403).json({ error: 'Administrator privileges required.' });
+    }
+    req.authUser = account;
+    return next();
+  }
+  if (process.env.NODE_ENV !== 'production' && token.startsWith('mock-token-admin-')) {
+    req.authUser = { name: 'Super Admin', role: 'admin' };
+    return next();
+  }
+  return res.status(401).json({ error: 'Invalid or expired token.' });
+}
+
+// Welcome email. Uses SMTP (SMTP_HOST/PORT/USER/PASS/FROM + optional `nodemailer` package) when configured;
+// otherwise only logs a non-sensitive "queued" message. The temp password is never logged.
+// Resolves to true only when an email was actually handed to the SMTP server.
+async function sendWelcomeEmail(account, tempPassword) {
+  if (!process.env.SMTP_HOST) {
+    console.log(`📧 Welcome email queued for account ${account.id} (SMTP not configured, not sent)`);
+    return false;
+  }
+  try {
+    const { default: nodemailer } = await import('nodemailer');
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: Number(process.env.SMTP_PORT) === 465,
+      auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+    });
+    const note =
+      account.role === 'agent'
+        ? 'Your account is pending NPN accreditation approval. You will be able to sign in once an administrator approves it.'
+        : 'You can sign in now.';
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || 'InsurMatch <no-reply@insurmatch.us>',
+      to: account.email,
+      subject: 'Welcome to InsurMatch',
+      text:
+        `Hello ${account.name},\n\nAn InsurMatch ${account.role} account has been created for you.\n` +
+        `Email: ${account.email}\nTemporary password: ${tempPassword}\n\n` +
+        `${note} You will be asked to change your password at first login.\n`,
+    });
+    console.log(`📧 Welcome email sent for account ${account.id}`);
+    return true;
+  } catch (error) {
+    console.error(`Welcome email failed for account ${account.id}:`, error.message);
+    return false;
+  }
+}
+
+// POST /api/auth/login — for accounts created by admins.
+// Pending agents (awaiting NPN accreditation) and suspended accounts get 403.
+// Emails unknown to this server get 404 so the frontend can fall back to its demo accounts.
+app.post('/api/auth/login', (req, res) => {
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const password = typeof req.body?.password === 'string' ? req.body.password : '';
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required.' });
+  }
+
+  const account = ADMIN_ACCOUNTS.find((a) => String(a.email).toLowerCase() === email);
+  if (!account) {
+    return res.status(404).json({ message: 'Account not managed by this server.' });
+  }
+
+  const cred = ACCOUNT_CREDENTIALS.get(email);
+  if (cred && !verifyPassword(password, cred.passwordHash)) {
+    return res.status(401).json({ message: 'Invalid email or password.' });
+  }
+
+  if (account.status === 'Pending') {
+    return res.status(403).json({
+      message: 'Your account is not activated yet: it is awaiting NPN accreditation approval.',
+    });
+  }
+  if (account.status === 'Suspended') {
+    return res.status(403).json({
+      message: 'Your account is suspended and not activated for sign-in. Please contact an administrator.',
+    });
+  }
+  if (!cred) {
+    // Seeded/demo account without server-side credentials: let the frontend use its demo login
+    return res.status(404).json({ message: 'Account not managed by this server.' });
+  }
+
+  account.lastActive = 'Just now';
+  res.json({
+    token: signToken(account),
+    mustChangePassword: !!cred.mustChangePassword,
+    user: {
+      id: account.id,
+      name: account.name,
+      email: account.email,
+      role: account.role,
+      avatar: account.avatar,
+      mustChangePassword: !!cred.mustChangePassword,
+    },
+  });
+});
+
+// POST /api/auth/change-password — clears mustChangePassword (requires the session token + current password)
+app.post('/api/auth/change-password', (req, res) => {
+  const header = req.headers.authorization || '';
+  const payload = verifyToken(header.startsWith('Bearer ') ? header.slice(7).trim() : '');
+  if (!payload) {
+    return res.status(401).json({ message: 'Invalid or expired token.' });
+  }
+  const { currentPassword, newPassword } = req.body || {};
+  const email = String(payload.email).toLowerCase();
+  const cred = ACCOUNT_CREDENTIALS.get(email);
+  const account = ADMIN_ACCOUNTS.find((a) => a.id === payload.sub);
+  if (!cred || !account || account.status !== 'Active') {
+    return res.status(403).json({ message: 'Account is not active.' });
+  }
+  if (typeof currentPassword !== 'string' || !verifyPassword(currentPassword, cred.passwordHash)) {
+    return res.status(401).json({ message: 'Current password is incorrect.' });
+  }
+  if (
+    typeof newPassword !== 'string' ||
+    newPassword.length < 8 ||
+    !/[A-Z]/.test(newPassword) ||
+    !/[a-z]/.test(newPassword) ||
+    !/\d/.test(newPassword)
+  ) {
+    return res.status(400).json({
+      message: 'New password must be at least 8 characters and include upper-case, lower-case and a digit.',
+    });
+  }
+  ACCOUNT_CREDENTIALS.set(email, { passwordHash: hashPassword(newPassword), mustChangePassword: false });
+  res.json({ success: true });
+});
 
 // GET /api/admin/stats
 app.get('/api/admin/stats', async (req, res) => {
@@ -1365,77 +1628,230 @@ app.get('/api/admin/stats', async (req, res) => {
 });
 
 // GET /api/admin/accounts
+// Never exposes credentials (password hashes live in ACCOUNT_CREDENTIALS, not on the account objects).
 app.get('/api/admin/accounts', (req, res) => {
-  res.json(ADMIN_ACCOUNTS);
+  res.json(ADMIN_ACCOUNTS.map(toPublicAccount));
 });
 
-// POST /api/admin/accounts
-app.post('/api/admin/accounts', (req, res) => {
+// POST /api/admin/accounts  (ADMIN only)
+// Agents require name, email, phone, npn (7-8 digits). New agents start as 'Pending' / 'Pending NPN Verification'
+// and cannot log in until an admin approves them (PUT status -> Active). A secure temporary password is generated,
+// stored hashed only, and returned ONCE as `tempPassword`.
+app.post('/api/admin/accounts', requireAdmin, async (req, res) => {
   try {
-    const data = req.body;
-    const newId = `ACC-${String(ADMIN_ACCOUNTS.length + 1).padStart(3, '0')}`;
+    const data = req.body || {};
+    const role = String(data.role === undefined || data.role === null || data.role === '' ? 'agent' : data.role)
+      .trim()
+      .toLowerCase();
+    if (!ACCOUNT_ROLES.includes(role)) {
+      return res.status(400).json({ error: `Invalid role. Allowed roles: ${ACCOUNT_ROLES.join(', ')}.` });
+    }
+
+    const name = typeof data.name === 'string' ? data.name.trim() : '';
+    const email = typeof data.email === 'string' ? data.email.trim().toLowerCase() : '';
+    const phone = typeof data.phone === 'string' ? data.phone.trim() : '';
+    const npn = data.npn === undefined || data.npn === null ? '' : String(data.npn).trim();
+
+    const missing = [];
+    if (!name) missing.push('name');
+    if (!email) missing.push('email');
+    if (role === 'agent') {
+      if (!phone) missing.push('phone');
+      if (!npn) missing.push('npn');
+    }
+    if (missing.length > 0) {
+      return res.status(400).json({
+        error: `Missing required field(s): ${missing.join(', ')}.`,
+        fields: missing,
+      });
+    }
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format.', fields: ['email'] });
+    }
+    if (phone && !isValidPhone(phone)) {
+      return res.status(400).json({ error: 'Invalid phone number format.', fields: ['phone'] });
+    }
+    if (role === 'agent' && !NPN_REGEX.test(npn)) {
+      return res.status(400).json({ error: 'Invalid NPN. An NPN must contain 7 to 8 digits.', fields: ['npn'] });
+    }
+
+    if (ADMIN_ACCOUNTS.some((a) => String(a.email).toLowerCase() === email)) {
+      return res.status(409).json({ error: 'An account with this email already exists.', fields: ['email'] });
+    }
+    if (role === 'agent' && ADMIN_ACCOUNTS.some((a) => a.role === 'agent' && String(a.npn) === npn)) {
+      return res.status(409).json({ error: 'An agent with this NPN already exists.', fields: ['npn'] });
+    }
+
+    const isAgent = role === 'agent';
     const newAccount = {
-      id: newId,
-      name: data.name || 'New Member',
-      email: data.email || 'user@insurmatch.us',
-      role: data.role || 'agent',
-      avatar: (data.name || 'U').slice(0, 2).toUpperCase(),
-      bg: data.role === 'staff' ? 'bg-teal-600 text-white' : 'bg-blue-600 text-white',
-      status: data.status || (data.role === 'agent' ? 'Pending NPN' : 'Active'),
-      phone: data.phone || '+1 (800) 555-0100',
-      department: data.department || (data.role === 'staff' ? 'Policy Operations' : 'Regional Agent Hub'),
-      statesLicensed: data.statesLicensed || ['TX (TDI)'],
-      npn: data.npn || 'PENDING',
+      id: nextAccountId(),
+      name,
+      email,
+      role,
+      avatar: name.slice(0, 2).toUpperCase(),
+      bg: role === 'staff' ? 'bg-teal-600 text-white' : role === 'admin' ? 'bg-rose-700 text-white' : 'bg-blue-600 text-white',
+      status: isAgent ? 'Pending' : 'Active',
+      phone,
+      department:
+        (typeof data.department === 'string' && data.department.trim()) ||
+        (role === 'staff' ? 'Policy Operations' : role === 'admin' ? 'Platform Operations' : 'Regional Agent Hub'),
+      statesLicensed: normalizeStates(data.statesLicensed, role),
+      npn: isAgent ? npn : npn || (role === 'staff' ? 'STAFF-OPS' : 'MASTER-ADMIN'),
       joinedDate: new Date().toISOString().split('T')[0],
       lastActive: 'Just registered',
       dealsCount: 0,
-      complianceStatus: data.role === 'agent' ? 'Pending Compliance Review' : 'Active',
+      complianceStatus: isAgent ? 'Pending NPN Verification' : 'Verified & Cleared',
+      suspensionReason: null,
     };
+
+    // Secure temporary password: only the hash is stored; plaintext is returned once and never logged.
+    const tempPassword = generateTempPassword();
+    ACCOUNT_CREDENTIALS.set(email, { passwordHash: hashPassword(tempPassword), mustChangePassword: true });
     ADMIN_ACCOUNTS.unshift(newAccount);
+
+    const welcomeEmailSent = await sendWelcomeEmail(newAccount, tempPassword);
 
     ADMIN_AUDIT_LOGS.unshift({
       id: `LOG-${Date.now()}`,
       action: 'Account Created',
-      actor: 'Super Admin',
+      actor: req.authUser?.name || 'Super Admin',
       target: `${newAccount.name} (${newAccount.id})`,
       detail: `Created ${newAccount.role} account with initial status ${newAccount.status}.`,
       timestamp: new Date().toLocaleString(),
       type: 'security',
     });
 
-    res.status(201).json(newAccount);
+    res.status(201).json({
+      ...toPublicAccount(newAccount),
+      mustChangePassword: true,
+      tempPassword,
+      welcomeEmailSent,
+    });
   } catch (error) {
+    console.error('Error creating account:', error.message);
     res.status(500).json({ error: 'Failed to create account' });
   }
 });
 
-// PUT /api/admin/accounts/:id
-app.put('/api/admin/accounts/:id', (req, res) => {
+// PUT /api/admin/accounts/:id  (ADMIN only)
+// Status transitions: Pending -> Active (approve), Active -> Suspended (needs suspensionReason),
+// Suspended -> Active (reinstate). Anything else is rejected with 400.
+app.put('/api/admin/accounts/:id', requireAdmin, (req, res) => {
   try {
     const { id } = req.params;
-    const data = req.body;
+    const data = req.body || {};
     const idx = ADMIN_ACCOUNTS.findIndex((a) => a.id === id);
     if (idx === -1) {
       return res.status(404).json({ error: 'Account not found' });
     }
+    const current = ADMIN_ACCOUNTS[idx];
+    const updates = {};
 
-    const previousStatus = ADMIN_ACCOUNTS[idx].status;
-    ADMIN_ACCOUNTS[idx] = { ...ADMIN_ACCOUNTS[idx], ...data };
+    // Editable profile fields (role, id and credentials cannot be changed here)
+    if (data.name !== undefined) {
+      const name = typeof data.name === 'string' ? data.name.trim() : '';
+      if (!name) return res.status(400).json({ error: 'Name cannot be empty.', fields: ['name'] });
+      updates.name = name;
+      updates.avatar = name.slice(0, 2).toUpperCase();
+    }
+    if (data.email !== undefined) {
+      const email = typeof data.email === 'string' ? data.email.trim().toLowerCase() : '';
+      if (!EMAIL_REGEX.test(email)) {
+        return res.status(400).json({ error: 'Invalid email format.', fields: ['email'] });
+      }
+      if (ADMIN_ACCOUNTS.some((a) => a.id !== id && String(a.email).toLowerCase() === email)) {
+        return res.status(409).json({ error: 'An account with this email already exists.', fields: ['email'] });
+      }
+      updates.email = email;
+    }
+    if (data.phone !== undefined) {
+      const phone = typeof data.phone === 'string' ? data.phone.trim() : '';
+      if (phone && !isValidPhone(phone)) {
+        return res.status(400).json({ error: 'Invalid phone number format.', fields: ['phone'] });
+      }
+      if (!phone && current.role === 'agent') {
+        return res.status(400).json({ error: 'Phone is required for agents.', fields: ['phone'] });
+      }
+      updates.phone = phone;
+    }
+    if (data.npn !== undefined && current.role === 'agent') {
+      const npn = String(data.npn).trim();
+      if (!NPN_REGEX.test(npn)) {
+        return res.status(400).json({ error: 'Invalid NPN. An NPN must contain 7 to 8 digits.', fields: ['npn'] });
+      }
+      if (ADMIN_ACCOUNTS.some((a) => a.id !== id && a.role === 'agent' && String(a.npn) === npn)) {
+        return res.status(409).json({ error: 'An agent with this NPN already exists.', fields: ['npn'] });
+      }
+      updates.npn = npn;
+    }
+    if (data.department !== undefined && typeof data.department === 'string') {
+      updates.department = data.department.trim();
+    }
+    if (data.agencyRole !== undefined && typeof data.agencyRole === 'string') {
+      updates.agencyRole = data.agencyRole.trim();
+    }
+    if (data.statesLicensed !== undefined) {
+      updates.statesLicensed = normalizeStates(data.statesLicensed, current.role);
+    }
 
-    if (data.status && data.status !== previousStatus) {
+    // Status transition
+    const previousStatus = current.status;
+    let statusChanged = false;
+    if (data.status !== undefined && data.status !== previousStatus) {
+      const nextStatus = data.status;
+      if (!ACCOUNT_STATUSES.includes(nextStatus)) {
+        return res.status(400).json({ error: `Invalid status. Allowed statuses: ${ACCOUNT_STATUSES.join(', ')}.` });
+      }
+      if (!(ALLOWED_STATUS_TRANSITIONS[previousStatus] || []).includes(nextStatus)) {
+        return res.status(400).json({ error: `Invalid status transition: ${previousStatus} -> ${nextStatus}.` });
+      }
+      if (nextStatus === 'Suspended') {
+        const reason = typeof data.suspensionReason === 'string' ? data.suspensionReason.trim() : '';
+        if (!reason) {
+          return res.status(400).json({ error: 'A suspensionReason is required to suspend an account.', fields: ['suspensionReason'] });
+        }
+        updates.suspensionReason = reason;
+        updates.complianceStatus = `Suspended — ${reason}`;
+      } else {
+        // Approve (Pending -> Active) or reinstate (Suspended -> Active)
+        updates.suspensionReason = null;
+        updates.complianceStatus = 'Verified & Cleared';
+      }
+      updates.status = nextStatus;
+      statusChanged = true;
+    }
+
+    const previousEmail = String(current.email).toLowerCase();
+    ADMIN_ACCOUNTS[idx] = { ...current, ...updates };
+    // Keep the credential record attached to the account if its email changed
+    if (updates.email && updates.email !== previousEmail && ACCOUNT_CREDENTIALS.has(previousEmail)) {
+      ACCOUNT_CREDENTIALS.set(updates.email, ACCOUNT_CREDENTIALS.get(previousEmail));
+      ACCOUNT_CREDENTIALS.delete(previousEmail);
+    }
+
+    if (statusChanged) {
+      const updated = ADMIN_ACCOUNTS[idx];
+      let action = `Status Changed: ${previousStatus} -> ${updated.status}`;
+      if (previousStatus === 'Pending') action = 'Agent Accreditation Approved';
+      else if (updated.status === 'Suspended') action = 'Account Suspended';
+      else if (previousStatus === 'Suspended') action = 'Account Reinstated';
       ADMIN_AUDIT_LOGS.unshift({
         id: `LOG-${Date.now()}`,
-        action: `Status Changed: ${previousStatus} -> ${data.status}`,
-        actor: 'Super Admin',
-        target: `${ADMIN_ACCOUNTS[idx].name} (${id})`,
-        detail: data.suspensionReason || `Account status modified per admin management action.`,
+        action,
+        actor: req.authUser?.name || 'Super Admin',
+        target: `${updated.name} (${id})`,
+        detail:
+          updated.status === 'Suspended'
+            ? updated.suspensionReason
+            : `Status changed from ${previousStatus} to ${updated.status}.`,
         timestamp: new Date().toLocaleString(),
-        type: data.status === 'Suspended' ? 'security' : 'compliance',
+        type: updated.status === 'Suspended' ? 'security' : 'compliance',
       });
     }
 
-    res.json(ADMIN_ACCOUNTS[idx]);
+    res.json(toPublicAccount(ADMIN_ACCOUNTS[idx]));
   } catch (error) {
+    console.error('Error updating account:', error.message);
     res.status(500).json({ error: 'Failed to update account' });
   }
 });

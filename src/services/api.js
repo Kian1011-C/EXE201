@@ -20,6 +20,7 @@ import {
   getDynamicAdminAccounts,
   addAdminAccountToStore,
   updateAdminAccountInStore,
+  ACCOUNT_BG_PALETTE,
 } from '../data/mockAdminAccounts';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
@@ -51,7 +52,9 @@ async function request(endpoint, options = {}) {
 
     if (!response.ok) {
       const errBody = await response.json().catch(() => ({}));
-      throw new Error(errBody.message || errBody.error || `HTTP error ${response.status}: ${response.statusText}`);
+      const httpError = new Error(errBody.message || errBody.error || `HTTP error ${response.status}: ${response.statusText}`);
+      httpError.status = response.status;
+      throw httpError;
     }
 
     const json = await response.json();
@@ -322,6 +325,11 @@ function normalizeAccount(u) {
   let bg = 'bg-blue-600 text-white';
   if (normalizedRole === 'staff') bg = 'bg-teal-600 text-white';
   else if (normalizedRole === 'admin') bg = 'bg-purple-600 text-white';
+  else {
+    // Agents: auto-assign a palette color derived from the account id
+    const idNum = parseInt(String(u.id).replace(/\D/g, ''), 10);
+    if (Number.isFinite(idNum)) bg = ACCOUNT_BG_PALETTE[idNum % ACCOUNT_BG_PALETTE.length];
+  }
 
   let states = u.statesLicensed || ['Texas (TDI)'];
   if (typeof states === 'string') {
@@ -905,6 +913,20 @@ export async function getAdminAccounts() {
   return getDynamicAdminAccounts().map(normalizeAccount);
 }
 
+// Real API rejections (validation / duplicate) must reach the UI; only an unreachable
+// backend (network error, 5xx/proxy failure, missing auth in mock mode) falls back to mock storage.
+function isApiRejection(err) {
+  return [400, 409, 422].includes(err?.status);
+}
+
+// Offline-only temporary password. Never written to localStorage.
+function generateLocalTempPassword() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  const bytes = new Uint32Array(10);
+  (globalThis.crypto || window.crypto).getRandomValues(bytes);
+  return `${Array.from(bytes, (b) => chars[b % chars.length]).join('')}@1`;
+}
+
 export async function createAdminAccount(data) {
   try {
     const res = await request('/admin/accounts', {
@@ -913,14 +935,16 @@ export async function createAdminAccount(data) {
     });
     if (res) {
       const normalized = normalizeAccount(res);
+      // The store copies whitelisted fields only, so tempPassword is never persisted.
       addAdminAccountToStore(normalized);
-      return normalized;
+      return normalized; // includes tempPassword from the backend response
     }
   } catch (err) {
+    if (isApiRejection(err)) throw err;
     console.warn('[api] createAdminAccount offline fallback:', err.message);
   }
   const saved = addAdminAccountToStore(data);
-  return normalizeAccount(saved);
+  return { ...normalizeAccount(saved), tempPassword: generateLocalTempPassword(), offline: true };
 }
 
 export async function updateAdminAccount(id, data) {
@@ -930,6 +954,7 @@ export async function updateAdminAccount(id, data) {
       body: JSON.stringify(data),
     });
   } catch (err) {
+    if (isApiRejection(err)) throw err;
     console.warn('[api] updateAdminAccount offline fallback:', err.message);
   }
   return updateAdminAccountInStore(id, data);

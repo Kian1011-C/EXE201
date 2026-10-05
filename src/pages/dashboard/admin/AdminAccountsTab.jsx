@@ -1,5 +1,32 @@
 import React, { useState, useMemo } from 'react';
 import { updateAdminAccount, createAdminAccount } from '../../../services/api';
+import { VALID_ACCOUNT_ROLES, isValidEmail, isValidNpn } from '../../../data/mockAdminAccounts';
+
+const DEFAULT_DEPARTMENT_BY_ROLE = {
+  agent: 'Regional Agent Network',
+  staff: 'Intake & Policy Support',
+  admin: 'System Administration',
+};
+
+const EMPTY_ACCOUNT_FORM = {
+  name: '',
+  email: '',
+  role: 'agent',
+  phone: '',
+  npn: '',
+  statesLicensed: 'TX (TDI), CA (CDI)',
+  department: DEFAULT_DEPARTMENT_BY_ROLE.agent,
+};
+
+// Normalised status: falls back to the legacy `active` flag when `status` is missing
+function getStatus(account) {
+  return account?.status || (account?.active !== false ? 'Active' : 'Suspended');
+}
+
+// Covers both 'Pending' (new agents) and 'Pending NPN' (seed data)
+function isPendingStatus(account) {
+  return getStatus(account).includes('Pending');
+}
 
 export default function AdminAccountsTab({
   accounts = [],
@@ -9,21 +36,19 @@ export default function AdminAccountsTab({
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedAccount, setSelectedAccount] = useState(null);
-  const [modalMode, setModalMode] = useState(null); // 'inspect' | 'suspend' | 'create'
+  const [modalMode, setModalMode] = useState(null); // 'inspect' | 'suspend' | 'create' | 'credentials'
   const [suspensionReason, setSuspensionReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
   // Form for creating new account
-  const [newAccountForm, setNewAccountForm] = useState({
-    name: '',
-    email: '',
-    role: 'agent',
-    phone: '',
-    npn: '',
-    statesLicensed: 'TX (TDI), CA (CDI)',
-    department: 'Regional Agent Network',
-  });
+  const [newAccountForm, setNewAccountForm] = useState(EMPTY_ACCOUNT_FORM);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState('');
+
+  // Temporary credentials shown once after a successful create (kept in memory only)
+  const [createdCredentials, setCreatedCredentials] = useState(null);
+  const [passwordCopied, setPasswordCopied] = useState(false);
 
   const [localAccounts, setLocalAccounts] = useState(accounts);
 
@@ -73,13 +98,14 @@ export default function AdminAccountsTab({
   }
 
   async function handleApproveAgent(account) {
+    if (!isPendingStatus(account)) return; // only Pending accounts can be approved
     if (!window.confirm(`Approve accreditation and activate agent ${account.name}?`)) return;
     setIsProcessing(true);
     try {
       await updateAdminAccount(account.id, {
         status: 'Active',
         complianceStatus: 'Verified & Cleared',
-      }).catch((err) => console.warn('Offline mode: approving in local state', err.message));
+      });
 
       setLocalAccounts((prev) =>
         prev.map((a) =>
@@ -103,18 +129,28 @@ export default function AdminAccountsTab({
   async function handleConfirmSuspend(e) {
     e.preventDefault();
     if (!selectedAccount) return;
+    // Only Active agents can be suspended (Pending agents must be approved or left pending)
+    if (getStatus(selectedAccount) !== 'Active') {
+      alert('Only Active accounts can be suspended.');
+      return;
+    }
+    const reason = suspensionReason.trim();
+    if (!reason) {
+      alert('A suspension reason is required.');
+      return;
+    }
     setIsProcessing(true);
     try {
       await updateAdminAccount(selectedAccount.id, {
         status: 'Suspended',
-        complianceStatus: `Suspended: ${suspensionReason}`,
-        suspensionReason,
-      }).catch((err) => console.warn('Offline mode: suspending in local state', err.message));
+        complianceStatus: `Suspended: ${reason}`,
+        suspensionReason: reason,
+      });
 
       setLocalAccounts((prev) =>
         prev.map((a) =>
           a.id === selectedAccount.id
-            ? { ...a, status: 'Suspended', complianceStatus: `Suspended: ${suspensionReason}`, suspensionReason }
+            ? { ...a, status: 'Suspended', complianceStatus: `Suspended: ${reason}`, suspensionReason: reason }
             : a
         )
       );
@@ -131,6 +167,7 @@ export default function AdminAccountsTab({
   }
 
   async function handleReinstateAgent(account) {
+    if (getStatus(account) !== 'Suspended') return; // only Suspended accounts can be reinstated
     if (!window.confirm(`Reinstate full partner permissions for ${account.name}?`)) return;
     setIsProcessing(true);
     try {
@@ -138,7 +175,7 @@ export default function AdminAccountsTab({
         status: 'Active',
         complianceStatus: 'Verified & Cleared',
         suspensionReason: '',
-      }).catch((err) => console.warn('Offline mode: reinstating in local state', err.message));
+      });
 
       setLocalAccounts((prev) =>
         prev.map((a) =>
@@ -159,8 +196,106 @@ export default function AdminAccountsTab({
     }
   }
 
+  function setFormField(key, value) {
+    setNewAccountForm((prev) => {
+      const next = { ...prev, [key]: value };
+      // Swap the department default when switching role, but keep any custom input
+      if (key === 'role' && Object.values(DEFAULT_DEPARTMENT_BY_ROLE).includes(prev.department)) {
+        next.department = DEFAULT_DEPARTMENT_BY_ROLE[value] || prev.department;
+      }
+      return next;
+    });
+    setFieldErrors((prev) => (prev[key] || (key === 'role' && (prev.npn || prev.phone)) ? { ...prev, [key]: undefined, ...(key === 'role' ? { npn: undefined, phone: undefined } : {}) } : prev));
+    setFormError('');
+  }
+
+  const isAgentForm = newAccountForm.role === 'agent';
+
+  function fieldBorder(key) {
+    return fieldErrors[key] ? 'border-rose-400 bg-rose-50/40 focus:border-rose-500' : 'border-slate-200 focus:border-blue-500';
+  }
+
+  function validateCreateForm(form) {
+    const errors = {};
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const phone = form.phone.trim();
+    const npn = form.npn.trim();
+
+    if (!VALID_ACCOUNT_ROLES.includes(form.role)) errors.role = 'Role must be agent, staff or admin.';
+    if (!name) errors.name = 'Full name is required.';
+
+    if (!email) errors.email = 'Email address is required.';
+    else if (!isValidEmail(email)) errors.email = 'Enter a valid email address (e.g. name@domain.com).';
+    else if (localAccounts.some((a) => String(a.email || '').trim().toLowerCase() === email.toLowerCase())) {
+      errors.email = 'An account with this email already exists.';
+    }
+
+    if (form.role === 'agent') {
+      if (!phone) errors.phone = 'Phone number is required for agents.';
+      if (!npn) errors.npn = 'NPN is required for agents.';
+      else if (!isValidNpn(npn)) errors.npn = 'NPN must be 7-8 digits (numbers only).';
+      else if (localAccounts.some((a) => String(a.npn || '').trim() === npn)) {
+        errors.npn = 'This NPN is already registered to another account.';
+      }
+    }
+    return errors;
+  }
+
+  function resetCreateForm() {
+    setNewAccountForm(EMPTY_ACCOUNT_FORM);
+    setFieldErrors({});
+    setFormError('');
+  }
+
+  function handleOpenCreate() {
+    resetCreateForm();
+    setModalMode('create');
+  }
+
+  function handleCloseCreate() {
+    setModalMode(null);
+    resetCreateForm();
+  }
+
+  function handleCloseCredentials() {
+    // Drop the temp password from memory as soon as the panel is dismissed
+    setCreatedCredentials(null);
+    setPasswordCopied(false);
+    setModalMode(null);
+  }
+
+  async function handleCopyPassword() {
+    if (!createdCredentials?.tempPassword) return;
+    try {
+      await navigator.clipboard.writeText(createdCredentials.tempPassword);
+    } catch {
+      // Fallback for non-secure contexts / older browsers
+      const ta = document.createElement('textarea');
+      ta.value = createdCredentials.tempPassword;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch { /* ignore */ }
+      document.body.removeChild(ta);
+    }
+    setPasswordCopied(true);
+    setTimeout(() => setPasswordCopied(false), 2000);
+  }
+
   async function handleCreateAccount(e) {
     e.preventDefault();
+    if (isProcessing) return;
+
+    const errors = validateCreateForm(newAccountForm);
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setFormError('Please fix the highlighted fields before provisioning the account.');
+      return;
+    }
+    setFormError('');
+
     setIsProcessing(true);
     try {
       const statesArr = newAccountForm.statesLicensed
@@ -168,12 +303,19 @@ export default function AdminAccountsTab({
         .map((s) => s.trim())
         .filter(Boolean);
 
-      const created = await createAdminAccount({
-        ...newAccountForm,
+      // Status / complianceStatus are decided by the backend (agents start Pending,
+      // staff/admin start Active) — the form only sends identity data.
+      const payload = {
+        name: newAccountForm.name.trim(),
+        email: newAccountForm.email.trim(),
+        role: newAccountForm.role,
+        phone: newAccountForm.phone.trim(),
         statesLicensed: statesArr,
-        status: newAccountForm.role === 'agent' ? 'Pending' : 'Active',
-        complianceStatus: newAccountForm.role === 'agent' ? 'Pending NPN Verification' : 'Verified & Cleared',
-      });
+        department: newAccountForm.department.trim(),
+      };
+      if (newAccountForm.role === 'agent') payload.npn = newAccountForm.npn.trim();
+
+      const { tempPassword, offline, ...created } = await createAdminAccount(payload);
 
       // Đặt lại bộ lọc để tài khoản mới luôn hiển thị ngay lập tức
       setRoleFilter('all');
@@ -182,33 +324,38 @@ export default function AdminAccountsTab({
 
       setLocalAccounts((prev) => [created, ...prev.filter((a) => a.id !== created.id)]);
 
-      const tempPassword = `Temp@${Math.floor(1000 + Math.random() * 9000)}`;
-      alert(
-        `SUCCESS: Account Created\n\n` +
-        `Email: ${created.email}\n` +
-        `Temporary Password: ${tempPassword}\n\n` +
-        `A welcome email has been sent automatically to the agent.`
-      );
-
-      setToastMessage(`Created new ${newAccountForm.role} account for ${newAccountForm.name}!`);
-      setTimeout(() => setToastMessage(''), 4000);
-      setModalMode(null);
-      setNewAccountForm({
-        name: '',
-        email: '',
-        role: 'agent',
-        phone: '',
-        npn: '',
-        statesLicensed: 'TX (TDI), CA (CDI)',
-        department: 'Regional Agent Network',
+      // Temp password lives only in component state (never localStorage)
+      setCreatedCredentials({
+        name: created.name,
+        email: created.email,
+        role: created.role,
+        status: getStatus(created),
+        avatar: created.avatar,
+        bg: created.bg,
+        tempPassword,
+        offline: Boolean(offline),
       });
+      setPasswordCopied(false);
+
+      setToastMessage(`Created new ${created.role} account for ${created.name}!`);
+      setTimeout(() => setToastMessage(''), 4000);
+      setModalMode('credentials');
+      resetCreateForm();
       if (onRefresh) onRefresh();
     } catch (err) {
-      alert(`Account creation failed: ${err.message}`);
+      // Keep the form open so the admin can correct and resubmit
+      const msg = err.message || 'Account creation failed.';
+      if (/email/i.test(msg) && /(exist|duplicate|already|taken|in use)/i.test(msg)) {
+        setFieldErrors((prev) => ({ ...prev, email: msg }));
+      } else if (/npn/i.test(msg) && /(exist|duplicate|already|taken|in use|digit|format|invalid)/i.test(msg)) {
+        setFieldErrors((prev) => ({ ...prev, npn: msg }));
+      }
+      setFormError(msg);
     } finally {
       setIsProcessing(false);
     }
   }
+
 
   return (
     <div className="space-y-6">
@@ -276,7 +423,7 @@ export default function AdminAccountsTab({
           </div>
 
           <button
-            onClick={() => setModalMode('create')}
+            onClick={handleOpenCreate}
             className="w-full sm:w-auto justify-center px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-blue-600 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">person_add</span>
@@ -302,9 +449,9 @@ export default function AdminAccountsTab({
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredAccounts.map((acc) => {
-                const isActive = acc.status === 'Active';
-                const isPending = acc.status.includes('Pending');
-                const isSuspended = acc.status === 'Suspended';
+                const isActive = getStatus(acc) === 'Active';
+                const isPending = isPendingStatus(acc);
+                const isSuspended = getStatus(acc) === 'Suspended';
 
                 return (
                   <tr key={acc.id} className="hover:bg-slate-50/70 transition-colors">
@@ -358,7 +505,7 @@ export default function AdminAccountsTab({
                         }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : isPending ? 'bg-amber-500 animate-pulse' : 'bg-rose-500'}`} />
-                        {acc.status}
+                        {isPending ? 'Pending NPN' : acc.status}
                       </span>
                     </td>
                     <td className="px-5 py-4">
@@ -473,7 +620,7 @@ export default function AdminAccountsTab({
               >
                 Close
               </button>
-              {selectedAccount.status.includes('Pending') && (
+              {isPendingStatus(selectedAccount) && (
                 <button
                   type="button"
                   onClick={() => handleApproveAgent(selectedAccount)}
@@ -554,31 +701,38 @@ export default function AdminAccountsTab({
                 <h3 className="text-base font-bold text-slate-900">Provision New Platform Member</h3>
               </div>
               <button
-                onClick={() => setModalMode(null)}
+                onClick={handleCloseCreate}
                 className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleCreateAccount} className="space-y-3.5 text-xs">
+            <form onSubmit={handleCreateAccount} noValidate className="space-y-3.5 text-xs">
+              {formError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 font-semibold flex items-start gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-rose-600 shrink-0">error</span>
+                  <span>{formError}</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Full Name</label>
+                  <label className="block font-bold text-slate-700 mb-1">Full Name <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
-                    required
                     value={newAccountForm.name}
-                    onChange={(e) => setNewAccountForm({ ...newAccountForm, name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
+                    onChange={(e) => setFormField('name', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border focus:outline-none ${fieldBorder('name')}`}
                     placeholder="e.g. Danny Tran"
                   />
+                  {fieldErrors.name && <p className="mt-1 text-[11px] text-rose-600 font-semibold">{fieldErrors.name}</p>}
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Role</label>
+                  <label className="block font-bold text-slate-700 mb-1">Role <span className="text-rose-500">*</span></label>
                   <select
                     value={newAccountForm.role}
-                    onChange={(e) => setNewAccountForm({ ...newAccountForm, role: e.target.value })}
+                    onChange={(e) => setFormField('role', e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white"
                   >
                     <option value="agent">Licensed Partner Agent</option>
@@ -590,47 +744,54 @@ export default function AdminAccountsTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Email Address</label>
+                  <label className="block font-bold text-slate-700 mb-1">Email Address <span className="text-rose-500">*</span></label>
                   <input
                     type="email"
-                    required
                     value={newAccountForm.email}
-                    onChange={(e) => setNewAccountForm({ ...newAccountForm, email: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
+                    onChange={(e) => setFormField('email', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border focus:outline-none ${fieldBorder('email')}`}
                     placeholder="e.g. danny@insurmatch.us"
                   />
+                  {fieldErrors.email && <p className="mt-1 text-[11px] text-rose-600 font-semibold">{fieldErrors.email}</p>}
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Phone Number</label>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Phone Number {isAgentForm && <span className="text-rose-500">*</span>}
+                  </label>
                   <input
                     type="tel"
-                    required
                     value={newAccountForm.phone}
-                    onChange={(e) => setNewAccountForm({ ...newAccountForm, phone: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
+                    onChange={(e) => setFormField('phone', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl border focus:outline-none ${fieldBorder('phone')}`}
                     placeholder="+1 (832) 000-0000"
                   />
+                  {fieldErrors.phone && <p className="mt-1 text-[11px] text-rose-600 font-semibold">{fieldErrors.phone}</p>}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">National Producer # (NPN)</label>
-                  <input
-                    type="text"
-                    required
-                    value={newAccountForm.npn}
-                    onChange={(e) => setNewAccountForm({ ...newAccountForm, npn: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 font-mono"
-                    placeholder="e.g. 2018892"
-                  />
-                </div>
-                <div>
+                {isAgentForm && (
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">National Producer # (NPN) <span className="text-rose-500">*</span></label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={newAccountForm.npn}
+                      onChange={(e) => setFormField('npn', e.target.value)}
+                      className={`w-full px-3 py-2 rounded-xl border focus:outline-none font-mono ${fieldBorder('npn')}`}
+                      placeholder="e.g. 2018892"
+                    />
+                    {fieldErrors.npn
+                      ? <p className="mt-1 text-[11px] text-rose-600 font-semibold">{fieldErrors.npn}</p>
+                      : <p className="mt-1 text-[11px] text-slate-400">7-8 digits. Agent stays Pending until NPN is verified.</p>}
+                  </div>
+                )}
+                <div className={isAgentForm ? '' : 'col-span-2'}>
                   <label className="block font-bold text-slate-700 mb-1">Department / Branch</label>
                   <input
                     type="text"
                     value={newAccountForm.department}
-                    onChange={(e) => setNewAccountForm({ ...newAccountForm, department: e.target.value })}
+                    onChange={(e) => setFormField('department', e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
                     placeholder="Houston Regional Hub"
                   />
@@ -642,7 +803,7 @@ export default function AdminAccountsTab({
                 <input
                   type="text"
                   value={newAccountForm.statesLicensed}
-                  onChange={(e) => setNewAccountForm({ ...newAccountForm, statesLicensed: e.target.value })}
+                  onChange={(e) => setFormField('statesLicensed', e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
                   placeholder="TX (TDI), CA (CDI), FL"
                 />
@@ -651,7 +812,7 @@ export default function AdminAccountsTab({
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setModalMode(null)}
+                  onClick={handleCloseCreate}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
@@ -665,6 +826,83 @@ export default function AdminAccountsTab({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Account Created — Temporary Credentials ─────────────── */}
+      {modalMode === 'credentials' && createdCredentials && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto animate-scale-in">
+            <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+              <span className="material-symbols-outlined text-emerald-600 text-[26px]">check_circle</span>
+              <h3 className="text-base font-bold text-slate-900">Account Created</h3>
+            </div>
+
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div className={`w-10 h-10 rounded-xl ${createdCredentials.bg || 'bg-slate-700 text-white'} flex items-center justify-center font-bold text-xs shrink-0`}>
+                {createdCredentials.avatar}
+              </div>
+              <div className="min-w-0">
+                <div className="font-bold text-slate-900 text-sm truncate">{createdCredentials.name}</div>
+                <div className="text-[11px] text-slate-500 truncate">{createdCredentials.email}</div>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200 capitalize">{createdCredentials.role}</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    createdCredentials.status.includes('Pending')
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  }`}>
+                    {createdCredentials.status.includes('Pending') ? 'Pending NPN' : createdCredentials.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Temporary Password</label>
+              <div className="flex items-stretch gap-2">
+                <code className="flex-1 px-3 py-2.5 rounded-xl bg-slate-900 text-emerald-300 font-mono text-sm font-bold select-all break-all">
+                  {createdCredentials.tempPassword}
+                </code>
+                <button
+                  type="button"
+                  onClick={handleCopyPassword}
+                  className="px-3 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 transition text-xs font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">{passwordCopied ? 'check' : 'content_copy'}</span>
+                  {passwordCopied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <p className="mt-1.5 text-[11px] text-slate-400">Shown only once. The member should change it after first sign-in.</p>
+            </div>
+
+            {createdCredentials.offline ? (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800 leading-relaxed">
+                <strong>Offline mode:</strong> the server could not be reached, so no welcome email was sent. Please share the credentials with the member manually.
+              </div>
+            ) : (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 leading-relaxed flex items-start gap-2">
+                <span className="material-symbols-outlined text-[16px] shrink-0">mail</span>
+                <span>A welcome email has been sent automatically to <strong>{createdCredentials.email}</strong>.</span>
+              </div>
+            )}
+
+            {createdCredentials.status.includes('Pending') && (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800 leading-relaxed">
+                This agent is <strong>Pending NPN verification</strong>. Use <strong>Approve</strong> in the roster to activate the account once the NPN is cleared.
+              </div>
+            )}
+
+            <div className="flex justify-end pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={handleCloseCredentials}
+                className="px-5 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-blue-600 transition cursor-pointer shadow-xs"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
