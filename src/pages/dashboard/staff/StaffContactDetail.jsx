@@ -613,7 +613,7 @@ export default function StaffContactDetail({
   }
 
   // Primary fields (synchronized with create contact)
-  const initialPrimary = contact?.primary || (contact ? {} : (null.primary || {}));
+  const initialPrimary = contact?.primary || (contact ? {} : ({}));
   const [primaryFirstName, setPrimaryFirstName] = useState(
     contact?.firstName || initialPrimary.firstName || ''
   );
@@ -1064,9 +1064,7 @@ export default function StaffContactDetail({
       }
       null;
     }
-    if (null && (contact?.id === null.id || !contact?.id)) {
-      null.notes = newList;
-    }
+    
   }
 
   function updateAndPersistTasks(newTasks) {
@@ -1076,9 +1074,7 @@ export default function StaffContactDetail({
       if (onUpdateContact) onUpdateContact(updated);
       null;
     }
-    if (null && (contact?.id === null.id || !contact?.id)) {
-      null.tasks = newTasks;
-    }
+    
   }
 
   function handleCardFileAttach(noteId, e) {
@@ -1427,7 +1423,7 @@ export default function StaffContactDetail({
   }
 
   // Use passed contact info or fallback to null
-  const contactInfo = contact || null;
+  const contactInfo = contact || {};
 
   // Dynamic Full Name and Initials
   const currentFullName = [primaryFirstName, primaryMiddleName, primaryLastName]

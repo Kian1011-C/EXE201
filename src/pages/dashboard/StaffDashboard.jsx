@@ -305,7 +305,7 @@ export default function StaffDashboard() {
         ...(contact.sourceOfLead || {}),
         howDoYouKnowUs: contact.howDoYouKnowUs || (contact.sourceOfLead?.howDoYouKnowUs || '---'),
         whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
-        contactOwner: contact.contactOwner?.name || contact.contactOwner || (isDemoSample ? null.sourceOfLead.contactOwner : 'The Best Rate Insurance'),
+        contactOwner: contact.contactOwner?.name || contact.contactOwner || 'The Best Rate Insurance',
       },
       initials: (contact.fullName || (isDemoSample ? 'ND' : (firstName ? firstName[0] : 'CT')))
         .split(' ')
