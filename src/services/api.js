@@ -451,6 +451,17 @@ export async function deleteDocumentFile(docId, fileId) {
   });
 }
 
+export function getAllCustomerDocuments() {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_dynamic_documents') : null;
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
 // ── Interaction: Notes, Tasks, Activities ────────────────────────────────────
 export async function addContactNote(contactId, data) {
   return await request(`/contacts/${encodeURIComponent(contactId)}/notes`, {
@@ -459,11 +470,28 @@ export async function addContactNote(contactId, data) {
   });
 }
 
+export async function updateContactNote(contactId, noteId, data) {
+  return await request(`/contacts/${encodeURIComponent(contactId)}/notes/${encodeURIComponent(noteId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }).catch(() => null);
+}
+
+export async function deleteContactNote(contactId, noteId) {
+  return await request(`/contacts/${encodeURIComponent(contactId)}/notes/${encodeURIComponent(noteId)}`, {
+    method: 'DELETE',
+  }).catch(() => null);
+}
+
 export async function addContactTask(contactId, data) {
   return await request(`/contacts/${encodeURIComponent(contactId)}/tasks`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
+}
+
+export async function updateContactTask(contactId, taskId, data) {
+  return await updateTask(taskId, data);
 }
 
 export async function addContactActivity(contactId, data) {
