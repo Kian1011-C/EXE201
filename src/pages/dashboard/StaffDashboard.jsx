@@ -432,7 +432,7 @@ export default function StaffDashboard() {
 
   function handleUpdateDocument(updatedDoc) {
     setSelectedDocument(updatedDoc);
-    updateCustomerDocumentInStore(updatedDoc);
+    updateDocument(updatedDoc);
     if (selectedContact) {
       setSelectedContact((prev) => {
         if (!prev) return prev;

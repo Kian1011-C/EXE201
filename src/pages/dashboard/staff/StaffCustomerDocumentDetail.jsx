@@ -154,7 +154,7 @@ export default function StaffCustomerDocumentDetail({
         lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
       };
 
-      updateCustomerDocumentInStore(updatedDoc);
+      updateDocument(updatedDoc);
       if (doc?.id) {
         updateDocument(doc.id, {
           name: docName,
@@ -227,7 +227,7 @@ export default function StaffCustomerDocumentDetail({
         lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
       };
 
-      updateCustomerDocumentInStore(updatedDoc);
+      updateDocument(updatedDoc);
       if (doc?.id) {
         deleteDocumentFile(doc.id, fileId).catch((err) =>
           console.warn('[StaffCustomerDocumentDetail] Delete file API fallback:', err)

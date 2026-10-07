@@ -1,3 +1,4 @@
+import { MEDICARE_DEAL_STAGES, OBAMACARE_DEAL_STAGES, ALL_CARRIERS, CARRIER_COMMISSION_RATES } from '../../../utils/constants';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { createTicket, updateDeal, getUsers, getAdminAccounts, createTask, updateTask, addDealNote } from '../../../services/api';
@@ -1256,7 +1257,7 @@ export default function StaffDealDetail({
   function handleDeleteTask(taskId) {
     const updatedList = tasksList.filter((t) => t.id !== taskId);
     updateAndPersistDealTasks(updatedList);
-    deleteTaskFromStore(taskId);
+    deleteTask(taskId);
     logActivity('Task Deleted', 'deleted a task');
     showToast('Task deleted successfully');
   }

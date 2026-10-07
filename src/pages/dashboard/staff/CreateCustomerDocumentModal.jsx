@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { createDocument, addCustomerDocumentToStore } from '../../../services/api';
-import { getAllPlatformMembers } from '../../../utils/constants';
+import { createDocument, getUsers } from '../../../services/api';
 
 
 const CATEGORIES = [
@@ -41,7 +40,7 @@ export default function CreateCustomerDocumentModal({
   const [platformMembers, setPlatformMembers] = useState(() => [
     { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
     { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
-    ...getAllPlatformMembers(),
+    ...getUsers(),
   ]);
 
   useEffect(() => {
@@ -49,7 +48,7 @@ export default function CreateCustomerDocumentModal({
       setPlatformMembers([
         { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
         { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
-        ...getAllPlatformMembers(),
+        ...getUsers(),
       ]);
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
@@ -249,8 +248,8 @@ export default function CreateCustomerDocumentModal({
       },
     };
 
-    addCustomerDocumentToStore(newDoc);
-    createDocument({
+    createDocument, getUsers(newDoc);
+    createDocument, getUsers({
       name: finalDocName,
       contactOwner: ownerString,
       lastModifiedBy: selectedOwner?.name || 'Staff',

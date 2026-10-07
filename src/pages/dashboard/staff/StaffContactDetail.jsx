@@ -1,20 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
-import { ACA_ACCOUNT_STATUS_OPTIONS, getActiveAgentAccounts } from '../../../utils/constants';
+import { ACA_ACCOUNT_STATUS_OPTIONS } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, recordPropertyUpdate, getPersonName } from '../../../services/propertyHistoryService';
-import { getUsers, getContactDeals, getAllCustomerDocuments, addContactActivity, updateContact, createTicket, updateTicket, createContact, addContactNote, updateContactNote, deleteContactNote, createDeal, addContactTask, updateContactTask, createTask, updateTask, deleteTask } from '../../../services/api';
-import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
-import AddDealModal from './AddDealModal';
-import AddMemberPanel from './AddMemberPanel';
-import MemberSection from './MemberSection';
-import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
-import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
+import { getUsers, getContactDeals, addContactActivity, updateContact, createTicket, updateTicket, createContact, addContactNote, createDeal, addContactTask, createTask, updateTask, deleteTask } from '../../../services/api';
 
 export const AGENT_OPTIONS = [
   'The Best Rate Insurance',
+  'Platform Staff',
   'Khanh Nguyen',
+  'Anh Que Pham CPA',
+  'Sean Ngo',
+  'Ivy Le',
+  'James Vu',
 ];
 
 export default function StaffContactDetail({
@@ -30,40 +29,18 @@ export default function StaffContactDetail({
   const currentActor = getCurrentActor(user);
   
   const [dbUsers, setDbUsers] = useState([]);
-  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+  const [agentAccounts, setAgentAccounts] = useState(() => []);
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts(getActiveAgentAccounts());
+      setAgentAccounts([]);
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
   useEffect(() => {
     getUsers().then(data => {
-      if (Array.isArray(data) && data.length > 0) {
-        setDbUsers(data);
-        const backendAgents = data.filter((u) => {
-          const role = (u.role || '').toLowerCase();
-          const status = (u.status || '').toLowerCase();
-          return (role === 'agent' || role === 'broker') && status !== 'suspended';
-        });
-        if (backendAgents.length > 0) {
-          setAgentAccounts(
-            backendAgents.map((b) => ({
-              id: String(b.id),
-              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
-              role: 'agent',
-              avatar: b.avatar,
-              bg: b.bg,
-              email: b.email,
-              phone: b.phone,
-            }))
-          );
-        } else {
-          setAgentAccounts(getActiveAgentAccounts());
-        }
-      }
+      if (Array.isArray(data)) setDbUsers(data);
     }).catch(console.error);
   }, []);
 
@@ -314,7 +291,7 @@ export default function StaffContactDetail({
     } else if (contact?.customerDocument) {
       initialList = [contact.customerDocument];
     } else {
-      const allDocs = getAllCustomerDocuments();
+      const allDocs = [];
       const contactId = String(contact?.id || '').trim();
       const contactCode = String(contact?.code || '').trim();
       // Strictly match only by contactId or contact code. Never match loosely by contact name!
@@ -814,7 +791,7 @@ export default function StaffContactDetail({
       } else if (contact.customerDocument) {
         initialDocs = [contact.customerDocument];
       } else {
-        const allDocs = getAllCustomerDocuments();
+        const allDocs = [];
         const contactId = String(contact.id || '').trim();
         const contactCode = String(contact.code || '').trim();
         // Strictly match only by contactId or contact code. Never match loosely by contact name!
@@ -1998,6 +1975,7 @@ export default function StaffContactDetail({
                           >
                             <option value="">-- Chưa chọn --</option>
                             <option value="The Best Rate Insurance">The Best Rate Insurance</option>
+                            <option value="Platform Staff">Platform Staff</option>
                             {agentAccounts.map((a) => (
                               <option key={`agent-${a.id}`} value={a.name}>{a.name}</option>
                             ))}

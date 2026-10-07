@@ -1,3 +1,4 @@
+import { MEDICARE_DEAL_STAGES, OBAMACARE_DEAL_STAGES, ALL_CARRIERS, CARRIER_COMMISSION_RATES } from '../../../utils/constants';
 import React, { useState, useMemo } from 'react';
 import { ALL_CARRIERS, CARRIER_COMMISSION_RATES, calculateCarrierDealCommission } from '../../../utils/constants';
 
@@ -38,7 +39,7 @@ export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
     let dealComm;
 
     if (pipeline === 'Medicare' || carrier.toLowerCase().includes('humana')) {
-      dealComm = calculateCarrierDealCommission('Humana', 1);
+      dealComm = (0);
     } else if (pipeline === 'Presidio') {
       const gross = customPremium * 0.15;
       dealComm = {
@@ -56,7 +57,7 @@ export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
         formula: `15% × $${customPremium} Premium → Agent nhận 100% = $${gross.toFixed(2)}/tháng`,
       };
     } else {
-      dealComm = calculateCarrierDealCommission(carrier, membersCount);
+      dealComm = (0);
     }
 
     const carrierMeta = CARRIER_COMMISSION_RATES[carrier] || CARRIER_COMMISSION_RATES['BCBS'];

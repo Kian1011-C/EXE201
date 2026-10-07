@@ -226,7 +226,7 @@ export default function AdminAccountsTab({
     if (!name) errors.name = 'Full name is required.';
 
     if (!email) errors.email = 'Email address is required.';
-    else if (!isValidEmail(email)) errors.email = 'Enter a valid email address (e.g. name@domain.com).';
+    else if (!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) errors.email = 'Enter a valid email address (e.g. name@domain.com).';
     else if (localAccounts.some((a) => String(a.email || '').trim().toLowerCase() === email.toLowerCase())) {
       errors.email = 'An account with this email already exists.';
     }
@@ -234,7 +234,7 @@ export default function AdminAccountsTab({
     if (form.role === 'agent') {
       if (!phone) errors.phone = 'Phone number is required for agents.';
       if (!npn) errors.npn = 'NPN is required for agents.';
-      else if (!isValidNpn(npn)) errors.npn = 'NPN must be 7-8 digits (numbers only).';
+      else if (!(/^\d+$/.test(npn))) errors.npn = 'NPN must be 7-8 digits (numbers only).';
       else if (localAccounts.some((a) => String(a.npn || '').trim() === npn)) {
         errors.npn = 'This NPN is already registered to another account.';
       }

@@ -1,3 +1,4 @@
+import { MEDICARE_DEAL_STAGES, OBAMACARE_DEAL_STAGES, ALL_CARRIERS, CARRIER_COMMISSION_RATES } from '../../../utils/constants';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getDeals, updateDeal, createTicket, getUsers } from '../../../services/api';
 import StaffDealsKanban from './StaffDealsKanban';

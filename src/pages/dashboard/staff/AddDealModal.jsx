@@ -1,3 +1,4 @@
+import { MEDICARE_DEAL_STAGES, OBAMACARE_DEAL_STAGES, ALL_CARRIERS, CARRIER_COMMISSION_RATES } from '../../../utils/constants';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { createTicket, createDeal, getUsers } from '../../../services/api';

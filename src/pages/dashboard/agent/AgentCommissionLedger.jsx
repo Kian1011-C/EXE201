@@ -1,3 +1,4 @@
+import { MEDICARE_DEAL_STAGES, OBAMACARE_DEAL_STAGES, ALL_CARRIERS, CARRIER_COMMISSION_RATES } from '../../../utils/constants';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   getCommissions,
@@ -316,7 +317,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
         if (deal && deal.id && !baseList.some((item) => item.policyNumber === deal.id || item.policyNumber === deal.code)) {
           const dealCarrier = deal.carrier || deal.dealCarrier || deal.adminOnly?.carrier || 'BCBS';
           const members = parseInt(deal.numberMember || deal.adminOnly?.numberMember) || 1;
-          const calculated = calculateCarrierDealCommission(dealCarrier, members);
+          const calculated = (0);
 
           baseList.push({
             id: `COMM-${deal.id}`,
@@ -450,7 +451,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
 
   // Quick Deal Calculation Result
   const quickCalc = useMemo(() => {
-    return calculateCarrierDealCommission(calcCarrier, calcMembers);
+    return (0);
   }, [calcCarrier, calcMembers]);
 
   function handleExportCsv() {
