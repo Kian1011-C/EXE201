@@ -211,7 +211,11 @@ export default function StaffContactDetail({
       if (!key || seen.has(key)) return false;
       seen.add(key);
       return true;
-    });
+    }).map((d) => ({
+      ...d,
+      stage: d.stage || d.dealStage || 'Ready to Enroll (Obamacare 2026)',
+      dealStage: d.dealStage || d.stage || 'Ready to Enroll (Obamacare 2026)',
+    }));
   }, [contact]);
 
   const [contactDeals, setContactDeals] = useState(() => resolveDealsForContact());
@@ -230,14 +234,19 @@ export default function StaffContactDetail({
         .then((apiDeals) => {
           if (Array.isArray(apiDeals) && apiDeals.length > 0) {
             setContactDeals((prev) => {
-              const merged = [...apiDeals, ...prev];
-              const seen = new Set();
-              return merged?.filter((d) => {
-                const key = d.id || d.code;
-                if (!key || seen.has(key)) return false;
-                seen.add(key);
-                return true;
+              const apiNormalized = apiDeals.map((d) => ({
+                ...d,
+                stage: d.stage || d.dealStage || 'Ready to Enroll (Obamacare 2026)',
+                dealStage: d.dealStage || d.stage || 'Ready to Enroll (Obamacare 2026)',
+              }));
+              const apiMap = new Map(apiNormalized.map((d) => [String(d.id || d.code), d]));
+              const updatedPrev = prev.map((d) => {
+                const key = String(d.id || d.code);
+                return apiMap.has(key) ? { ...d, ...apiMap.get(key) } : d;
               });
+              const seenKeys = new Set(updatedPrev.map((d) => String(d.id || d.code)));
+              const newDeals = apiNormalized.filter((d) => !seenKeys.has(String(d.id || d.code)));
+              return [...updatedPrev, ...newDeals];
             });
           }
         })
@@ -254,14 +263,19 @@ export default function StaffContactDetail({
         .then((apiDeals) => {
           if (Array.isArray(apiDeals) && apiDeals.length > 0) {
             setContactDeals((prev) => {
-              const merged = [...apiDeals, ...prev];
-              const seen = new Set();
-              return merged?.filter((d) => {
-                const key = d.id || d.code;
-                if (!key || seen.has(key)) return false;
-                seen.add(key);
-                return true;
+              const apiNormalized = apiDeals.map((d) => ({
+                ...d,
+                stage: d.stage || d.dealStage || 'Ready to Enroll (Obamacare 2026)',
+                dealStage: d.dealStage || d.stage || 'Ready to Enroll (Obamacare 2026)',
+              }));
+              const apiMap = new Map(apiNormalized.map((d) => [String(d.id || d.code), d]));
+              const updatedPrev = prev.map((d) => {
+                const key = String(d.id || d.code);
+                return apiMap.has(key) ? { ...d, ...apiMap.get(key) } : d;
               });
+              const seenKeys = new Set(updatedPrev.map((d) => String(d.id || d.code)));
+              const newDeals = apiNormalized.filter((d) => !seenKeys.has(String(d.id || d.code)));
+              return [...updatedPrev, ...newDeals];
             });
           }
           showToast('Đã làm mới danh sách Deal!');
@@ -3839,7 +3853,7 @@ export default function StaffContactDetail({
                           <div className="flex items-center gap-2">
                             <span className="material-symbols-outlined text-[15px] text-slate-400">trending_up</span>
                             <span className="text-slate-500">Stage:</span>
-                            <span className="font-semibold text-slate-800">{dealItem?.stage || 'Ready to Enroll'}</span>
+                            <span className="font-semibold text-slate-800">{dealItem?.stage || dealItem?.dealStage || 'Ready to Enroll'}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>

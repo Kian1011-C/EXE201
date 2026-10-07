@@ -457,13 +457,31 @@ export default function AdminDashboard() {
       );
     });
 
-    const allResolvedDeals = [...existingDeals, ...matchingLocalDeals];
+    const allResolvedDeals = [
+      ...(selectedDeal && (selectedDeal.contactId === resolvedContactId || String(selectedDeal.contact?.id) === resolvedContactId) ? [selectedDeal] : []),
+      ...existingDeals,
+      ...matchingLocalDeals,
+    ];
     const seenDealKeys = new Set();
     const finalAssociatedDeals = allResolvedDeals?.filter((d) => {
       const key = d.id || d.code;
       if (!key || seenDealKeys.has(key)) return false;
       seenDealKeys.add(key);
       return true;
+    }).map((d) => {
+      if (selectedDeal && (selectedDeal.id === d.id || selectedDeal.code === d.code)) {
+        return {
+          ...d,
+          ...selectedDeal,
+          stage: selectedDeal.stage || selectedDeal.dealStage || d.stage || d.dealStage,
+          dealStage: selectedDeal.stage || selectedDeal.dealStage || d.dealStage || d.stage,
+        };
+      }
+      return {
+        ...d,
+        stage: d.stage || d.dealStage,
+        dealStage: d.dealStage || d.stage,
+      };
     });
 
     mergedContact.associatedDeals = finalAssociatedDeals;

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { createTicket, updateDeal, getUsers, getAdminAccounts, createTask, updateTask, addDealNote } from '../../../services/api';
+import { createTicket, updateDeal, updateDealStage, getUsers, getAdminAccounts, createTask, updateTask, addDealNote } from '../../../services/api';
 import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import {
@@ -30,81 +30,6 @@ export default function StaffDealDetail({
   const { user } = useAuth();
   const currentActor = getCurrentActor(user);
   const dealInfo = deal || {};
-
-  // Dynamically resolve contact linked to this deal
-  const resolvedContact = useMemo(() => {
-    let base = null;
-    if (dealInfo.contact && typeof dealInfo.contact === 'object') {
-      const c = dealInfo.contact;
-      if (c.fullName || c.name || c.id || c.phone || c.email) {
-        base = {
-          id: c.id || dealInfo.contactId || '',
-          fullName: c.fullName || c.name || dealInfo.contactName || '',
-          phone: c.phone || dealInfo.contactPhone || '',
-          email: c.email || dealInfo.contactEmail || '',
-          ...c,
-        };
-      }
-    }
-
-    const cId = String(
-      dealInfo.contactId || (typeof dealInfo.contact === 'string' ? dealInfo.contact : '') || ''
-    )?.trim();
-    const cName = String(dealInfo.contactName || '')?.trim();
-
-    if (!base && (cId || cName)) {
-      const allContacts = [...[], ...[]];
-      const found = allContacts.find(
-        (c) =>
-          (cId && (String(c.id) === cId || String(c.code) === cId)) ||
-          (cName && c.fullName && c.fullName?.trim()?.toLowerCase() === cName?.toLowerCase())
-      );
-      if (found) {
-        base = {
-          id: found.id || found.code || cId,
-          fullName:
-            found.fullName ||
-            `${found.firstName || ''} ${found.lastName || ''}`?.trim() ||
-            cName,
-          phone: found.phone || found.contactFields?.phonePrimary || dealInfo.contactPhone || '',
-          email: found.email || found.contactFields?.emailPrimary || dealInfo.contactEmail || '',
-          ...found,
-        };
-      } else if (cName) {
-        base = {
-          id: cId || '',
-          fullName: cName,
-          phone: dealInfo.contactPhone || '',
-          email: dealInfo.contactEmail || '',
-        };
-      }
-    }
-
-    if (!base) return null;
-
-    // Attach current deal snapshot so navigating back to contact never loses this deal
-    const currentDealItem = {
-      ...dealInfo,
-      id: deal?.id || dealInfo.id || deal?.code || dealInfo.code,
-      code: deal?.code || dealInfo.code || deal?.id || dealInfo.id,
-      title: deal?.title || dealInfo.title || 'Deal',
-      contactId: base.id || dealInfo.contactId || '',
-      contactName: base.fullName || dealInfo.contactName || '',
-    };
-    const existingDeals = Array.isArray(base.associatedDeals)
-      ? base.associatedDeals
-      : (Array.isArray(base.deals) ? base.deals : []);
-    const filteredDeals = existingDeals?.filter(
-      (d) => (d.id || d.code) !== currentDealItem.id
-    );
-    const updatedDeals = [currentDealItem, ...filteredDeals];
-
-    return {
-      ...base,
-      associatedDeals: updatedDeals,
-      deals: updatedDeals,
-    };
-  }, [dealInfo, deal]);
 
   // State for deal editing
   const [dealTitle, setDealTitle] = useState(
@@ -226,8 +151,9 @@ export default function StaffDealDetail({
     st?.toLowerCase().includes(stageSearchQuery?.toLowerCase()?.trim())
   );
 
-  function handleSelectStage(newStage) {
-    if (newStage === stage) {
+  function handleSelectStage(newStage, overridePipeline) {
+    const activePipeline = overridePipeline || pipeline;
+    if (newStage === stage && !overridePipeline) {
       setIsStageDropdownOpen(false);
       setStageSearchQuery('');
       return;
@@ -274,15 +200,26 @@ export default function StaffDealDetail({
     const updatedActivities = [newAct, ...(activitiesList || [])];
     setActivitiesList(updatedActivities);
 
+    const updatedDeal = {
+      ...dealInfo,
+      ...(deal || {}),
+      title: dealTitle,
+      dealName: dealTitle,
+      pipeline: activePipeline,
+      stage: newStage,
+      dealStage: newStage,
+      activities: updatedActivities,
+      notes: notesList,
+      tasks: tasksList,
+    };
+
     if (onUpdateDeal) {
-      onUpdateDeal({
-        ...dealInfo,
-        title: dealTitle,
-        pipeline,
-        stage: newStage,
-        activities: updatedActivities,
-        notes: notesList,
-        tasks: tasksList,
+      onUpdateDeal(updatedDeal);
+    }
+
+    if (dealId) {
+      updateDealStage(dealId, newStage, currentActor).catch(() => {
+        updateDeal(dealId, updatedDeal).catch(() => null);
       });
     }
 
@@ -295,7 +232,7 @@ export default function StaffDealDetail({
     const defaultStage = newPipeline.includes('Medicare')
       ? MEDICARE_DEAL_STAGES[1]
       : OBAMACARE_DEAL_STAGES[7];
-    handleSelectStage(defaultStage);
+    handleSelectStage(defaultStage, newPipeline);
     showToast(`Pipeline changed to ${newPipeline}`);
   }
 
@@ -563,9 +500,90 @@ export default function StaffDealDetail({
   const [paymentOption, setPaymentOption] = useState(dealInfo.paymentOption || '');
   const [paymentVerification, setPaymentVerification] = useState(dealInfo.paymentVerification || '');
 
+  // Dynamically resolve contact linked to this deal with latest deal stage & properties
+  const resolvedContact = useMemo(() => {
+    let base = null;
+    if (dealInfo.contact && typeof dealInfo.contact === 'object') {
+      const c = dealInfo.contact;
+      if (c.fullName || c.name || c.id || c.phone || c.email) {
+        base = {
+          id: c.id || dealInfo.contactId || '',
+          fullName: c.fullName || c.name || dealInfo.contactName || '',
+          phone: c.phone || dealInfo.contactPhone || '',
+          email: c.email || dealInfo.contactEmail || '',
+          ...c,
+        };
+      }
+    }
+
+    const cId = String(
+      dealInfo.contactId || (typeof dealInfo.contact === 'string' ? dealInfo.contact : '') || ''
+    )?.trim();
+    const cName = String(dealInfo.contactName || '')?.trim();
+
+    if (!base && (cId || cName)) {
+      const allContacts = [];
+      const found = allContacts.find(
+        (c) =>
+          (cId && (String(c.id) === cId || String(c.code) === cId)) ||
+          (cName && c.fullName && c.fullName?.trim()?.toLowerCase() === cName?.toLowerCase())
+      );
+      if (found) {
+        base = {
+          id: found.id || found.code || cId,
+          fullName:
+            found.fullName ||
+            `${found.firstName || ''} ${found.lastName || ''}`?.trim() ||
+            cName,
+          phone: found.phone || found.contactFields?.phonePrimary || dealInfo.contactPhone || '',
+          email: found.email || found.contactFields?.emailPrimary || dealInfo.contactEmail || '',
+          ...found,
+        };
+      } else if (cName) {
+        base = {
+          id: cId || '',
+          fullName: cName,
+          phone: dealInfo.contactPhone || '',
+          email: dealInfo.contactEmail || '',
+        };
+      }
+    }
+
+    if (!base) return null;
+
+    const currentDealItem = {
+      ...dealInfo,
+      ...(deal || {}),
+      id: deal?.id || dealInfo.id || deal?.code || dealInfo.code,
+      code: deal?.code || dealInfo.code || deal?.id || dealInfo.id,
+      title: dealTitle || deal?.title || dealInfo.title || 'Deal',
+      dealName: dealTitle || deal?.title || dealInfo.title || 'Deal',
+      pipeline: pipeline || deal?.pipeline || dealInfo.pipeline || 'Obamacare 2026',
+      stage: stage || deal?.stage || dealInfo.stage || 'Ready to Enroll (Obamacare 2026)',
+      dealStage: stage || deal?.dealStage || dealInfo.dealStage || 'Ready to Enroll (Obamacare 2026)',
+      amount: enrollAmount ? `$${enrollAmount}` : amount,
+      contactId: base.id || dealInfo.contactId || '',
+      contactName: base.fullName || dealInfo.contactName || '',
+    };
+    const existingDeals = Array.isArray(base.associatedDeals)
+      ? base.associatedDeals
+      : (Array.isArray(base.deals) ? base.deals : []);
+    const filteredDeals = existingDeals?.filter(
+      (d) => (d.id || d.code) !== currentDealItem.id
+    );
+    const updatedDeals = [currentDealItem, ...filteredDeals];
+
+    return {
+      ...base,
+      associatedDeals: updatedDeals,
+      deals: updatedDeals,
+    };
+  }, [dealInfo, deal, stage, pipeline, dealTitle, enrollAmount, amount]);
+
   // Auto-save states for deal details
   const [dealSaveStatus, setDealSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved'
   const autoSaveDealTimerRef = useRef(null);
+  const handleSaveDealChangesRef = useRef(null);
   const isDealInitialMountRef = useRef(true);
   const lastSavedDealJsonRef = useRef('');
 
@@ -575,8 +593,10 @@ export default function StaffDealDetail({
       ...(deal || {}),
       dealOwner: dealOwner ? { name: dealOwner } : deal?.dealOwner,
       title: dealTitle,
+      dealName: dealTitle,
       pipeline,
       stage,
+      dealStage: stage,
       amount: enrollAmount ? `$${enrollAmount}` : amount,
       primaryMemberId,
       carrier,
@@ -666,6 +686,8 @@ export default function StaffDealDetail({
       showToast('Đã lưu thông tin Deal thành công!');
     }
   }
+
+  handleSaveDealChangesRef.current = handleSaveDealChanges;
 
   // Current snapshot for debounced auto-save
   const currentDealSnapshot = useMemo(() => {
@@ -787,7 +809,9 @@ export default function StaffDealDetail({
     return () => {
       if (autoSaveDealTimerRef.current) {
         clearTimeout(autoSaveDealTimerRef.current);
-        handleSaveDealChanges({ isAutoSave: true });
+        if (handleSaveDealChangesRef.current) {
+          handleSaveDealChangesRef.current({ isAutoSave: true });
+        }
       }
     };
   }, []);
@@ -795,7 +819,9 @@ export default function StaffDealDetail({
   function handleBack() {
     if (autoSaveDealTimerRef.current) {
       clearTimeout(autoSaveDealTimerRef.current);
-      handleSaveDealChanges({ isAutoSave: true });
+      if (handleSaveDealChangesRef.current) {
+        handleSaveDealChangesRef.current({ isAutoSave: true });
+      }
     }
     if (onBack) onBack();
   }
@@ -3271,7 +3297,17 @@ export default function StaffDealDetail({
                       </div>
                       <button
                         type="button"
-                        onClick={() => onSelectContact && onSelectContact(resolvedContact)}
+                        onClick={() => {
+                          if (autoSaveDealTimerRef.current) {
+                            clearTimeout(autoSaveDealTimerRef.current);
+                            if (handleSaveDealChangesRef.current) {
+                              handleSaveDealChangesRef.current({ isAutoSave: true });
+                            }
+                          }
+                          if (onSelectContact) {
+                            onSelectContact(resolvedContact);
+                          }
+                        }}
                         className="font-bold text-[#104882] text-xs hover:underline cursor-pointer text-left"
                       >
                         {resolvedContact.fullName || 'Khách hàng'}

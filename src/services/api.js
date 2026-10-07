@@ -355,10 +355,10 @@ export async function getContact(id) {
     if (detail && detail.contact) {
       const fullContact = {
         ...detail.contact,
-        deals: detail.deals || [],
-        associatedDeals: detail.deals || [],
-        tickets: detail.tickets || [],
-        associatedTickets: detail.tickets || [],
+        deals: (detail.deals || []).map(normalizeDeal),
+        associatedDeals: (detail.deals || []).map(normalizeDeal),
+        tickets: (detail.tickets || []).map(normalizeTicket),
+        associatedTickets: (detail.tickets || []).map(normalizeTicket),
         customerDocuments: detail.documents || [],
         tasks: detail.tasks || [],
         notes: detail.notes || [],
@@ -473,6 +473,16 @@ export async function updateDeal(id, data) {
   const res = await request(`/deals/${encodeURIComponent(id)}`, {
     method: 'PUT',
     body: JSON.stringify(sanitized),
+  });
+  return res ? normalizeDeal(res) : res;
+}
+
+export async function updateDealStage(id, stage, user) {
+  if (!id) return null;
+  const cleanId = String(id).replace(/\/$/, '').trim();
+  const res = await request(`/deals/${encodeURIComponent(cleanId)}/stage`, {
+    method: 'PUT',
+    body: JSON.stringify({ stage, user: user || 'Platform Staff' }),
   });
   return res ? normalizeDeal(res) : res;
 }
