@@ -1,210 +1,193 @@
 # HƯỚNG DẪN SỬ DỤNG HỆ THỐNG INSURMATCH (USER MANUAL)
-### DỰ ÁN KHỞI NGHIỆP: NỀN TẢNG KẾT NỐI & VẬN HÀNH BẢO HIỂM INSURMATCH
+### DỰ ÁN KHỞI NGHIỆP: NỀN TẢNG B2B SaaS CRM DÀNH CHO ĐẠI LÝ BẢO HIỂM HOA KỲ
 **Môn học:** EXE201 — Khởi sự doanh nghiệp (Fall 2026)  
 **Giảng viên phụ trách:** ThS. Nguyễn Thị Trà Minh  
 **Mục tiêu bàn giao:** Outcome 1 (MVP Submission & Presentation)  
-**Phiên bản tài liệu:** v1.0 (Tháng 10/2026)  
+**Mô hình kinh doanh:** B2B Vertical SaaS (Cung cấp phần mềm CRM chuyên dụng cho Đại lý Bảo hiểm)  
+**Phiên bản tài liệu:** v1.1 (Cập nhật chuẩn hóa B2B SaaS)  
 
 ---
 
 ## MỤC LỤC
-1. [Giới thiệu tổng quan hệ thống](#1-giới-thiệu-tổng-quan-hệ-thống)
+1. [Tuyên ngôn Giá trị & Mô hình Kinh doanh B2B](#1-tuyên-ngôn-giá-trị--mô-hình-kinh-doanh-b2b)
 2. [Thông tin tài khoản kiểm thử (Demo Credentials)](#2-thông-tin-tài-khoản-kiểm-thử-demo-credentials)
-3. [Phần 1: Hướng dẫn dành cho Khách hàng (Customer Portal)](#3-phần-1-hướng-dẫn-dành-cho-khách-hàng-customer-portal)
-4. [Phần 2: Hướng dẫn dành cho Điều phối viên (Staff CRM Hub)](#4-phần-2-hướng-dẫn-dành-cho-điều-phối-viên-staff-crm-hub)
-5. [Phần 3: Hướng dẫn dành cho Đại lý bảo hiểm (Licensed Agent Portal)](#5-phần-3-hướng-dẫn-dành-cho-đại-lý-bảo-hiểm-licensed-agent-portal)
-6. [Phần 4: Hướng dẫn dành cho Quản trị viên (Admin Governance)](#6-phần-4-hướng-dành-cho-quản-trị-viên-admin-governance)
-7. [Kịch bản Demo chuẩn luồng cho Outcome 1](#7-kịch-bản-demo-chuẩn-luồng-cho-outcome-1)
-8. [Câu hỏi thường gặp & Xử lý sự cố (Troubleshooting)](#8-câu-hỏi-thường-gặp--xử-lý-sự-cố-troubleshooting)
+3. [Phần 1: Cẩm nang dành cho Khách hàng của chúng tôi — ĐẠI LÝ BẢO HIỂM (Agent Portal)](#3-phần-1-cẩm-nang-dành-cho-khách-hàng-của-chúng-tôi--đại-lý-bảo-hiểm-agent-portal)
+4. [Phần 2: Cẩm nang dành cho Đội ngũ Điều phối Nền tảng (Platform Staff Hub)](#4-phần-2-cẩm-nang-dành-cho-đội-ngũ-điều-phối-nền-tảng-platform-staff-hub)
+5. [Phần 3: Cẩm nang Quản trị Hệ thống & Quản lý Thuê bao (Admin Governance)](#5-phần-3-cẩm-nang-quản-trị-hệ-thống--quản-lý-thuê-bao-admin-governance)
+6. [Phần 4: Kênh Tiếp nhận Lead Tự động (End-User Lead Intake Portal)](#6-phần-4-kênh-tiếp-nhận-lead-tự-động-end-user-lead-intake-portal)
+7. [Kịch bản Demo chuẩn luồng B2B cho Hội đồng Thẩm định Outcome 1](#7-kịch-bản-demo-chuẩn-luồng-b2b-cho-hội-đồng-thẩm-định-outcome-1)
+8. [Xử lý Sự cố & Câu hỏi Thường gặp (Troubleshooting)](#8-xử-lý-sự-cố--câu-hỏi-thường-gặp-troubleshooting)
 
 ---
 
-## 1. GIỚI THIỆU TỔNG QUAN HỆ THỐNG
+## 1. TUYÊN NGÔN GIÁ TRỊ & MÔ HÌNH KINH DOANH B2B
 
-**InsurMatch** là nền tảng số kết nối cộng đồng người Việt tại Hoa Kỳ với các đại lý bảo hiểm độc lập được cấp phép (Licensed Independent Agents). Hệ thống giải quyết rào cản ngôn ngữ và sự phức tạp của thị trường bảo hiểm y tế Hoa Kỳ (Obamacare/ACA, Medicare, Life Insurance), đồng thời cung cấp giải pháp CRM chuyên sâu hỗ trợ đại lý tự động hóa khâu thẩm định hồ sơ, quản lý thanh toán nợ phí và tính toán hoa hồng.
+### 1.1. Khách hàng mục tiêu của InsurMatch là ai?
+Khách hàng mục tiêu trả tiền (Target Paying Customers) của InsurMatch **chính là các Đại lý Bảo hiểm Độc lập (Licensed Independent Agents) và các Văn phòng Môi giới Bảo hiểm (Agencies)** chuyên phục vụ cộng đồng người Việt tại Hoa Kỳ.
 
-Hệ thống được thiết kế theo kiến trúc **Role-Based Access Control (RBAC)** với 4 vai trò độc lập:
-* **Khách hàng (Customer / Lead):** Tiếp cận thông tin minh bạch, tính toán trợ cấp thuế liên bang và gửi yêu cầu tư vấn ẩn danh.
-* **Điều phối viên (Staff / Operations):** Thẩm định thông tin, tạo hồ sơ liên hệ (Contact), gán Agent phụ trách, điều phối quy trình Deal và xử lý Ticket hậu mãi.
-* **Đại lý độc lập (Agent - Khanh Nguyen):** Tiếp nhận khách hàng theo phân quyền riêng biệt (Data Scoping), theo dõi tiến độ hợp đồng và tự động đối soát hoa hồng (Commission Ledger).
-* **Quản trị viên (Super Admin):** Giám sát bảo mật, xác thực giấy phép NPN của đại lý và theo dõi chỉ số tăng trưởng toàn sàn.
+### 1.2. Vấn đề của Đại lý Bảo hiểm (Customer Pain Points)
+* **Khó khăn quản trị sau bán:** Ngành bảo hiểm Mỹ (ACA/Obamacare, Medicare) yêu cầu quy trình hậu mãi rất phức tạp: nộp chứng minh thu nhập/thẻ xanh lên Marketplace, chọn bác sĩ gia đình (PCP), theo dõi nợ phí ngày 15 hàng tháng. Các CRM thông thường (HubSpot, Salesforce) không có tính năng nghiệp vụ đặc thù này.
+* **Sai sót tính toán hoa hồng (Commission Clawback):** Các hãng bảo hiểm (BCBS, Ambetter, Molina, Humana) áp dụng mức PMPM ($/member/tháng) và quy tắc khấu trừ hỗ trợ bán hàng (SSS Retention) phức tạp, đại lý thường xuyên bị nhầm lẫn khi đối soát.
+* **Chi phí marketing tìm lead cao:** Đại lý thiếu công cụ tiếp cận tập trung kiều bào người Việt tại các bang trọng điểm.
+
+### 1.3. Giải pháp InsurMatch mang lại cho Đại lý
+InsurMatch là giải pháp **Vertical SaaS CRM chuyên biệt cho ngành bảo hiểm**, cung cấp gói công cụ toàn diện:
+1. **CRM Quản lý Hồ sơ & Pipeline:** Tự động hóa tiếp nhận khách hàng và theo dõi hợp đồng theo thời gian thực.
+2. **Post-sale Automation (5 Pipelines):** Tự động tạo và nhắc việc cho các quy trình: *Payment, Collect Document, Choose Doctor, Client Support, Agent Support*.
+3. **Bộ tính toán hoa hồng tự động (SSS Commission Rules Engine):** Tự động tính Gross/Net Payout theo từng carrier, loại bỏ 100% rủi ro tính sai hoa hồng.
+4. **Tích hợp Kênh hút Lead (Lead Matchmaking Funnel):** Tích hợp sẵn trang tra cứu và form tính trợ cấp thuế để đưa lead trực tiếp về cho đại lý thuê CRM.
 
 ---
 
 ## 2. THÔNG TIN TÀI KHOẢN KIỂM THỬ (DEMO CREDENTIALS)
 
-Để phục vụ công tác chấm thi và đánh giá Outcome 1, hệ thống đã được cấu hình sẵn 3 tài khoản mẫu ứng với các vai trò nội bộ:
+Hệ thống đã thiết lập sẵn 3 tài khoản mẫu phục vụ hội đồng chấm thi kiểm tra luồng phân quyền:
 
-| Vai trò (Role) | Email đăng nhập | Mật khẩu mặc định | Tên hiển thị | Quyền hạn chính |
+| Phân hệ / Vai trò | Email đăng nhập | Mật khẩu mặc định | Đại diện kiểm thử | Mô tả quyền hạn |
 |---|---|---|---|---|
-| **Customer** | *(Không cần đăng nhập)* | *(Công khai)* | Khách vãng lai | Lấy báo giá, gửi yêu cầu kết nối đại lý |
-| **Staff** | `staff@insurmatch.us` | `Staff123!` | Anya Nguyen | Quản lý toàn bộ Contacts, Deals, Tickets, Tasks, Documents |
-| **Agent** | `agent@insurmatch.us` | `Agent123!` | Khanh Nguyen | Chỉ xem Contact/Deal được phân công, Bảng tính hoa hồng cá nhân |
-| **Admin** | `admin@insurmatch.us` | `Admin123!` | Super Admin | Phê duyệt Agent, Quản lý tài khoản, Xem Analytics toàn hệ thống |
-
-> **Lưu ý bảo mật:** Hệ thống sử dụng cơ chế JWT Token xác thực tự động kèm hạn sử dụng 8 giờ. Mọi thao tác ghi dữ liệu đều được kiểm tra phân quyền thời gian thực.
+| **Đại lý (Khách hàng CRM)** | `agent@insurmatch.us` | `Agent123!` | Khánh Nguyễn (Senior Agent) | Khách hàng thuê CRM: Quản lý data khách, hợp đồng, bảng hoa hồng cá nhân |
+| **Vận hành (Platform Staff)** | `staff@insurmatch.us` | `Staff123!` | Anya Nguyen (Operations) | Đội ngũ hỗ trợ của InsurMatch: Điều phối lead, hỗ trợ nộp giấy tờ cho Agent |
+| **Quản trị (Platform Admin)** | `admin@insurmatch.us` | `Admin123!` | Super Admin | Chủ sở hữu InsurMatch: Phê duyệt Agent mua gói, cấp quyền NPN, quản lý hệ thống |
+| **Người mua bảo hiểm** | *(Không cần đăng nhập)* | *(Công khai)* | Lead vãng lai | Gửi thông tin báo giá từ Landing Page về cho Agent |
 
 ---
 
-## 3. PHẦN 1: HƯỚNG DẪN DÀNH CHO KHÁCH HÀNG (CUSTOMER PORTAL)
+## 3. PHẦN 1: CẨM NANG DÀNH CHO KHÁCH HÀNG CỦA CHÚNG TÔI — ĐẠI LÝ BẢO HIỂM (AGENT PORTAL)
 
-### 3.1. Truy cập Trang chủ & Tra cứu gói bảo hiểm
-1. Khách hàng truy cập vào trang chủ **InsurMatch**.
-2. Menu điều hướng gồm các hạng mục:
-   * **Programs:** Thông tin chi tiết về *ACA Health Insurance*, *Medicare Advantage (Part C & D)*, *Life & Annuity*.
-   * **Carriers:** Danh sách các hãng bảo hiểm liên kết uy tín tại Mỹ (BCBS, Ambetter, Molina, Kaiser, UnitedHealthcare, Humana...).
-   * **Agent Directory:** Tra cứu danh bạ các đại lý người Việt được cấp phép theo từng bang (California, Texas, North Carolina, Florida...).
+*(Đây là giao diện chính mà Đại lý tương tác hàng ngày khi mua giải pháp CRM của InsurMatch)*
 
-### 3.2. Quy trình Lấy báo giá miễn phí (Get a Free Quote Flow)
-1. Tại Trang chủ hoặc thanh Header, bấm nút **"Get a Free Quote"** hoặc **"Bắt đầu ngay"**.
-2. Modal tính toán báo giá đa bước sẽ hiển thị:
-   * **Bước 1 (Thông tin cơ bản):** Chọn loại bảo hiểm mong muốn (ACA Obamacare / Medicare / Bảo hiểm nhân thọ) và chọn Tiểu bang cư trú (ví dụ: Texas, California...).
-   * **Bước 2 (Thông tin hộ gia đình):** Nhập số lượng thành viên, độ tuổi và mức thu nhập ước tính hàng năm (Annual Household Income).
-   * **Bước 3 (Liên hệ):** Nhập Họ tên, Số điện thoại và Email.
-3. Bấm **"Gửi yêu cầu kết nối" (Submit Request)**:
-   * Hệ thống tự động tính mức trợ cấp thuế liên bang (Federal Tax Subsidy).
-   * Tạo một mã yêu cầu tư vấn mới (Mã định dạng `INQ2600xxxx`) và lưu trực tiếp vào cơ sở dữ liệu để Staff xử lý.
-
----
-
-## 4. PHẦN 2: HƯỚNG DẪN DÀNH CHO ĐIỀU PHỐI VIÊN (STAFF CRM HUB)
-
-Điều phối viên là trung tâm vận hành hồ sơ của InsurMatch.
-
-### 4.1. Đăng nhập cổng Staff
+### 3.1. Đăng nhập Cổng Đại lý
 1. Truy cập trang `/login`.
-2. Nhập Email: `staff@insurmatch.us` và Mật khẩu: `Staff123!`.
-3. Bấm **"Đăng nhập"** -> Hệ thống chuyển hướng vào **Staff Dashboard**.
+2. Đăng nhập: `agent@insurmatch.us` | Mật khẩu: `Agent123!`.
+3. Hệ thống mở **Agent Workspace** được tối ưu hóa riêng cho công việc tư vấn.
 
-### 4.2. Quản lý Danh bạ Khách hàng (Contacts Hub)
-1. **Xem danh sách liên hệ:**
-   * Truy cập mục **Contacts** trên thanh menu bên trái.
-   * Giao diện hiển thị bảng danh sách liên hệ với đầy đủ thông tin: Mã khách hàng (`code`), Họ tên, Số điện thoại, Bang, Ngôn ngữ và Người phụ trách (`Contact Owner`).
-2. **Tìm kiếm & Lọc dữ liệu:**
-   * Ô tìm kiếm hỗ trợ tìm theo Họ tên, Số điện thoại hoặc Mã Contact.
-   * Dropdown lọc theo `Contact Owner`: Hỗ trợ lọc xem tất cả hoặc xem riêng hồ sơ thuộc đại lý **Khanh Nguyen**.
-3. **Tạo mới Liên hệ (+ Create Contact):**
-   * Bấm nút **"+ Create"** ở góc phải trên.
-   * Điền thông tin bắt buộc: Họ, Tên, Số điện thoại, Email, Bang cư trú.
-   * Mục **Contact Owner**: Chọn đại lý phụ trách (chọn `Khanh Nguyen`).
-   * Bấm **"Save Contact"**: Dữ liệu được lưu vĩnh viễn vào PostgreSQL và hiển thị ngay trên bảng.
-4. **Chi tiết hồ sơ khách hàng (Contact Detail):**
-   * Bấm vào bất kỳ dòng Contact nào để mở trang chi tiết 3 cột:
-     * *Cột trái:* Thông tin định danh cá nhân (Primary Info: Ngày sinh, SSN, Tình trạng định cư).
-     * *Cột giữa:* Lịch sử tương tác, Hoạt động gọi điện/ghi chú (Activities & Notes).
-     * *Cột phải:* Các Deal liên kết, Ticket khiếu nại và Hồ sơ giấy tờ (Attached Documents).
+### 3.2. Không gian Dữ liệu Bảo mật Độc lập (Data Scoping & Privacy)
+* **Bảo mật tuyệt đối giữa các Agent:** InsurMatch đảm bảo mỗi đại lý chỉ truy cập khách hàng (Contacts) và hợp đồng (Deals) được phân quyền cho chính mình (`Khanh Nguyen`).
+* **Agent Banner:** Đầu trang hiển thị rõ thông báo phạm vi: *"Chế độ Agent: Chỉ hiển thị các Contact được phân công cho Khanh Nguyen"*.
+* Đại lý không sợ bị trùng lặp hay lộ danh sách khách hàng sang đại lý khác trong cùng nền tảng.
 
-### 4.3. Quản lý Quy trình Hợp đồng (Deals Pipeline)
-1. Truy cập mục **Deals**.
-2. Hỗ trợ 2 chế độ hiển thị:
-   * **Chế độ Kanban:** Kéo thả Deal trực quan qua các giai đoạn:
-     * *New Inquiry* (Yêu cầu mới) -> *Appointment Scheduled* (Đã hẹn tư vấn) -> *Ready to Enroll* (Sẵn sàng nộp đơn) -> *Policy Issued* (Hợp đồng được cấp) -> *Active* (Đang hiệu lực).
-   * **Chế độ List (Bảng):** Xem chi tiết giá trị hợp đồng, hãng bảo hiểm (`Carrier`), Bang bán và Mã NPN của đại lý.
-3. **Tạo mới Deal (+ Add Deal):**
-   * Bấm **"+ Add Deal"**, chọn liên hệ khách hàng, chọn Pipeline (`Obamacare 2026` hoặc `Medicare 2026`), hãng bảo hiểm và người phụ trách (`Deal Owner`).
+### 3.3. Quản lý Danh bạ Khách hàng & Hồ sơ Bảo hiểm
+1. **Xem hồ sơ khách hàng:** Tra cứu nhanh họ tên, số điện thoại, tiểu bang cư trú, mã hồ sơ Marketplace.
+2. **Cập nhật thông tin y tế & định danh:**
+   * Thông tin chính (Primary Info): Ngày sinh (DOB), SSN, Tình trạng định cư (Thẻ xanh / Quốc tịch).
+   * Tài khoản Marketplace: Tên đăng nhập và mật khẩu ACA Account bảo mật để nộp hồ sơ.
 
-### 4.4. Quản lý 5 Quy trình Hậu mãi (Post-sale Tickets)
-InsurMatch tích hợp sẵn 5 quy trình nghiệp vụ hậu mãi bắt buộc của thị trường bảo hiểm Hoa Kỳ:
-1. **Client Support:** Tiếp nhận khiếu nại, giải quyết claim bill bồi thường.
-2. **Payment:** Theo dõi thanh toán tiền phí bảo hiểm định kỳ ngày 15 hàng tháng.
-3. **Collect Document:** Yêu cầu khách bổ sung thẻ xanh, bằng lái, chứng minh thu nhập nộp Marketplace.
-4. **Choose Doctor:** Hỗ trợ đăng ký hoặc đổi bác sĩ gia đình (Primary Care Physician - PCP).
-5. **Agent Support:** Tiếp nhận yêu cầu hỗ trợ đặc biệt từ đại lý.
-
-* **Quy tắc vận hành nghiêm ngặt:**
-  * **Đổi hạn xử lý (Change Due Date):** Khi dời ngày hẹn, hệ thống bắt buộc nhập *Lý do thay đổi hạn (Change Due Date Reason)* để đảm bảo tính minh bạch.
-  * **Đóng Ticket (Close Ticket):** Bắt buộc phải nhập *Kết quả xử lý (Ticket Result)* trước khi chuyển trạng thái sang `Closed`.
-
-### 4.5. Quản lý Công việc (Tasks) & Tài liệu (Customer Documents)
-* **Tasks Hub:** Tự động tính hạn chót 3 ngày làm việc (3 business days), cảnh báo màu đỏ khi quá hạn (`Overdue`).
-* **Customer Documents:** Nơi lưu trữ an toàn các file PDF, ảnh chụp ID, Consent Form và bảo hiểm của khách hàng.
+### 3.4. Bảng Quản lý & Đối soát Hoa hồng Tự động (Commission Ledger)
+Điểm "ăn tiền" lớn nhất của CRM InsurMatch dành cho đại lý:
+1. **Commission Summary:**
+   * **Settled This Month:** Tổng hoa hồng thực nhận trong tháng hiện tại.
+   * **Pending Audit:** Số lượng hợp đồng đang chờ hãng bảo hiểm duyệt chi.
+   * **YTD Paid:** Lũy kế hoa hồng đã nhận từ đầu năm tài chính.
+2. **Bộ tính hoa hồng chuẩn Carrier Mỹ (Carrier Payout Map):**
+   * *Blue Cross Blue Shield (BCBS):* $30.00 / thành viên / tháng
+   * *Ambetter Health:* $32.00 / thành viên / tháng
+   * *Humana:* $51.00 / thành viên / tháng
+   * *UnitedHealthcare / Oscar:* $30.00 / thành viên / tháng
+   * *Molina Healthcare:* $29.00 / thành viên / tháng
+3. **Commission Simulator (Máy tính mô phỏng):** Cho phép đại lý nhập số lượng người trong hộ (Household Members) và chọn hãng để tính ngay số tiền hoa hồng thực nhận (Net Payout).
 
 ---
 
-## 5. PHẦN 3: HƯỚNG DẪN DÀNH CHO ĐẠI LÝ BẢO HIỂM (LICENSED AGENT PORTAL)
+## 4. PHẦN 2: CẨM NANG DÀNH CHO ĐỘI NGŨ ĐIỀU PHỐI NỀN TẢNG (PLATFORM STAFF HUB)
 
-Dành cho đại lý bảo hiểm độc lập (tài khoản mẫu: **Khánh Nguyễn**).
+Đội ngũ Staff của InsurMatch đóng vai trò là "Back-office as a Service", hỗ trợ các đại lý thuê CRM vận hành trơn tru.
 
-### 5.1. Đăng nhập & Phạm vi Dữ liệu Bảo mật (Data Scoping)
-1. Đăng nhập với tài khoản: `agent@insurmatch.us` / `Agent123!`.
-2. **Cơ chế cô lập dữ liệu:**
-   * Agent **chỉ nhìn thấy các Contacts và Deals được gán cho chính mình (Khánh Nguyễn)**.
-   * Banner thông báo màu xanh dương: *"Chế độ Agent: Chỉ hiển thị các Contact được phân công cho Khanh Nguyen"*.
-   * Không thể can thiệp hay xem trộm khách hàng của các đại lý khác.
+### 4.1. Đăng nhập Staff Hub
+* Đăng nhập: `staff@insurmatch.us` | Mật khẩu: `Staff123!`.
 
-### 5.2. Quản lý Hoa hồng Đại lý (Commission Ledger & Calculator)
-1. **Bảng tổng kết hoa hồng (Commission Summary):**
-   * Hiển thị tổng số tiền đã quyết toán trong tháng (*Settled This Month*).
-   * Số hợp đồng đang chờ kiểm toán đối soát (*Pending Audit*).
-   * Lũy kế hoa hồng từ đầu năm (*YTD Paid*).
-2. **Quy tắc hoa hồng SSS Rules Engine:**
-   * Hoa hồng được tính toán tự động dựa trên đơn giá chuẩn theo hãng bảo hiểm ($/thành viên/tháng):
-     * **BCBS:** $30.00 / member / mo
-     * **Ambetter:** $32.00 / member / mo
-     * **Humana:** $51.00 / member / mo
-     * **UnitedHealthcare / Oscar:** $30.00 / member / mo
-     * **Molina:** $29.00 / member / mo
-3. **Mô phỏng hoa hồng (Commission Simulator):**
-   * Cho phép đại lý tự nhập số thành viên gia đình, hãng bảo hiểm và mức phí để tính ngay số tiền thực nhận (Net Agent Payout).
+### 4.2. Tiếp nhận Lead & Điều phối cho Đại lý (Lead Routing)
+1. Khi có khách hàng gửi yêu cầu tư vấn từ trang chủ, Staff kiểm tra danh sách tại mục **Contacts**.
+2. **Gán Contact Owner:** Chọn mở hồ sơ -> Tại mục `Contact Owner`, chọn bàn giao khách hàng cho đại lý phù hợp (ví dụ: gán cho **Khanh Nguyen**).
+3. Ngay lập tức, đại lý Khánh Nguyễn đăng nhập sẽ thấy hồ sơ xuất hiện trong tài khoản của mình.
 
----
+### 4.3. Quản lý Pipeline Hợp đồng (Deals Kanban)
+* Theo dõi tiến độ hợp đồng qua 5 chặng: `New Inquiry` ➔ `Appointment Scheduled` ➔ `Ready to Enroll` ➔ `Policy Issued` ➔ `Active`.
+* Staff có thể tạo nhanh hợp đồng mới (+ Add Deal) liên kết trực tiếp với mã khách hàng (`contactId`) và đại lý phụ trách (`dealOwnerName`).
 
-## 6. PHẦN 4: HƯỚNG DẪN DÀNH CHO QUẢN TRỊ VIÊN (ADMIN GOVERNANCE)
+### 4.4. Xử lý 5 Quy trình Hậu mãi (Post-sale Tickets Automation)
+CRM InsurMatch cung cấp sẵn 5 quy trình chuẩn hóa:
+1. **Ticket Payment:** Đôn đốc khách đóng phí duy trì trước ngày 15 hàng tháng để tránh bị hủy chính sách.
+2. **Ticket Collect Document:** Nhắc nhở và nhận file thẻ xanh, giấy thuế nộp bổ sung lên Healthcare.gov.
+3. **Ticket Choose Doctor:** Đăng ký bác sĩ gia đình (PCP) đúng mạng lưới cho khách.
+4. **Ticket Client Support:** Xử lý khiếu nại viện phí và hóa đơn bất ngờ (Surprise Billing).
+5. **Ticket Agent Support:** Hỗ trợ đại lý giải quyết vướng mắc với hãng bảo hiểm.
 
-Dành cho ban quản trị vận hành sàn InsurMatch.
-
-### 6.1. Đăng nhập Admin Hub
-* Đăng nhập với tài khoản: `admin@insurmatch.us` / `Admin123!`.
-
-### 6.2. Phê duyệt & Cấp phép Đại lý (Agent Verification)
-1. Truy cập tab **Accounts**:
-   * Xem danh sách toàn bộ nhân sự và đại lý trong hệ thống.
-2. Đại lý mới đăng ký sẽ ở trạng thái `Pending` (Chờ thẩm định).
-3. Admin kiểm tra số giấy phép quốc gia NPN (7 - 8 chữ số):
-   * Bấm duyệt trạng thái sang `Active` để cấp quyền cho đại lý đăng nhập và nhận lead.
-   * Hỗ trợ tạm ngừng tài khoản (`Suspend`) nếu phát hiện vi phạm quy tắc đạo đức bảo hiểm.
-
-### 6.3. Báo cáo & Thống kê Tăng trưởng (System Analytics)
-* Biểu đồ tỷ lệ cơ cấu hãng bảo hiểm (Carrier Volume Distribution).
-* Thống kê số lượng hợp đồng phát hành theo từng tiểu bang (Texas, California, North Carolina...).
-* Báo cáo doanh số và tỷ lệ giữ lại của văn phòng (Office Retention Rate).
+* **Ràng buộc chất lượng dịch vụ (SLA):**
+  * Muốn đổi hạn xử lý -> Bắt buộc nhập `Change Due Date Reason`.
+  * Muốn đóng Ticket (`Closed`) -> Bắt buộc điền `Ticket Result`.
 
 ---
 
-## 7. KỊCH BẢN DEMO CHUẨN LUỒNG CHO OUTCOME 1 (5 BƯỚC)
+## 5. PHẦN 3: CẨM NANG QUẢN TRỊ HỆ THỐNG & QUẢN LÝ THUÊ BAO (ADMIN GOVERNANCE)
 
-Khi trình bày trước hội đồng thẩm định Outcome 1, nhóm thực hiện theo kịch bản mẫu sau trong 5 - 7 phút:
+Dành cho Ban điều hành nền tảng InsurMatch để quản lý các khách hàng Agent mua phần mềm.
+
+### 5.1. Đăng nhập Super Admin
+* Đăng nhập: `admin@insurmatch.us` | Mật khẩu: `Admin123!`.
+
+### 5.2. Quản lý Thuê bao & Cấp phép Đại lý (Agent Licensing & Onboarding)
+1. Truy cập tab **Accounts**: Xem danh sách toàn bộ các Agent đang sử dụng phần mềm.
+2. **Thẩm định cấp phép (NPN Verification):**
+   * Đại lý đăng ký gói CRM mới sẽ ở trạng thái `Pending`.
+   * Admin đối soát số giấy phép hành nghề quốc gia NPN (7 - 8 số).
+   * Bấm kích hoạt sang `Active` để mở quyền truy cập hệ thống cho Agent.
+   * Hỗ trợ đình chỉ (`Suspend`) nếu đại lý hết hạn hợp đồng thuê CRM hoặc vi phạm chính sách.
+
+### 5.3. Báo cáo Tăng trưởng Toàn sàn (Platform Performance)
+* Doanh số hợp đồng được phát hành thông qua hệ thống CRM.
+* Tỷ lệ cơ cấu các hãng bảo hiểm đối tác.
+* Thống kê số lượng hồ sơ xử lý theo từng tiểu bang.
+
+---
+
+## 6. PHẦN 4: KÊNH TIẾP NHẬN LEAD TỰ ĐỘNG (END-USER LEAD INTAKE PORTAL)
+
+Đây là giá trị gia tăng (Add-on Value) mà InsurMatch cung cấp kèm theo phần mềm CRM để hỗ trợ Đại lý có thêm nguồn khách hàng tiềm năng.
+
+1. **Giao diện Trang chủ:** Khách hàng tiếp cận thông tin về các gói ACA, Medicare, Life Insurance.
+2. **Modal Báo giá Đa bước (+ Free Quote):**
+   * Khách hàng nhập độ tuổi, bang cư trú và ước tính thu nhập gia đình.
+   * Hệ thống tự động tính mức trợ cấp thuế (Subsidy Calculator).
+   * Khách bấm gửi yêu cầu -> Tạo Contact mới đẩy thẳng vào hệ thống CRM để Staff phân bổ về cho Agent.
+
+---
+
+## 7. KỊCH BẢN DEMO CHUẨN LUỒNG B2B CHO HỘI ĐỒNG THẨM ĐỊNH OUTCOME 1
+
+*(Thời lượng đề xuất: 5 - 7 phút)*
 
 ```
-[BƯỚC 1: KHÁCH HÀNG] 
-Trang chủ -> Bấm "Get a Free Quote" -> Nhập tên "Trần Văn An", chọn bang "Texas", bảo hiểm "ACA" -> Gửi thành công.
+[BƯỚC 1: GIỚI THIỆU MÔ HÌNH B2B]
+Khẳng định với Hội đồng: "InsurMatch là giải pháp B2B SaaS CRM chuyên biệt bán cho các Đại lý bảo hiểm. Khách hàng trả tiền của chúng em là các Agent."
        ↓
-[BƯỚC 2: ĐIỀU PHỐI VIÊN STAFF]
-Đăng nhập staff@insurmatch.us -> Vào mục Contacts -> Thấy khách hàng "Trần Văn An" vừa gửi -> Gán Contact Owner cho "Khanh Nguyen" -> Tạo Deal mới "ACA 2026 - Trần Văn An".
+[BƯỚC 2: KHÁCH HÀNG GỬI LEAD]
+Tại trang chủ, đóng vai người mua bảo hiểm bấm "Get a Free Quote", nhập nhu cầu tại bang Texas -> Tạo thành công hồ sơ khách hàng.
        ↓
-[BƯỚC 3: ĐẠI LÝ KHÁNH NGUYỄN]
-Đăng xuất Staff -> Đăng nhập agent@insurmatch.us -> Kiểm tra danh sách chỉ hiển thị đúng các khách phụ trách -> Mở Commission Ledger xem hoa hồng ước tính theo hãng BCBS.
+[BƯỚC 3: STAFF ĐIỀU PHỐI VÀO CRM]
+Đăng nhập staff@insurmatch.us -> Vào Contacts thấy lead mới -> Bàn giao hồ sơ cho khách hàng Agent "Khanh Nguyen".
        ↓
-[BƯỚC 4: HẬU MÃI & QUY TRÌNH TICKET]
-Staff tạo Ticket "Collect Document" yêu cầu bổ sung thẻ xanh -> Đặt Task nhắc việc với hạn chót 3 ngày làm việc.
+[BƯỚC 4: AGENT SỬ DỤNG CRM CỦA INSURMATCH]
+Đăng nhập agent@insurmatch.us:
+- Chứng minh tính năng Scoped Privacy: Agent chỉ thấy data của mình.
+- Mở Commission Ledger: Trình diễn tính năng tự động tính hoa hồng theo hãng BCBS/Ambetter.
+- Tạo Ticket hậu mãi "Collect Document" có deadline cụ thể.
        ↓
-[BƯỚC 5: ADMIN GOVERNANCE]
-Đăng nhập admin@insurmatch.us -> Xem bảng điều khiển tăng trưởng toàn sàn -> Kiểm tra danh sách cấp phép Agent.
+[BƯỚC 5: ADMIN QUẢN TRỊ THUÊ BAO]
+Đăng nhập admin@insurmatch.us -> Xem báo cáo quản lý các tài khoản Agent đang hoạt động trên hệ thống.
 ```
 
 ---
 
-## 8. CÂU HỎI THƯỜNG GẶP & XỬ LÝ SỰ CỐ (TROUBLESHOOTING)
+## 8. XỬ LÝ SỰ CỐ & CÂU HỎI THƯỜNG GẶP (TROUBLESHOOTING)
 
-**Q1: Tạo Contact xong nhưng F5 lại có bị mất không?**  
-*Trả lời:* Không. Hệ thống đã kết nối trực tiếp với PostgreSQL qua Prisma ORM. Mọi Contact khi tạo đều được gán mã duy nhất (`CT2600xxxx`) và lưu vĩnh viễn trên Database.
+**Q1: Khách hàng của InsurMatch là ai?**  
+*Trả lời:* Khách hàng của InsurMatch là các Đại lý bảo hiểm độc lập (Agents) và văn phòng môi giới (Agencies). Người mua bảo hiểm là khách hàng của Agent, tương tác qua kênh phễu Lead.
 
-**Q2: Tại sao Agent đăng nhập không thấy toàn bộ khách hàng của công ty?**  
-*Trả lời:* Đây là tính năng bảo mật phân quyền (Data Isolation). Agent chỉ được phép truy cập khách hàng được gán cho tên mình hoặc mã ID của mình để bảo vệ quyền riêng tư dữ liệu theo chuẩn HIPAA/Hoa Kỳ.
-
-**Q3: Muốn xuất tài liệu này thành file PDF để nộp Outcome 1 thì làm thế nào?**  
+**Q2: InsurMatch kiếm tiền từ nguồn nào trong mô hình B2B?**  
 *Trả lời:* 
-1. Mở file `USER_MANUAL.md` trên trình duyệt hoặc công cụ đọc Markdown (như VS Code, Typora, GitHub).
-2. Nhấn tổ hợp phím **Ctrl + P** (Windows) hoặc **Cmd + P** (Mac).
-3. Chọn máy in: **Save as PDF** (Lưu dưới dạng PDF).
-4. Khổ giấy chọn: **A4**, bật tùy chọn **Background graphics** (Đồ họa nền) để giữ định dạng bảng đẹp mắt -> Bấm **Save**.
+1. Phí thuê bao phần mềm CRM theo tháng/năm (SaaS Subscription).
+2. Phí phân phối lead chất lượng cao cho Agent (Pay-per-lead).
+3. Phí dịch vụ hỗ trợ nghiệp vụ hậu mãi (Sale Support Retention Fee).
+
+**Q3: Dữ liệu khách hàng của Agent có được lưu trữ an toàn không?**  
+*Trả lời:* Toàn bộ dữ liệu được lưu trữ trên cơ sở dữ liệu PostgreSQL thực tế với kết nối Prisma ORM, có mã hóa mật khẩu Scrypt và JWT Token bảo vệ. Không bao giờ xảy ra tình trạng mất dữ liệu khi đăng xuất/đăng nhập lại.
