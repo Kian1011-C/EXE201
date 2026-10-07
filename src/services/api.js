@@ -741,8 +741,21 @@ export function addCustomerDocumentToStore(doc) {
   } catch {}
 }
 
-export function updateCustomerDocumentInStore(doc) {
-  addCustomerDocumentToStore(doc);
+export function updateCustomerDocumentInStore(docOrId, patch) {
+  if (!docOrId) return;
+  if (typeof docOrId === 'string' || typeof docOrId === 'number') {
+    const list = getAllCustomerDocuments();
+    const existing = list.find((d) => String(d.id) === String(docOrId) || String(d.code) === String(docOrId));
+    if (existing) {
+      addCustomerDocumentToStore({ ...existing, ...(patch || {}) });
+      return;
+    }
+    if (patch) {
+      addCustomerDocumentToStore({ id: docOrId, ...patch });
+      return;
+    }
+  }
+  addCustomerDocumentToStore(docOrId);
 }
 
 export function getDynamicCustomerDocuments() {

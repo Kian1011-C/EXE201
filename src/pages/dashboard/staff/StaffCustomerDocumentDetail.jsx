@@ -428,7 +428,19 @@ export default function StaffCustomerDocumentDetail({
                       onChange={(e) => {
                         const newOwner = e.target.value;
                         setContactOwner(newOwner);
-                        updateCustomerDocumentInStore(doc.id, { contactOwner: newOwner });
+                        const updatedDoc = {
+                          ...doc,
+                          contactOwner: newOwner,
+                          name: docName,
+                          initials: currentInitials,
+                        };
+                        updateCustomerDocumentInStore(updatedDoc);
+                        if (doc?.id) {
+                          updateDocument(doc.id, { contactOwner: newOwner }).catch(() => {});
+                        }
+                        if (onUpdateDocument) {
+                          onUpdateDocument(updatedDoc);
+                        }
                       }}
                       className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-8"
                     >
