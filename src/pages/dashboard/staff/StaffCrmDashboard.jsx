@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   getDashboardStats,
   getDeals,
@@ -74,8 +75,8 @@ export default function StaffCrmDashboard({
     if (!drilldownModal || !drilldownModal.deals) return [];
     if (!distinctData) return drilldownModal.deals;
     const seen = new Set();
-    return drilldownModal.deals.filter((d) => {
-      const key = String(d.id || d.code || d.title || '');
+    return drilldownModal.deals.filter((d, idx) => {
+      const key = String(d.id || d.code || d.title || `deal-${idx}`);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -413,9 +414,10 @@ export default function StaffCrmDashboard({
     obDeals.forEach((d) => {
       const st = d.stage || 'Ready to Enroll (Obamacare 2026)';
       if (!stageMap[st]) {
-        stageMap[st] = { stage: st, count: 0, agents: {} };
+        stageMap[st] = { stage: st, count: 0, agents: {}, deals: [] };
       }
       stageMap[st].count += 1;
+      stageMap[st].deals.push(d);
       const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       stageMap[st].agents[agent] = (stageMap[st].agents[agent] || 0) + 1;
     });
@@ -434,9 +436,10 @@ export default function StaffCrmDashboard({
     medDeals.forEach((d) => {
       const st = d.stage || 'Enrolled - Active (Medicare 2026)';
       if (!stageMap[st]) {
-        stageMap[st] = { stage: st, count: 0, agents: {} };
+        stageMap[st] = { stage: st, count: 0, agents: {}, deals: [] };
       }
       stageMap[st].count += 1;
+      stageMap[st].deals.push(d);
       const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       stageMap[st].agents[agent] = (stageMap[st].agents[agent] || 0) + 1;
     });
@@ -1301,14 +1304,20 @@ export default function StaffCrmDashboard({
                     onClick={(e) => {
                       e.stopPropagation();
                       setChartTooltip(null);
-                      const matching = obDeals.filter(
-                        (d) => (d.stage || 'Ready to Enroll (Obamacare 2026)') === item.stage
-                      );
+                      const matching = obDeals.filter((d) => {
+                        const s1 = (d.stage || 'Ready to Enroll (Obamacare 2026)').trim().toLowerCase();
+                        const s2 = (item.stage || '').trim().toLowerCase();
+                        return s1 === s2 || s1.includes(s2) || s2.includes(s1);
+                      });
+                      const targetDeals = item.deals && item.deals.length > 0 ? item.deals : matching;
+                      const agentLabel = isAgentUser
+                        ? agentName || 'Khanh Nguyen'
+                        : activeTargetAgent || (Object.keys(item.agents || {}).length === 1 ? Object.keys(item.agents)[0] : 'All');
                       setDrilldownModal({
                         title: 'TOTAL OBAMACARE DEALS 2026',
                         stage: item.stage,
-                        deals: matching,
-                        supportAgent: isAgentUser ? (agentName || 'Khanh Nguyen') : 'All',
+                        deals: targetDeals,
+                        supportAgent: agentLabel,
                       });
                     }}
                     className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
@@ -1439,14 +1448,20 @@ export default function StaffCrmDashboard({
                     onClick={(e) => {
                       e.stopPropagation();
                       setChartTooltip(null);
-                      const matching = medDeals.filter(
-                        (d) => (d.stage || 'Enrolled - Active (Medicare 2026)') === item.stage
-                      );
+                      const matching = medDeals.filter((d) => {
+                        const s1 = (d.stage || 'Enrolled - Active (Medicare 2026)').trim().toLowerCase();
+                        const s2 = (item.stage || '').trim().toLowerCase();
+                        return s1 === s2 || s1.includes(s2) || s2.includes(s1);
+                      });
+                      const targetDeals = item.deals && item.deals.length > 0 ? item.deals : matching;
+                      const agentLabel = isAgentUser
+                        ? agentName || 'Khanh Nguyen'
+                        : activeTargetAgent || (Object.keys(item.agents || {}).length === 1 ? Object.keys(item.agents)[0] : 'All');
                       setDrilldownModal({
                         title: 'TOTAL MEDICARE DEALS 2026',
                         stage: item.stage,
-                        deals: matching,
-                        supportAgent: isAgentUser ? (agentName || 'Khanh Nguyen') : 'All',
+                        deals: targetDeals,
+                        supportAgent: agentLabel,
                       });
                     }}
                     className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
@@ -3077,13 +3092,13 @@ export default function StaffCrmDashboard({
       </div>
 
       {/* ── TOOLTIP POPOVER (IMAGE 3) ─────────────────────────────────── */}
-      {chartTooltip && (
+      {typeof document !== 'undefined' && chartTooltip && createPortal(
         <div
           style={{
             position: 'fixed',
-            top: Math.min(chartTooltip.y + 12, window.innerHeight - 250),
+            top: Math.min(chartTooltip.y + 12, window.innerHeight - 260),
             left: Math.min(chartTooltip.x + 12, window.innerWidth - 320),
-            zIndex: 9999,
+            zIndex: 999999,
             pointerEvents: 'none',
           }}
           className="w-72 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden text-xs animate-fade-in"
@@ -3111,13 +3126,14 @@ export default function StaffCrmDashboard({
               <span className="font-mono text-sm">{chartTooltip.total}</span>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── DRILLDOWN MODAL TABLE (IMAGE 2) ────────────────────────────── */}
-      {drilldownModal && (
+      {typeof document !== 'undefined' && drilldownModal && createPortal(
         <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-6"
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[999999] flex items-center justify-center p-3 sm:p-6"
           onClick={() => setDrilldownModal(null)}
         >
           <div
@@ -3125,17 +3141,17 @@ export default function StaffCrmDashboard({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Dark Navy Header (matching Image 2) */}
-            <div className="bg-[#0B1E3D] text-white px-5 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="bg-[#0B1E3D] text-white px-5 py-3.5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[20px] text-blue-400">article</span>
-                <h2 className="text-xs sm:text-sm font-bold tracking-wide uppercase font-mono">
+                <h2 className="text-xs sm:text-sm font-bold tracking-wide uppercase font-mono text-white">
                   {drilldownModal.title}
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setDrilldownModal(null)}
-                className="text-slate-400 hover:text-white transition p-1 cursor-pointer"
+                className="text-slate-400 hover:text-white transition p-1 cursor-pointer rounded-lg hover:bg-white/10"
                 title="Đóng"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
@@ -3143,7 +3159,7 @@ export default function StaffCrmDashboard({
             </div>
 
             {/* Sub-header Controls (matching Image 2) */}
-            <div className="bg-slate-50 border-b border-slate-200 px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+            <div className="bg-[#F8FAFC] border-b border-slate-200 px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
               <div className="flex items-center gap-6 flex-wrap">
                 <div>
                   By: Stage: <strong className="text-slate-900 font-semibold">{drilldownModal.stage}</strong>
@@ -3164,7 +3180,10 @@ export default function StaffCrmDashboard({
                 </label>
                 <button
                   type="button"
-                  onClick={() => fetchStats()}
+                  onClick={() => {
+                    fetchStats();
+                    toast.success('Dữ liệu đã được làm mới!');
+                  }}
                   className="flex items-center gap-1 text-slate-600 hover:text-blue-600 font-medium cursor-pointer transition"
                   title="Refresh data"
                 >
@@ -3184,9 +3203,9 @@ export default function StaffCrmDashboard({
             </div>
 
             {/* Table (matching Image 2) */}
-            <div className="flex-1 overflow-auto bg-white">
+            <div className="flex-1 overflow-auto bg-white min-h-[300px]">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-50/90 sticky top-0 border-b border-slate-200 text-slate-600 font-semibold text-[11px]">
+                <thead className="bg-[#F8FAFC] sticky top-0 border-b border-slate-200 text-slate-600 font-semibold text-[11px] shadow-2xs">
                   <tr>
                     <th className="py-2.5 px-4 w-14 text-center">No.</th>
                     <th className="py-2.5 px-4">Deal (Id)</th>
@@ -3197,13 +3216,16 @@ export default function StaffCrmDashboard({
                 <tbody className="divide-y divide-slate-100">
                   {modalDeals.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-12 text-center text-slate-400 text-xs">
-                        Không có deal nào trong giai đoạn này.
+                      <td colSpan={4} className="py-16 text-center text-slate-400 text-xs">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <span className="material-symbols-outlined text-[32px] text-slate-300">inbox</span>
+                          <span>Không có deal nào trong giai đoạn này.</span>
+                        </div>
                       </td>
                     </tr>
                   ) : (
                     modalDeals.map((deal, idx) => {
-                      const agentName = deal.dealOwnerName || getPersonName(deal.dealOwner) || 'Anya Nguyen';
+                      const agentName = deal.dealOwnerName || getPersonName(deal.dealOwner) || drilldownModal.supportAgent || 'Anya Nguyen';
                       const dealTitle =
                         deal.title || deal.name || deal.clientName || `Deal #${deal.id || deal.code || idx + 1}`;
                       return (
@@ -3239,7 +3261,7 @@ export default function StaffCrmDashboard({
             </div>
 
             {/* Footer */}
-            <div className="bg-slate-50 border-t border-slate-200 px-5 py-2.5 flex items-center justify-between text-xs text-slate-500">
+            <div className="bg-[#F8FAFC] border-t border-slate-200 px-5 py-2.5 flex items-center justify-between text-xs text-slate-500">
               <span>
                 Hiển thị <strong>{modalDeals.length}</strong> deals
               </span>
@@ -3252,7 +3274,8 @@ export default function StaffCrmDashboard({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
