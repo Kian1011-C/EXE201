@@ -1,4 +1,3 @@
-import { MEDICARE_DEAL_STAGES, OBAMACARE_DEAL_STAGES, ALL_CARRIERS, CARRIER_COMMISSION_RATES } from '../../../utils/constants';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { createTicket, updateDeal, getUsers, getAdminAccounts, createTask, updateTask, addDealNote } from '../../../services/api';
@@ -11,7 +10,13 @@ import {
 } from '../../../services/propertyHistoryService';
 import { useAuth } from '../../../auth/AuthContext';
 import toast from 'react-hot-toast';
-import { ALL_CARRIERS, OBAMACARE_DEAL_STAGES, MEDICARE_DEAL_STAGES, getActiveAgentAccounts } from '../../../utils/constants';
+import {
+  ALL_CARRIERS,
+  OBAMACARE_DEAL_STAGES,
+  MEDICARE_DEAL_STAGES,
+  CARRIER_COMMISSION_RATES,
+  getActiveAgentAccounts,
+} from '../../../utils/constants';
 
 export default function StaffDealDetail({
   deal,

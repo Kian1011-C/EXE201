@@ -1,4 +1,3 @@
-import { MEDICARE_DEAL_STAGES, OBAMACARE_DEAL_STAGES, ALL_CARRIERS, CARRIER_COMMISSION_RATES } from '../../../utils/constants';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getDeals, updateDeal, createTicket, getUsers } from '../../../services/api';
 import StaffDealsKanban from './StaffDealsKanban';
@@ -6,7 +5,13 @@ import AddDealModal from './AddDealModal';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterDealsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
-import { ALL_CARRIERS, getActiveAgentAccounts } from '../../../utils/constants';
+import {
+  ALL_CARRIERS,
+  MEDICARE_DEAL_STAGES,
+  OBAMACARE_DEAL_STAGES,
+  CARRIER_COMMISSION_RATES,
+  getActiveAgentAccounts,
+} from '../../../utils/constants';
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent = false, agentName = '' }) {
   const [dealsList, setDealsList] = useState([]);

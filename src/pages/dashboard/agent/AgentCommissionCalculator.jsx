@@ -1,6 +1,11 @@
-import { MEDICARE_DEAL_STAGES, OBAMACARE_DEAL_STAGES, ALL_CARRIERS, CARRIER_COMMISSION_RATES } from '../../../utils/constants';
 import React, { useState, useMemo } from 'react';
-import { ALL_CARRIERS, CARRIER_COMMISSION_RATES, calculateCarrierDealCommission } from '../../../utils/constants';
+import {
+  MEDICARE_DEAL_STAGES,
+  OBAMACARE_DEAL_STAGES,
+  ALL_CARRIERS,
+  CARRIER_COMMISSION_RATES,
+  calculateCarrierDealCommission,
+} from '../../../utils/constants';
 
 export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
   // Simulator State

@@ -1,11 +1,16 @@
-import { MEDICARE_DEAL_STAGES, OBAMACARE_DEAL_STAGES, ALL_CARRIERS, CARRIER_COMMISSION_RATES } from '../../../utils/constants';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { createTicket, createDeal, getUsers } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 import toast from 'react-hot-toast';
-import { ALL_CARRIERS, OBAMACARE_DEAL_STAGES, MEDICARE_DEAL_STAGES, getActiveAgentAccounts } from '../../../utils/constants';
+import {
+  ALL_CARRIERS,
+  OBAMACARE_DEAL_STAGES,
+  MEDICARE_DEAL_STAGES,
+  CARRIER_COMMISSION_RATES,
+  getActiveAgentAccounts,
+} from '../../../utils/constants';
 
 export default function AddDealModal({
   isOpen,
