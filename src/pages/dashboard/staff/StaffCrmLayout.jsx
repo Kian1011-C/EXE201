@@ -12,7 +12,7 @@ export default function StaffCrmLayout({
   isAdmin = false,
   agentName = 'Khánh Nguyen',
   agentNpn = '#1984210',
-  showCommission = true,
+  showCommission = false,
   quotesBadge,
   accountsBadge,
   onManualRefresh,

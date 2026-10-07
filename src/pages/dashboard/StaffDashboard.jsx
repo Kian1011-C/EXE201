@@ -606,7 +606,7 @@ export default function StaffDashboard() {
   }
 
   return (
-    <StaffCrmLayout currentTab={currentTab} onSelectTab={handleSelectTab} showCommission={true}>
+    <StaffCrmLayout currentTab={currentTab} onSelectTab={handleSelectTab} showCommission={false}>
       {currentView === 'dashboard' && (
         <StaffCrmDashboard
           onSelectTab={handleSelectTab}
