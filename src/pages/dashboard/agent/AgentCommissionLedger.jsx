@@ -5,13 +5,6 @@ import {
   calculateCommissions,
   updateCommission,
 } from '../../../services/api';
-import {
-  ALL_CARRIERS,
-  CARRIER_COMMISSION_RATES,
-  calculateCarrierDealCommission,
-  getDynamicDeals,
-  SAMPLE_DEALS,
-} from '../../../data/mockCrmData';
 import AgentCommissionCalculator from './AgentCommissionCalculator';
 
 // ── INITIAL REAL COMMISSION DATA: 100% AGENT PAYOUT (NO 7/3 SPLIT) ───────────
@@ -317,7 +310,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
       }
 
       // Check CRM dynamic deals to auto-calculate any missing deals
-      const crmDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
+      const crmDeals = [...[], ...[]];
       crmDeals.forEach((deal) => {
         if (deal && deal.id && !baseList.some((item) => item.policyNumber === deal.id || item.policyNumber === deal.code)) {
           const dealCarrier = deal.carrier || deal.dealCarrier || deal.adminOnly?.carrier || 'BCBS';

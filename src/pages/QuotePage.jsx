@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, CheckCircle2, Clock, Phone, HeartPulse, ShieldCheck, BadgeDollarSign, Shield } from 'lucide-react';
+import { submitQuote } from '../services/api';
 
 export default function QuotePage() {
   const [step, setStep] = useState(1);
@@ -16,6 +17,7 @@ export default function QuotePage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleNext = (e) => {
     e.preventDefault();
@@ -26,14 +28,30 @@ export default function QuotePage() {
     setStep(step - 1);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMsg('');
+    try {
+      const parts = formData.name.trim().split(' ');
+      const firstName = parts[0] || '';
+      const lastName = parts.slice(1).join(' ') || '';
+      await submitQuote({
+        firstName,
+        lastName,
+        phone: formData.phone,
+        email: formData.email,
+        language: formData.preferredLanguage,
+        howDoYouKnowUs: `QuotePage - ${formData.coverageType}`,
+        state: formData.zipCode, // Passing zipCode into state field temporarily, or backend handles it
+      });
       setIsCompleted(true);
       setStep(4);
-    }, 600);
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to submit quote');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

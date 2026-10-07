@@ -1,21 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  OBAMACARE_DEAL_STAGES,
-  MEDICARE_DEAL_STAGES,
-  addTicketToStore,
-  addDealToStore,
-  getDynamicContacts,
-  SAMPLE_CONTACTS,
-  ALL_CARRIERS,
-  addTaskToStore,
-  updateTaskInStore,
-  deleteTaskFromStore,
-  getDynamicTasks,
-} from '../../../data/mockCrmData';
 import { createTicket, updateDeal, getUsers, getAdminAccounts, createTask, updateTask, addDealNote } from '../../../services/api';
 import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
-import { INITIAL_ADMIN_ACCOUNTS, getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import {
   recordPropertyUpdate,
@@ -60,7 +46,7 @@ export default function StaffDealDetail({
     const cName = String(dealInfo.contactName || '').trim();
 
     if (!base && (cId || cName)) {
-      const allContacts = [...getDynamicContacts(), ...SAMPLE_CONTACTS];
+      const allContacts = [...[], ...[]];
       const found = allContacts.find(
         (c) =>
           (cId && (String(c.id) === cId || String(c.code) === cId)) ||
@@ -166,7 +152,7 @@ export default function StaffDealDetail({
       // Merge dynamic tasks store with deal.tasks to prevent task loss when navigating
       const dId = String(nextId || deal?.code || dealInfo.code || '');
       const dTitle = String(deal?.title || dealInfo.title || '').trim().toLowerCase();
-      const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
+      const dynamicTasks = typeof window !== 'undefined' ? [] : [];
       const storeDealTasks = dynamicTasks.filter(
         (t) =>
           (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId || String(t.deal?.code) === dId)) ||
@@ -322,11 +308,11 @@ export default function StaffDealDetail({
   const [feeBonusPaymentOpen, setFeeBonusPaymentOpen] = useState(false);
 
   // Dynamic DB users for dynamic agent roster (Tất cả agent hiện tại)
-  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+  const [agentAccounts, setAgentAccounts] = useState([]);
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts(getActiveAgentAccounts());
+      setAgentAccounts([]);
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
@@ -456,7 +442,7 @@ export default function StaffDealDetail({
       serviceAgent: ticketItem.serviceAgent || 'Platform Staff',
       status: ticketItem.status || ticketItem.stage || 'Open',
     };
-    addTicketToStore(enriched);
+    null;
     if (onSelectTicket) {
       onSelectTicket(enriched);
     }
@@ -491,7 +477,7 @@ export default function StaffDealDetail({
         comments: [],
       };
       createTicket(uploadTicket).catch(() => {});
-      addTicketToStore(uploadTicket);
+      null;
       const updated = [uploadTicket, ...dealTickets];
       setDealTickets(updated);
 
@@ -637,13 +623,13 @@ export default function StaffDealDetail({
     ];
 
     recordPropertyUpdatesBatch('deal', dealId, updates, currentActor);
-    addDealToStore(updatedDeal);
+    null;
 
     if (deal?.id) {
       updateDeal(deal.id, updatedDeal).catch(() => null);
     }
 
-    addDealToStore(updatedDeal);
+    null;
 
     if (onUpdateDeal) {
       onUpdateDeal(updatedDeal);
@@ -793,7 +779,7 @@ export default function StaffDealDetail({
   const [tasksList, setTasksList] = useState(() => {
     const dId = String(deal?.id || dealInfo.id || deal?.code || dealInfo.code || '');
     const dTitle = String(deal?.title || dealInfo.title || '').trim().toLowerCase();
-    const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
+    const dynamicTasks = typeof window !== 'undefined' ? [] : [];
     const storeDealTasks = dynamicTasks.filter(
       (t) =>
         (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId || String(t.deal?.code) === dId)) ||
@@ -1026,7 +1012,7 @@ export default function StaffDealDetail({
       };
       const updatedTasks = [newTask, ...tasksList];
       updateAndPersistDealTasks(updatedTasks);
-      addTaskToStore(newTask);
+      null;
       createTask(newTask).catch(() => {});
       logActivity('Task Created', `created follow-up task: "${newTask.title}" (Due: ${newTask.dueDate})`);
     }
@@ -1047,7 +1033,7 @@ export default function StaffDealDetail({
       if (onUpdateDeal) {
         onUpdateDeal(updatedDeal);
       }
-      addDealToStore(updatedDeal);
+      null;
     }
   }
 
@@ -1058,7 +1044,7 @@ export default function StaffDealDetail({
       if (onUpdateDeal) {
         onUpdateDeal(updatedDeal);
       }
-      addDealToStore(updatedDeal);
+      null;
     }
   }
 
@@ -1233,7 +1219,7 @@ export default function StaffDealDetail({
     const updated = { ...task, status: newStatus };
     const updatedList = tasksList.map((t) => (t.id === taskId ? updated : t));
     updateAndPersistDealTasks(updatedList);
-    updateTaskInStore(updated);
+    null;
     updateTask(taskId, updated).catch(() => {});
     logActivity('Task Status', `marked task "${task.title}" as ${newStatus}`);
     showToast(`Task marked as ${newStatus}`);
@@ -1276,7 +1262,7 @@ export default function StaffDealDetail({
       if (t.id === taskId) {
         const comments = [...(t.comments || []), newComment];
         const updatedT = { ...t, comments };
-        updateTaskInStore(updatedT);
+        null;
         return updatedT;
       }
       return t;
@@ -1303,7 +1289,7 @@ export default function StaffDealDetail({
       if (t.id === taskId) {
         const attachments = [...(t.attachments || []), ...newAttach];
         const updatedT = { ...t, attachments };
-        updateTaskInStore(updatedT);
+        null;
         return updatedT;
       }
       return t;
@@ -1318,7 +1304,7 @@ export default function StaffDealDetail({
       if (t.id === taskId) {
         const attachments = (t.attachments || []).filter((a) => a.id !== attId);
         const updatedT = { ...t, attachments };
-        updateTaskInStore(updatedT);
+        null;
         return updatedT;
       }
       return t;
@@ -1372,7 +1358,7 @@ export default function StaffDealDetail({
     updateAndPersistDealTasks(updatedList);
 
     // 2. Add to global dynamic tasks store so it persists and appears in Task Tổng
-    addTaskToStore(newTask);
+    null;
 
     // 3. Sync to backend API
     createTask(newTask).catch((err) => {

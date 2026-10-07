@@ -19,30 +19,7 @@ import AdminDealsTab from './admin/AdminDealsTab';
 import AdminCommissionTab from './admin/AdminCommissionTab';
 import AdminSystemTab from './admin/AdminSystemTab';
 
-import {
-  MOCK_CONTACTS,
-  SAMPLE_CONTACTS,
-  getDynamicContacts,
-  SAMPLE_DEALS,
-  getDynamicDeals,
-  SAMPLE_TICKETS,
-  getDynamicTickets,
-  addTicketToStore,
-  addContactToStore,
-  CONTACT_DETAIL_DATA,
-  DEAL_DETAIL_DATA,
-  CUSTOMER_DOCUMENT_DATA,
-  updateCustomerDocumentInStore,
-} from '../../data/mockCrmData';
 
-import {
-  INITIAL_ADMIN_ACCOUNTS,
-  INITIAL_AUDIT_LOGS,
-  INITIAL_ADMIN_STATS,
-  INITIAL_ADMIN_QUOTES,
-  INITIAL_ADMIN_DEALS,
-  INITIAL_ADMIN_COMMISSIONS,
-} from '../../data/mockAdminAccounts';
 
 import {
   getAdminStats,
@@ -166,13 +143,13 @@ export default function AdminDashboard() {
       const ticketId = parts[1];
       if (ticketId) {
         const cleanId = String(ticketId).replace(/\/$/, '');
-        const dynContacts = getDynamicContacts();
-        const dynDeals = getDynamicDeals();
-        const contactTickets = [...dynContacts, ...SAMPLE_CONTACTS].flatMap((c) => c.associatedTickets || c.tickets || []);
-        const dealTickets = [...dynDeals, ...SAMPLE_DEALS].flatMap((d) => d.associatedTickets || d.tickets || []);
+        const dynContacts = [];
+        const dynDeals = [];
+        const contactTickets = [...dynContacts, ...[]].flatMap((c) => c.associatedTickets || c.tickets || []);
+        const dealTickets = [...dynDeals, ...[]].flatMap((d) => d.associatedTickets || d.tickets || []);
         const allTickets = [
-          ...getDynamicTickets(),
-          ...SAMPLE_TICKETS,
+          ...[],
+          ...[],
           ...(selectedContact?.associatedTickets || selectedContact?.tickets || []),
           ...(selectedDeal?.associatedTickets || selectedDeal?.tickets || []),
           ...contactTickets,
@@ -233,7 +210,7 @@ export default function AdminDashboard() {
       const parts = path.split('/dashboard/admin/deals/');
       const dealId = parts[1];
       if (dealId) {
-        const allDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
+        const allDeals = [...[], ...[]];
         const localFound = allDeals.find((d) => d.id === dealId || d.code === dealId);
         if (localFound) {
           setSelectedDeal({ ...DEAL_DETAIL_DATA, ...localFound });
@@ -251,7 +228,7 @@ export default function AdminDashboard() {
       const parts = path.split('/dashboard/admin/contacts/');
       const contactId = parts[1];
       if (contactId) {
-        const allContacts = [...getDynamicContacts(), ...SAMPLE_CONTACTS];
+        const allContacts = [...[], ...[]];
         const localFound = allContacts.find((c) => c.id === contactId || c.code === contactId);
         if (localFound) {
           handleSelectContact(localFound, false);
@@ -462,7 +439,7 @@ export default function AdminDashboard() {
       ? contact.associatedDeals
       : (Array.isArray(contact.deals) && contact.deals.length > 0 ? contact.deals : []);
 
-    const matchingLocalDeals = [...getDynamicDeals(), ...SAMPLE_DEALS].filter((d) => {
+    const matchingLocalDeals = [...[], ...[]].filter((d) => {
       const dCId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
       const dCName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
       const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
@@ -589,7 +566,7 @@ export default function AdminDashboard() {
       contactId: ticketObj.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
       contactName: ticketObj.contactName || (selectedContact ? selectedContact.fullName : ''),
     };
-    addTicketToStore(enriched);
+    null;
     setSelectedTicket(enriched);
     setActiveTab('tickets');
     setCurrentView('ticket-detail');
@@ -878,7 +855,7 @@ export default function AdminDashboard() {
                   },
                 } : {}),
               };
-              addContactToStore(nextContact);
+              null;
               return nextContact;
             });
           }}

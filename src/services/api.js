@@ -3,25 +3,6 @@
 // Connected to Spring Boot 3 + PostgreSQL via Docker Compose
 // ============================================================
 
-import {
-  SAMPLE_CONTACTS,
-  getDynamicContacts,
-  SAMPLE_DEALS,
-  getDynamicDeals,
-  SAMPLE_TICKETS,
-  getDynamicTickets,
-  SAMPLE_TASKS,
-  getDynamicTasks,
-  addTaskToStore,
-  updateTaskInStore,
-  getDynamicCustomerDocuments,
-} from '../data/mockCrmData';
-import {
-  getDynamicAdminAccounts,
-  addAdminAccountToStore,
-  updateAdminAccountInStore,
-  ACCOUNT_BG_PALETTE,
-} from '../data/mockAdminAccounts';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -37,7 +18,7 @@ async function request(endpoint, options = {}) {
 
   // Inject JWT Bearer token if stored in localStorage
   const token = localStorage.getItem('tbri_token');
-  if (token && !token.startsWith('mock-token-')) {
+  if (token) {
     defaultHeaders['Authorization'] = `Bearer ${token}`;
   }
 
@@ -161,58 +142,8 @@ function normalizeContact(c) {
       acaPassSpecial: '',
       enrollCallRep: '',
     },
-    deals: (() => {
-      const cId = String(c.id || '');
-      const cCode = String(c.code || '');
-      const cName = String(fullName || '').trim().toLowerCase();
-      let dList = Array.isArray(c.deals) && c.deals.length > 0
-        ? c.deals.map(normalizeDeal)
-        : (Array.isArray(c.associatedDeals) && c.associatedDeals.length > 0 ? c.associatedDeals.map(normalizeDeal) : []);
-      if (dList.length === 0 && typeof window !== 'undefined') {
-        try {
-          const allDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
-          const matched = allDeals.filter(d => {
-            const dContactId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
-            const dContactName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
-            const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
-            return (
-              (cId && (dContactId === cId || dContactId.toLowerCase() === cId.toLowerCase())) ||
-              (cCode && (dContactId === cCode || dContactId.toLowerCase() === cCode.toLowerCase())) ||
-              (cName && dContactName && dContactName === cName) ||
-              (cName && (dTitle.startsWith(cName) || dTitle.includes(cName)))
-            );
-          });
-          dList = matched.map(normalizeDeal);
-        } catch (_) {}
-      }
-      return dList;
-    })(),
-    associatedDeals: (() => {
-      const cId = String(c.id || '');
-      const cCode = String(c.code || '');
-      const cName = String(fullName || '').trim().toLowerCase();
-      let dList = Array.isArray(c.associatedDeals) && c.associatedDeals.length > 0
-        ? c.associatedDeals.map(normalizeDeal)
-        : (Array.isArray(c.deals) && c.deals.length > 0 ? c.deals.map(normalizeDeal) : []);
-      if (dList.length === 0 && typeof window !== 'undefined') {
-        try {
-          const allDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
-          const matched = allDeals.filter(d => {
-            const dContactId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
-            const dContactName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
-            const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
-            return (
-              (cId && (dContactId === cId || dContactId.toLowerCase() === cId.toLowerCase())) ||
-              (cCode && (dContactId === cCode || dContactId.toLowerCase() === cCode.toLowerCase())) ||
-              (cName && dContactName && dContactName === cName) ||
-              (cName && (dTitle.startsWith(cName) || dTitle.includes(cName)))
-            );
-          });
-          dList = matched.map(normalizeDeal);
-        } catch (_) {}
-      }
-      return dList;
-    })(),
+    deals: Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : (Array.isArray(c.associatedDeals) ? c.associatedDeals.map(normalizeDeal) : []),
+    associatedDeals: Array.isArray(c.associatedDeals) ? c.associatedDeals.map(normalizeDeal) : (Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : []),
     tasks: Array.isArray(c.tasks) ? c.tasks.map(normalizeTask) : [],
     tickets: Array.isArray(c.tickets) ? c.tickets.map(normalizeTicket) : [],
   };
@@ -362,7 +293,7 @@ export async function getUsers() {
     const data = await request('/users');
     if (Array.isArray(data) && data.length > 0) return data;
   } catch {}
-  return getDynamicAdminAccounts();
+  return [];
 }
 
 export async function getContacts(params = {}) {
@@ -388,7 +319,7 @@ export async function getContact(id) {
   if (!id) return null;
   // 1. Ưu tiên endpoint 360° detail (đầy đủ contact + deals + tickets + documents + tasks + notes)
   try {
-    const detail = await request(`/contacts/${encodeURIComponent(id)}/detail`).catch(() => null);
+    const detail = await request(`/contacts/${encodeURIComponent(id)}/detail`);
     if (detail && detail.contact) {
       const fullContact = {
         ...detail.contact,
@@ -406,15 +337,8 @@ export async function getContact(id) {
   } catch (_) {}
 
   // 2. Fallback sang endpoint contact thông thường
-  const data = await request(`/contacts/${encodeURIComponent(id)}`).catch(() => null);
+  const data = await request(`/contacts/${encodeURIComponent(id)}`);
   if (data) return normalizeContact(data);
-
-  // 3. Fallback sang dynamic / sample contacts
-  try {
-    const dynamic = typeof window !== 'undefined' ? getDynamicContacts() : [];
-    const local = [...dynamic, ...SAMPLE_CONTACTS].find(c => String(c.id) === String(id) || String(c.code) === String(id));
-    if (local) return normalizeContact(local);
-  } catch (_) {}
 
   return null;
 }
@@ -431,7 +355,7 @@ export async function updateContact(id, data) {
   const res = await request(`/contacts/${encodeURIComponent(id)}`, {
     method: 'PUT',
     body: JSON.stringify(data),
-  }).catch(() => null);
+  });
   return res ? normalizeContact(res) : res;
 }
 
@@ -451,21 +375,10 @@ export async function getDeals(params = {}) {
 export async function getDeal(id) {
   if (!id) return null;
   const cleanId = String(id).replace(/\/$/, '').trim();
-  const data = await request(`/deals/${encodeURIComponent(cleanId)}`).catch(() => null);
+  const data = await request(`/deals/${encodeURIComponent(cleanId)}`);
   if (data) return normalizeDeal(data);
 
-  try {
-    const dynamic = typeof window !== 'undefined' ? getDynamicDeals() : [];
-    const all = [...dynamic, ...SAMPLE_DEALS];
-    const local = all.find(d => 
-      String(d.id) === cleanId || 
-      String(d.code) === cleanId ||
-      (cleanId === '3' && (d.code === 'D26005033' || d.id === 'D26005033')) ||
-      (cleanId === '4' && (d.code === 'D26005034' || d.id === 'D26005034')) ||
-      (d.title && d.title.toLowerCase().includes('minh tran') && cleanId === '3')
-    );
-    if (local) return normalizeDeal(local);
-  } catch (_) {}
+  
 
   return null;
 }
@@ -498,14 +411,10 @@ export async function getDocuments(params = {}) {
 
 export async function getDocument(id) {
   if (!id) return null;
-  const data = await request(`/documents/${encodeURIComponent(id)}`).catch(() => null);
+  const data = await request(`/documents/${encodeURIComponent(id)}`);
   if (data) return data;
 
-  try {
-    const dynamic = typeof window !== 'undefined' ? getDynamicCustomerDocuments() : [];
-    const local = dynamic.find(d => String(d.id) === String(id) || String(d.code) === String(id));
-    if (local) return local;
-  } catch (_) {}
+  
 
   return null;
 }
@@ -607,28 +516,10 @@ export async function getTickets(params = {}) {
 export async function getTicket(id) {
   if (!id) return null;
   const cleanId = String(id).replace(/\/$/, '');
-  const data = await request(`/tickets/${encodeURIComponent(cleanId)}`).catch(() => null);
+  const data = await request(`/tickets/${encodeURIComponent(cleanId)}`);
   if (data) return normalizeTicket(data);
 
-  try {
-    const dynamic = typeof window !== 'undefined' ? getDynamicTickets() : [];
-    const local = [...dynamic, ...SAMPLE_TICKETS].find(t => String(t.id) === cleanId || String(t.code) === cleanId);
-    if (local) return normalizeTicket(local);
-
-    const dynContacts = typeof window !== 'undefined' ? getDynamicContacts() : [];
-    const allContacts = [...dynContacts, ...SAMPLE_CONTACTS];
-    for (const c of allContacts) {
-      const found = (c.associatedTickets || c.tickets || []).find(t => String(t.id) === cleanId || String(t.code) === cleanId);
-      if (found) return normalizeTicket(found);
-    }
-
-    const dynDeals = typeof window !== 'undefined' ? getDynamicDeals() : [];
-    const allDeals = [...dynDeals, ...SAMPLE_DEALS];
-    for (const d of allDeals) {
-      const found = (d.associatedTickets || d.tickets || []).find(t => String(t.id) === cleanId || String(t.code) === cleanId);
-      if (found) return normalizeTicket(found);
-    }
-  } catch (_) {}
+  
 
   return normalizeTicket({
     id: cleanId,
@@ -676,17 +567,7 @@ export async function getTasks(params = {}) {
     }
   } catch (_) {}
 
-  const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
-  const localList = [...dynamicTasks, ...(SAMPLE_TASKS || [])].map(normalizeTask);
-
-  const combined = [...apiTasks, ...localList];
-  const seen = new Set();
-  const deduplicated = combined.filter((t) => {
-    const key = t.id || t.code;
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  const deduplicated = apiTasks;
 
   return deduplicated.filter((t) => {
     if (params.status && params.status !== 'All' && params.status !== 'all') {
@@ -718,22 +599,16 @@ export async function getTasks(params = {}) {
 
 export async function getTask(id) {
   if (!id) return null;
-  const data = await request(`/tasks/${encodeURIComponent(id)}`).catch(() => null);
+  const data = await request(`/tasks/${encodeURIComponent(id)}`);
   if (data) return normalizeTask(data);
 
-  try {
-    const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
-    const local = [...dynamicTasks, ...(SAMPLE_TASKS || [])].find(t => String(t.id) === String(id) || String(t.code) === String(id));
-    if (local) return normalizeTask(local);
-  } catch (_) {}
+  
 
   return null;
 }
 
 export async function createTask(data) {
-  if (typeof window !== 'undefined') {
-    addTaskToStore(data);
-  }
+  
 
   // Format payload to comply with Spring Boot Task entity schema
   let dueDateIso = null;
@@ -790,10 +665,7 @@ export async function createTask(data) {
     }
   }
 
-  const res = await request('/tasks', { method: 'POST', body: JSON.stringify(bePayload) }).catch((err) => {
-    console.warn('[api] createTask fallback:', err);
-    return null;
-  });
+  const res = await request('/tasks', { method: 'POST', body: JSON.stringify(bePayload) });
 
   if (res && res.id) {
     const updated = {
@@ -801,9 +673,7 @@ export async function createTask(data) {
       id: String(res.id),
       code: res.code || `TSK2600${1000 + Number(res.id)}`,
     };
-    if (typeof window !== 'undefined') {
-      updateTaskInStore(updated);
-    }
+    
     return normalizeTask(updated);
   }
 
@@ -811,9 +681,7 @@ export async function createTask(data) {
 }
 
 export async function updateTask(id, data) {
-  if (typeof window !== 'undefined') {
-    updateTaskInStore(data);
-  }
+  
 
   const rawId = String(id).replace(/^[^\d]+/, '');
   const numId = Number(rawId);
@@ -844,9 +712,6 @@ export async function updateTask(id, data) {
   const res = await request(`/tasks/${encodeURIComponent(endpointId)}`, {
     method: 'PUT',
     body: JSON.stringify(bePayload),
-  }).catch((err) => {
-    console.warn('[api] updateTask fallback:', err);
-    return null;
   });
 
   return res ? normalizeTask(res) : normalizeTask(data);
@@ -886,32 +751,9 @@ export async function getDashboardStats() {
 }
 
 // ── Admin Portal Operations ──────────────────────────────────────────────────
-export async function getAdminStats() {
-  try {
-    const data = await request('/admin/stats');
-    if (!data) return null;
-    return {
-      ...data,
-      totalInquiries: data.totalQuotes || data.totalInquiries || 0,
-      verifiedAgents: data.totalUsers || data.verifiedAgents || 0,
-      activeDeals: data.totalDeals || data.activeDeals || 0,
-    };
-  } catch {
-    return null;
-  }
-}
+export async function getAdminStats() { const data = await request('/admin/stats'); if (!data) return null; return { ...data, totalInquiries: data.totalQuotes || data.totalInquiries || 0, verifiedAgents: data.totalUsers || data.verifiedAgents || 0, activeDeals: data.totalDeals || data.activeDeals || 0 }; }
 
-export async function getAdminAccounts() {
-  try {
-    const data = await request('/admin/accounts');
-    if (Array.isArray(data) && data.length > 0) {
-      return data.map(normalizeAccount);
-    }
-  } catch {
-    // fallback to dynamic storage
-  }
-  return getDynamicAdminAccounts().map(normalizeAccount);
-}
+export async function getAdminAccounts() { const data = await request('/admin/accounts'); return Array.isArray(data) ? data.map(normalizeAccount) : []; }
 
 // Real API rejections (validation / duplicate) must reach the UI; only an unreachable
 // backend (network error, 5xx/proxy failure, missing auth in mock mode) falls back to mock storage.
@@ -936,14 +778,14 @@ export async function createAdminAccount(data) {
     if (res) {
       const normalized = normalizeAccount(res);
       // The store copies whitelisted fields only, so tempPassword is never persisted.
-      addAdminAccountToStore(normalized);
+      null;
       return normalized; // includes tempPassword from the backend response
     }
   } catch (err) {
     if (isApiRejection(err)) throw err;
     console.warn('[api] createAdminAccount offline fallback:', err.message);
   }
-  const saved = addAdminAccountToStore(data);
+  const saved = null;
   return { ...normalizeAccount(saved), tempPassword: generateLocalTempPassword(), offline: true };
 }
 
@@ -957,7 +799,7 @@ export async function updateAdminAccount(id, data) {
     if (isApiRejection(err)) throw err;
     console.warn('[api] updateAdminAccount offline fallback:', err.message);
   }
-  return updateAdminAccountInStore(id, data);
+  return null;
 }
 
 function normalizeQuote(q) {
@@ -1008,3 +850,19 @@ export async function getAdminAuditLogs() {
     return null;
   }
 }
+
+export async function submitQuote(data) {
+  return await request('/quotes', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+
+export async function deleteContact(id) { return await request(\/contacts/\\, { method: 'DELETE' }); }
+export async function deleteDeal(id) { return await request(\/deals/\\, { method: 'DELETE' }); }
+export async function deleteTicket(id) { return await request(\/tickets/\\, { method: 'DELETE' }); }
+export async function deleteTask(id) { return await request(\/tasks/\\, { method: 'DELETE' }); }
+export async function deleteCommission(id) { return await request(\/commissions/\\, { method: 'DELETE' }); }
+export async function deleteAdminAccount(id) { return await request(\/admin/accounts/\\, { method: 'DELETE' }); }
+

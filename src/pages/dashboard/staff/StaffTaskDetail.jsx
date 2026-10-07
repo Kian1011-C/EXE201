@@ -1,14 +1,4 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  getDynamicDeals,
-  SAMPLE_DEALS,
-  getDynamicContacts,
-  SAMPLE_CONTACTS,
-  getDynamicTickets,
-  SAMPLE_TICKETS,
-  DEAL_DETAIL_DATA,
-} from '../../../data/mockCrmData';
-import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { useAuth } from '../../../auth/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -35,10 +25,10 @@ export default function StaffTaskDetail({
   const currentUserName = user?.name || 'Platform Staff';
 
   // Available agent accounts for Assignee dropdown
-  const [availableAgents, setAvailableAgents] = useState(() => getActiveAgentAccounts());
+  const [availableAgents, setAvailableAgents] = useState([]);
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAvailableAgents(getActiveAgentAccounts());
+      setAvailableAgents([]);
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
@@ -136,7 +126,7 @@ export default function StaffTaskDetail({
 
   // ── 1. Resolve Linked Deal ────────────────────────────────────────────────
   const resolvedDeal = useMemo(() => {
-    const allDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
+    const allDeals = [...[], ...[]];
     const dObj = currentTask.deal || currentTask.rawTask?.deal;
     const dId = String(currentTask.dealId || dObj?.id || dObj?.code || '').trim();
     const dTitle = String(
@@ -212,7 +202,7 @@ export default function StaffTaskDetail({
 
   // ── 2. Resolve Linked Contact ─────────────────────────────────────────────
   const resolvedContact = useMemo(() => {
-    const allContacts = [...getDynamicContacts(), ...SAMPLE_CONTACTS];
+    const allContacts = [...[], ...[]];
     const cObj = currentTask.contact || currentTask.rawTask?.contact;
     const cId = String(currentTask.contactId || cObj?.id || cObj?.code || '').trim();
     const cName = String(
@@ -260,7 +250,7 @@ export default function StaffTaskDetail({
 
   // ── 3. Resolve Linked Ticket ──────────────────────────────────────────────
   const resolvedTicket = useMemo(() => {
-    const allTickets = [...getDynamicTickets(), ...SAMPLE_TICKETS];
+    const allTickets = [...[], ...[]];
     const tObj = currentTask.ticket || currentTask.rawTask?.ticket;
     const tId = String(currentTask.ticketId || tObj?.id || tObj?.code || '').trim();
 
@@ -384,7 +374,7 @@ export default function StaffTaskDetail({
     if (resolvedDeal && onSelectDeal) {
       onSelectDeal(resolvedDeal);
     } else if (onSelectDeal) {
-      const fallback = [...getDynamicDeals(), ...SAMPLE_DEALS][0] || DEAL_DETAIL_DATA;
+      const fallback = [...[], ...[]][0] || DEAL_DETAIL_DATA;
       onSelectDeal(fallback);
     }
   };

@@ -15,21 +15,6 @@ import StaffTaskDetail from './staff/StaffTaskDetail';
 import StaffCommissionView from './staff/StaffCommissionView';
 import AccessRestrictedCard from '../../components/AccessRestrictedCard';
 import {
-  MOCK_CONTACTS,
-  SAMPLE_CONTACTS,
-  getDynamicContacts,
-  SAMPLE_DEALS,
-  getDynamicDeals,
-  SAMPLE_TICKETS,
-  getDynamicTickets,
-  addTicketToStore,
-  addContactToStore,
-  CONTACT_DETAIL_DATA,
-  DEAL_DETAIL_DATA,
-  CUSTOMER_DOCUMENT_DATA,
-  updateCustomerDocumentInStore,
-} from '../../data/mockCrmData';
-import {
   getContact,
   getDeal,
   getDocument,
@@ -132,13 +117,13 @@ export default function StaffDashboard() {
       const ticketId = parts[1];
       if (ticketId) {
         const cleanId = String(ticketId).replace(/\/$/, '');
-        const dynContacts = getDynamicContacts();
-        const dynDeals = getDynamicDeals();
-        const contactTickets = [...dynContacts, ...SAMPLE_CONTACTS].flatMap((c) => c.associatedTickets || c.tickets || []);
-        const dealTickets = [...dynDeals, ...SAMPLE_DEALS].flatMap((d) => d.associatedTickets || d.tickets || []);
+        const dynContacts = [];
+        const dynDeals = [];
+        const contactTickets = [...dynContacts, ...[]].flatMap((c) => c.associatedTickets || c.tickets || []);
+        const dealTickets = [...dynDeals, ...[]].flatMap((d) => d.associatedTickets || d.tickets || []);
         const allTickets = [
-          ...getDynamicTickets(),
-          ...SAMPLE_TICKETS,
+          ...[],
+          ...[],
           ...(selectedContact?.associatedTickets || selectedContact?.tickets || []),
           ...(selectedDeal?.associatedTickets || selectedDeal?.tickets || []),
           ...contactTickets,
@@ -199,7 +184,7 @@ export default function StaffDashboard() {
       const parts = path.split('/dashboard/staff/deals/');
       const dealId = parts[1]?.replace(/\/$/, '')?.trim();
       if (dealId) {
-        const allDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
+        const allDeals = [...[], ...[]];
         const localFound = allDeals.find((d) => 
           String(d.id) === String(dealId) || 
           String(d.code) === String(dealId) ||
@@ -226,7 +211,7 @@ export default function StaffDashboard() {
       const parts = path.split('/dashboard/staff/contacts/');
       const contactId = parts[1];
       if (contactId) {
-        const allContacts = [...getDynamicContacts(), ...SAMPLE_CONTACTS];
+        const allContacts = [...[], ...[]];
         const localFound = allContacts.find((c) => c.id === contactId || c.code === contactId);
         if (localFound) {
           handleSelectContact(localFound, false);
@@ -336,7 +321,7 @@ export default function StaffDashboard() {
       ? contact.associatedDeals
       : (Array.isArray(contact.deals) && contact.deals.length > 0 ? contact.deals : []);
 
-    const matchingLocalDeals = [...getDynamicDeals(), ...SAMPLE_DEALS].filter((d) => {
+    const matchingLocalDeals = [...[], ...[]].filter((d) => {
       const dCId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
       const dCName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
       const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
@@ -369,7 +354,7 @@ export default function StaffDashboard() {
   // ── Deal Handlers ─────────────────────────────────────────────────────────
   function handleSelectDeal(deal) {
     pushHistory();
-    const allDeals = [...getDynamicDeals(), ...SAMPLE_DEALS];
+    const allDeals = [...[], ...[]];
     const dealId = String(deal?.id || deal?.code || deal?.dealId || '');
     const found = allDeals.find((d) => 
       String(d.id) === dealId || 
@@ -473,7 +458,7 @@ export default function StaffDashboard() {
       contactId: ticketObj.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
       contactName: ticketObj.contactName || (selectedContact ? selectedContact.fullName : ''),
     };
-    addTicketToStore(enriched);
+    null;
     setSelectedTicket(enriched);
     setCurrentTab('tickets');
     setCurrentView('ticket-detail');
@@ -734,7 +719,7 @@ export default function StaffDashboard() {
                   },
                 } : {}),
               };
-              addContactToStore(nextContact);
+              null;
               return nextContact;
             });
           }}

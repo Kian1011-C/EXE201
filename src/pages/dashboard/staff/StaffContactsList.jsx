@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getContacts, createContact as apiCreateContact, getUsers } from '../../../services/api';
-import { SAMPLE_CONTACTS, addContactToStore, getDynamicContacts } from '../../../data/mockCrmData';
-import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterContactsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
@@ -23,11 +21,11 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   }
 
   const [dbUsers, setDbUsers] = useState([]);
-  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+  const [agentAccounts, setAgentAccounts] = useState([]);
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts(getActiveAgentAccounts());
+      setAgentAccounts([]);
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
@@ -245,7 +243,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       acaAccountStatus: '',
     }).catch((err) => console.warn('Could not save to DB:', err));
 
-    addContactToStore(newRecord);
+    null;
 
     // Initialize real property history with current actor
     getPropertyHistory('contact', newCode, newRecord, currentActor);

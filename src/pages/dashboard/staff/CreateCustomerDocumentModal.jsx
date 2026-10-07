@@ -1,13 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { createDocument } from '../../../services/api';
-import {
-  addCustomerDocumentToStore,
-  getDynamicCustomerDocuments,
-  SAMPLE_CUSTOMER_DOCUMENTS,
-} from '../../../data/mockCrmData';
 
-import { getAllPlatformMembers } from '../../../data/mockAdminAccounts';
 
 const CATEGORIES = [
   { key: 'identity', label: 'Identity', icon: 'badge', color: 'text-violet-600', bg: 'bg-violet-50' },
@@ -274,8 +268,8 @@ export default function CreateCustomerDocumentModal({
 
   // Available existing documents
   const allExistingDocuments = [
-    ...getDynamicCustomerDocuments(),
-    ...SAMPLE_CUSTOMER_DOCUMENTS,
+    ...[],
+    ...[],
   ];
 
   const totalUploadedFiles = Object.values(attachedFiles).reduce((sum, list) => sum + list.length, 0);

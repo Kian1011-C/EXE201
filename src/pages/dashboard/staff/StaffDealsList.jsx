@@ -1,14 +1,4 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import {
-  OBAMACARE_DEAL_STAGES,
-  MEDICARE_DEAL_STAGES,
-  SAMPLE_DEALS,
-  getDynamicDeals,
-  addDealToStore,
-  addTicketToStore,
-  ALL_CARRIERS,
-} from '../../../data/mockCrmData';
-import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { getDeals, updateDeal, createTicket, getUsers } from '../../../services/api';
 import StaffDealsKanban from './StaffDealsKanban';
 import AddDealModal from './AddDealModal';
@@ -151,11 +141,11 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     window.location.pathname.includes('/agent');
   const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
 
-  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+  const [agentAccounts, setAgentAccounts] = useState([]);
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts(getActiveAgentAccounts());
+      setAgentAccounts([]);
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);

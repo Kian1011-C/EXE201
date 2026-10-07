@@ -1,12 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getDocuments } from '../../../services/api';
-import {
-  SAMPLE_CUSTOMER_DOCUMENTS,
-  getDynamicCustomerDocuments,
-  addCustomerDocumentToStore,
-  SAMPLE_CONTACTS,
-  getDynamicContacts,
-} from '../../../data/mockCrmData';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterCustomerDocumentsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
@@ -207,8 +200,8 @@ export default function StaffCustomerDocumentsList({
 
   // Contact options for modal
   const availableContacts = useMemo(() => {
-    const dyn = getDynamicContacts();
-    return [...dyn, ...SAMPLE_CONTACTS];
+    const dyn = [];
+    return [...dyn, ...[]];
   }, []);
 
   function handleOpenCreateModal() {

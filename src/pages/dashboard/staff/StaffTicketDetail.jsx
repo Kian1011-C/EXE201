@@ -1,11 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  SAMPLE_TICKETS,
-  addCustomerDocumentToStore,
-  getDynamicCustomerDocuments,
-  getDynamicDeals,
-} from '../../../data/mockCrmData';
-import {
   getTicket,
   updateTicket,
   addTicketComment,
@@ -16,7 +10,6 @@ import {
   addContactTask,
   getDeals,
 } from '../../../services/api';
-import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import toast from 'react-hot-toast';
 
 export function isDealBelongingToContact(deal, contactName, contactId) {
@@ -270,7 +263,7 @@ export default function StaffTicketDetail({
   const [platformMembers, setPlatformMembers] = useState(() => [
     { name: 'Platform Staff', avatar: 'PS', bg: 'bg-slate-600' },
     { name: 'The Best Rate Insurance', avatar: 'TB', bg: 'bg-cyan-700' },
-    ...getActiveAgentAccounts().map((a) => ({
+    ...[].map((a) => ({
       name: a.name,
       avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
       bg: a.bg || 'bg-blue-600',
@@ -282,7 +275,7 @@ export default function StaffTicketDetail({
       setPlatformMembers([
         { name: 'Platform Staff', avatar: 'PS', bg: 'bg-slate-600' },
         { name: 'The Best Rate Insurance', avatar: 'TB', bg: 'bg-cyan-700' },
-        ...getActiveAgentAccounts().map((a) => ({
+        ...[].map((a) => ({
           name: a.name,
           avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
           bg: a.bg || 'bg-blue-600',
@@ -419,7 +412,7 @@ export default function StaffTicketDetail({
 
     // 3. Search local dynamic deals by exact dealId ONLY
     if (!matched && dId) {
-      const dynamicDeals = getDynamicDeals();
+      const dynamicDeals = [];
       if (Array.isArray(dynamicDeals) && dynamicDeals.length > 0) {
         const byId = dynamicDeals.find((d) => (String(d.id) === dId || String(d.code) === dId) && isDealBelongingToContact(d, cName, cId));
         if (byId) matched = byId;
@@ -471,7 +464,7 @@ export default function StaffTicketDetail({
     const rawTicket =
       typeof ticket === 'object' && ticket !== null
         ? ticket
-        : (SAMPLE_TICKETS.find((t) => t.id === ticket) || {});
+        : ([].find((t) => t.id === ticket) || {});
 
     const isPaymentTicket =
       rawTicket?.pipeline === 'Payment' ||
@@ -870,7 +863,7 @@ export default function StaffTicketDetail({
       stage: `${st} (${pipeline})`,
       pipeline,
     };
-    addTicketToStore(updatedTicket);
+    null;
     if (ticket?.id) {
       updateTicket(ticket.id, updatedTicket).catch(() => {});
     }

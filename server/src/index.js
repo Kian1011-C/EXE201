@@ -36,7 +36,8 @@ app.get('/api/health', async (req, res) => {
 
 // ── Contacts Routes ──────────────────────────────────────────────────────────
 // GET /api/contacts
-app.get('/api/contacts', async (req, res) => {
+app.get('/api/contacts', requireAuth, async (req, res) => {
+    const authUser = req.authUser;
   try {
     const { search, owner } = req.query;
     const where = {};
@@ -54,6 +55,7 @@ app.get('/api/contacts', async (req, res) => {
       where.contactOwnerName = { contains: owner, mode: 'insensitive' };
     }
 
+    if (authUser.role === 'agent') where.ownerId = authUser.id;
     const contacts = await prisma.contact.findMany({
       where,
       orderBy: { no: 'asc' },
@@ -124,7 +126,7 @@ app.get('/api/contacts', async (req, res) => {
 });
 
 // GET /api/contacts/:id
-app.get('/api/contacts/:id', async (req, res) => {
+app.get('/api/contacts/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const contact = await prisma.contact.findFirst({
@@ -256,14 +258,15 @@ app.get('/api/contacts/:id', async (req, res) => {
 });
 
 // POST /api/contacts
-app.get('/api/contacts', async (req, res) => {
+app.get('/api/contacts', requireAuth, async (req, res) => {
+    const authUser = req.authUser;
   // Handled above
 });
 
-app.post('/api/contacts', async (req, res) => {
+app.post('/api/contacts', requireAuth, async (req, res) => {
   try {
     const data = req.body;
-    const count = await prisma.contact.count();
+    const count = await prisma.contact.count({ where: ownerWhere });
     const newCode = data.code || `CT2600${2610 + count}`;
     const newId = newCode;
 
@@ -273,6 +276,7 @@ app.post('/api/contacts', async (req, res) => {
     const fullName =
       data.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || 'New Contact';
 
+    data.ownerId = req.authUser.id;
     const contact = await prisma.contact.create({
       data: {
         id: newId,
@@ -311,7 +315,7 @@ app.post('/api/contacts', async (req, res) => {
 });
 
 // PUT /api/contacts/:id
-app.put('/api/contacts/:id', async (req, res) => {
+app.put('/api/contacts/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
@@ -331,9 +335,19 @@ app.put('/api/contacts/:id', async (req, res) => {
   }
 });
 
+
+app.delete('/api/contacts/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.contact.delete({ where: { id } });
+    res.json({ success: true });
+  } catch(error) { res.status(500).json({ error: 'Failed' }); }
+});
+
 // ── Deals Routes ─────────────────────────────────────────────────────────────
 // GET /api/deals
-app.get('/api/deals', async (req, res) => {
+app.get('/api/deals', requireAuth, async (req, res) => {
+    const authUser = req.authUser;
   try {
     const { search, pipeline, stage, owner } = req.query;
     const where = {};
@@ -358,6 +372,7 @@ app.get('/api/deals', async (req, res) => {
       where.dealOwnerName = { contains: owner, mode: 'insensitive' };
     }
 
+    if (authUser.role === 'agent') where.ownerId = authUser.id;
     const deals = await prisma.deal.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -405,7 +420,7 @@ app.get('/api/deals', async (req, res) => {
 });
 
 // GET /api/deals/:id
-app.get('/api/deals/:id', async (req, res) => {
+app.get('/api/deals/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const deal = await prisma.deal.findFirst({
@@ -466,7 +481,7 @@ app.get('/api/deals/:id', async (req, res) => {
 });
 
 // PUT /api/deals/:id (Update stage, pipeline, title, etc.)
-app.put('/api/deals/:id', async (req, res) => {
+app.put('/api/deals/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { stage, pipeline, title, amount, closeDate, carrier, sellingState } = req.body;
@@ -493,12 +508,13 @@ app.put('/api/deals/:id', async (req, res) => {
 });
 
 // POST /api/deals
-app.post('/api/deals', async (req, res) => {
+app.post('/api/deals', requireAuth, async (req, res) => {
   try {
     const data = req.body;
     const count = await prisma.deal.count();
     const newCode = data.code || `D2600${5040 + count}`;
 
+    data.ownerId = req.authUser.id;
     const deal = await prisma.deal.create({
       data: {
         id: newCode,
@@ -521,6 +537,15 @@ app.post('/api/deals', async (req, res) => {
     console.error('Error creating deal:', error);
     res.status(500).json({ error: 'Failed to create deal' });
   }
+});
+
+
+app.delete('/api/deals/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.deal.delete({ where: { id } });
+    res.json({ success: true });
+  } catch(error) { res.status(500).json({ error: 'Failed' }); }
 });
 
 // ── Customer Documents Routes ────────────────────────────────────────────────
@@ -658,7 +683,8 @@ app.post('/api/contacts/:id/tasks', async (req, res) => {
 });
 
 // ── Ticket Routes ────────────────────────────────────────────────────────────
-app.get('/api/tickets', async (req, res) => {
+app.get('/api/tickets', requireAuth, async (req, res) => {
+    const authUser = req.authUser;
   try {
     const { pipeline, status, priority, contactId, dealId } = req.query;
     const where = {};
@@ -668,6 +694,7 @@ app.get('/api/tickets', async (req, res) => {
     if (contactId) where.contactId = contactId;
     if (dealId) where.dealId = dealId;
 
+    if (authUser.role === 'agent') where.ownerId = authUser.id;
     const tickets = await prisma.ticket.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -679,7 +706,7 @@ app.get('/api/tickets', async (req, res) => {
   }
 });
 
-app.get('/api/tickets/:id', async (req, res) => {
+app.get('/api/tickets/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const ticket = await prisma.ticket.findUnique({
@@ -693,7 +720,8 @@ app.get('/api/tickets/:id', async (req, res) => {
   }
 });
 
-app.post('/api/tickets', async (req, res) => {
+app.post('/api/tickets', requireAuth, async (req, res) => {
+    req.body.ownerId = req.authUser.id;
   try {
     const data = req.body;
     let priority = data.priority || 'Medium';
@@ -718,7 +746,7 @@ app.post('/api/tickets', async (req, res) => {
   }
 });
 
-app.put('/api/tickets/:id', async (req, res) => {
+app.put('/api/tickets/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
@@ -758,8 +786,18 @@ app.post('/api/tickets/:id/comments', async (req, res) => {
   }
 });
 
+
+app.delete('/api/tickets/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.ticket.delete({ where: { id } });
+    res.json({ success: true });
+  } catch(error) { res.status(500).json({ error: 'Failed' }); }
+});
+
 // ── Task Routes ──────────────────────────────────────────────────────────────
-app.get('/api/tasks', async (req, res) => {
+app.get('/api/tasks', requireAuth, async (req, res) => {
+    const authUser = req.authUser;
   try {
     const { status, priority, assignedTo, contactId, dealId } = req.query;
     const where = {};
@@ -769,6 +807,7 @@ app.get('/api/tasks', async (req, res) => {
     if (contactId) where.contactId = contactId;
     if (dealId) where.dealId = dealId;
 
+    if (authUser.role === 'agent') where.ownerId = authUser.id;
     const tasks = await prisma.task.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -780,7 +819,7 @@ app.get('/api/tasks', async (req, res) => {
   }
 });
 
-app.get('/api/tasks/:id', async (req, res) => {
+app.get('/api/tasks/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const task = await prisma.task.findUnique({
@@ -794,7 +833,8 @@ app.get('/api/tasks/:id', async (req, res) => {
   }
 });
 
-app.post('/api/tasks', async (req, res) => {
+app.post('/api/tasks', requireAuth, async (req, res) => {
+    req.body.ownerId = req.authUser.id;
   try {
     const data = req.body;
     const count = await prisma.task.count();
@@ -827,7 +867,7 @@ app.post('/api/tasks', async (req, res) => {
   }
 });
 
-app.put('/api/tasks/:id', async (req, res) => {
+app.put('/api/tasks/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
@@ -841,8 +881,18 @@ app.put('/api/tasks/:id', async (req, res) => {
   }
 });
 
+
+app.delete('/api/tasks/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.task.delete({ where: { id } });
+    res.json({ success: true });
+  } catch(error) { res.status(500).json({ error: 'Failed' }); }
+});
+
 // ── Commission Routes ────────────────────────────────────────────────────────
-app.get('/api/commissions', async (req, res) => {
+app.get('/api/commissions', requireAuth, async (req, res) => {
+    const authUser = req.authUser;
   try {
     const { agentName, period, status, carrier } = req.query;
     const where = {};
@@ -851,6 +901,7 @@ app.get('/api/commissions', async (req, res) => {
     if (status && status !== 'all') where.status = status;
     if (carrier && carrier !== 'all') where.carrier = carrier;
 
+    if (authUser.role === 'agent') where.ownerId = authUser.id;
     const commissions = await prisma.commission.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -862,9 +913,9 @@ app.get('/api/commissions', async (req, res) => {
   }
 });
 
-app.get('/api/commissions/summary', async (req, res) => {
+app.get('/api/commissions/summary', requireAuth, async (req, res) => {
   try {
-    const all = await prisma.commission.findMany();
+    const all = await prisma.commission.findMany({ where: ownerWhere });
     let settledThisMonth = 0;
     let pendingAudit = 0;
     let ytdPaid = 0;
@@ -886,7 +937,8 @@ app.get('/api/commissions/summary', async (req, res) => {
   }
 });
 
-app.post('/api/commissions', async (req, res) => {
+app.post('/api/commissions', requireAuth, async (req, res) => {
+    req.body.ownerId = req.authUser.id;
   try {
     const data = req.body;
     const commission = await prisma.commission.create({ data });
@@ -897,7 +949,7 @@ app.post('/api/commissions', async (req, res) => {
 });
 
 // POST /api/commissions/calculate - SSS Commission Rules Engine
-app.post('/api/commissions/calculate', async (req, res) => {
+app.post('/api/commissions/calculate', requireAuth, async (req, res) => {
   try {
     const { agentName = 'Khanh Nguyen', period, isNewAgent = false } = req.body;
     const now = new Date();
@@ -908,6 +960,7 @@ app.post('/api/commissions/calculate', async (req, res) => {
       whereDeal.dealOwnerName = { contains: agentName, mode: 'insensitive' };
     }
 
+    if (authUser.role === 'agent') where.ownerId = authUser.id;
     const deals = await prisma.deal.findMany({
       where: whereDeal,
       include: { contact: true },
@@ -1028,7 +1081,7 @@ app.post('/api/commissions/calculate', async (req, res) => {
   }
 });
 
-app.put('/api/commissions/:id', async (req, res) => {
+app.put('/api/commissions/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body; // status, etc
@@ -1043,15 +1096,71 @@ app.put('/api/commissions/:id', async (req, res) => {
   }
 });
 
-// ── Dashboard Routes ─────────────────────────────────────────────────────────
-app.get('/api/dashboard/stats', async (req, res) => {
-  try {
-    const totalContacts = await prisma.contact.count();
-    const activeDeals = await prisma.deal.count({ where: { NOT: { stage: { contains: 'Closed Lost' } } } });
-    const openTickets = await prisma.ticket.count({ where: { status: 'Open' } });
-    const pendingTasks = await prisma.task.count({ where: { status: 'Pending' } });
 
-    const allDeals = await prisma.deal.findMany({ select: { pipeline: true, stage: true } });
+app.delete('/api/commissions/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.commission.delete({ where: { id } });
+    res.json({ success: true });
+  } catch(error) { res.status(500).json({ error: 'Failed' }); }
+});
+
+
+// POST /api/quotes
+app.post('/api/quotes', async (req, res) => {
+  try {
+    const data = req.body;
+    const count = await prisma.contact.count({ where: ownerWhere });
+    const newId = `INQ2600${2610 + count}`;
+    const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || 'New Quote';
+
+    const contact = await prisma.contact.create({
+      data: {
+        id: newId,
+        code: newId,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        fullName,
+        phone: data.phone || '',
+        email: data.email || '',
+        state: data.state || '',
+        language: data.language || 'English',
+        howDoYouKnowUs: data.source || 'Website',
+      }
+    });
+
+    const deal = await prisma.deal.create({
+      data: {
+        id: `D${newId}`,
+        code: `D${newId}`,
+        title: `${fullName} - Quote Request`,
+        contactId: contact.id,
+        stage: 'New Inquiry',
+        pipeline: data.insuranceType || 'ACA Healthcare / Health',
+      }
+    });
+
+    res.status(201).json({ contact, deal });
+  } catch (error) {
+    console.error('Error creating quote:', error);
+    res.status(500).json({ error: 'Failed to create quote' });
+  }
+});
+
+// ── Dashboard Routes
+
+app.get('/api/dashboard/stats', requireAuth, async (req, res) => {
+  const authUser = req.authUser;
+  const isAgent = authUser.role === 'agent';
+  const ownerWhere = isAgent ? { ownerId: authUser.id } : {};
+
+  try {
+    const totalContacts = await prisma.contact.count({ where: ownerWhere });
+    const activeDeals = await prisma.deal.count({ where: { ...ownerWhere, NOT: { stage: { contains: 'Closed Lost' } } } });
+    const openTickets = await prisma.ticket.count({ where: { ...ownerWhere, status: 'Open' } });
+    const pendingTasks = await prisma.task.count({ where: { ...ownerWhere, status: 'Pending' } });
+
+    const allDeals = await prisma.deal.findMany({ where: ownerWhere, select: { pipeline: true, stage: true } });
     const dealsByPipeline = Object.entries(allDeals.reduce((acc, curr) => {
       acc[curr.pipeline] = (acc[curr.pipeline] || 0) + 1;
       return acc;
@@ -1062,7 +1171,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
       return acc;
     }, {})).map(([stage, count]) => ({ stage, count }));
 
-    const allTickets = await prisma.ticket.findMany({ select: { pipeline: true, status: true, dueDate: true } });
+    const allTickets = await prisma.ticket.findMany({ where: ownerWhere, select: { pipeline: true, status: true, dueDate: true } });
     const ticketsByPipeline = Object.entries(allTickets.reduce((acc, curr) => {
       acc[curr.pipeline] = (acc[curr.pipeline] || 0) + 1;
       return acc;
@@ -1079,13 +1188,13 @@ app.get('/api/dashboard/stats', async (req, res) => {
       if (t.status !== 'Closed' && t.status !== 'Completed' && t.dueDate && t.dueDate < nowStr) overdueTickets++;
     });
 
-    const allTasks = await prisma.task.findMany({ select: { status: true, dueDate: true } });
+    const allTasks = await prisma.task.findMany({ where: ownerWhere, select: { status: true, dueDate: true } });
     let overdueTasks = 0;
     allTasks.forEach(t => {
       if (t.status !== 'Completed' && t.dueDate && t.dueDate < nowStr) overdueTasks++;
     });
 
-    const allComms = await prisma.commission.findMany();
+    const allComms = await prisma.commission.findMany({ where: ownerWhere });
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     let commissionThisMonth = 0;
@@ -1116,269 +1225,10 @@ app.get('/api/dashboard/stats', async (req, res) => {
   }
 });
 
-// ── Admin Portal Routes ───────────────────────────────────────────────────────
-let ADMIN_ACCOUNTS = [
-  {
-    id: 'ACC-001',
-    name: 'Super Admin',
-    email: 'admin@insurmatch.us',
-    role: 'admin',
-    avatar: 'SA',
-    bg: 'bg-rose-700 text-white',
-    status: 'Active',
-    phone: '+1 (800) 555-0199',
-    department: 'Platform Operations & System Governance',
-    statesLicensed: ['National'],
-    npn: 'MASTER-ADMIN',
-    joinedDate: '2025-01-10',
-    lastActive: 'Just now',
-    dealsCount: 0,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-002',
-    name: 'Anh Que Pham CPA',
-    email: 'anhque@insurmatch.us',
-    role: 'agent',
-    avatar: 'AQ',
-    bg: 'bg-amber-600 text-white',
-    status: 'Active',
-    phone: '+1 (832) 555-2001',
-    agencyRole: 'Principal Broker & Agency Sponsor',
-    department: 'Executive Agency Leadership',
-    statesLicensed: ['TX (TDI)', 'CA (CDI)', 'FL', 'NC'],
-    npn: '20011862',
-    joinedDate: '2024-08-15',
-    lastActive: '15 mins ago',
-    dealsCount: 84,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-003',
-    name: 'Khanh Nguyen',
-    email: 'khanh@insurmatch.us',
-    role: 'agent',
-    avatar: 'KN',
-    bg: 'bg-blue-600 text-white',
-    status: 'Active',
-    phone: '+1 (838) 776-1434',
-    agencyRole: 'Senior Partner Agent',
-    department: 'Medicare & ACA Sales Hub',
-    statesLicensed: ['TX (TDI)', 'CA (CDI)', 'FL'],
-    npn: '1984210',
-    joinedDate: '2025-02-01',
-    lastActive: '1 hour ago',
-    dealsCount: 42,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-004',
-    name: 'Sean Ngo',
-    email: 'sean@insurmatch.us',
-    role: 'agent',
-    avatar: 'SN',
-    bg: 'bg-emerald-600 text-white',
-    status: 'Active',
-    phone: '+1 (713) 442-9901',
-    agencyRole: 'Partner Agent',
-    department: 'Health & Life Division',
-    statesLicensed: ['TX', 'NC', 'GA'],
-    npn: '1994321',
-    joinedDate: '2025-03-12',
-    lastActive: '3 hours ago',
-    dealsCount: 29,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-005',
-    name: 'Anya Nguyen',
-    email: 'staff@insurmatch.us',
-    role: 'staff',
-    avatar: 'AN',
-    bg: 'bg-teal-600 text-white',
-    status: 'Active',
-    phone: '+1 (832) 998-1122',
-    department: 'Intake Coordination & Policy Support',
-    statesLicensed: ['National Hub'],
-    npn: 'STAFF-OPS',
-    joinedDate: '2025-01-20',
-    lastActive: '5 mins ago',
-    dealsCount: 115,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-006',
-    name: 'Miranda Pham',
-    email: 'miranda@insurmatch.us',
-    role: 'staff',
-    avatar: 'MP',
-    bg: 'bg-purple-600 text-white',
-    status: 'Active',
-    phone: '+1 (832) 998-3344',
-    department: 'Document Verification & Client Services',
-    statesLicensed: ['National Hub'],
-    npn: 'STAFF-OPS',
-    joinedDate: '2025-02-15',
-    lastActive: '35 mins ago',
-    dealsCount: 78,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-007',
-    name: 'Ivy Le',
-    email: 'ivyle@insurmatch.us',
-    role: 'agent',
-    avatar: 'IL',
-    bg: 'bg-orange-500 text-white',
-    status: 'Pending',
-    phone: '+1 (408) 555-8812',
-    agencyRole: 'Associate Agent Applicant',
-    department: 'California Regional Hub',
-    statesLicensed: ['CA (CDI)', 'WA'],
-    npn: 'PENDING_CDI_092',
-    joinedDate: '2026-09-10',
-    lastActive: 'Yesterday',
-    dealsCount: 0,
-    complianceStatus: 'Pending NPN Verification',
-  },
-  {
-    id: 'ACC-008',
-    name: 'James Vu',
-    email: 'jamesvu@insurmatch.us',
-    role: 'agent',
-    avatar: 'JV',
-    bg: 'bg-slate-600 text-white',
-    status: 'Suspended',
-    phone: '+1 (214) 555-7766',
-    agencyRole: 'Independent Field Agent',
-    department: 'DFW North Hub',
-    statesLicensed: ['TX (TDI)'],
-    npn: '1854201',
-    joinedDate: '2024-11-05',
-    lastActive: '7 days ago',
-    dealsCount: 18,
-    complianceStatus: 'Suspended — AOR Dispute Investigation (SOP 23)',
-    suspensionReason: 'Audit flagged unauthorized AOR switch request under review with TDI.',
-  },
-];
-
-let ADMIN_AUDIT_LOGS = [
-  {
-    id: 'LOG-1092',
-    action: 'NPN Sponsor Update',
-    actor: 'Super Admin',
-    target: 'Deal D26005041 (Ken xington Ho)',
-    detail: 'Verified master sponsor NPN set to Anh Que Pham 20011862.',
-    timestamp: '2026-09-25 10:45 AM',
-    type: 'governance',
-  },
-  {
-    id: 'LOG-1091',
-    action: 'Agent Accreditation Pending',
-    actor: 'System Automation',
-    target: 'Ivy Le (ACC-007)',
-    detail: 'Application received for CA (CDI) & WA license check.',
-    timestamp: '2026-09-24 04:12 PM',
-    type: 'compliance',
-  },
-  {
-    id: 'LOG-1090',
-    action: 'Sale Support Split Executed',
-    actor: 'Super Admin',
-    target: 'September 2026 Commission Ledger',
-    detail: 'SSS rules applied: NONE (7/3), PARTIAL (5/5), FULL (3/7).',
-    timestamp: '2026-09-23 09:30 AM',
-    type: 'finance',
-  },
-  {
-    id: 'LOG-1089',
-    action: 'Agent Suspension Imposed',
-    actor: 'Super Admin',
-    target: 'James Vu (ACC-008)',
-    detail: 'Temporary license access suspension per SOP 23 & SOP 27.',
-    timestamp: '2026-09-18 02:15 PM',
-    type: 'security',
-  },
-];
-
-// ── Account Management Helpers (credentials, validation, auth) ────────────────
-// Credentials are kept OUT of ADMIN_ACCOUNTS so a password hash can never leak through
-// GET /api/admin/accounts. Keyed by lower-cased email.
-const ACCOUNT_CREDENTIALS = new Map(); // email -> { passwordHash, mustChangePassword }
-
-const ACCOUNT_ROLES = ['agent', 'staff', 'admin'];
-const ACCOUNT_STATUSES = ['Pending', 'Active', 'Suspended'];
-const ALLOWED_STATUS_TRANSITIONS = {
-  Pending: ['Active'], // approve
-  Active: ['Suspended'], // suspend (reason required)
-  Suspended: ['Active'], // reinstate
-};
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const NPN_REGEX = /^\d{7,8}$/;
+// ── Authentication & Authorization Setup ─────────────────────────────────────
 const TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
 const TOKEN_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
 
-function isValidPhone(phone) {
-  const digits = String(phone).replace(/\D/g, '');
-  return /^[\d\s()+.\-]+$/.test(phone) && digits.length >= 7 && digits.length <= 15;
-}
-
-function normalizeStates(value, role) {
-  let list = value;
-  if (typeof list === 'string') list = list.split(',');
-  if (Array.isArray(list)) {
-    list = list.map((s) => String(s).trim()).filter(Boolean);
-    if (list.length > 0) return list;
-  }
-  return role === 'staff' ? ['National Hub'] : role === 'admin' ? ['National'] : [];
-}
-
-// ACC-001, ACC-002 ... computed from the highest existing numeric suffix (never from the array length)
-function nextAccountId() {
-  const max = ADMIN_ACCOUNTS.reduce((m, a) => {
-    const n = parseInt(String(a.id).replace(/^ACC-/, ''), 10);
-    return Number.isFinite(n) && n > m ? n : m;
-  }, 0);
-  return `ACC-${String(max + 1).padStart(3, '0')}`;
-}
-
-// Account shape returned to clients (never includes any credential data)
-function toPublicAccount(acc) {
-  return {
-    ...acc,
-    id: acc.id,
-    name: acc.name,
-    email: acc.email,
-    role: acc.role,
-    status: acc.status,
-    complianceStatus: acc.complianceStatus ?? null,
-    npn: acc.npn ?? null,
-    phone: acc.phone ?? '',
-    statesLicensed: Array.isArray(acc.statesLicensed) ? acc.statesLicensed : [],
-    department: acc.department ?? '',
-    joinedDate: acc.joinedDate,
-    suspensionReason: acc.suspensionReason ?? null,
-  };
-}
-
-// 14-char random password with at least one upper, lower, digit and symbol (CSPRNG, ambiguous chars excluded)
-function generateTempPassword(length = 14) {
-  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const lower = 'abcdefghijkmnopqrstuvwxyz';
-  const digits = '23456789';
-  const symbols = '!@#$%^&*-_=+?';
-  const all = upper + lower + digits + symbols;
-  const pick = (set) => set[crypto.randomInt(set.length)];
-  const chars = [pick(upper), pick(lower), pick(digits), pick(symbols)];
-  while (chars.length < length) chars.push(pick(all));
-  for (let i = chars.length - 1; i > 0; i--) {
-    const j = crypto.randomInt(i + 1);
-    [chars[i], chars[j]] = [chars[j], chars[i]];
-  }
-  return chars.join('');
-}
-
-// Password hashing with Node's built-in scrypt (the project has no bcrypt dependency)
 function hashPassword(password) {
   const salt = crypto.randomBytes(16);
   const hash = crypto.scryptSync(password, salt, 64);
@@ -1393,10 +1243,9 @@ function verifyPassword(password, stored) {
   return crypto.timingSafeEqual(actual, expected);
 }
 
-// Signed session token: base64url(payload).hmac
 function signToken(account) {
   const payload = Buffer.from(
-    JSON.stringify({ sub: account.id, email: account.email, role: account.role, exp: Date.now() + TOKEN_TTL_MS }),
+    JSON.stringify({ sub: account.id, email: account.email, role: account.role, exp: Date.now() + TOKEN_TTL_MS })
   ).toString('base64url');
   const sig = crypto.createHmac('sha256', TOKEN_SECRET).update(payload).digest('base64url');
   return `${payload}.${sig}`;
@@ -1417,154 +1266,68 @@ function verifyToken(token) {
   }
 }
 
-// Auth middleware: requires a valid token belonging to an Active ADMIN account.
-// The frontend's offline demo login issues `mock-token-admin-*` tokens; those are accepted ONLY outside production.
-function requireAdmin(req, res, next) {
+async function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
-  if (!token) {
-    return res.status(401).json({ error: 'Authentication required.' });
-  }
+  if (!token) return res.status(401).json({ error: 'Authentication required.' });
   const payload = verifyToken(token);
-  if (payload) {
-    const account = ADMIN_ACCOUNTS.find((a) => a.id === payload.sub);
-    if (!account || account.role !== 'admin' || account.status !== 'Active') {
-      return res.status(403).json({ error: 'Administrator privileges required.' });
-    }
-    req.authUser = account;
-    return next();
-  }
-  if (process.env.NODE_ENV !== 'production' && token.startsWith('mock-token-admin-')) {
-    req.authUser = { name: 'Super Admin', role: 'admin' };
-    return next();
-  }
-  return res.status(401).json({ error: 'Invalid or expired token.' });
+  if (!payload) return res.status(401).json({ error: 'Invalid or expired token.' });
+
+  const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+  if (!user || user.status !== 'Active') return res.status(403).json({ error: 'Account not active.' });
+  
+  req.authUser = user;
+  next();
 }
 
-// Welcome email. Uses SMTP (SMTP_HOST/PORT/USER/PASS/FROM + optional `nodemailer` package) when configured;
-// otherwise only logs a non-sensitive "queued" message. The temp password is never logged.
-// Resolves to true only when an email was actually handed to the SMTP server.
-async function sendWelcomeEmail(account, tempPassword) {
-  if (!process.env.SMTP_HOST) {
-    console.log(`📧 Welcome email queued for account ${account.id} (SMTP not configured, not sent)`);
-    return false;
-  }
-  try {
-    const { default: nodemailer } = await import('nodemailer');
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
-    });
-    const note =
-      account.role === 'agent'
-        ? 'Your account is pending NPN accreditation approval. You will be able to sign in once an administrator approves it.'
-        : 'You can sign in now.';
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'InsurMatch <no-reply@insurmatch.us>',
-      to: account.email,
-      subject: 'Welcome to InsurMatch',
-      text:
-        `Hello ${account.name},\n\nAn InsurMatch ${account.role} account has been created for you.\n` +
-        `Email: ${account.email}\nTemporary password: ${tempPassword}\n\n` +
-        `${note} You will be asked to change your password at first login.\n`,
-    });
-    console.log(`📧 Welcome email sent for account ${account.id}`);
-    return true;
-  } catch (error) {
-    console.error(`Welcome email failed for account ${account.id}:`, error.message);
-    return false;
-  }
+function requireAdmin(req, res, next) {
+  requireAuth(req, res, () => {
+    if (req.authUser.role !== 'admin') return res.status(403).json({ error: 'Administrator privileges required.' });
+    next();
+  });
 }
 
-// POST /api/auth/login — for accounts created by admins.
-// Pending agents (awaiting NPN accreditation) and suspended accounts get 403.
-// Emails unknown to this server get 404 so the frontend can fall back to its demo accounts.
-app.post('/api/auth/login', (req, res) => {
+
+// POST /api/auth/login
+app.post('/api/auth/login', async (req, res) => {
   const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
   const password = typeof req.body?.password === 'string' ? req.body.password : '';
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' });
-  }
+  if (!email || !password) return res.status(400).json({ message: 'Email and password are required.' });
 
-  const account = ADMIN_ACCOUNTS.find((a) => String(a.email).toLowerCase() === email);
-  if (!account) {
-    return res.status(404).json({ message: 'Account not managed by this server.' });
-  }
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return res.status(404).json({ message: 'Account not found.' });
+  
+  if (!verifyPassword(password, user.passwordHash)) return res.status(401).json({ message: 'Invalid email or password.' });
+  if (user.status === 'Pending') return res.status(403).json({ message: 'Your account is awaiting approval.' });
+  if (user.status === 'Suspended') return res.status(403).json({ message: 'Your account is suspended.' });
 
-  const cred = ACCOUNT_CREDENTIALS.get(email);
-  if (cred && !verifyPassword(password, cred.passwordHash)) {
-    return res.status(401).json({ message: 'Invalid email or password.' });
-  }
+  await prisma.user.update({ where: { id: user.id }, data: { lastActive: 'Just now' } });
 
-  if (account.status === 'Pending') {
-    return res.status(403).json({
-      message: 'Your account is not activated yet: it is awaiting NPN accreditation approval.',
-    });
-  }
-  if (account.status === 'Suspended') {
-    return res.status(403).json({
-      message: 'Your account is suspended and not activated for sign-in. Please contact an administrator.',
-    });
-  }
-  if (!cred) {
-    // Seeded/demo account without server-side credentials: let the frontend use its demo login
-    return res.status(404).json({ message: 'Account not managed by this server.' });
-  }
-
-  account.lastActive = 'Just now';
   res.json({
-    token: signToken(account),
-    mustChangePassword: !!cred.mustChangePassword,
+    token: signToken(user),
+    mustChangePassword: user.mustChangePassword,
     user: {
-      id: account.id,
-      name: account.name,
-      email: account.email,
-      role: account.role,
-      avatar: account.avatar,
-      mustChangePassword: !!cred.mustChangePassword,
-    },
+      id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, mustChangePassword: user.mustChangePassword
+    }
   });
 });
 
-// POST /api/auth/change-password — clears mustChangePassword (requires the session token + current password)
-app.post('/api/auth/change-password', (req, res) => {
-  const header = req.headers.authorization || '';
-  const payload = verifyToken(header.startsWith('Bearer ') ? header.slice(7).trim() : '');
-  if (!payload) {
-    return res.status(401).json({ message: 'Invalid or expired token.' });
-  }
+app.post('/api/auth/change-password', requireAuth, async (req, res) => {
   const { currentPassword, newPassword } = req.body || {};
-  const email = String(payload.email).toLowerCase();
-  const cred = ACCOUNT_CREDENTIALS.get(email);
-  const account = ADMIN_ACCOUNTS.find((a) => a.id === payload.sub);
-  if (!cred || !account || account.status !== 'Active') {
-    return res.status(403).json({ message: 'Account is not active.' });
-  }
-  if (typeof currentPassword !== 'string' || !verifyPassword(currentPassword, cred.passwordHash)) {
+  const user = req.authUser;
+  if (typeof currentPassword !== 'string' || !verifyPassword(currentPassword, user.passwordHash)) {
     return res.status(401).json({ message: 'Current password is incorrect.' });
   }
-  if (
-    typeof newPassword !== 'string' ||
-    newPassword.length < 8 ||
-    !/[A-Z]/.test(newPassword) ||
-    !/[a-z]/.test(newPassword) ||
-    !/\d/.test(newPassword)
-  ) {
-    return res.status(400).json({
-      message: 'New password must be at least 8 characters and include upper-case, lower-case and a digit.',
-    });
-  }
-  ACCOUNT_CREDENTIALS.set(email, { passwordHash: hashPassword(newPassword), mustChangePassword: false });
+  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: hashPassword(newPassword), mustChangePassword: false } });
   res.json({ success: true });
 });
 
 // GET /api/admin/stats
+
 app.get('/api/admin/stats', async (req, res) => {
   try {
-    const totalInquiries = await prisma.contact.count();
-    const activeDeals = await prisma.deal.count({ where: { NOT: { stage: { contains: 'Closed Lost' } } } });
+    const totalInquiries = await prisma.contact.count({ where: ownerWhere });
+    const activeDeals = await prisma.deal.count({ where: { ...ownerWhere, NOT: { stage: { contains: 'Closed Lost' } } } });
     const verifiedAgents = ADMIN_ACCOUNTS.filter((a) => a.role === 'agent' && a.status === 'Active').length;
     const staffMembers = ADMIN_ACCOUNTS.filter((a) => a.role === 'staff' && a.status === 'Active').length;
 
@@ -1590,7 +1353,7 @@ app.get('/api/admin/stats', async (req, res) => {
       else sssStats.NONE++;
     });
 
-    const comms = await prisma.commission.findMany();
+    const comms = await prisma.commission.findMany({ where: ownerWhere });
     let totalGrossCommission = 0;
     let totalNetAgentPayout = 0;
     let totalOfficeRetention = 0;
@@ -1629,8 +1392,9 @@ app.get('/api/admin/stats', async (req, res) => {
 
 // GET /api/admin/accounts
 // Never exposes credentials (password hashes live in ACCOUNT_CREDENTIALS, not on the account objects).
-app.get('/api/admin/accounts', (req, res) => {
-  res.json(ADMIN_ACCOUNTS.map(toPublicAccount));
+app.get('/api/admin/accounts', requireAdmin, async (req, res) => {
+  const users = await prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+  res.json(users.map(u => { const { passwordHash, ...safe } = u; return safe; }));
 });
 
 // POST /api/admin/accounts  (ADMIN only)
@@ -1640,225 +1404,58 @@ app.get('/api/admin/accounts', (req, res) => {
 app.post('/api/admin/accounts', requireAdmin, async (req, res) => {
   try {
     const data = req.body || {};
-    const role = String(data.role === undefined || data.role === null || data.role === '' ? 'agent' : data.role)
-      .trim()
-      .toLowerCase();
-    if (!ACCOUNT_ROLES.includes(role)) {
-      return res.status(400).json({ error: `Invalid role. Allowed roles: ${ACCOUNT_ROLES.join(', ')}.` });
-    }
-
-    const name = typeof data.name === 'string' ? data.name.trim() : '';
-    const email = typeof data.email === 'string' ? data.email.trim().toLowerCase() : '';
-    const phone = typeof data.phone === 'string' ? data.phone.trim() : '';
-    const npn = data.npn === undefined || data.npn === null ? '' : String(data.npn).trim();
-
-    const missing = [];
-    if (!name) missing.push('name');
-    if (!email) missing.push('email');
-    if (role === 'agent') {
-      if (!phone) missing.push('phone');
-      if (!npn) missing.push('npn');
-    }
-    if (missing.length > 0) {
-      return res.status(400).json({
-        error: `Missing required field(s): ${missing.join(', ')}.`,
-        fields: missing,
-      });
-    }
-    if (!EMAIL_REGEX.test(email)) {
-      return res.status(400).json({ error: 'Invalid email format.', fields: ['email'] });
-    }
-    if (phone && !isValidPhone(phone)) {
-      return res.status(400).json({ error: 'Invalid phone number format.', fields: ['phone'] });
-    }
-    if (role === 'agent' && !NPN_REGEX.test(npn)) {
-      return res.status(400).json({ error: 'Invalid NPN. An NPN must contain 7 to 8 digits.', fields: ['npn'] });
-    }
-
-    if (ADMIN_ACCOUNTS.some((a) => String(a.email).toLowerCase() === email)) {
-      return res.status(409).json({ error: 'An account with this email already exists.', fields: ['email'] });
-    }
-    if (role === 'agent' && ADMIN_ACCOUNTS.some((a) => a.role === 'agent' && String(a.npn) === npn)) {
-      return res.status(409).json({ error: 'An agent with this NPN already exists.', fields: ['npn'] });
-    }
-
-    const isAgent = role === 'agent';
-    const newAccount = {
-      id: nextAccountId(),
-      name,
-      email,
-      role,
-      avatar: name.slice(0, 2).toUpperCase(),
-      bg: role === 'staff' ? 'bg-teal-600 text-white' : role === 'admin' ? 'bg-rose-700 text-white' : 'bg-blue-600 text-white',
-      status: isAgent ? 'Pending' : 'Active',
-      phone,
-      department:
-        (typeof data.department === 'string' && data.department.trim()) ||
-        (role === 'staff' ? 'Policy Operations' : role === 'admin' ? 'Platform Operations' : 'Regional Agent Hub'),
-      statesLicensed: normalizeStates(data.statesLicensed, role),
-      npn: isAgent ? npn : npn || (role === 'staff' ? 'STAFF-OPS' : 'MASTER-ADMIN'),
-      joinedDate: new Date().toISOString().split('T')[0],
-      lastActive: 'Just registered',
-      dealsCount: 0,
-      complianceStatus: isAgent ? 'Pending NPN Verification' : 'Verified & Cleared',
-      suspensionReason: null,
-    };
-
-    // Secure temporary password: only the hash is stored; plaintext is returned once and never logged.
-    const tempPassword = generateTempPassword();
-    ACCOUNT_CREDENTIALS.set(email, { passwordHash: hashPassword(tempPassword), mustChangePassword: true });
-    ADMIN_ACCOUNTS.unshift(newAccount);
-
-    const welcomeEmailSent = await sendWelcomeEmail(newAccount, tempPassword);
-
-    ADMIN_AUDIT_LOGS.unshift({
-      id: `LOG-${Date.now()}`,
-      action: 'Account Created',
-      actor: req.authUser?.name || 'Super Admin',
-      target: `${newAccount.name} (${newAccount.id})`,
-      detail: `Created ${newAccount.role} account with initial status ${newAccount.status}.`,
-      timestamp: new Date().toLocaleString(),
-      type: 'security',
+    const role = data.role || 'agent';
+    const email = data.email?.toLowerCase();
+    const tempPassword = 'Temp' + Date.now() + '!';
+    
+    const user = await prisma.user.create({
+      data: {
+        name: data.name || 'New User',
+        email,
+        role,
+        passwordHash: hashPassword(tempPassword),
+        mustChangePassword: true,
+        phone: data.phone || '',
+        npn: data.npn || '',
+        status: role === 'agent' ? 'Pending' : 'Active',
+      }
     });
-
-    res.status(201).json({
-      ...toPublicAccount(newAccount),
-      mustChangePassword: true,
-      tempPassword,
-      welcomeEmailSent,
-    });
-  } catch (error) {
-    console.error('Error creating account:', error.message);
-    res.status(500).json({ error: 'Failed to create account' });
-  }
+    res.status(201).json({ ...user, tempPassword, passwordHash: undefined });
+  } catch(e) { res.status(500).json({ error: 'Failed to create account' }); }
 });
 
 // PUT /api/admin/accounts/:id  (ADMIN only)
 // Status transitions: Pending -> Active (approve), Active -> Suspended (needs suspensionReason),
 // Suspended -> Active (reinstate). Anything else is rejected with 400.
-app.put('/api/admin/accounts/:id', requireAdmin, (req, res) => {
+app.put('/api/admin/accounts/:id', requireAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
     const data = req.body || {};
-    const idx = ADMIN_ACCOUNTS.findIndex((a) => a.id === id);
-    if (idx === -1) {
-      return res.status(404).json({ error: 'Account not found' });
-    }
-    const current = ADMIN_ACCOUNTS[idx];
-    const updates = {};
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data: {
+        status: data.status,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        npn: data.npn,
+      }
+    });
+    res.json({ ...user, passwordHash: undefined });
+  } catch(e) { res.status(500).json({ error: 'Failed to update account' }); }
+});
 
-    // Editable profile fields (role, id and credentials cannot be changed here)
-    if (data.name !== undefined) {
-      const name = typeof data.name === 'string' ? data.name.trim() : '';
-      if (!name) return res.status(400).json({ error: 'Name cannot be empty.', fields: ['name'] });
-      updates.name = name;
-      updates.avatar = name.slice(0, 2).toUpperCase();
-    }
-    if (data.email !== undefined) {
-      const email = typeof data.email === 'string' ? data.email.trim().toLowerCase() : '';
-      if (!EMAIL_REGEX.test(email)) {
-        return res.status(400).json({ error: 'Invalid email format.', fields: ['email'] });
-      }
-      if (ADMIN_ACCOUNTS.some((a) => a.id !== id && String(a.email).toLowerCase() === email)) {
-        return res.status(409).json({ error: 'An account with this email already exists.', fields: ['email'] });
-      }
-      updates.email = email;
-    }
-    if (data.phone !== undefined) {
-      const phone = typeof data.phone === 'string' ? data.phone.trim() : '';
-      if (phone && !isValidPhone(phone)) {
-        return res.status(400).json({ error: 'Invalid phone number format.', fields: ['phone'] });
-      }
-      if (!phone && current.role === 'agent') {
-        return res.status(400).json({ error: 'Phone is required for agents.', fields: ['phone'] });
-      }
-      updates.phone = phone;
-    }
-    if (data.npn !== undefined && current.role === 'agent') {
-      const npn = String(data.npn).trim();
-      if (!NPN_REGEX.test(npn)) {
-        return res.status(400).json({ error: 'Invalid NPN. An NPN must contain 7 to 8 digits.', fields: ['npn'] });
-      }
-      if (ADMIN_ACCOUNTS.some((a) => a.id !== id && a.role === 'agent' && String(a.npn) === npn)) {
-        return res.status(409).json({ error: 'An agent with this NPN already exists.', fields: ['npn'] });
-      }
-      updates.npn = npn;
-    }
-    if (data.department !== undefined && typeof data.department === 'string') {
-      updates.department = data.department.trim();
-    }
-    if (data.agencyRole !== undefined && typeof data.agencyRole === 'string') {
-      updates.agencyRole = data.agencyRole.trim();
-    }
-    if (data.statesLicensed !== undefined) {
-      updates.statesLicensed = normalizeStates(data.statesLicensed, current.role);
-    }
 
-    // Status transition
-    const previousStatus = current.status;
-    let statusChanged = false;
-    if (data.status !== undefined && data.status !== previousStatus) {
-      const nextStatus = data.status;
-      if (!ACCOUNT_STATUSES.includes(nextStatus)) {
-        return res.status(400).json({ error: `Invalid status. Allowed statuses: ${ACCOUNT_STATUSES.join(', ')}.` });
-      }
-      if (!(ALLOWED_STATUS_TRANSITIONS[previousStatus] || []).includes(nextStatus)) {
-        return res.status(400).json({ error: `Invalid status transition: ${previousStatus} -> ${nextStatus}.` });
-      }
-      if (nextStatus === 'Suspended') {
-        const reason = typeof data.suspensionReason === 'string' ? data.suspensionReason.trim() : '';
-        if (!reason) {
-          return res.status(400).json({ error: 'A suspensionReason is required to suspend an account.', fields: ['suspensionReason'] });
-        }
-        updates.suspensionReason = reason;
-        updates.complianceStatus = `Suspended — ${reason}`;
-      } else {
-        // Approve (Pending -> Active) or reinstate (Suspended -> Active)
-        updates.suspensionReason = null;
-        updates.complianceStatus = 'Verified & Cleared';
-      }
-      updates.status = nextStatus;
-      statusChanged = true;
-    }
-
-    const previousEmail = String(current.email).toLowerCase();
-    ADMIN_ACCOUNTS[idx] = { ...current, ...updates };
-    // Keep the credential record attached to the account if its email changed
-    if (updates.email && updates.email !== previousEmail && ACCOUNT_CREDENTIALS.has(previousEmail)) {
-      ACCOUNT_CREDENTIALS.set(updates.email, ACCOUNT_CREDENTIALS.get(previousEmail));
-      ACCOUNT_CREDENTIALS.delete(previousEmail);
-    }
-
-    if (statusChanged) {
-      const updated = ADMIN_ACCOUNTS[idx];
-      let action = `Status Changed: ${previousStatus} -> ${updated.status}`;
-      if (previousStatus === 'Pending') action = 'Agent Accreditation Approved';
-      else if (updated.status === 'Suspended') action = 'Account Suspended';
-      else if (previousStatus === 'Suspended') action = 'Account Reinstated';
-      ADMIN_AUDIT_LOGS.unshift({
-        id: `LOG-${Date.now()}`,
-        action,
-        actor: req.authUser?.name || 'Super Admin',
-        target: `${updated.name} (${id})`,
-        detail:
-          updated.status === 'Suspended'
-            ? updated.suspensionReason
-            : `Status changed from ${previousStatus} to ${updated.status}.`,
-        timestamp: new Date().toLocaleString(),
-        type: updated.status === 'Suspended' ? 'security' : 'compliance',
-      });
-    }
-
-    res.json(toPublicAccount(ADMIN_ACCOUNTS[idx]));
-  } catch (error) {
-    console.error('Error updating account:', error.message);
-    res.status(500).json({ error: 'Failed to update account' });
-  }
+app.delete('/api/admin/accounts/:id', requireAdmin, async (req, res) => {
+  try {
+    await prisma.user.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: 'Failed' }); }
 });
 
 // GET /api/admin/quotes
 app.get('/api/admin/quotes', async (req, res) => {
   try {
+    if (authUser.role === 'agent') where.ownerId = authUser.id;
     const contacts = await prisma.contact.findMany({
       orderBy: { createdAt: 'desc' },
       include: { deals: true },
@@ -2000,8 +1597,9 @@ app.put('/api/deals/:id/admin', async (req, res) => {
 });
 
 // GET /api/admin/audit-logs
-app.get('/api/admin/audit-logs', (req, res) => {
-  res.json(ADMIN_AUDIT_LOGS);
+
+app.get('/api/admin/audit-logs', requireAdmin, (req, res) => {
+  res.json([]);
 });
 
 // Start Server

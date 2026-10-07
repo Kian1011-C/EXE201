@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getTasks, createTask, updateTask } from '../../../services/api';
-import { SAMPLE_TASKS } from '../../../data/mockCrmData';
-import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterTasksForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
@@ -24,7 +22,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
   const [assigneeOptionsList, setAssigneeOptionsList] = useState(() => [
     { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
     { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
-    ...getActiveAgentAccounts().map((a) => ({
+    ...[].map((a) => ({
       name: a.name,
       handle: a.handle || a.email.split('@')[0],
       avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
@@ -37,7 +35,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
       setAssigneeOptionsList([
         { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
         { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
-        ...getActiveAgentAccounts().map((a) => ({
+        ...[].map((a) => ({
           name: a.name,
           handle: a.handle || a.email.split('@')[0],
           avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),

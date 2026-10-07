@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Shield, ArrowRight, CheckCircle2, Clock, Sparkles, Calendar, Laptop, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { submitQuote } from '../services/api';
 
 export default function QuoteModal({ isOpen, onClose, initialMode = 'trial' }) {
   const [activeMode, setActiveMode] = useState(initialMode); // 'trial' | 'demo'
@@ -18,14 +19,30 @@ export default function QuoteModal({ isOpen, onClose, initialMode = 'trial' }) {
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setErrorMsg('');
+    try {
+      const parts = formData.name.trim().split(' ');
+      const firstName = parts[0] || '';
+      const lastName = parts.slice(1).join(' ') || '';
+      await submitQuote({
+        firstName,
+        lastName,
+        phone: formData.phone,
+        email: formData.email,
+        howDoYouKnowUs: `B2B ${activeMode} - ${formData.agencyName}`,
+        state: formData.state,
+      });
       setSubmitted(true);
-    }, 600);
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to submit request');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleReset = () => {

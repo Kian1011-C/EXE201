@@ -1,17 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  OBAMACARE_DEAL_STAGES,
-  MEDICARE_DEAL_STAGES,
-  addDealToStore,
-  addTicketToStore,
-  getDynamicDeals,
-  SAMPLE_DEALS,
-  ALL_CARRIERS,
-  getDynamicContacts,
-  SAMPLE_CONTACTS,
-} from '../../../data/mockCrmData';
-import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { createTicket, createDeal, getUsers } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
@@ -32,11 +20,11 @@ export default function AddDealModal({
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'existing'
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+  const [agentAccounts, setAgentAccounts] = useState([]);
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts(getActiveAgentAccounts());
+      setAgentAccounts([]);
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
@@ -87,7 +75,7 @@ export default function AddDealModal({
 
     if (!resolvedContactId && resolvedContactName) {
       try {
-        const allContacts = [...getDynamicContacts(), ...SAMPLE_CONTACTS];
+        const allContacts = [...[], ...[]];
         const matched = allContacts.find((c) =>
           (c.fullName && c.fullName.trim().toLowerCase() === resolvedContactName.toLowerCase()) ||
           (c.name && c.name.trim().toLowerCase() === resolvedContactName.toLowerCase())
@@ -205,11 +193,11 @@ export default function AddDealModal({
         comments: [],
       };
       createTicket(generatedTicket).catch(() => {});
-      addTicketToStore(generatedTicket);
+      null;
       newDeal.associatedTickets = [generatedTicket];
     }
 
-    addDealToStore(newDeal);
+    null;
     createDeal(newDeal).catch((err) => console.warn('[AddDealModal] createDeal fallback:', err));
 
     // Initialize real property history with current actor
@@ -550,7 +538,7 @@ export default function AddDealModal({
             </div>
 
             <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
-              {[...getDynamicDeals(), ...SAMPLE_DEALS]
+              {[...[], ...[]]
                 .filter((d) =>
                   !searchExisting ||
                   (d.title && d.title.toLowerCase().includes(searchExisting.toLowerCase())) ||

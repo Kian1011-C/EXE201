@@ -18,20 +18,6 @@ import {
   getAgentIdentity,
   isOwnerMatch,
 } from '../../../utils/rbac';
-import {
-  SAMPLE_DEALS,
-  getDynamicDeals,
-  SAMPLE_CONTACTS,
-  getDynamicContacts,
-  FULL_SAMPLE_TICKETS,
-  getDynamicTickets,
-  SAMPLE_TASKS,
-} from '../../../data/mockCrmData';
-import {
-  INITIAL_ADMIN_COMMISSIONS,
-  INITIAL_ADMIN_ACCOUNTS,
-  getActiveAgentAccounts,
-} from '../../../data/mockAdminAccounts';
 import toast from 'react-hot-toast';
 
 const COMPANY_OVERVIEW = 'Tất cả Owner (All Agents / Tổng Quan)';
@@ -53,27 +39,18 @@ export default function StaffCrmDashboard({
 
   const [refreshing, setRefreshing] = useState(false);
   const [dbStats, setDbStats] = useState(null);
-  const [liveDeals, setLiveDeals] = useState(() => {
-    const dyn = getDynamicDeals();
-    return [...dyn, ...SAMPLE_DEALS];
-  });
-  const [liveContacts, setLiveContacts] = useState(() => {
-    const dyn = getDynamicContacts();
-    return [...dyn, ...SAMPLE_CONTACTS];
-  });
-  const [liveTickets, setLiveTickets] = useState(() => {
-    const dyn = getDynamicTickets();
-    return [...dyn, ...FULL_SAMPLE_TICKETS];
-  });
-  const [liveTasks, setLiveTasks] = useState(() => SAMPLE_TASKS);
-  const [liveCommissions, setLiveCommissions] = useState(() => INITIAL_ADMIN_COMMISSIONS);
+  const [liveDeals, setLiveDeals] = useState([]);
+  const [liveContacts, setLiveContacts] = useState([]);
+  const [liveTickets, setLiveTickets] = useState([]);
+  const [liveTasks, setLiveTasks] = useState([]);
+  const [liveCommissions, setLiveCommissions] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'obamacare' | 'medicare' | 'tickets' | 'tasks' | 'commissions'
   
-  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+  const [agentAccounts, setAgentAccounts] = useState([]);
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts(getActiveAgentAccounts());
+      setAgentAccounts([]);
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
@@ -106,44 +83,44 @@ export default function StaffCrmDashboard({
         ]);
       if (statsRes) setDbStats(statsRes);
 
-      const dynDeals = getDynamicDeals();
+      const dynDeals = [];
       if (Array.isArray(dealsRes) && dealsRes.length > 0) {
         const dbIds = new Set(dealsRes.map((d) => String(d.id)));
         const uniqueDyn = dynDeals.filter((d) => !dbIds.has(String(d.id)));
-        setLiveDeals([...uniqueDyn, ...dealsRes]);
+        setLiveDeals(dealsRes);
       } else {
-        setLiveDeals([...dynDeals, ...SAMPLE_DEALS]);
+        setLiveDeals([]);
       }
 
-      const dynContacts = getDynamicContacts();
+      const dynContacts = [];
       if (Array.isArray(contactsRes) && contactsRes.length > 0) {
         const dbIds = new Set(contactsRes.map((c) => String(c.id)));
         const uniqueDyn = dynContacts.filter((c) => !dbIds.has(String(c.id)));
-        const remainingSamples = SAMPLE_CONTACTS.filter((s) => !dbIds.has(String(s.id)));
-        setLiveContacts([...uniqueDyn, ...contactsRes, ...remainingSamples]);
+        const remainingSamples = [].filter((s) => !dbIds.has(String(s.id)));
+        setLiveContacts(contactsRes);
       } else {
-        setLiveContacts([...dynContacts, ...SAMPLE_CONTACTS]);
+        setLiveContacts([]);
       }
 
-      const dynTickets = getDynamicTickets();
+      const dynTickets = [];
       if (Array.isArray(ticketsRes) && ticketsRes.length > 0) {
         const dbIds = new Set(ticketsRes.map((t) => String(t.id)));
         const uniqueDyn = dynTickets.filter((t) => !dbIds.has(String(t.id)));
-        setLiveTickets([...uniqueDyn, ...ticketsRes]);
+        setLiveTickets(ticketsRes);
       } else {
-        setLiveTickets([...dynTickets, ...FULL_SAMPLE_TICKETS]);
+        setLiveTickets([]);
       }
 
       if (Array.isArray(tasksRes) && tasksRes.length > 0) {
         setLiveTasks(tasksRes);
       } else {
-        setLiveTasks(SAMPLE_TASKS);
+        setLiveTasks([]);
       }
 
       if (Array.isArray(commsRes) && commsRes.length > 0) {
         setLiveCommissions(commsRes);
       } else {
-        setLiveCommissions(INITIAL_ADMIN_COMMISSIONS);
+        setLiveCommissions([]);
       }
     } catch (err) {
       console.warn('[StaffCrmDashboard] Could not fetch live dashboard data:', err);

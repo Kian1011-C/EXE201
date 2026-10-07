@@ -1,11 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getTickets, createTicket } from '../../../services/api';
-import {
-  FULL_SAMPLE_TICKETS,
-  getDynamicTickets,
-  addTicketToStore,
-} from '../../../data/mockCrmData';
-import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterTicketsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
@@ -39,7 +33,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [ownerOptionsList, setOwnerOptionsList] = useState(() => [
     { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
     { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
-    ...getActiveAgentAccounts().map((a) => ({
+    ...[].map((a) => ({
       name: a.name,
       handle: a.handle || a.email.split('@')[0],
       avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
@@ -52,7 +46,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
       setOwnerOptionsList([
         { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
         { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
-        ...getActiveAgentAccounts().map((a) => ({
+        ...[].map((a) => ({
           name: a.name,
           handle: a.handle || a.email.split('@')[0],
           avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
@@ -356,7 +350,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
       }),
       description: createDescription,
     };
-    addTicketToStore(newT);
+    null;
     setTicketsList([newT, ...ticketsList]);
     setShowCreateModal(false);
     setCreateTitle('');

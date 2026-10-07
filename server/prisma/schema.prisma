@@ -7,6 +7,36 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  passwordHash       String
+  mustChangePassword Boolean  @default(false)
+  role               String   @default("agent")
+  name               String
+  avatar             String   @default("")
+  bg                 String   @default("bg-blue-600 text-white")
+  status             String   @default("Active")
+  phone              String   @default("")
+  department         String   @default("")
+  agencyRole         String   @default("")
+  statesLicensed     String[]
+  npn                String   @default("")
+  joinedDate         String   @default("")
+  lastActive         String   @default("")
+  complianceStatus   String   @default("Verified & Cleared")
+  suspensionReason   String?
+
+  contacts           Contact[]
+  deals              Deal[]
+  tickets            Ticket[]
+  tasks              Task[]
+  commissions        Commission[]
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 model Contact {
   id                 String   @id
   no                 Int      @default(autoincrement())
@@ -29,6 +59,9 @@ model Contact {
   status             String   @default("Active")
   lastModifiedBy     String   @default("Miranda Pham")
   lastModifiedTime   String   @default("09/18/2026, 00:31")
+
+  ownerId            String?
+  owner              User?    @relation(fields: [ownerId], references: [id])
 
   // Primary Person Info
   dob                String   @default("")
@@ -90,6 +123,9 @@ model Deal {
   dealOwnerBg         String   @default("bg-blue-600 text-white")
   lastModifiedBy      String   @default("Anya Nguyen")
   lastModifiedTime    String   @default("09/17/2026, 09:12")
+
+  ownerId             String?
+  owner               User?    @relation(fields: [ownerId], references: [id])
 
   // Admin Only Fields
   enrolledNpn         String   @default("Anh Que Pham 20011862")
@@ -175,6 +211,9 @@ model Ticket {
   description         String   @default("")
   category            String   @default("")
 
+  ownerId      String?
+  owner        User?    @relation(fields: [ownerId], references: [id])
+
   comments     TicketComment[]
 
   createdAt    DateTime @default(now())
@@ -230,6 +269,9 @@ model Task {
   content     String   @default("")
   attachments String   @default("[]")
 
+  ownerId     String?
+  owner       User?    @relation(fields: [ownerId], references: [id])
+
   createdAt   DateTime @default(now())
 }
 
@@ -251,6 +293,10 @@ model Commission {
   period            String
   status            String   @default("PENDING")
   settledAt         DateTime?
+
+  ownerId           String?
+  owner             User?    @relation(fields: [ownerId], references: [id])
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

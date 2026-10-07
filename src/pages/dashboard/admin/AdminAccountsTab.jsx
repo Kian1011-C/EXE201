@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { updateAdminAccount, createAdminAccount } from '../../../services/api';
-import { VALID_ACCOUNT_ROLES, isValidEmail, isValidNpn } from '../../../data/mockAdminAccounts';
 
 const DEFAULT_DEPARTMENT_BY_ROLE = {
   agent: 'Regional Agent Network',

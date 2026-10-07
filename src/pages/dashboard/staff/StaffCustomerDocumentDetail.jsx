@@ -1,9 +1,5 @@
 import React, { useState, useRef } from 'react';
 import {
-  CUSTOMER_DOCUMENT_DATA,
-  updateCustomerDocumentInStore,
-} from '../../../data/mockCrmData';
-import {
   addDocumentFile,
   deleteDocumentFile,
   updateDocument,
