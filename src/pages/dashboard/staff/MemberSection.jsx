@@ -152,20 +152,22 @@ export default function MemberSection({ member, onDelete, onUpdate, defaultOpen 
             </div>
           </div>
 
-          {/* Family relationship id */}
+          {/* Family relationship */}
           <div>
-            <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Family relationship id</label>
+            <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Family Relationship</label>
             <div className="relative">
               <select
                 value={member.familyRelationshipId || ''}
                 onChange={(e) => handleChange('familyRelationshipId', e.target.value)}
-                className="w-full pl-2.5 pr-8 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 appearance-none bg-white"
+                className="w-full pl-2.5 pr-8 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 appearance-none bg-white text-xs text-slate-800"
               >
-                <option value="">Select...</option>
+                <option value="">Select relationship...</option>
+                <option value="Spouse">Spouse (Vợ / Chồng)</option>
                 <option value="Husband">Husband</option>
                 <option value="Wife">Wife</option>
-                <option value="Child">Child</option>
-                <option value="Parent">Parent</option>
+                <option value="Child">Child (Con cái)</option>
+                <option value="Parent">Parent (Bố / Mẹ)</option>
+                <option value="Brother/Sister">Brother / Sister</option>
                 <option value="Other">Other</option>
               </select>
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none text-slate-400">
@@ -232,19 +234,25 @@ export default function MemberSection({ member, onDelete, onUpdate, defaultOpen 
             </div>
           </div>
 
-          {/* Current insurance id */}
+          {/* Current insurance */}
           <div>
-            <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Current insurance id</label>
+            <label className="block text-slate-800 font-semibold mb-1 text-[11px]">Current Insurance</label>
             <div className="relative">
               <select
                 value={member.currentInsuranceId || ''}
                 onChange={(e) => handleChange('currentInsuranceId', e.target.value)}
-                className="w-full pl-2.5 pr-8 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 appearance-none bg-white"
+                className="w-full pl-2.5 pr-8 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 appearance-none bg-white text-xs text-slate-800"
               >
-                <option value="">Select...</option>
-                <option value="Unknown">Unknown</option>
+                <option value="">Chưa có / Chưa xác định...</option>
+                <option value="Ambetter">Ambetter</option>
+                <option value="BCBS">Blue Cross Blue Shield (BCBS)</option>
+                <option value="UnitedHealthcare">UnitedHealthcare (UHC)</option>
+                <option value="Oscar">Oscar Health</option>
                 <option value="Aetna">Aetna</option>
-                <option value="BlueCross">BlueCross</option>
+                <option value="Cigna">Cigna</option>
+                <option value="Kaiser">Kaiser</option>
+                <option value="Molina">Molina</option>
+                <option value="Other">Other</option>
               </select>
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none text-slate-400">
                 {member.currentInsuranceId && <button onClick={(e) => { e.preventDefault(); handleChange('currentInsuranceId', ''); }} className="pointer-events-auto hover:text-slate-600 text-[10px]">✕</button>}

@@ -146,6 +146,9 @@ function normalizeContact(c) {
     associatedDeals: Array.isArray(c.associatedDeals) ? c.associatedDeals.map(normalizeDeal) : (Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : []),
     tasks: Array.isArray(c.tasks) ? c.tasks.map(normalizeTask) : [],
     tickets: Array.isArray(c.tickets) ? c.tickets.map(normalizeTicket) : [],
+    customerDocuments: Array.isArray(c.customerDocuments)
+      ? c.customerDocuments
+      : (Array.isArray(c.documents) ? c.documents : []),
   };
 }
 

@@ -1,6 +1,25 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  CONTACT_DETAIL_DATA,
+  addTicketToStore,
+  addDealToStore,
+  addContactToStore,
+  addCustomerDocumentToStore,
+  updateCustomerDocumentInStore,
+  getDynamicCustomerDocuments,
+  getAllCustomerDocuments,
+  SAMPLE_CUSTOMER_DOCUMENTS,
+  OBAMACARE_DEAL_STAGES,
+  MEDICARE_DEAL_STAGES,
+  getDynamicDeals,
+  SAMPLE_DEALS,
+  addTaskToStore,
+  updateTaskInStore,
+  deleteTaskFromStore,
+  getDynamicTasks,
+} from '../../../data/mockCrmData';
+import {
   createTicket,
   updateContact,
   addContactNote,
@@ -51,6 +70,7 @@ export function getPersonName(val, fallback = 'Unassigned') {
   return String(val);
 }
 
+import { getActiveAgentAccounts } from '../../../data/mockAdminAccounts';
 
 export const AGENT_OPTIONS = [
   'The Best Rate Insurance',
@@ -75,11 +95,11 @@ export default function StaffContactDetail({
   const currentActor = getCurrentActor(user);
   
   const [dbUsers, setDbUsers] = useState([]);
-  const [agentAccounts, setAgentAccounts] = useState([]);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts([]);
+      setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
@@ -122,7 +142,7 @@ export default function StaffContactDetail({
   const [tasksList, setTasksList] = useState(() => {
     const cId = String(contact?.id || contact?.code || '');
     const cName = String(contact?.fullName || '').trim().toLowerCase();
-    const dynamicTasks = typeof window !== 'undefined' ? [] : [];
+    const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
     const storeContactTasks = dynamicTasks.filter(
       (t) =>
         (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId || String(t.contact?.code) === cId)) ||
@@ -232,7 +252,7 @@ export default function StaffContactDetail({
     const cCode = String(contact.code || '').trim();
     const cName = String(contact.fullName || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || '').trim().toLowerCase();
 
-    const localDeals = [...[], ...[]].filter((d) => {
+    const localDeals = [...getDynamicDeals(), ...SAMPLE_DEALS].filter((d) => {
       const dContactId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
       const dContactName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
       const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
@@ -327,6 +347,10 @@ export default function StaffContactDetail({
   };
 
   const [customerDocuments, setCustomerDocuments] = useState(() => {
+    // Brand new contact or explicitly empty documents list -> no documents!
+    if (contact?.isNew || (Array.isArray(contact?.customerDocuments) && contact.customerDocuments.length === 0)) {
+      return [];
+    }
     let initialList = [];
     if (contact?.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
       initialList = contact.customerDocuments;
@@ -334,17 +358,16 @@ export default function StaffContactDetail({
       initialList = [contact.customerDocument];
     } else {
       const allDocs = getAllCustomerDocuments();
+      const contactId = String(contact?.id || '').trim();
+      const contactCode = String(contact?.code || '').trim();
+      // Strictly match only by contactId or contact code. Never match loosely by contact name!
       const found = allDocs.filter(
         (d) =>
-          (contact?.id && d.contactId === contact.id) ||
-          (contact?.code && d.contactId === contact.code) ||
-          (contact?.fullName && (d.contactName === contact.fullName || d.name === contact.fullName))
+          (contactId && String(d.contactId).trim() === contactId) ||
+          (contactCode && String(d.contactId).trim() === contactCode)
       );
       if (found.length > 0) {
         initialList = found;
-      } else if (contact?.id === 'CT26002600' || contact?.id === 'CT26002601') {
-        const s = [].find((d) => d.contactId === contact.id);
-        if (s) initialList = [s];
       }
     }
     // Deduplicate by id or (name + contactId)
@@ -478,7 +501,7 @@ export default function StaffContactDetail({
       status: ticketItem.status || ticketItem.stage || 'Open',
       stage: ticketItem.stage || (ticketItem.pipeline === 'ACA account' ? 'Need Create ACA Account (ACA account)' : ''),
     };
-    null;
+    addTicketToStore(enriched);
     if (onSelectTicket) {
       onSelectTicket(enriched);
     }
@@ -527,7 +550,7 @@ export default function StaffContactDetail({
           stage: 'Need Create ACA Account (ACA account)',
           pipeline: 'ACA account',
         };
-        null;
+        addTicketToStore(updatedAcaTicket);
         if (updatedAcaTicket.id) {
           updateTicket(updatedAcaTicket.id, updatedAcaTicket).catch(() => {});
         }
@@ -572,7 +595,7 @@ export default function StaffContactDetail({
         };
 
         createTicket(acaTicket).catch(() => {});
-        null;
+        addTicketToStore(acaTicket);
         updatedTickets = [acaTicket, ...nonAcaTickets];
         setContactTickets(updatedTickets);
 
@@ -598,7 +621,7 @@ export default function StaffContactDetail({
           stage: stageVal,
           pipeline: 'ACA account',
         };
-        null;
+        addTicketToStore(updatedAcaTicket);
         if (updatedAcaTicket.id) {
           updateTicket(updatedAcaTicket.id, updatedAcaTicket).catch(() => {});
         }
@@ -623,7 +646,7 @@ export default function StaffContactDetail({
         status: val,
       },
     };
-    null;
+    addContactToStore(nextContact);
     if (onUpdateContact) {
       onUpdateContact(nextContact);
     }
@@ -709,7 +732,7 @@ export default function StaffContactDetail({
       },
     };
 
-    null;
+    addContactToStore(updatedContact);
     if (contact?.id) {
       updateContact(contact.id, {
         firstName: f,
@@ -827,23 +850,24 @@ export default function StaffContactDetail({
 
       // Sync customer documents for this contact
       let initialDocs = [];
-      if (contact.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
+      if (contact.isNew || (Array.isArray(contact.customerDocuments) && contact.customerDocuments.length === 0)) {
+        initialDocs = [];
+      } else if (contact.customerDocuments && Array.isArray(contact.customerDocuments) && contact.customerDocuments.length > 0) {
         initialDocs = contact.customerDocuments;
       } else if (contact.customerDocument) {
         initialDocs = [contact.customerDocument];
       } else {
         const allDocs = getAllCustomerDocuments();
+        const contactId = String(contact.id || '').trim();
+        const contactCode = String(contact.code || '').trim();
+        // Strictly match only by contactId or contact code. Never match loosely by contact name!
         const found = allDocs.filter(
           (d) =>
-            (contact.id && d.contactId === contact.id) ||
-            (contact.code && d.contactId === contact.code) ||
-            (contact.fullName && (d.contactName === contact.fullName || d.name === contact.fullName))
+            (contactId && String(d.contactId).trim() === contactId) ||
+            (contactCode && String(d.contactId).trim() === contactCode)
         );
         if (found.length > 0) {
           initialDocs = found;
-        } else if (contact.id === 'CT26002600' || contact.id === 'CT26002601') {
-          const s = [].find((d) => d.contactId === contact.id);
-          if (s) initialDocs = [s];
         }
       }
       // Deduplicate by id or (name + contactId)
@@ -856,8 +880,8 @@ export default function StaffContactDetail({
           uniqueDocs.push(d);
         }
       }
-      // If contact has customerDocument with newer files, merge into uniqueDocs
-      if (contact.customerDocument) {
+      // If contact has customerDocument with newer files, merge into uniqueDocs (only if not newly created)
+      if (contact.customerDocument && !contact.isNew) {
         const docIdx = uniqueDocs.findIndex(
           (d) => d.id === contact.customerDocument.id || d.name === contact.customerDocument.name
         );
@@ -874,7 +898,7 @@ export default function StaffContactDetail({
 
       const cId = String(contact.id || contact.code || '');
       const cName = String(contact.fullName || '').trim().toLowerCase();
-      const dynamicTasks = typeof window !== 'undefined' ? [] : [];
+      const dynamicTasks = typeof window !== 'undefined' ? getDynamicTasks() : [];
       const storeContactTasks = dynamicTasks.filter(
         (t) =>
           (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId || String(t.contact?.code) === cId)) ||
@@ -917,7 +941,7 @@ export default function StaffContactDetail({
       ...(contact || {}),
       members: updatedList
     };
-    null;
+    addContactToStore(updatedContact);
     if (onUpdateContact) onUpdateContact(updatedContact);
     
     logActivity('Member Added', `added family member: ${formData.firstName} (${relation})`);
@@ -941,7 +965,7 @@ export default function StaffContactDetail({
       ...(contact || {}),
       members: updatedList
     };
-    null;
+    addContactToStore(updatedContact);
     if (onUpdateContact) {
       onUpdateContact(updatedContact);
     }
@@ -962,7 +986,7 @@ export default function StaffContactDetail({
       ...(contact || {}),
       members: updatedList
     };
-    null;
+    addContactToStore(updatedContact);
     if (onUpdateContact) {
       onUpdateContact(updatedContact);
     }
@@ -1078,7 +1102,7 @@ export default function StaffContactDetail({
       };
       const updatedTasks = [newTask, ...tasksList];
       updateAndPersistTasks(updatedTasks);
-      null;
+      addTaskToStore(newTask);
       createTask(newTask).catch(() => {});
 
       if (targetContactId) {
@@ -1108,7 +1132,7 @@ export default function StaffContactDetail({
       if (onUpdateContact) {
         onUpdateContact({ ...contact, notes: newList });
       }
-      null;
+      addContactToStore({ ...contact, notes: newList });
     }
     if (CONTACT_DETAIL_DATA && (contact?.id === CONTACT_DETAIL_DATA.id || !contact?.id)) {
       CONTACT_DETAIL_DATA.notes = newList;
@@ -1120,7 +1144,7 @@ export default function StaffContactDetail({
     if (contact) {
       const updated = { ...contact, tasks: newTasks };
       if (onUpdateContact) onUpdateContact(updated);
-      null;
+      addContactToStore(updated);
     }
     if (CONTACT_DETAIL_DATA && (contact?.id === CONTACT_DETAIL_DATA.id || !contact?.id)) {
       CONTACT_DETAIL_DATA.tasks = newTasks;
@@ -1298,7 +1322,7 @@ export default function StaffContactDetail({
     const updated = { ...task, status: newStatus };
     const updatedList = tasksList.map((t) => (t.id === taskId ? updated : t));
     updateAndPersistTasks(updatedList);
-    null;
+    updateTaskInStore(updated);
     updateTask(taskId, updated).catch(() => {});
     logActivity('Task Status', `marked task "${task.title}" as ${newStatus}`);
     showToast(`Task marked as ${newStatus}`);
@@ -1341,7 +1365,7 @@ export default function StaffContactDetail({
       if (t.id === taskId) {
         const comments = [...(t.comments || []), newComment];
         const updatedT = { ...t, comments };
-        null;
+        updateTaskInStore(updatedT);
         return updatedT;
       }
       return t;
@@ -1368,7 +1392,7 @@ export default function StaffContactDetail({
       if (t.id === taskId) {
         const attachments = [...(t.attachments || []), ...newAttach];
         const updatedT = { ...t, attachments };
-        null;
+        updateTaskInStore(updatedT);
         return updatedT;
       }
       return t;
@@ -1383,7 +1407,7 @@ export default function StaffContactDetail({
       if (t.id === taskId) {
         const attachments = (t.attachments || []).filter((a) => a.id !== attId);
         const updatedT = { ...t, attachments };
-        null;
+        updateTaskInStore(updatedT);
         return updatedT;
       }
       return t;
@@ -1433,7 +1457,7 @@ export default function StaffContactDetail({
     updateAndPersistTasks(updatedList);
 
     // 2. Add to global dynamic tasks store
-    null;
+    addTaskToStore(newTask);
 
     // 3. Sync to backend API
     createTask(newTask).catch((err) => {
@@ -1551,7 +1575,7 @@ export default function StaffContactDetail({
       },
     };
 
-    null;
+    addContactToStore(updatedContact);
 
     // Record property history updates in batch with dynamic current actor
     const contactId = contact?.id || contact?.code || 'CT26002600';
