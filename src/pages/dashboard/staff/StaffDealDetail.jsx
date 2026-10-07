@@ -1,6 +1,18 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { createTicket, updateDeal, updateDealStage, getUsers, getAdminAccounts, createTask, updateTask, addDealNote } from '../../../services/api';
+import {
+  createTicket,
+  updateDeal,
+  updateDealStage,
+  getUsers,
+  getAdminAccounts,
+  createTask,
+  updateTask,
+  addDealNote,
+  getAllDynamicTickets,
+  addTicketToStore,
+  getAllCustomerDocuments,
+} from '../../../services/api';
 import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
 import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 import {
@@ -375,6 +387,29 @@ export default function StaffDealDetail({
     deal?.associatedTickets || deal?.tickets || []
   );
 
+  useEffect(() => {
+    if (deal) {
+      const tickets = deal.associatedTickets || deal.tickets || [];
+      const dId = String(deal.id || deal.code || '')?.trim();
+      const dTitle = String(deal.title || '')?.trim()?.toLowerCase();
+      const dynamicTickets = getAllDynamicTickets()?.filter(
+        (t) => (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId)) || (dTitle && t.dealTitle && t.dealTitle.trim().toLowerCase() === dTitle)
+      );
+      const combined = [...tickets];
+      for (const dt of dynamicTickets) {
+        if (!combined.some((t) => String(t.id) === String(dt.id) || String(t.code) === String(dt.code))) {
+          combined.push(dt);
+        }
+      }
+      setDealTickets(combined);
+      if (combined.some((t) => t.pipeline === 'Upload document')) {
+        setNeedUpload('Yes');
+      } else if (deal.needUpload) {
+        setNeedUpload(deal.needUpload);
+      }
+    }
+  }, [deal]);
+
   const handleOpenTicket = (ticketItem) => {
     if (!ticketItem) return;
     const enriched = {
@@ -429,6 +464,7 @@ export default function StaffDealDetail({
         activities: [],
         comments: [],
       };
+      addTicketToStore(uploadTicket);
       createTicket(uploadTicket).catch(() => {});
       null;
       const updated = [uploadTicket, ...dealTickets];
@@ -888,6 +924,7 @@ export default function StaffDealDetail({
   // Right column accordion states
   const [rightContactsOpen, setRightContactsOpen] = useState(true);
   const [rightTicketsOpen, setRightTicketsOpen] = useState(true);
+  const [rightDocsOpen, setRightDocsOpen] = useState(true);
 
   // Quick toast
   const [toastMsg, setToastMsg] = useState(null);
@@ -3474,6 +3511,78 @@ export default function StaffDealDetail({
                     </div>
                   ))
                 )}
+              </div>
+            )}
+          </div>
+
+          {/* Card 3: Customer Documents ────────────────────────────── */}
+          <div>
+            <div className="flex items-center justify-between py-2.5 px-3.5 hover:bg-slate-50 transition border-b border-slate-100">
+              <button
+                type="button"
+                onClick={() => setRightDocsOpen(!rightDocsOpen)}
+                className="flex items-center gap-1.5 text-xs font-bold text-[#0F2962] hover:text-blue-700 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[17px] text-slate-700">
+                  {rightDocsOpen ? 'expand_more' : 'chevron_right'}
+                </span>
+                <span>Customer Documents ({(() => {
+                  const cId = String(dealInfo.contactId || resolvedContact?.id || resolvedContact?.code || '')?.trim();
+                  const cName = String(dealInfo.contactName || resolvedContact?.fullName || '')?.trim()?.toLowerCase();
+                  const docs = getAllCustomerDocuments().filter(
+                    (d) => (cId && (String(d.contactId) === cId || String(d.associatedContact?.id) === cId)) || (cName && d.name && d.name.trim().toLowerCase() === cName)
+                  );
+                  return docs.length || (resolvedContact?.customerDocument ? 1 : 0);
+                })()})</span>
+              </button>
+            </div>
+
+            {rightDocsOpen && (
+              <div className="p-3">
+                {(() => {
+                  const cId = String(dealInfo.contactId || resolvedContact?.id || resolvedContact?.code || '')?.trim();
+                  const cName = String(dealInfo.contactName || resolvedContact?.fullName || '')?.trim()?.toLowerCase();
+                  const allDocs = getAllCustomerDocuments();
+                  const found = allDocs.filter(
+                    (d) => (cId && (String(d.contactId) === cId || String(d.associatedContact?.id) === cId)) || (cName && d.name && d.name.trim().toLowerCase() === cName)
+                  );
+                  if (resolvedContact?.customerDocument && !found.some((d) => d.id === resolvedContact.customerDocument.id)) {
+                    found.unshift(resolvedContact.customerDocument);
+                  }
+
+                  if (found.length === 0) {
+                    return (
+                      <div className="p-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                        <span className="material-symbols-outlined text-[24px] text-slate-300 block mb-1">description</span>
+                        <p className="text-xs font-semibold text-slate-600">Chưa có customer document nào</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-2.5">
+                      {found.map((doc, docIdx) => (
+                        <div
+                          key={doc.id || docIdx}
+                          onClick={() => onSelectCustomerDocument && onSelectCustomerDocument(doc)}
+                          className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5 text-xs hover:border-blue-400 hover:shadow-md transition cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition">
+                              <span className="material-symbols-outlined text-[15px]">description</span>
+                            </div>
+                            <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
+                              {doc.name || dealInfo.contactName || 'Customer Document'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 pl-9">
+                            {doc.totalFiles ? `${doc.totalFiles} file(s) attached` : 'Click to view / upload files'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>

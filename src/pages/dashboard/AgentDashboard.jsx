@@ -34,7 +34,13 @@ import {
   getTickets,
   getTasks,
   getDashboardStats,
+  updateDocument,
   updateCustomerDocumentInStore,
+  addCustomerDocumentToStore,
+  getAllCustomerDocuments,
+  getAllDynamicTickets,
+  addTicketToStore,
+  updateTicketInStore,
 } from '../../services/api';
 
 export default function AgentDashboard() {
@@ -97,8 +103,56 @@ export default function AgentDashboard() {
       const last = navHistory[navHistory.length - 1];
       setNavHistory((prev) => prev.slice(0, -1));
 
-      if (last.contact) setSelectedContact(last.contact);
-      if (last.deal) setSelectedDeal(last.deal);
+      if (last.contact) {
+        const cId = String(last.contact.id || last.contact.code || '');
+        const dynTickets = getAllDynamicTickets().filter(
+          (t) => (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId))
+        );
+        const curTickets = last.contact.associatedTickets || last.contact.tickets || [];
+        const mergedTickets = [...curTickets];
+        for (const dt of dynTickets) {
+          if (!mergedTickets.some((t) => String(t.id) === String(dt.id) || String(t.code) === String(dt.code))) {
+            mergedTickets.push(dt);
+          }
+        }
+        const dynDocs = getAllCustomerDocuments().filter(
+          (d) => (cId && (String(d.contactId) === cId || String(d.associatedContact?.id) === cId))
+        );
+        const curDocs = last.contact.customerDocuments || (last.contact.customerDocument ? [last.contact.customerDocument] : []);
+        const mergedDocs = [...curDocs];
+        for (const dd of dynDocs) {
+          if (!mergedDocs.some((d) => String(d.id) === String(dd.id))) {
+            mergedDocs.push(dd);
+          }
+        }
+        setSelectedContact({
+          ...last.contact,
+          associatedTickets: mergedTickets,
+          tickets: mergedTickets,
+          customerDocuments: mergedDocs,
+          customerDocument: mergedDocs[0] || last.contact.customerDocument,
+        });
+      }
+      if (last.deal) {
+        const dId = String(last.deal.id || last.deal.code || '');
+        const dynTickets = getAllDynamicTickets().filter(
+          (t) => (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId))
+        );
+        const curTickets = last.deal.associatedTickets || last.deal.tickets || [];
+        const mergedTickets = [...curTickets];
+        for (const dt of dynTickets) {
+          if (!mergedTickets.some((t) => String(t.id) === String(dt.id) || String(t.code) === String(dt.code))) {
+            mergedTickets.push(dt);
+          }
+        }
+        const hasUpload = mergedTickets.some((t) => t.pipeline === 'Upload document');
+        setSelectedDeal({
+          ...last.deal,
+          associatedTickets: mergedTickets,
+          tickets: mergedTickets,
+          needUpload: hasUpload ? 'Yes' : (last.deal.needUpload || 'No'),
+        });
+      }
       if (last.ticket) setSelectedTicket(last.ticket);
       if (last.task) setSelectedTask(last.task);
       if (last.document) setSelectedDocument(last.document);
@@ -140,17 +194,34 @@ export default function AgentDashboard() {
       const parts = path?.split('/dashboard/agent/deals/');
       const dealId = parts[1]?.replace(/\/$/, '')?.trim();
       if (dealId) {
-        const allDeals = [...[], ...[]];
-        const localFound = allDeals.find((d) => 
-          String(d.id) === String(dealId) || 
-          String(d.code) === String(dealId)
-        );
-        if (localFound) {
-          setSelectedDeal({ ...{}, ...localFound });
-        }
         getDeal(dealId)
           .then((res) => {
-            if (res) setSelectedDeal((prev) => ({ ...{}, ...res }));
+            if (res) {
+              setSelectedDeal((prev) => {
+                const isSameDeal = prev && (String(prev.id) === String(dealId) || String(prev.code) === String(dealId));
+                const prevTickets = isSameDeal ? (prev.associatedTickets || prev.tickets || []) : [];
+                const incomingTickets = res.associatedTickets || res.tickets || [];
+                const dynTickets = getAllDynamicTickets().filter(
+                  (t) => (dealId && (String(t.dealId) === String(dealId) || String(t.deal?.id) === String(dealId)))
+                );
+                const combinedTickets = [...incomingTickets];
+                for (const t of [...prevTickets, ...dynTickets]) {
+                  if (!combinedTickets.some((ct) => String(ct.id) === String(t.id) || String(ct.code) === String(t.code))) {
+                    combinedTickets.push(t);
+                  }
+                }
+                const hasUpload = combinedTickets.some((t) => t.pipeline === 'Upload document');
+                return {
+                  ...res,
+                  ...(isSameDeal ? prev : {}),
+                  ...res,
+                  associatedTickets: combinedTickets,
+                  tickets: combinedTickets,
+                  needUpload: hasUpload ? 'Yes' : (res.needUpload || (isSameDeal ? prev.needUpload : 'No')),
+                  contact: (isSameDeal && prev.contact) ? prev.contact : res.contact,
+                };
+              });
+            }
           })
           .catch(() => {});
       }
@@ -164,21 +235,15 @@ export default function AgentDashboard() {
       setCurrentView('deals');
     } else if (path.includes('/dashboard/agent/contacts/')) {
       const parts = path?.split('/dashboard/agent/contacts/');
-      const contactId = parts[1];
+      const contactId = parts[1]?.replace(/\/$/, '')?.trim();
       if (contactId) {
-        const allContacts = [...[], ...[]];
-        const localFound = allContacts.find((c) => c.id === contactId || c.code === contactId);
-        if (localFound) {
-          handleSelectContact(localFound, false);
-        }
         getContact(contactId)
           .then((data) => {
-            if (data) handleSelectContact(data, false);
+            if (data) {
+              handleSelectContact(data, false);
+            }
           })
-          .catch(() => {
-            const found = allContacts.find((c) => c.id === contactId || c.code === contactId);
-            if (found) handleSelectContact(found, false);
-          });
+          .catch(() => {});
       }
       setCurrentTab('contacts');
       setCurrentView('contact-detail');
@@ -413,6 +478,53 @@ export default function AgentDashboard() {
     mergedContact.associatedDeals = finalAssociatedDeals;
     mergedContact.deals = finalAssociatedDeals;
 
+    // Preserve any existing tickets from selectedContact if the ID matches
+    const isSameContact = selectedContact && (
+      String(selectedContact.id) === resolvedContactId ||
+      String(selectedContact.code) === resolvedContactId
+    );
+    const existingContactTickets = isSameContact
+      ? (selectedContact.associatedTickets || selectedContact.tickets || [])
+      : [];
+    const incomingTickets = contact.associatedTickets || contact.tickets || [];
+    const dynTickets = getAllDynamicTickets().filter(
+      (t) => (resolvedContactId && (String(t.contactId) === resolvedContactId || String(t.contact?.id) === resolvedContactId))
+    );
+    const combinedTickets = [...incomingTickets];
+    for (const t of [...existingContactTickets, ...dynTickets]) {
+      if (!combinedTickets.some((ct) => String(ct.id) === String(t.id) || String(ct.code) === String(t.code))) {
+        combinedTickets.push(t);
+      }
+    }
+    mergedContact.associatedTickets = combinedTickets;
+    mergedContact.tickets = combinedTickets;
+
+    // Preserve any existing documents from selectedContact if ID matches
+    const existingDocs = isSameContact
+      ? (selectedContact.customerDocuments || (selectedContact.customerDocument ? [selectedContact.customerDocument] : []))
+      : [];
+    const incomingDocs = contact.customerDocuments || (contact.customerDocument ? [contact.customerDocument] : []);
+    const dynDocs = getAllCustomerDocuments().filter(
+      (d) => (resolvedContactId && (String(d.contactId) === resolvedContactId || String(d.associatedContact?.id) === resolvedContactId))
+    );
+    const combinedDocs = [...incomingDocs];
+    for (const d of [...existingDocs, ...dynDocs]) {
+      if (!combinedDocs.some((cd) => String(cd.id) === String(d.id))) {
+        combinedDocs.push(d);
+      }
+    }
+    mergedContact.customerDocuments = combinedDocs;
+    mergedContact.customerDocument = combinedDocs[0] || selectedContact?.customerDocument || contact.customerDocument;
+
+    if (!mergedContact.acaAccountStatus && isSameContact && selectedContact?.acaAccountStatus) {
+      mergedContact.acaAccountStatus = selectedContact.acaAccountStatus;
+      mergedContact.acaAccount = {
+        ...(mergedContact.acaAccount || {}),
+        ...(selectedContact.acaAccount || {}),
+        acaAccountStatus: selectedContact.acaAccountStatus,
+      };
+    }
+
     setSelectedContact(mergedContact);
     setCurrentView('contact-detail');
     if (updateUrl && location.pathname !== `/dashboard/agent/contacts/${contact.id}`) {
@@ -451,18 +563,20 @@ export default function AgentDashboard() {
       id: `doc-${selectedContact?.id || Date.now()}`,
       name: selectedContact?.fullName || '',
       contactOwner:
-        selectedContact?.contactOwner ||
-        selectedContact?.leadOwner ||
-        '',
+        typeof selectedContact?.contactOwner === 'object'
+          ? selectedContact?.contactOwner?.name
+          : (selectedContact?.contactOwner || selectedContact?.leadOwner || ''),
+      contactId: selectedContact?.id || selectedContact?.code || '',
+      contactName: selectedContact?.fullName || '',
       associatedContact: {
         id: selectedContact?.code || selectedContact?.id || '',
         name: selectedContact?.fullName || '',
         phone: selectedContact?.phone || '',
         email: selectedContact?.email || '',
         leadOwner:
-          selectedContact?.contactOwner ||
-          selectedContact?.leadOwner ||
-          '',
+          typeof selectedContact?.contactOwner === 'object'
+            ? selectedContact?.contactOwner?.name
+            : (selectedContact?.contactOwner || selectedContact?.leadOwner || ''),
         language: selectedContact?.language || 'Vietnamese',
       },
       filesByCategory: {
@@ -482,8 +596,22 @@ export default function AgentDashboard() {
         minute: '2-digit',
         hour12: false,
       }),
-      lastModifiedBy: selectedContact?.contactOwner || '',
+      lastModifiedBy: typeof selectedContact?.contactOwner === 'object' ? selectedContact?.contactOwner?.name : (selectedContact?.contactOwner || ''),
     };
+    addCustomerDocumentToStore(targetDoc);
+    if (selectedContact) {
+      setSelectedContact((prev) => {
+        if (!prev) return prev;
+        const curDocs = prev.customerDocuments || [];
+        const exists = curDocs.some((d) => d.id === targetDoc.id);
+        const nextDocs = exists ? curDocs : [targetDoc, ...curDocs];
+        return {
+          ...prev,
+          customerDocument: targetDoc,
+          customerDocuments: nextDocs,
+        };
+      });
+    }
     setSelectedDocument(targetDoc);
     setCurrentView('customer-document-detail');
     navigate(`/dashboard/agent/documents/${targetDoc?.id || 'DOC-01'}`, { replace: false });
@@ -491,7 +619,10 @@ export default function AgentDashboard() {
 
   function handleUpdateDocument(updatedDoc) {
     setSelectedDocument(updatedDoc);
-    updateDocument(updatedDoc);
+    updateCustomerDocumentInStore(updatedDoc);
+    if (updatedDoc?.id) {
+      updateDocument(updatedDoc.id, updatedDoc).catch(() => {});
+    }
     if (selectedContact) {
       setSelectedContact((prev) => {
         if (!prev) return prev;
@@ -571,10 +702,15 @@ export default function AgentDashboard() {
   }
 
   function handleBackFromCustomerDocument() {
+    if (selectedDocument) {
+      addCustomerDocumentToStore(selectedDocument);
+    }
     handleGoBack(() => {
       if (currentTab === 'documents') {
         setCurrentView('customer-documents-list');
         navigate('/dashboard/agent/documents', { replace: false });
+      } else if (selectedDeal && selectedDeal.id) {
+        handleBackToDealDetail();
       } else {
         handleBackToContactDetail();
       }
@@ -611,7 +747,7 @@ export default function AgentDashboard() {
       contactId: ticketObj.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
       contactName: ticketObj.contactName || (selectedContact ? selectedContact.fullName : ''),
     };
-    null;
+    addTicketToStore(enriched);
     setSelectedTicket(enriched);
     setCurrentTab('tickets');
     setCurrentView('ticket-detail');
@@ -634,6 +770,9 @@ export default function AgentDashboard() {
   }
 
   function handleBackFromTicket() {
+    if (selectedTicket) {
+      addTicketToStore(selectedTicket);
+    }
     handleGoBack(() => {
       if (selectedDeal && selectedDeal.id && (selectedTicket?.dealId === selectedDeal.id || selectedTicket?.dealId === selectedDeal.code)) {
         handleBackToDealDetail();

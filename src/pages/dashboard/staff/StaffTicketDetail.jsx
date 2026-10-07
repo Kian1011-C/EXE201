@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   getTicket,
   updateTicket,
+  updateTicketInStore,
   addTicketComment,
   getDocuments,
   createDocument,
@@ -1043,6 +1044,30 @@ export default function StaffTicketDetail({
 
   const months = Array.from(new Set(filteredTimeline?.map((item) => item.month)));
 
+  const handleBack = () => {
+    const currentTicket = {
+      ...ticket,
+      title: ticketTitle,
+      ticketName: ticketTitle,
+      status,
+      ticketStatus: status,
+      stage: `${status} (${pipeline})`,
+      pipeline,
+      priority,
+      dueDate,
+    };
+    if (ticket?.id) {
+      updateTicket(ticket.id, currentTicket).catch(() => {});
+    }
+    updateTicketInStore(currentTicket);
+    if (onUpdateTicket) {
+      onUpdateTicket(currentTicket);
+    }
+    if (onBack) {
+      onBack();
+    }
+  };
+
   return (
     <div
       className="flex flex-col h-full bg-[#F4F6F9] overflow-hidden text-slate-800 text-xs font-sans selection:bg-blue-600 selection:text-white"
@@ -1065,7 +1090,7 @@ export default function StaffTicketDetail({
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={onBack}
+            onClick={handleBack}
             className="p-1 rounded-md text-slate-700 hover:text-blue-700 hover:bg-slate-100 transition cursor-pointer flex items-center gap-1.5 font-bold text-sm"
           >
             <span className="material-symbols-outlined text-[19px]">arrow_back</span>

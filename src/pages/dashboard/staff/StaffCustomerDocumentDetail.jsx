@@ -173,7 +173,7 @@ export default function StaffCustomerDocumentDetail({
         lastModifiedBy: doc.lastModifiedBy || '',
       };
 
-      updateDocument(updatedDoc);
+      updateCustomerDocumentInStore(updatedDoc);
       if (doc?.id) {
         updateDocument(doc.id, {
           name: docName,
@@ -246,7 +246,7 @@ export default function StaffCustomerDocumentDetail({
         lastModifiedBy: doc.lastModifiedBy || '',
       };
 
-      updateDocument(updatedDoc);
+      updateCustomerDocumentInStore(updatedDoc);
       if (doc?.id) {
         deleteDocumentFile(doc.id, fileId).catch((err) =>
           console.warn('[StaffCustomerDocumentDetail] Delete file API fallback:', err)
@@ -259,6 +259,38 @@ export default function StaffCustomerDocumentDetail({
     });
     showToast(`Removed file ${fileName || ''}`);
   }
+
+  const handleBack = () => {
+    const totalFiles = Object.values(filesByCategory)?.reduce(
+      (sum, list) => sum + (Array.isArray(list) ? list.length : 0),
+      0
+    );
+    const categoriesSummary = categories
+      ?.filter((c) => Array.isArray(filesByCategory[c.key]) && filesByCategory[c.key].length > 0)
+      ?.map((c) => ({
+        key: c.key,
+        label: c.label,
+        count: filesByCategory[c.key].length,
+        files: filesByCategory[c.key],
+      }));
+    const updatedDoc = {
+      ...doc,
+      name: docName,
+      initials: currentInitials,
+      contactOwner,
+      filesByCategory,
+      totalFiles,
+      categoriesSummary,
+      lastModifiedTime,
+    };
+    updateCustomerDocumentInStore(updatedDoc);
+    if (onUpdateDocument) {
+      onUpdateDocument(updatedDoc);
+    }
+    if (onBack) {
+      onBack();
+    }
+  };
 
   const associatedContact = doc.associatedContact || {
     id: doc.contactId || '',
@@ -284,7 +316,7 @@ export default function StaffCustomerDocumentDetail({
         {/* Left: Back Arrow + Title */}
         <div className="flex items-center gap-2.5">
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-700 flex items-center justify-center transition cursor-pointer"
             title="Quay lại"
           >

@@ -148,10 +148,61 @@ function normalizeContact(c) {
     deals: Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : (Array.isArray(c.associatedDeals) ? c.associatedDeals.map(normalizeDeal) : []),
     associatedDeals: Array.isArray(c.associatedDeals) ? c.associatedDeals.map(normalizeDeal) : (Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : []),
     tasks: Array.isArray(c.tasks) ? c.tasks.map(normalizeTask) : [],
-    tickets: Array.isArray(c.tickets) ? c.tickets.map(normalizeTicket) : [],
-    customerDocuments: Array.isArray(c.customerDocuments)
-      ? c.customerDocuments
-      : (Array.isArray(c.documents) ? c.documents : []),
+    tickets: (() => {
+      const base = Array.isArray(c.tickets) ? c.tickets.map(normalizeTicket) : (Array.isArray(c.associatedTickets) ? c.associatedTickets.map(normalizeTicket) : []);
+      const cId = String(c.id || c.code || '')?.trim();
+      const cName = String(fullName || '')?.trim()?.toLowerCase();
+      const dyn = getAllDynamicTickets()?.filter(
+        (t) => (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId)) || (cName && t.contactName && t.contactName.trim().toLowerCase() === cName)
+      );
+      const combined = [...base];
+      for (const dt of dyn) {
+        if (!combined.some((t) => String(t.id) === String(dt.id) || String(t.code) === String(dt.code))) {
+          combined.push(dt);
+        }
+      }
+      return combined;
+    })(),
+    associatedTickets: (() => {
+      const base = Array.isArray(c.associatedTickets) ? c.associatedTickets.map(normalizeTicket) : (Array.isArray(c.tickets) ? c.tickets.map(normalizeTicket) : []);
+      const cId = String(c.id || c.code || '')?.trim();
+      const cName = String(fullName || '')?.trim()?.toLowerCase();
+      const dyn = getAllDynamicTickets()?.filter(
+        (t) => (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId)) || (cName && t.contactName && t.contactName.trim().toLowerCase() === cName)
+      );
+      const combined = [...base];
+      for (const dt of dyn) {
+        if (!combined.some((t) => String(t.id) === String(dt.id) || String(t.code) === String(dt.code))) {
+          combined.push(dt);
+        }
+      }
+      return combined;
+    })(),
+    customerDocuments: (() => {
+      const base = Array.isArray(c.customerDocuments)
+        ? c.customerDocuments
+        : (Array.isArray(c.documents) ? c.documents : (c.customerDocument ? [c.customerDocument] : []));
+      const cId = String(c.id || c.code || '')?.trim();
+      const cName = String(fullName || '')?.trim()?.toLowerCase();
+      const dyn = getAllCustomerDocuments()?.filter(
+        (d) => (cId && (String(d.contactId) === cId || String(d.associatedContact?.id) === cId)) || (cName && d.name && d.name.trim().toLowerCase() === cName)
+      );
+      const combined = [...base];
+      for (const dd of dyn) {
+        if (!combined.some((d) => String(d.id) === String(dd.id))) {
+          combined.push(dd);
+        }
+      }
+      return combined;
+    })(),
+    customerDocument: c.customerDocument || (() => {
+      const cId = String(c.id || c.code || '')?.trim();
+      const cName = String(fullName || '')?.trim()?.toLowerCase();
+      const found = getAllCustomerDocuments()?.find(
+        (d) => (cId && (String(d.contactId) === cId || String(d.associatedContact?.id) === cId)) || (cName && d.name && d.name.trim().toLowerCase() === cName)
+      );
+      return found || null;
+    })(),
   };
 }
 
@@ -160,6 +211,25 @@ function normalizeDeal(d) {
   const title = d.title || d.dealName || `Deal #${d.id}`;
   const ownerName = formatUserName(d.dealOwner) || 'Licensed Agent';
   const contactName = d.contactName || (d.contact ? [d.contact.firstName, d.contact.lastName].filter(Boolean).join(' ') : '') || 'Client';
+
+  const dealTickets = (() => {
+    const base = Array.isArray(d.associatedTickets)
+      ? d.associatedTickets.map(normalizeTicket)
+      : (Array.isArray(d.tickets) ? d.tickets.map(normalizeTicket) : []);
+    const dId = String(d.id || d.code || '')?.trim();
+    const dTitle = String(title || '')?.trim()?.toLowerCase();
+    const dyn = getAllDynamicTickets()?.filter(
+      (t) => (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId)) || (dTitle && t.dealTitle && t.dealTitle.trim().toLowerCase() === dTitle)
+    );
+    const combined = [...base];
+    for (const dt of dyn) {
+      if (!combined.some((t) => String(t.id) === String(dt.id) || String(t.code) === String(dt.code))) {
+        combined.push(dt);
+      }
+    }
+    return combined;
+  })();
+  const hasUpload = dealTickets.some((t) => t.pipeline === 'Upload document');
 
   return {
     ...d,
@@ -186,6 +256,9 @@ function normalizeDeal(d) {
     chooseDoctorStatus: d.chooseDoctorStatus || 'Need Choose Doctor',
     doctorName: d.doctorName || '',
     stageAca: d.stageAca || '',
+    associatedTickets: dealTickets,
+    tickets: dealTickets,
+    needUpload: hasUpload ? 'Yes' : (d.needUpload || (d.uploadRequest ? 'Yes' : 'No')),
   };
 }
 
@@ -686,6 +759,49 @@ export async function resetAndSeedDatabase() {
 }
 
 // ── Tickets ──────────────────────────────────────────────────────────────────
+export function getAllDynamicTickets() {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_dynamic_tickets') : null;
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list.map(normalizeTicket) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addTicketToStore(ticket) {
+  if (!ticket) return;
+  const normalized = normalizeTicket(ticket);
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_dynamic_tickets') : null;
+    let list = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex(
+      (t) => (t.id && String(t.id) === String(normalized.id)) || (t.code && String(t.code) === String(normalized.code))
+    );
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...normalized };
+    } else {
+      list.unshift(normalized);
+    }
+    const seen = new Set();
+    list = list.filter((item) => {
+      const key = String(item.id || item.code);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('insurmatch_dynamic_tickets', JSON.stringify(list));
+      window.dispatchEvent(new CustomEvent('insurmatch_tickets_updated', { detail: normalized }));
+    }
+  } catch {}
+}
+
+export function updateTicketInStore(ticket) {
+  addTicketToStore(ticket);
+}
+
 export async function getTickets(params = {}) {
   const query = new URLSearchParams();
   if (params.pipeline && params.pipeline !== 'all') query.append('pipeline', params.pipeline);
@@ -696,17 +812,40 @@ export async function getTickets(params = {}) {
   if (params.search) query.append('search', params.search);
   if (params.owner && params.owner !== 'all') query.append('owner', params.owner);
   const qStr = query.toString() ? `?${query.toString()}` : '';
-  const data = await request(`/tickets${qStr}`);
-  return Array.isArray(data) ? data.map(normalizeTicket) : data;
+
+  let apiList = [];
+  try {
+    const data = await request(`/tickets${qStr}`);
+    if (Array.isArray(data)) {
+      apiList = data.map(normalizeTicket);
+    }
+  } catch (_) {}
+
+  const dynamicTickets = getAllDynamicTickets();
+  const combined = [...apiList];
+  for (const dt of dynamicTickets) {
+    if (!combined.some((t) => String(t.id) === String(dt.id) || String(t.code) === String(dt.code))) {
+      if (params.contactId && String(dt.contactId) !== String(params.contactId)) continue;
+      if (params.dealId && String(dt.dealId) !== String(params.dealId)) continue;
+      combined.push(dt);
+    }
+  }
+  return combined;
 }
 
 export async function getTicket(id) {
   if (!id) return null;
-  const cleanId = String(id).replace(/\/$/, '');
-  const data = await request(`/tickets/${encodeURIComponent(cleanId)}`);
-  if (data) return normalizeTicket(data);
+  const cleanId = String(id).replace(/\/$/, '').trim();
 
-  
+  try {
+    const data = await request(`/tickets/${encodeURIComponent(cleanId)}`);
+    if (data) return normalizeTicket(data);
+  } catch (_) {}
+
+  const localTicket = getAllDynamicTickets().find(
+    (t) => String(t.id) === cleanId || String(t.code) === cleanId
+  );
+  if (localTicket) return localTicket;
 
   return normalizeTicket({
     id: cleanId,
@@ -722,13 +861,62 @@ export async function getTicket(id) {
 }
 
 export async function createTicket(data) {
-  const res = await request('/tickets', { method: 'POST', body: JSON.stringify(data) });
-  return res ? normalizeTicket(res) : res;
+  if (!data) return null;
+  addTicketToStore(data);
+
+  const payload = {
+    ticketName: data.ticketName || data.title || 'Support Ticket',
+    pipeline: data.pipeline || 'ACA account',
+    ticketStatus: data.ticketStatus || data.status || 'Open',
+    priority: data.priority ? String(data.priority).toUpperCase() : 'HIGH',
+    ticketDescription: data.ticketDescription || data.description || '',
+    contact: data.contact?.id
+      ? { id: Number(data.contact.id) }
+      : (data.contactId && !isNaN(Number(data.contactId)) ? { id: Number(data.contactId) } : null),
+    deal: data.deal?.id
+      ? { id: Number(data.deal.id) }
+      : (data.dealId && !isNaN(Number(data.dealId)) ? { id: Number(data.dealId) } : null),
+  };
+  if (data.dueDate && /^\d{4}-\d{2}-\d{2}$/.test(data.dueDate)) {
+    payload.dueDate = data.dueDate;
+  }
+
+  try {
+    const res = await request('/tickets', { method: 'POST', body: JSON.stringify(payload) });
+    if (res) {
+      const normalized = normalizeTicket(res);
+      addTicketToStore(normalized);
+      return normalized;
+    }
+  } catch (err) {
+    console.warn('[api.js] createTicket backend fallback:', err);
+  }
+  return normalizeTicket(data);
 }
 
 export async function updateTicket(id, data) {
-  const res = await request(`/tickets/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
-  return res ? normalizeTicket(res) : res;
+  if (!data) return null;
+  addTicketToStore({ ...data, id });
+
+  const payload = {
+    ...(data.ticketName || data.title ? { ticketName: data.ticketName || data.title } : {}),
+    ...(data.pipeline ? { pipeline: data.pipeline } : {}),
+    ...(data.ticketStatus || data.status ? { ticketStatus: data.ticketStatus || data.status } : {}),
+    ...(data.priority ? { priority: String(data.priority).toUpperCase() } : {}),
+    ...(data.ticketDescription !== undefined ? { ticketDescription: data.ticketDescription } : {}),
+  };
+
+  try {
+    const res = await request(`/tickets/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(payload) });
+    if (res) {
+      const normalized = normalizeTicket(res);
+      addTicketToStore(normalized);
+      return normalized;
+    }
+  } catch (err) {
+    console.warn('[api.js] updateTicket backend fallback:', err);
+  }
+  return normalizeTicket({ ...data, id });
 }
 
 export async function addTicketComment(ticketId, data) {

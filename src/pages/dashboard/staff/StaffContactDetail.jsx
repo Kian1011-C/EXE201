@@ -4,7 +4,26 @@ import toast from 'react-hot-toast';
 import { ACA_ACCOUNT_STATUS_OPTIONS, getActiveAgentAccounts } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, recordPropertyUpdate, getPersonName } from '../../../services/propertyHistoryService';
-import { getUsers, getContactDeals, addContactActivity, updateContact, createTicket, updateTicket, createContact, addContactNote, createDeal, addContactTask, createTask, updateTask, deleteTask } from '../../../services/api';
+import {
+  getUsers,
+  getContactDeals,
+  addContactActivity,
+  updateContact,
+  createTicket,
+  updateTicket,
+  createContact,
+  addContactNote,
+  createDeal,
+  addContactTask,
+  createTask,
+  updateTask,
+  deleteTask,
+  getAllDynamicTickets,
+  addTicketToStore,
+  updateTicketInStore,
+  getAllCustomerDocuments,
+  addCustomerDocumentToStore,
+} from '../../../services/api';
 import AddMemberPanel from './AddMemberPanel';
 import AddDealModal from './AddDealModal';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
@@ -323,14 +342,15 @@ export default function StaffContactDetail({
     } else if (contact?.customerDocument) {
       initialList = [contact.customerDocument];
     } else {
-      const allDocs = [];
+      const allDocs = getAllCustomerDocuments();
       const contactId = String(contact?.id || '')?.trim();
       const contactCode = String(contact?.code || '')?.trim();
       // Strictly match only by contactId or contact code. Never match loosely by contact name!
       const found = allDocs?.filter(
         (d) =>
           (contactId && String(d.contactId)?.trim() === contactId) ||
-          (contactCode && String(d.contactId)?.trim() === contactCode)
+          (contactCode && String(d.contactId)?.trim() === contactCode) ||
+          (contactId && String(d.associatedContact?.id)?.trim() === contactId)
       );
       if (found.length > 0) {
         initialList = found;
@@ -520,6 +540,7 @@ export default function StaffContactDetail({
         if (updatedAcaTicket.id) {
           updateTicket(updatedAcaTicket.id, updatedAcaTicket).catch(() => {});
         }
+        updateTicketInStore(updatedAcaTicket);
         updatedTickets = [updatedAcaTicket, ...nonAcaTickets];
         setContactTickets(updatedTickets);
         showToast('Đã chuyển trạng thái ACA và cập nhật Ticket ACA account!');
@@ -560,6 +581,7 @@ export default function StaffContactDetail({
           comments: [],
         };
 
+        addTicketToStore(acaTicket);
         createTicket(acaTicket).catch(() => {});
         null;
         updatedTickets = [acaTicket, ...nonAcaTickets];
@@ -591,6 +613,7 @@ export default function StaffContactDetail({
         if (updatedAcaTicket.id) {
           updateTicket(updatedAcaTicket.id, updatedAcaTicket).catch(() => {});
         }
+        updateTicketInStore(updatedAcaTicket);
         updatedTickets = [updatedAcaTicket, ...nonAcaTickets];
         setContactTickets(updatedTickets);
         showToast(`Đã cập nhật trạng thái ACA: ${val || 'Trống'} và đồng bộ Ticket ACA!`);
@@ -799,13 +822,24 @@ export default function StaffContactDetail({
 
       setContactDeals(contact.associatedDeals || contact.deals || []);
       const rawTickets = contact.associatedTickets || contact.tickets || [];
+      const cId = String(contact.id || contact.code || '')?.trim();
+      const cName = String(contact.fullName || '')?.trim()?.toLowerCase();
+      const dynamicTickets = getAllDynamicTickets().filter(
+        (t) => (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId)) || (cName && t.contactName && t.contactName.trim().toLowerCase() === cName)
+      );
+      const combinedTickets = [...rawTickets];
+      for (const dt of dynamicTickets) {
+        if (!combinedTickets.some((t) => String(t.id) === String(dt.id) || String(t.code) === String(dt.code))) {
+          combinedTickets.push(dt);
+        }
+      }
       const isAca = (t) =>
         t &&
         (t.pipeline === 'ACA account' ||
           (t?.title && t?.title?.toLowerCase().includes('aca account')) ||
           (t?.title && t?.title?.toLowerCase().includes('create aca')));
       let seenAca = false;
-      const deduplicatedTickets = rawTickets?.filter((t) => {
+      const deduplicatedTickets = combinedTickets?.filter((t) => {
         if (isAca(t)) {
           if (seenAca) return false;
           seenAca = true;
@@ -824,14 +858,15 @@ export default function StaffContactDetail({
       } else if (contact.customerDocument) {
         initialDocs = [contact.customerDocument];
       } else {
-        const allDocs = [];
+        const allDocs = getAllCustomerDocuments();
         const contactId = String(contact.id || '')?.trim();
         const contactCode = String(contact.code || '')?.trim();
         // Strictly match only by contactId or contact code. Never match loosely by contact name!
         const found = allDocs?.filter(
           (d) =>
             (contactId && String(d.contactId)?.trim() === contactId) ||
-            (contactCode && String(d.contactId)?.trim() === contactCode)
+            (contactCode && String(d.contactId)?.trim() === contactCode) ||
+            (contactId && String(d.associatedContact?.id)?.trim() === contactId)
         );
         if (found.length > 0) {
           initialDocs = found;
@@ -860,11 +895,6 @@ export default function StaffContactDetail({
       }
       setCustomerDocuments(uniqueDocs);
 
-      if (contact.notes) setNotesList(contact.notes);
-      if (contact.activities) setActivitiesList(contact.activities);
-
-      const cId = String(contact.id || contact.code || '');
-      const cName = String(contact.fullName || '')?.trim()?.toLowerCase();
       const dynamicTasks = typeof window !== 'undefined' ? [] : [];
       const storeContactTasks = dynamicTasks?.filter(
         (t) =>
