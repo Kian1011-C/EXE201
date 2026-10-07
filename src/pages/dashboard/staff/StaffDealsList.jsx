@@ -5,6 +5,7 @@ import AddDealModal from './AddDealModal';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterDealsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
+import { ALL_CARRIERS } from '../../../utils/constants';
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent = false, agentName = '' }) {
   const [dealsList, setDealsList] = useState([]);

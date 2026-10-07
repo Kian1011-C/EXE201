@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { ALL_CARRIERS, CARRIER_COMMISSION_RATES, calculateCarrierDealCommission } from '../../../utils/constants';
 
 export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
   // Simulator State

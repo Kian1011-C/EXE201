@@ -4,6 +4,7 @@ import { createTicket, createDeal, getUsers } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 import toast from 'react-hot-toast';
+import { ALL_CARRIERS } from '../../../utils/constants';
 
 export default function AddDealModal({
   isOpen,

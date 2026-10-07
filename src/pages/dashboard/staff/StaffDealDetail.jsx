@@ -10,6 +10,7 @@ import {
 } from '../../../services/propertyHistoryService';
 import { useAuth } from '../../../auth/AuthContext';
 import toast from 'react-hot-toast';
+import { ALL_CARRIERS } from '../../../utils/constants';
 
 export default function StaffDealDetail({
   deal,

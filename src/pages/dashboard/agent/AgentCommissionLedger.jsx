@@ -6,6 +6,7 @@ import {
   updateCommission,
 } from '../../../services/api';
 import AgentCommissionCalculator from './AgentCommissionCalculator';
+import { ALL_CARRIERS, CARRIER_COMMISSION_RATES, calculateCarrierDealCommission } from '../../../utils/constants';
 
 // ── INITIAL REAL COMMISSION DATA: 100% AGENT PAYOUT (NO 7/3 SPLIT) ───────────
 const INITIAL_COMMISSION_DATA = [
