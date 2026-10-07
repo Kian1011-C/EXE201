@@ -19,6 +19,13 @@ import AdminDealsTab from './admin/AdminDealsTab';
 import AdminCommissionTab from './admin/AdminCommissionTab';
 import AdminSystemTab from './admin/AdminSystemTab';
 
+const INITIAL_ADMIN_STATS = { totalUsers: 0, activeDeals: 0, monthlyRevenue: 0, openTickets: 0 };
+const INITIAL_ADMIN_ACCOUNTS = [];
+const INITIAL_ADMIN_DEALS = [];
+const INITIAL_ADMIN_QUOTES = [];
+const INITIAL_ADMIN_COMMISSIONS = [];
+const INITIAL_AUDIT_LOGS = [];
+
 
 
 import {
