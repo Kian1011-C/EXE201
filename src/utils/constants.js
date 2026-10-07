@@ -283,3 +283,58 @@ export function calculateCarrierDealCommission(carrierName, membersCount = 1) {
       : `$${matched.pmpm.toFixed(2)} PMPM × ${count} người → Agent nhận 100% = $${agentNetMonthly.toFixed(2)}/tháng`,
   };
 }
+
+export const ACCOUNT_BG_PALETTE = [
+  'bg-blue-600 text-white',
+  'bg-indigo-600 text-white',
+  'bg-cyan-700 text-white',
+  'bg-emerald-600 text-white',
+  'bg-teal-700 text-white',
+  'bg-amber-600 text-white',
+  'bg-orange-600 text-white',
+  'bg-rose-600 text-white',
+  'bg-purple-600 text-white',
+  'bg-violet-600 text-white',
+];
+
+export function getAccountAvatar(name) {
+  if (!name) return 'U';
+  const parts = String(name).trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
+}
+
+export function isValidNpn(npn) {
+  return /^\d{7,8}$/.test(String(npn || '').trim());
+}
+
+export function getAllPlatformMembers() {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_admin_accounts') : null;
+    const all = raw ? JSON.parse(raw) : [];
+    if (Array.isArray(all) && all.length > 0) {
+      return all.map((a) => {
+        const email = a.email || '';
+        const handle = email.includes('@') ? email.split('@')[0] : (a.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'member');
+        return {
+          id: String(a.id || ''),
+          name: a.name || a.fullName || 'Member',
+          fullName: a.name || a.fullName || 'Member',
+          email,
+          handle,
+          role: (a.role || 'agent').toLowerCase(),
+          avatar: a.avatar || getAccountAvatar(a.name || a.fullName),
+          bg: a.bg || 'bg-slate-700 text-white',
+          npn: a.npn || '',
+          status: a.status || 'Active',
+          department: a.department || 'Operations',
+        };
+      });
+    }
+  } catch {}
+  return [];
+}

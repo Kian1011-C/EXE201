@@ -250,6 +250,19 @@ function normalizeTask(t) {
   };
 }
 
+export const ACCOUNT_BG_PALETTE = [
+  'bg-blue-600 text-white',
+  'bg-indigo-600 text-white',
+  'bg-cyan-700 text-white',
+  'bg-emerald-600 text-white',
+  'bg-teal-700 text-white',
+  'bg-amber-600 text-white',
+  'bg-orange-600 text-white',
+  'bg-rose-600 text-white',
+  'bg-purple-600 text-white',
+  'bg-violet-600 text-white',
+];
+
 function normalizeAccount(u) {
   if (!u) return u;
   const name = u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'User';
@@ -460,6 +473,76 @@ export function getAllCustomerDocuments() {
   } catch {
     return [];
   }
+}
+
+export function addCustomerDocumentToStore(doc) {
+  if (!doc) return;
+
+  let totalFiles = doc.totalFiles;
+  let categoriesSummary = doc.categoriesSummary;
+  if (doc.filesByCategory) {
+    totalFiles = Object.values(doc.filesByCategory).reduce(
+      (sum, list) => sum + (Array.isArray(list) ? list.length : 0),
+      0
+    );
+    const catMap = {
+      consentFormMkp: 'Consent form MKP',
+      consentFormText: 'Consent form text',
+      identity: 'Identity',
+      insuranceRecord: 'Insurance record',
+      otherDocument: 'Other document',
+      paymentInformation: 'Payment information',
+      tax: 'Tax',
+    };
+    categoriesSummary = Object.entries(doc.filesByCategory)
+      .filter(([_, list]) => Array.isArray(list) && list.length > 0)
+      .map(([k, list]) => ({
+        key: k,
+        label: catMap[k] || k,
+        count: list.length,
+        files: list,
+      }));
+  }
+
+  const enrichedDoc = {
+    ...doc,
+    totalFiles: totalFiles ?? doc.totalFiles ?? 0,
+    categoriesSummary: categoriesSummary ?? doc.categoriesSummary ?? [],
+  };
+
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_dynamic_documents') : null;
+    let list = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex(
+      (d) =>
+        (d.id && d.id === enrichedDoc.id) ||
+        (d.name === enrichedDoc.name && (d.contactId === enrichedDoc.contactId || d.contactName === enrichedDoc.contactName))
+    );
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...enrichedDoc };
+    } else {
+      list.unshift(enrichedDoc);
+    }
+    const seen = new Set();
+    list = list.filter((item) => {
+      const key = item.id || `${item.name}_${item.contactId || item.contactName}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('insurmatch_dynamic_documents', JSON.stringify(list));
+      window.dispatchEvent(new CustomEvent('insurmatch_documents_updated', { detail: enrichedDoc }));
+    }
+  } catch {}
+}
+
+export function updateCustomerDocumentInStore(doc) {
+  addCustomerDocumentToStore(doc);
+}
+
+export function getDynamicCustomerDocuments() {
+  return getAllCustomerDocuments();
 }
 
 // ── Interaction: Notes, Tasks, Activities ────────────────────────────────────

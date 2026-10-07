@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { createDocument } from '../../../services/api';
+import { createDocument, addCustomerDocumentToStore } from '../../../services/api';
+import { getAllPlatformMembers } from '../../../utils/constants';
 
 
 const CATEGORIES = [

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { getDocuments } from '../../../services/api';
+import { getDocuments, addCustomerDocumentToStore } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterCustomerDocumentsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';

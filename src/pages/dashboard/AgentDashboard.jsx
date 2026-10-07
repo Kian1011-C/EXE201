@@ -34,6 +34,7 @@ import {
   getTickets,
   getTasks,
   getDashboardStats,
+  updateCustomerDocumentInStore,
 } from '../../services/api';
 
 export default function AgentDashboard() {

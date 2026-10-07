@@ -3,6 +3,7 @@ import {
   addDocumentFile,
   deleteDocumentFile,
   updateDocument,
+  updateCustomerDocumentInStore,
 } from '../../../services/api';
 import toast from 'react-hot-toast';
 

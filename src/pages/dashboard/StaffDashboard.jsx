@@ -24,6 +24,7 @@ import {
   updateTicket as apiUpdateTicket,
   getTask,
   updateTask as apiUpdateTask,
+  updateCustomerDocumentInStore,
 } from '../../services/api';
 
 export default function StaffDashboard() {
