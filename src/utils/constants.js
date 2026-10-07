@@ -396,3 +396,147 @@ export function getAllPlatformMembers() {
   } catch {}
   return [];
 }
+
+export const DEFAULT_AGENT_ACCOUNTS = [
+  {
+    id: 'ACC-003',
+    name: 'Khanh Nguyen',
+    fullName: 'Khanh Nguyen',
+    email: 'khanh@insurmatch.us',
+    handle: 'khanhnguyen31@7',
+    role: 'agent',
+    agencyRole: 'Licensed Partner Agent',
+    department: 'Sales Hub',
+    avatar: 'KN',
+    bg: 'bg-blue-600 text-white',
+    npn: '1984210',
+    statesLicensed: ['TX (TDI)', 'CA (CDI)', 'NC'],
+    status: 'Active',
+    phone: '+1 (832) 555-1984',
+    dealsCount: 42,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-002',
+    name: 'Anh Que Pham CPA',
+    fullName: 'Anh Que Pham CPA',
+    email: 'anhque@insurmatch.us',
+    handle: 'anhque',
+    role: 'agent',
+    agencyRole: 'Principal Broker & Agency Sponsor',
+    department: 'Executive Agency Leadership',
+    avatar: 'AQ',
+    bg: 'bg-amber-600 text-white',
+    npn: '20011862',
+    statesLicensed: ['TX (TDI)', 'CA (CDI)', 'FL', 'NC'],
+    status: 'Active',
+    phone: '+1 (832) 555-2001',
+    dealsCount: 84,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-004',
+    name: 'Sean Ngo',
+    fullName: 'Sean Ngo',
+    email: 'sean@insurmatch.us',
+    handle: 'seanngo',
+    role: 'agent',
+    agencyRole: 'Licensed Agent',
+    department: 'Sales Hub',
+    avatar: 'SN',
+    bg: 'bg-emerald-600 text-white',
+    npn: '1994321',
+    statesLicensed: ['TX (TDI)', 'NC'],
+    status: 'Active',
+    phone: '+1 (832) 555-3002',
+    dealsCount: 36,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-007',
+    name: 'Ivy Le',
+    fullName: 'Ivy Le',
+    email: 'ivyle@insurmatch.us',
+    handle: 'ivyle',
+    role: 'agent',
+    agencyRole: 'Licensed Agent',
+    department: 'Sales Hub',
+    avatar: 'IL',
+    bg: 'bg-orange-500 text-white',
+    npn: '1984214',
+    statesLicensed: ['TX (TDI)', 'FL'],
+    status: 'Active',
+    phone: '+1 (832) 555-4003',
+    dealsCount: 18,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-008',
+    name: 'James Vu',
+    fullName: 'James Vu',
+    email: 'jamesvu@insurmatch.us',
+    handle: 'jamesvu',
+    role: 'agent',
+    agencyRole: 'Licensed Agent',
+    department: 'Sales Hub',
+    avatar: 'JV',
+    bg: 'bg-slate-600 text-white',
+    npn: '1984216',
+    statesLicensed: ['TX (TDI)'],
+    status: 'Active',
+    phone: '+1 (832) 555-5004',
+    dealsCount: 12,
+    complianceStatus: 'Verified & Cleared',
+  },
+];
+
+export function getActiveAgentAccounts() {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_admin_accounts') : null;
+    const all = raw ? JSON.parse(raw) : [];
+    const list = Array.isArray(all) && all.length > 0 ? all : DEFAULT_AGENT_ACCOUNTS;
+
+    const isAgent = (a) => {
+      const role = (a.role || '').toLowerCase();
+      const name = (a.name || '').toLowerCase();
+      if (role !== 'agent' && role !== 'broker') return false;
+      if (name.includes('admin') || name.includes('staff') || name.includes('platform') || name.includes('insurance')) return false;
+      return true;
+    };
+
+    const agents = list.filter(isAgent);
+    const existingNames = new Set(agents.map((a) => a.name));
+
+    // Guarantee default partner agents are present
+    DEFAULT_AGENT_ACCOUNTS.forEach((seed) => {
+      if (!existingNames.has(seed.name)) {
+        agents.push(seed);
+      }
+    });
+
+    return agents.map((a) => {
+      const email = a.email || '';
+      const handle = email.includes('@') ? email.split('@')[0] : (a.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'agent');
+      return {
+        id: String(a.id || a.name),
+        name: a.name || a.fullName,
+        fullName: a.name || a.fullName,
+        email,
+        handle,
+        role: 'agent',
+        agencyRole: a.agencyRole || 'Licensed Partner Agent',
+        department: a.department || 'Sales Hub',
+        avatar: a.avatar || getAccountAvatar(a.name),
+        bg: a.bg || 'bg-blue-600 text-white',
+        npn: a.npn || '',
+        statesLicensed: a.statesLicensed || ['TX (TDI)'],
+        status: a.status || 'Active',
+        phone: a.phone || '',
+        dealsCount: a.dealsCount || 0,
+        complianceStatus: a.complianceStatus || 'Verified & Cleared',
+      };
+    });
+  } catch {
+    return DEFAULT_AGENT_ACCOUNTS;
+  }
+}

@@ -4,7 +4,7 @@ import { createTicket, createDeal, getUsers } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 import toast from 'react-hot-toast';
-import { ALL_CARRIERS, OBAMACARE_DEAL_STAGES, MEDICARE_DEAL_STAGES } from '../../../utils/constants';
+import { ALL_CARRIERS, OBAMACARE_DEAL_STAGES, MEDICARE_DEAL_STAGES, getActiveAgentAccounts } from '../../../utils/constants';
 
 export default function AddDealModal({
   isOpen,
@@ -21,14 +21,35 @@ export default function AddDealModal({
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'existing'
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const [agentAccounts, setAgentAccounts] = useState([]);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts([]);
+      setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
+
+  useEffect(() => {
+    getUsers().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        const backendAgents = data.filter((u) => (u.role || '').toLowerCase() === 'agent');
+        if (backendAgents.length > 0) {
+          setAgentAccounts((prev) => {
+            const names = new Set(prev.map((a) => a.name));
+            const newOnes = backendAgents
+              .filter((b) => !names.has(b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim()))
+              .map((b) => ({
+                id: String(b.id),
+                name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+                role: 'agent',
+              }));
+            return [...prev, ...newOnes];
+          });
+        }
+      }
+    }).catch(() => {});
   }, []);
 
   const ownerOptions = ['--', ...agentAccounts.map((a) => a.name)];

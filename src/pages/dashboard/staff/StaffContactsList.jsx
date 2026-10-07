@@ -5,6 +5,7 @@ import { useAuth } from '../../../auth/AuthContext';
 import { getContacts, getUsers, createContact as apiCreateContact } from '../../../services/api';
 import { filterContactsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
+import { getActiveAgentAccounts } from '../../../utils/constants';
 
 export default function StaffContactsList({ onSelectContact, isAgent = false, agentName = '' }) {
   const { user } = useAuth();
@@ -23,11 +24,11 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   }
 
   const [dbUsers, setDbUsers] = useState([]);
-  const [agentAccounts, setAgentAccounts] = useState(() => []);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts([]);
+      setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
@@ -39,6 +40,22 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     try {
       const usersData = await getUsers();
       setDbUsers(usersData);
+      if (Array.isArray(usersData) && usersData.length > 0) {
+        const backendAgents = usersData.filter((u) => (u.role || '').toLowerCase() === 'agent');
+        if (backendAgents.length > 0) {
+          setAgentAccounts((prev) => {
+            const names = new Set(prev.map((a) => a.name));
+            const newOnes = backendAgents
+              .filter((b) => !names.has(b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim()))
+              .map((b) => ({
+                id: String(b.id),
+                name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+                role: 'agent',
+              }));
+            return [...prev, ...newOnes];
+          });
+        }
+      }
 
       const activeSearch = filters.search !== undefined ? filters.search : searchQuery;
       const activeOwner = filters.owner !== undefined ? filters.owner : ownerFilter;

@@ -19,6 +19,7 @@ import {
   isOwnerMatch,
 } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
+import { getActiveAgentAccounts } from '../../../utils/constants';
 
 const COMPANY_OVERVIEW = 'Tất cả Owner (All Agents / Tổng Quan)';
 
@@ -46,11 +47,11 @@ export default function StaffCrmDashboard({
   const [liveCommissions, setLiveCommissions] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'obamacare' | 'medicare' | 'tickets' | 'tasks' | 'commissions'
   
-  const [agentAccounts, setAgentAccounts] = useState([]);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts([]);
+      setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);

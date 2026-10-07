@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
-import { ACA_ACCOUNT_STATUS_OPTIONS } from '../../../utils/constants';
+import { ACA_ACCOUNT_STATUS_OPTIONS, getActiveAgentAccounts } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, recordPropertyUpdate, getPersonName } from '../../../services/propertyHistoryService';
 import { getUsers, getContactDeals, getAllCustomerDocuments, addContactActivity, updateContact, createTicket, updateTicket, createContact, addContactNote, updateContactNote, deleteContactNote, createDeal, addContactTask, updateContactTask, createTask, updateTask, deleteTask } from '../../../services/api';
@@ -35,18 +35,34 @@ export default function StaffContactDetail({
   const currentActor = getCurrentActor(user);
   
   const [dbUsers, setDbUsers] = useState([]);
-  const [agentAccounts, setAgentAccounts] = useState(() => []);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts([]);
+      setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
   useEffect(() => {
     getUsers().then(data => {
-      if (Array.isArray(data)) setDbUsers(data);
+      if (Array.isArray(data) && data.length > 0) {
+        setDbUsers(data);
+        const backendAgents = data.filter((u) => (u.role || '').toLowerCase() === 'agent');
+        if (backendAgents.length > 0) {
+          setAgentAccounts((prev) => {
+            const names = new Set(prev.map((a) => a.name));
+            const newOnes = backendAgents
+              .filter((b) => !names.has(b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim()))
+              .map((b) => ({
+                id: String(b.id),
+                name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+                role: 'agent',
+              }));
+            return [...prev, ...newOnes];
+          });
+        }
+      }
     }).catch(console.error);
   }, []);
 

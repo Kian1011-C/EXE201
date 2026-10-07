@@ -10,7 +10,7 @@ import {
 } from '../../../services/propertyHistoryService';
 import { useAuth } from '../../../auth/AuthContext';
 import toast from 'react-hot-toast';
-import { ALL_CARRIERS, OBAMACARE_DEAL_STAGES, MEDICARE_DEAL_STAGES } from '../../../utils/constants';
+import { ALL_CARRIERS, OBAMACARE_DEAL_STAGES, MEDICARE_DEAL_STAGES, getActiveAgentAccounts } from '../../../utils/constants';
 
 export default function StaffDealDetail({
   deal,
@@ -309,14 +309,35 @@ export default function StaffDealDetail({
   const [feeBonusPaymentOpen, setFeeBonusPaymentOpen] = useState(false);
 
   // Dynamic DB users for dynamic agent roster (Tất cả agent hiện tại)
-  const [agentAccounts, setAgentAccounts] = useState([]);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts([]);
+      setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
+
+  useEffect(() => {
+    getUsers().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        const backendAgents = data.filter((u) => (u.role || '').toLowerCase() === 'agent');
+        if (backendAgents.length > 0) {
+          setAgentAccounts((prev) => {
+            const names = new Set(prev.map((a) => a.name));
+            const newOnes = backendAgents
+              .filter((b) => !names.has(b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim()))
+              .map((b) => ({
+                id: String(b.id),
+                name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+                role: 'agent',
+              }));
+            return [...prev, ...newOnes];
+          });
+        }
+      }
+    }).catch(() => {});
   }, []);
 
   const allAvailableAgents = useMemo(() => {

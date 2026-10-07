@@ -5,7 +5,7 @@ import AddDealModal from './AddDealModal';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterDealsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
-import { ALL_CARRIERS } from '../../../utils/constants';
+import { ALL_CARRIERS, getActiveAgentAccounts } from '../../../utils/constants';
 
 export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent = false, agentName = '' }) {
   const [dealsList, setDealsList] = useState([]);
@@ -142,14 +142,35 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     window.location.pathname.includes('/agent');
   const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
 
-  const [agentAccounts, setAgentAccounts] = useState([]);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts([]);
+      setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
+
+  useEffect(() => {
+    getUsers().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        const backendAgents = data.filter((u) => (u.role || '').toLowerCase() === 'agent');
+        if (backendAgents.length > 0) {
+          setAgentAccounts((prev) => {
+            const names = new Set(prev.map((a) => a.name));
+            const newOnes = backendAgents
+              .filter((b) => !names.has(b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim()))
+              .map((b) => ({
+                id: String(b.id),
+                name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+                role: 'agent',
+              }));
+            return [...prev, ...newOnes];
+          });
+        }
+      }
+    }).catch(() => {});
   }, []);
 
   // Scoped deals by RBAC
