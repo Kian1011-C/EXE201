@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { createDocument, getUsers } from '../../../services/api';
-
+import { createDocument, addCustomerDocumentToStore } from '../../../services/api';
+import { getAllPlatformMembers } from '../../../utils/constants';
 
 const CATEGORIES = [
   { key: 'identity', label: 'Identity', icon: 'badge', color: 'text-violet-600', bg: 'bg-violet-50' },
@@ -40,7 +40,7 @@ export default function CreateCustomerDocumentModal({
   const [platformMembers, setPlatformMembers] = useState(() => [
     { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
     { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
-    ...getUsers(),
+    ...(getAllPlatformMembers() || []),
   ]);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function CreateCustomerDocumentModal({
       setPlatformMembers([
         { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
         { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
-        ...getUsers(),
+        ...(getAllPlatformMembers() || []),
       ]);
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
@@ -248,8 +248,8 @@ export default function CreateCustomerDocumentModal({
       },
     };
 
-    createDocument, getUsers(newDoc);
-    createDocument, getUsers({
+    addCustomerDocumentToStore(newDoc);
+    createDocument({
       name: finalDocName,
       contactOwner: ownerString,
       lastModifiedBy: selectedOwner?.name || 'Staff',
