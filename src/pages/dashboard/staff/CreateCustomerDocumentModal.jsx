@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { createDocument, addCustomerDocumentToStore, getUsers } from '../../../services/api';
+import {
+  createDocument,
+  addCustomerDocumentToStore,
+  getUsers,
+  getContacts,
+  getDocuments,
+  addDocumentFile,
+} from '../../../services/api';
 import { getActiveAgentAccounts } from '../../../utils/constants';
 
 const CATEGORIES = [
@@ -35,7 +42,12 @@ export default function CreateCustomerDocumentModal({
   const [docName, setDocName] = useState('--');
   const [isEditingName, setIsEditingName] = useState(false);
   const [contactName, setContactName] = useState('');
-  const [isEditingContact, setIsEditingContact] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(contact || null);
+  const [contactsList, setContactsList] = useState([]);
+  const [showContactDropdown, setShowContactDropdown] = useState(false);
+  const [contactSearchQuery, setContactSearchQuery] = useState('');
+  const [allExistingDocuments, setAllExistingDocuments] = useState([]);
+  const [existingSearchQuery, setExistingSearchQuery] = useState('');
 
   const [platformMembers, setPlatformMembers] = useState(() => getActiveAgentAccounts());
 
@@ -78,10 +90,28 @@ export default function CreateCustomerDocumentModal({
   const [selectedExistingId, setSelectedExistingId] = useState('');
   const fileInputRefs = useRef({});
   const ownerDropdownRef = useRef(null);
+  const contactDropdownRef = useRef(null);
+
+  // Load contacts and existing documents from API
+  useEffect(() => {
+    if (isOpen) {
+      getContacts()
+        .then((res) => {
+          if (Array.isArray(res)) setContactsList(res);
+        })
+        .catch(() => {});
+      getDocuments()
+        .then((res) => {
+          if (Array.isArray(res)) setAllExistingDocuments(res);
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
 
   // Initialize from contact
   useEffect(() => {
     if (contact) {
+      setSelectedContact(contact);
       const cName =
         contact.fullName ||
         [contact.firstName, contact.middleName, contact.lastName]
@@ -114,23 +144,30 @@ export default function CreateCustomerDocumentModal({
       } else {
         setSelectedOwner(platformMembers[0]);
       }
+    } else {
+      setSelectedContact(null);
+      setContactName('');
+      setDocName('--');
     }
   }, [contact, isOpen, platformMembers]);
 
-  // Close owner dropdown on click outside
+  // Close owner & contact dropdowns on click outside
   useEffect(() => {
     function handleDocClick(e) {
       if (ownerDropdownRef.current && !ownerDropdownRef.current.contains(e.target)) {
         setShowOwnerDropdown(false);
       }
+      if (contactDropdownRef.current && !contactDropdownRef.current.contains(e.target)) {
+        setShowContactDropdown(false);
+      }
     }
-    if (showOwnerDropdown) {
+    if (showOwnerDropdown || showContactDropdown) {
       document.addEventListener('mousedown', handleDocClick);
     }
     return () => {
       document.removeEventListener('mousedown', handleDocClick);
     };
-  }, [showOwnerDropdown]);
+  }, [showOwnerDropdown, showContactDropdown]);
 
   if (!isOpen) return null;
 
@@ -188,7 +225,7 @@ export default function CreateCustomerDocumentModal({
     if (files.length) addFiles(key, files);
   }
 
-  function handleSave() {
+  async function handleSave() {
     const finalDocName =
       docName && docName?.trim() !== '' && docName !== '--'
         ? docName?.trim()
@@ -228,12 +265,15 @@ export default function CreateCustomerDocumentModal({
         count: list.length,
       }));
 
+    const finalContact = selectedContact || contact;
+    const finalContactId = finalContact?.id || finalContact?.code || '';
+
     const newDoc = {
       id: `DOC-${Date.now().toString().slice(-4)}`,
       name: finalDocName,
       initials,
       contactName: contactName || finalDocName,
-      contactId: contact?.id || contact?.code || '',
+      contactId: finalContactId,
       contactOwner: ownerString,
       lastModifiedTime: `${dStr}, ${tStr}`,
       lastModifiedBy: selectedOwner?.name || '',
@@ -241,21 +281,48 @@ export default function CreateCustomerDocumentModal({
       categoriesSummary,
       filesByCategory: attachedFiles,
       associatedContact: {
-        id: contact?.id || contact?.code || '',
-        name: contactName,
-        phone: contact?.phone || contact?.rawPhone || '',
-        email: contact?.email || '',
+        id: finalContactId,
+        name: contactName || finalContact?.fullName || finalContact?.name || '',
+        phone: finalContact?.phone || finalContact?.rawPhone || '',
+        email: finalContact?.email || '',
         leadOwner: ownerString,
-        language: contact?.language || 'Vietnamese',
+        language: finalContact?.language || 'Vietnamese',
       },
     };
 
     addCustomerDocumentToStore(newDoc);
-    createDocument({
-      name: finalDocName,
-      contactOwner: ownerString,
-      lastModifiedBy: selectedOwner?.name || 'Staff',
-    }).catch((err) => console.warn('[CreateCustomerDocumentModal] Live save fallback:', err));
+    try {
+      const created = await createDocument({
+        name: finalDocName,
+        contactId: finalContactId,
+        contactOwner: ownerString,
+        lastModifiedBy: selectedOwner?.name || 'Staff',
+        initials,
+      });
+      const targetDocId = created?.id || newDoc.id;
+      if (targetDocId && !String(targetDocId).startsWith('DOC-')) {
+        Object.entries(attachedFiles).forEach(([catKey, fList]) => {
+          if (Array.isArray(fList)) {
+            fList.forEach((f) => {
+              addDocumentFile(targetDocId, {
+                category: catKey,
+                name: f.name,
+                fullName: f.fullName,
+                size: f.size,
+                type: f.type,
+                url: f.url || '',
+              }).catch((err) => console.warn('[CreateCustomerDocumentModal] Add file API fallback:', err));
+            });
+          }
+        });
+      }
+      if (created) {
+        newDoc.id = created.id;
+        newDoc.code = created.code;
+      }
+    } catch (err) {
+      console.warn('[CreateCustomerDocumentModal] Live save fallback:', err);
+    }
 
     if (onSave) {
       onSave(newDoc);
@@ -268,11 +335,26 @@ export default function CreateCustomerDocumentModal({
     `${a.name} ${a.handle || ''}`?.toLowerCase().includes(ownerSearchQuery?.toLowerCase())
   );
 
-  // Available existing documents
-  const allExistingDocuments = [
-    ...[],
-    ...[],
-  ];
+  // Filtered contacts for selector
+  const filteredContacts = contactsList?.filter((c) => {
+    const q = contactSearchQuery?.toLowerCase()?.trim();
+    if (!q) return true;
+    const name = (c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.name || '')?.toLowerCase();
+    const phone = (c.phone || '')?.toLowerCase();
+    const email = (c.email || '')?.toLowerCase();
+    const code = (c.code || c.id || '')?.toLowerCase();
+    return name.includes(q) || phone.includes(q) || email.includes(q) || code.includes(q);
+  });
+
+  // Filtered existing documents
+  const filteredExistingDocuments = allExistingDocuments?.filter((d) => {
+    const q = existingSearchQuery?.toLowerCase()?.trim();
+    if (!q) return true;
+    const name = (d.name || '')?.toLowerCase();
+    const contactN = (d.contactName || '')?.toLowerCase();
+    const code = (d.code || d.id || '')?.toLowerCase();
+    return name.includes(q) || contactN.includes(q) || code.includes(q);
+  });
 
   const totalUploadedFiles = Object.values(attachedFiles)?.reduce((sum, list) => sum + list.length, 0);
 
@@ -475,36 +557,157 @@ export default function CreateCustomerDocumentModal({
               </div>
 
               {/* Field 3: Contact */}
-              <div>
+              <div className="relative" ref={contactDropdownRef}>
                 <label className="block text-slate-800 font-bold mb-1.5 text-xs">
                   Contact
                 </label>
                 <div className="relative flex items-center">
-                  {isEditingContact ? (
-                    <input
-                      type="text"
-                      autoFocus
-                      value={contactName}
-                      onChange={(e) => setContactName(e.target.value)}
-                      onBlur={() => setIsEditingContact(false)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') setIsEditingContact(false);
-                      }}
-                      className="w-full px-3 py-2 rounded-lg border border-blue-500 focus:outline-none text-xs text-slate-800 pr-8 bg-white font-medium"
-                      placeholder="Contact name"
-                    />
+                  {selectedContact || contactName ? (
+                    <div
+                      onClick={() => setShowContactDropdown(!showContactDropdown)}
+                      className="w-full px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-xs text-slate-800 flex items-center justify-between cursor-pointer transition"
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="material-symbols-outlined text-[18px] text-blue-600">person</span>
+                        <span className="font-semibold text-slate-800 truncate">
+                          {contactName || selectedContact?.fullName || selectedContact?.name}
+                        </span>
+                        {selectedContact?.phone && (
+                          <span className="text-slate-400 text-[11px] font-mono">
+                            ({selectedContact.phone})
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedContact(null);
+                            setContactName('');
+                          }}
+                          className="p-0.5 rounded text-rose-500 hover:bg-slate-100 transition"
+                          title="Bỏ chọn"
+                        >
+                          <span className="material-symbols-outlined text-[15px]">close</span>
+                        </button>
+                        <span className="material-symbols-outlined text-[18px] text-slate-400">
+                          expand_more
+                        </span>
+                      </div>
+                    </div>
                   ) : (
                     <div
-                      onClick={() => setIsEditingContact(true)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-xs text-slate-800 font-medium flex items-center justify-between cursor-pointer transition"
+                      onClick={() => setShowContactDropdown(!showContactDropdown)}
+                      className="w-full px-3 py-2 rounded-lg border border-dashed border-slate-300 hover:border-blue-400 bg-white text-xs text-slate-500 flex items-center justify-between cursor-pointer transition"
                     >
-                      <span>{contactName || 'Huy Dinh Tran'}</span>
-                      <span className="material-symbols-outlined text-[16px] text-slate-400 hover:text-blue-600">
-                        edit
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px] text-slate-400">person_add</span>
+                        <span className="italic">Chọn người liên hệ (Contact)...</span>
+                      </div>
+                      <span className="material-symbols-outlined text-[18px] text-slate-400">
+                        expand_more
                       </span>
                     </div>
                   )}
                 </div>
+
+                {/* Contact Dropdown Popover */}
+                {showContactDropdown && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden text-xs">
+                    <div className="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] text-slate-400">search</span>
+                      <input
+                        type="text"
+                        autoFocus
+                        value={contactSearchQuery}
+                        onChange={(e) => setContactSearchQuery(e.target.value)}
+                        placeholder="Tìm kiếm theo tên, SĐT, email..."
+                        className="w-full bg-transparent text-xs text-slate-700 outline-none placeholder:text-slate-400"
+                      />
+                      {contactSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setContactSearchQuery('')}
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-56 overflow-y-auto divide-y divide-slate-100">
+                      {contactSearchQuery?.trim() && (
+                        <div
+                          onClick={() => {
+                            setContactName(contactSearchQuery.trim());
+                            setSelectedContact(null);
+                            if (docName === '--' || !docName) setDocName(contactSearchQuery.trim());
+                            setShowContactDropdown(false);
+                            setContactSearchQuery('');
+                          }}
+                          className="p-2.5 hover:bg-blue-50 text-blue-600 font-medium cursor-pointer flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">edit</span>
+                          <span>Dùng tên tùy chỉnh: "{contactSearchQuery.trim()}"</span>
+                        </div>
+                      )}
+                      {filteredContacts?.length === 0 ? (
+                        <div className="p-3 text-center text-slate-400 italic">
+                          Không tìm thấy người liên hệ phù hợp
+                        </div>
+                      ) : (
+                        filteredContacts?.map((c) => {
+                          const cFullName =
+                            c.fullName ||
+                            [c.firstName, c.middleName, c.lastName].filter(Boolean).join(' ') ||
+                            c.name ||
+                            'Khách hàng';
+                          return (
+                            <div
+                              key={c.id || c.code}
+                              onClick={() => {
+                                setSelectedContact(c);
+                                setContactName(cFullName);
+                                if (docName === '--' || !docName) setDocName(cFullName);
+                                const rawOwner = c.contactOwner || c.leadOwner || '';
+                                const cOwner = typeof rawOwner === 'object' ? (rawOwner.name || rawOwner.fullName || '') : String(rawOwner || '');
+                                const matched = platformMembers.find(
+                                  (a) =>
+                                    cOwner &&
+                                    (cOwner.includes(a.name) ||
+                                      cOwner.includes(a.handle) ||
+                                      cOwner.toLowerCase().includes(a.name.toLowerCase()))
+                                );
+                                if (matched) setSelectedOwner(matched);
+                                setShowContactDropdown(false);
+                                setContactSearchQuery('');
+                              }}
+                              className="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between group transition"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px] shrink-0">
+                                  {cFullName.slice(0, 2).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="font-semibold text-slate-800 text-xs truncate">
+                                    {cFullName}
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 truncate">
+                                    {c.phone ? `${c.phone} • ` : ''}{c.email || ''}
+                                  </div>
+                                </div>
+                              </div>
+                              <span className="text-[11px] text-slate-400 font-mono shrink-0">
+                                {c.code || c.id}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* ── Document Categories ── */}
@@ -658,16 +861,35 @@ export default function CreateCustomerDocumentModal({
           ) : (
             /* ── Add Existing Tab ── */
             <div className="space-y-3 py-2">
-              <label className="block text-slate-800 font-bold mb-1 text-xs">
-                Select from Existing Customer Documents
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-slate-800 font-bold text-xs">
+                  Select from Existing Customer Documents
+                </label>
+                <span className="text-[11px] text-slate-400">
+                  {filteredExistingDocuments?.length || 0} hồ sơ
+                </span>
+              </div>
+
+              <div className="relative flex items-center">
+                <span className="material-symbols-outlined absolute left-2.5 text-[16px] text-slate-400">
+                  search
+                </span>
+                <input
+                  type="text"
+                  value={existingSearchQuery}
+                  onChange={(e) => setExistingSearchQuery(e.target.value)}
+                  placeholder="Tìm kiếm theo tên tài liệu, mã hồ sơ hoặc khách hàng..."
+                  className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-blue-500 bg-white"
+                />
+              </div>
+
               <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                {allExistingDocuments.length === 0 ? (
+                {filteredExistingDocuments?.length === 0 ? (
                   <div className="p-6 text-center text-slate-400 italic">
-                    Không có customer document nào trong hệ thống
+                    Không có customer document nào phù hợp trong hệ thống
                   </div>
                 ) : (
-                  allExistingDocuments?.map((doc) => {
+                  filteredExistingDocuments?.map((doc) => {
                     const isSelected = selectedExistingId === doc.id;
                     return (
                       <div

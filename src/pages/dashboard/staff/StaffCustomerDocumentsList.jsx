@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { getDocuments, addCustomerDocumentToStore } from '../../../services/api';
+import { getDocuments, getContacts, addCustomerDocumentToStore } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterCustomerDocumentsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
@@ -22,6 +22,7 @@ export default function StaffCustomerDocumentsList({
   agentName = '',
 }) {
   const [documentsList, setDocumentsList] = useState([]);
+  const [contactsList, setContactsList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('all');
@@ -45,11 +46,17 @@ export default function StaffCustomerDocumentsList({
       const params = {};
       if (search && search?.trim()) params.search = search?.trim();
       if (owner && owner !== 'all') params.owner = owner;
-      const data = await getDocuments(params);
-      if (Array.isArray(data)) {
-        setDocumentsList(data);
+      const [docsData, contactsData] = await Promise.all([
+        getDocuments(params).catch(() => []),
+        getContacts().catch(() => []),
+      ]);
+      if (Array.isArray(docsData)) {
+        setDocumentsList(docsData);
       } else {
         setDocumentsList([]);
+      }
+      if (Array.isArray(contactsData)) {
+        setContactsList(contactsData);
       }
     } catch {
       setDocumentsList([]);
@@ -199,10 +206,7 @@ export default function StaffCustomerDocumentsList({
   const [newDocCategory, setNewDocCategory] = useState('identity');
 
   // Contact options for modal
-  const availableContacts = useMemo(() => {
-    const dyn = [];
-    return [...dyn, ...[]];
-  }, []);
+  const availableContacts = useMemo(() => contactsList, [contactsList]);
 
   function handleOpenCreateModal() {
     if (availableContacts.length > 0) {

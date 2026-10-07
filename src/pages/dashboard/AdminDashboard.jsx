@@ -39,6 +39,8 @@ import {
   getContact,
   getDeal,
   getDocument,
+  updateDocument,
+  createDocument,
   updateContact as apiUpdateContact,
   updateDeal as apiUpdateDeal,
   getTicket,
