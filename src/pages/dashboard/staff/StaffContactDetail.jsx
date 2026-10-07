@@ -613,7 +613,7 @@ export default function StaffContactDetail({
   }
 
   // Primary fields (synchronized with create contact)
-  const initialPrimary = contact?.primary || (contact ? {} : (CONTACT_DETAIL_DATA.primary || {}));
+  const initialPrimary = contact?.primary || (contact ? {} : (null.primary || {}));
   const [primaryFirstName, setPrimaryFirstName] = useState(
     contact?.firstName || initialPrimary.firstName || ''
   );
@@ -1064,8 +1064,8 @@ export default function StaffContactDetail({
       }
       null;
     }
-    if (CONTACT_DETAIL_DATA && (contact?.id === CONTACT_DETAIL_DATA.id || !contact?.id)) {
-      CONTACT_DETAIL_DATA.notes = newList;
+    if (null && (contact?.id === null.id || !contact?.id)) {
+      null.notes = newList;
     }
   }
 
@@ -1076,8 +1076,8 @@ export default function StaffContactDetail({
       if (onUpdateContact) onUpdateContact(updated);
       null;
     }
-    if (CONTACT_DETAIL_DATA && (contact?.id === CONTACT_DETAIL_DATA.id || !contact?.id)) {
-      CONTACT_DETAIL_DATA.tasks = newTasks;
+    if (null && (contact?.id === null.id || !contact?.id)) {
+      null.tasks = newTasks;
     }
   }
 
@@ -1426,8 +1426,8 @@ export default function StaffContactDetail({
     showToast('Task created successfully and saved to Task tổng');
   }
 
-  // Use passed contact info or fallback to CONTACT_DETAIL_DATA
-  const contactInfo = contact || CONTACT_DETAIL_DATA;
+  // Use passed contact info or fallback to null
+  const contactInfo = contact || null;
 
   // Dynamic Full Name and Initials
   const currentFullName = [primaryFirstName, primaryMiddleName, primaryLastName]

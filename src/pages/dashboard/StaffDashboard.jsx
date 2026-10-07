@@ -33,7 +33,7 @@ export default function StaffDashboard() {
   // Current view: 'dashboard' | 'list' | 'contact-detail' | 'deals-list' | 'deal-detail' | 'customer-document-detail' | 'tickets-list' | 'ticket-detail' | 'tasks-list' | 'task-detail'
   const [currentTab, setCurrentTab] = useState('contacts');
   const [currentView, setCurrentView] = useState('list');
-  const [selectedContact, setSelectedContact] = useState(CONTACT_DETAIL_DATA);
+  const [selectedContact, setSelectedContact] = useState(null);
   const [selectedDeal, setSelectedDeal] = useState(DEAL_DETAIL_DATA);
   const [selectedDocument, setSelectedDocument] = useState(CUSTOMER_DOCUMENT_DATA);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -249,7 +249,7 @@ export default function StaffDashboard() {
     }
 
     const isDemoSample = contact.id === 'CT26002600' && !contact.isNew;
-    const defaultData = isDemoSample ? CONTACT_DETAIL_DATA : {
+    const defaultData = isDemoSample ? null : {
       primary: {},
       contactFields: {},
       acaAccount: {
@@ -305,7 +305,7 @@ export default function StaffDashboard() {
         ...(contact.sourceOfLead || {}),
         howDoYouKnowUs: contact.howDoYouKnowUs || (contact.sourceOfLead?.howDoYouKnowUs || '---'),
         whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
-        contactOwner: contact.contactOwner?.name || contact.contactOwner || (isDemoSample ? CONTACT_DETAIL_DATA.sourceOfLead.contactOwner : 'The Best Rate Insurance'),
+        contactOwner: contact.contactOwner?.name || contact.contactOwner || (isDemoSample ? null.sourceOfLead.contactOwner : 'The Best Rate Insurance'),
       },
       initials: (contact.fullName || (isDemoSample ? 'ND' : (firstName ? firstName[0] : 'CT')))
         .split(' ')

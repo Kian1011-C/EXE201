@@ -45,7 +45,7 @@ export default function AgentDashboard() {
   // Current view: 'dashboard' | 'contacts' | 'contact-detail' | 'deals' | 'deal-detail' | 'customer-document-detail' | 'commission' | 'tickets' | 'tasks'
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [currentView, setCurrentView] = useState('dashboard');
-  const [selectedContact, setSelectedContact] = useState(CONTACT_DETAIL_DATA);
+  const [selectedContact, setSelectedContact] = useState(null);
   const [selectedDeal, setSelectedDeal] = useState(DEAL_DETAIL_DATA);
   const [selectedDocument, setSelectedDocument] = useState(CUSTOMER_DOCUMENT_DATA);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -295,7 +295,7 @@ export default function AgentDashboard() {
     }
 
     const isDemoSample = contact.id === 'CT26002600' && !contact.isNew;
-    const defaultData = isDemoSample ? CONTACT_DETAIL_DATA : {
+    const defaultData = isDemoSample ? null : {
       primary: {},
       contactFields: {},
       acaAccount: {
