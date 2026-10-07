@@ -143,10 +143,7 @@ export default function AgentDashboard() {
         const allDeals = [...[], ...[]];
         const localFound = allDeals.find((d) => 
           String(d.id) === String(dealId) || 
-          String(d.code) === String(dealId) ||
-          (dealId === '3' && (d.code === 'D26005033' || d.id === 'D26005033')) ||
-          (dealId === '4' && (d.code === 'D26005034' || d.id === 'D26005034')) ||
-          (d.title && d.title?.toLowerCase().includes('minh tran') && dealId === '3')
+          String(d.code) === String(dealId)
         );
         if (localFound) {
           setSelectedDeal({ ...{}, ...localFound });
@@ -220,7 +217,7 @@ export default function AgentDashboard() {
             status: 'Need Create ACA Account',
             stage: 'Need Create ACA Account (ACA account)',
             priority: 'High',
-            ticketOwner: 'Khanh Nguyen',
+            ticketOwner: '',
             serviceAgent: 'Platform Staff',
           }));
         }
@@ -351,7 +348,7 @@ export default function AgentDashboard() {
         ...(contact.sourceOfLead || {}),
         howDoYouKnowUs: contact.howDoYouKnowUs || (contact.sourceOfLead?.howDoYouKnowUs || '---'),
         whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
-        contactOwner: contact.contactOwner?.name || contact.contactOwner || (isDemoSample ? 'Khanh Nguyen (khanhnguyen31@7)' : 'The Best Rate Insurance'),
+        contactOwner: contact.contactOwner?.name || contact.contactOwner || 'The Best Rate Insurance',
       },
       initials: (contact.fullName || (firstName ? firstName[0] : 'CT'))
         ?.split(' ')
@@ -409,8 +406,6 @@ export default function AgentDashboard() {
     const found = allDeals.find((d) => 
       String(d.id) === dealId || 
       String(d.code) === dealId ||
-      (dealId === '3' && (d.code === 'D26005033' || d.id === 'D26005033')) ||
-      (dealId === '4' && (d.code === 'D26005034' || d.id === 'D26005034')) ||
       (deal?.title && d.title && (d.title?.toLowerCase() === deal.title?.toLowerCase() || d.title?.toLowerCase().includes(deal.title?.toLowerCase()))) ||
       (deal?.dealName && d.title && (d.title?.toLowerCase().includes(deal.dealName?.toLowerCase()) || deal.dealName?.toLowerCase().includes(d.title?.toLowerCase())))
     );
@@ -437,7 +432,7 @@ export default function AgentDashboard() {
       contactOwner:
         selectedContact?.contactOwner ||
         selectedContact?.leadOwner ||
-        'Khanh Nguyen (khanhnguyen31@7)',
+        '',
       associatedContact: {
         id: selectedContact?.code || selectedContact?.id || '',
         name: selectedContact?.fullName || '',
@@ -446,7 +441,7 @@ export default function AgentDashboard() {
         leadOwner:
           selectedContact?.contactOwner ||
           selectedContact?.leadOwner ||
-          'Khanh Nguyen',
+          '',
         language: selectedContact?.language || 'Vietnamese',
       },
       filesByCategory: {

@@ -139,9 +139,7 @@ export default function StaffTaskDetail({
       const match = allDeals.find(
         (d) =>
           String(d.id) === dId ||
-          String(d.code) === dId ||
-          (dId === '3' && (d.code === 'D26005033' || d.id === 'D26005033')) ||
-          (dId === '4' && (d.code === 'D26005034' || d.id === 'D26005034'))
+          String(d.code) === dId
       );
       if (match) return match;
     }
@@ -214,8 +212,7 @@ export default function StaffTaskDetail({
       const match = allContacts.find(
         (c) =>
           String(c.id) === cId ||
-          String(c.code) === cId ||
-          (cId === '9' && (c.code === 'CT26002600' || c.id === 'CT26002600'))
+          String(c.code) === cId
       );
       if (match) return match;
     }

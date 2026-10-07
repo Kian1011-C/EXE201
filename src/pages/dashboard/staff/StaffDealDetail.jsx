@@ -132,14 +132,7 @@ export default function StaffDealDetail({
     setShowPropertyHistoryModal(true);
   }
   const [isPipelineDropdownOpen, setIsPipelineDropdownOpen] = useState(false);
-  const [stageHistory, setStageHistory] = useState([
-    {
-      from: 'Waiting for document (Obamacare 2026)',
-      to: dealInfo.stage || 'Ready to Enroll (Obamacare 2026)',
-      date: '09/09/2026, 13:05',
-      user: 'Khanh Nguyen (khanhnguyen31@7)',
-    },
-  ]);
+  const [stageHistory, setStageHistory] = useState(dealInfo.stageHistory || []);
   const [activitiesList, setActivitiesList] = useState(dealInfo.activities || []);
 
   const currentDealIdRef = useRef(deal?.id || dealInfo.id);
@@ -401,7 +394,7 @@ export default function StaffDealDetail({
       'Anh Que Pham 20011862',
       'Trono Truong 19823412',
       'Nancy Pham 20491823',
-      'Khanh Nguyen 1984210',
+      '',
       'Sean Ngo 1994321',
       'Ivy Le PENDING_CDI_092',
       'James Vu 1854201',
@@ -1276,7 +1269,7 @@ export default function StaffDealDetail({
       2,
       '0'
     )}:${String(now.getMinutes()).padStart(2, '0')}`;
-    let author = 'Khanh Nguyen (khanhnguyen31@7)';
+    let author = '';
     try {
       const raw = localStorage.getItem('tbri_user');
       if (raw) {
@@ -4041,7 +4034,7 @@ export default function StaffDealDetail({
                       className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
                       <option value="">--</option>
-                      <option value="Khanh Nguyen (khanhnguyen31@7)">Khanh Nguyen (khanhnguyen31@7)</option>
+                      <option value="Khanh Nguyen (khanhnguyen31@7)"></option>
                       <option value="Anya Nguyen (anya42@9)">Anya Nguyen (anya42@9)</option>
                       <option value="The Best Rate Insurance">The Best Rate Insurance</option>
                     </select>

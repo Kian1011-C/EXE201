@@ -162,7 +162,7 @@ export default function StaffCrmDashboard({
     'Sean Ngo': C_SEAN,
     'Ivy Le': C_IVY,
     'Sarah Thai': C_SARAH,
-    'Khanh Nguyen': '#6366f1',
+    '': '#6366f1',
     'Jay Ly': C_CYAN,
     'Tri Tran': '#10b981',
     'Quyen Le': '#8b5cf6',

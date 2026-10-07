@@ -68,7 +68,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
   // Create Task Modal
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createTitle, setCreateTitle] = useState('');
-  const [createAssignee, setCreateAssignee] = useState('Khanh Nguyen');
+  const [createAssignee, setCreateAssignee] = useState('');
   const [createDueDate, setCreateDueDate] = useState('09/25/2026');
   const [createTaskType, setCreateTaskType] = useState('Call');
   const [createPriority, setCreatePriority] = useState('High');

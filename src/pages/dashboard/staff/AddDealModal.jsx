@@ -153,7 +153,7 @@ export default function AddDealModal({
       uploadRequest: needUpload === 'Yes',
       needUpload: needUpload,
       dealOwner: {
-        name: dealOwner === '--' ? 'Khanh Nguyen' : dealOwner,
+        name: dealOwner === '--' ? '' : dealOwner,
         avatar: (dealOwner === '--' ? 'KN' : dealOwner.slice(0, 2)).toUpperCase(),
         bg: 'bg-blue-600 text-white',
       },
@@ -215,7 +215,7 @@ export default function AddDealModal({
           day: '2-digit',
           year: 'numeric',
         }),
-        ticketOwner: dealOwner === '--' ? 'Khanh Nguyen' : dealOwner,
+        ticketOwner: dealOwner === '--' ? '' : dealOwner,
         serviceAgent: 'Platform Staff',
         contactName: contactName,
         contactId: initialContactId || '',

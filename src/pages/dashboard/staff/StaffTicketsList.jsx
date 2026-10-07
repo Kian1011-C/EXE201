@@ -96,7 +96,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [createTitle, setCreateTitle] = useState('');
   const [createPipeline, setCreatePipeline] = useState('ACA account');
   const [createStage, setCreateStage] = useState('Need Create ACA Account (ACA account)');
-  const [createOwner, setCreateOwner] = useState('Khanh Nguyen');
+  const [createOwner, setCreateOwner] = useState('');
   const [createPriority, setCreatePriority] = useState('High');
   const [createDueDate, setCreateDueDate] = useState('09/25/2026');
   const [createDescription, setCreateDescription] = useState('');
@@ -1611,7 +1611,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="font-bold text-slate-800">Batch Update: 24 Tickets</div>
                 <div className="text-slate-500 text-[11px] mt-0.5">
-                  09/23/2026, 22:28 by Khanh Nguyen (Automatic Sync)
+                  Automatic Sync
                 </div>
               </div>
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">

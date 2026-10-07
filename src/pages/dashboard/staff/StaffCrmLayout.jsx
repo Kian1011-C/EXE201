@@ -463,7 +463,7 @@ export default function StaffCrmLayout({
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-slate-800">New Verified ACA Enrollment</p>
-                          <p className="text-[11px] text-slate-500 truncate mt-0.5">D26005033 • Nhat Dang • BCBS NC</p>
+                          <p className="text-[11px] text-slate-500 truncate mt-0.5">New Deal • Client • Carrier</p>
                           <span className="text-[10px] text-slate-400 font-medium">1 hour ago</span>
                         </div>
                       </div>

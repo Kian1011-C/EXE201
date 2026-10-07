@@ -195,7 +195,7 @@ export default function StaffCustomerDocumentsList({
   // Create Document Modal State
   const [newContactId, setNewContactId] = useState('');
   const [newDocName, setNewDocName] = useState('');
-  const [newDocOwner, setNewDocOwner] = useState('Khanh Nguyen (khanhnguyen31@7)');
+  const [newDocOwner, setNewDocOwner] = useState('');
   const [newDocCategory, setNewDocCategory] = useState('identity');
 
   // Contact options for modal
@@ -209,7 +209,7 @@ export default function StaffCustomerDocumentsList({
       const first = availableContacts[0];
       setNewContactId(first.id || first.code || '');
       setNewDocName(first.fullName || `${first.firstName || ''} ${first.lastName || ''}`?.trim() || 'Customer Document');
-      setNewDocOwner(typeof first.contactOwner === 'string' ? first.contactOwner : 'Khanh Nguyen (khanhnguyen31@7)');
+      setNewDocOwner(typeof first.contactOwner === 'string' ? first.contactOwner : '');
     }
     setShowCreateModal(true);
   }

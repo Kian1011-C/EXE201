@@ -211,7 +211,7 @@ export default function CreateCustomerDocumentModal({
 
     const ownerString = selectedOwner
       ? `${selectedOwner.name} (${selectedOwner.handle})`
-      : 'Khanh Nguyen (khanhnguyen37@7)';
+      : '';
 
     const totalFiles = Object.values(attachedFiles)?.reduce(
       (sum, list) => sum + list.length,

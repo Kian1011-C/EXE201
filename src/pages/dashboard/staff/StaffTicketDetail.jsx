@@ -287,7 +287,7 @@ export default function StaffTicketDetail({
   }, []);
 
   const [serviceAgent, setServiceAgent] = useState(getPersonName(initialData.serviceAgent, 'Platform Staff'));
-  const [ticketOwner, setTicketOwner] = useState(getPersonName(initialData.ticketOwner, 'Khanh Nguyen'));
+  const [ticketOwner, setTicketOwner] = useState(getPersonName(initialData.ticketOwner, ''));
   const [ticketResult, setTicketResult] = useState(initialData.ticketResult || '');
   const [paymentStatus, setPaymentStatus] = useState(initialData.paymentStatus || '');
   const [changeDueDateReason, setChangeDueDateReason] = useState(initialData.changeDueDateReason || '');
@@ -487,7 +487,7 @@ export default function StaffTicketDetail({
     setTempDueDate(current.dueDate || '');
 
     setServiceAgent(getPersonName(current.serviceAgent, 'Platform Staff'));
-    setTicketOwner(getPersonName(current.ticketOwner, 'Khanh Nguyen'));
+    setTicketOwner(getPersonName(current.ticketOwner, ''));
     setTicketResult(current.ticketResult || '');
     setPaymentStatus(current.paymentStatus || '');
     setChangeDueDateReason(current.changeDueDateReason || '');
@@ -1807,7 +1807,7 @@ export default function StaffTicketDetail({
                   className="bg-white border border-slate-200 rounded px-2 py-1 text-[11px] text-slate-700 focus:outline-none cursor-pointer pr-6"
                 >
                   <option value="all">Search by created by...</option>
-                  <option value="Khanh Nguyen">Khanh Nguyen</option>
+                  <option value="Khanh Nguyen"></option>
                   <option value="Anya Nguyen">Anya Nguyen</option>
                 </select>
               </div>

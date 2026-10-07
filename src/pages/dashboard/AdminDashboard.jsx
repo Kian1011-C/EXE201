@@ -175,7 +175,7 @@ export default function AdminDashboard() {
             status: 'Need Create ACA Account',
             stage: 'Need Create ACA Account (ACA account)',
             priority: 'High',
-            ticketOwner: 'Khanh Nguyen',
+            ticketOwner: '',
             serviceAgent: 'Platform Staff',
           }));
         }
@@ -502,7 +502,7 @@ export default function AdminDashboard() {
       contactOwner:
         selectedContact?.contactOwner ||
         selectedContact?.leadOwner ||
-        'Khanh Nguyen (khanhnguyen31@7)',
+        '',
       associatedContact: {
         id: selectedContact?.code || selectedContact?.id || '',
         name: selectedContact?.fullName || '',
@@ -511,7 +511,7 @@ export default function AdminDashboard() {
         leadOwner:
           selectedContact?.contactOwner ||
           selectedContact?.leadOwner ||
-          'Khanh Nguyen',
+          '',
         language: selectedContact?.language || 'Vietnamese',
       },
       filesByCategory: {

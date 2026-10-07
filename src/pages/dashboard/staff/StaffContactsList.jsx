@@ -544,14 +544,11 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                 </tr>
               ) : (
                 filteredContacts?.map((contact, index) => {
-                  const isNhatDang = contact.fullName === 'Nhat Huu Tuan Dang';
-                  return (
+                                    return (
                     <tr
                       key={contact.id}
                       onClick={() => onSelectContact && onSelectContact(contact)}
-                      className={`hover:bg-blue-50/60 transition-colors cursor-pointer group ${
-                        isNhatDang ? 'bg-amber-50/40 font-medium' : ''
-                      }`}
+                      className={`hover:bg-blue-50/60 transition-colors cursor-pointer group `}
                     >
                       {/* No. */}
                       <td className="px-3 py-2.5 text-center text-slate-400 font-medium">
@@ -566,11 +563,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                       {/* Full name (Clickable link to Contact Detail) */}
                       <td className="px-3 py-2.5 font-semibold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
                         <span>{contact.fullName}</span>
-                        {isNhatDang && (
-                          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-100 text-blue-800">
-                            Demo Target
-                          </span>
-                        )}
+                        
                       </td>
 
                       {/* Phone */}

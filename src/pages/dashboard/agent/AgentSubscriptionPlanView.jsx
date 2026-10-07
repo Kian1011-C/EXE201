@@ -7,7 +7,7 @@ import {
 } from '../../../services/subscriptionService';
 import toast from 'react-hot-toast';
 
-export default function AgentSubscriptionPlanView({ agentName = 'Khanh Nguyen', agentEmail = 'khanh@insurmatch.us' }) {
+export default function AgentSubscriptionPlanView({ agentName = '', agentEmail = 'khanh@insurmatch.us' }) {
   const [subscription, setSubscription] = useState(() => getAgentSubscription(agentName || agentEmail));
   const [invoices, setInvoices] = useState(() => getInvoicesForAgent(agentName || agentEmail));
   const [billingCycle, setBillingCycle] = useState('Monthly'); // 'Monthly' | 'Annual'

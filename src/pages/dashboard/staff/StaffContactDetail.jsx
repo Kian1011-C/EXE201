@@ -15,7 +15,7 @@ import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
 export const AGENT_OPTIONS = [
   'The Best Rate Insurance',
   'Platform Staff',
-  'Khanh Nguyen',
+  '',
   'Anh Que Pham CPA',
   'Sean Ngo',
   'Ivy Le',
@@ -1281,7 +1281,7 @@ export default function StaffContactDetail({
       2,
       '0'
     )}:${String(now.getMinutes()).padStart(2, '0')}`;
-    let author = 'Khanh Nguyen (khanhnguyen31@7)';
+    let author = '';
     try {
       const raw = localStorage.getItem('tbri_user');
       if (raw) {
@@ -1439,7 +1439,7 @@ export default function StaffContactDetail({
   const currentFullName = [primaryFirstName, primaryMiddleName, primaryLastName]
     ?.map((s) => (s || '')?.trim())
     ?.filter(Boolean)
-    .join(' ') || contactInfo.fullName || (contact ? 'Liên hệ mới' : 'Nhat Huu Tuan Dang');
+    .join(' ') || contactInfo.fullName || (contact ? 'Liên hệ mới' : '');
 
   const currentInitials = currentFullName
     ?.split(' ')
@@ -4793,7 +4793,7 @@ export default function StaffContactDetail({
                       className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
                       <option value="">--</option>
-                      <option value="Khanh Nguyen (khanhnguyen31@7)">Khanh Nguyen (khanhnguyen31@7)</option>
+                      <option value="Khanh Nguyen (khanhnguyen31@7)"></option>
                       <option value="Anya Nguyen (anya42@9)">Anya Nguyen (anya42@9)</option>
                       <option value="The Best Rate Insurance">The Best Rate Insurance</option>
                     </select>

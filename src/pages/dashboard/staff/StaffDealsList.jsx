@@ -1073,14 +1073,11 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                 </tr>
               ) : (
                 filteredDeals?.map((deal, index) => {
-                  const isNhatDangDeal = deal.code === 'D26005033';
-                  return (
+                                    return (
                     <tr
                       key={deal.id}
                       onClick={() => onSelectDeal && onSelectDeal(deal)}
-                      className={`hover:bg-blue-50/60 transition-colors cursor-pointer group ${
-                        isNhatDangDeal ? 'bg-amber-50/40 font-medium' : ''
-                      }`}
+                      className={`hover:bg-blue-50/60 transition-colors cursor-pointer group `}
                     >
                       {/* No. */}
                       <td className="px-3 py-2.5 text-center text-slate-400 font-medium">
