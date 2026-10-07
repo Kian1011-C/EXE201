@@ -427,7 +427,7 @@ export default function StaffCrmDashboard({
   }, [obDeals]);
 
   const maxActiveObAgent = useMemo(
-    () => Math.max(...activeObByAgent?.map((a) => a.count), 1),
+    () => Math.max(...(activeObByAgent || []).map((a) => a.count), 1),
     [activeObByAgent]
   );
 
@@ -444,7 +444,7 @@ export default function StaffCrmDashboard({
   }, [medDeals]);
 
   const maxMedAgent = useMemo(
-    () => Math.max(...medDealsByAgent?.map((a) => a.count), 1),
+    () => Math.max(...(medDealsByAgent || []).map((a) => a.count), 1),
     [medDealsByAgent]
   );
 
@@ -469,7 +469,7 @@ export default function StaffCrmDashboard({
   }, [scopedContacts]);
 
   const maxContactOwner = useMemo(
-    () => Math.max(...contactsByOwner?.map((c) => c.total), 1),
+    () => Math.max(...(contactsByOwner || []).map((c) => c.total), 1),
     [contactsByOwner]
   );
 
@@ -490,7 +490,7 @@ export default function StaffCrmDashboard({
   }, [activeDealsList]);
 
   const maxAgentDealTotal = useMemo(
-    () => Math.max(...dealsByAgentChart?.map((d) => d.total), 1),
+    () => Math.max(...(dealsByAgentChart || []).map((d) => d.total), 1),
     [dealsByAgentChart]
   );
 
@@ -1685,7 +1685,7 @@ export default function StaffCrmDashboard({
                 <div className="text-center text-slate-400 text-xs py-4">No open tasks</div>
               ) : (
                 openTasksByAgent?.map((item, idx) => {
-                  const maxTask = Math.max(...openTasksByAgent?.map((t) => t.count), 1);
+                  const maxTask = Math.max(...(openTasksByAgent || []).map((t) => t.count), 1);
                   return (
                     <div
                       key={idx}
@@ -1743,7 +1743,7 @@ export default function StaffCrmDashboard({
                 <div className="text-center text-slate-400 text-xs py-4">No overdue tasks</div>
               ) : (
                 overdueTasksByAgent?.map((item, idx) => {
-                  const maxOverdue = Math.max(...overdueTasksByAgent?.map((t) => t.count), 1);
+                  const maxOverdue = Math.max(...(overdueTasksByAgent || []).map((t) => t.count), 1);
                   return (
                     <div
                       key={idx}
@@ -1921,7 +1921,7 @@ export default function StaffCrmDashboard({
                 <div className="text-center text-slate-400 text-xs py-4">No open tickets</div>
               ) : (
                 openTicketsByAgent?.map((item, i) => {
-                  const maxOpen = Math.max(...openTicketsByAgent?.map((o) => o.count), 1);
+                  const maxOpen = Math.max(...(openTicketsByAgent || []).map((o) => o.count), 1);
                   return (
                     <div
                       key={i}
@@ -1975,7 +1975,7 @@ export default function StaffCrmDashboard({
                 <div className="text-center text-slate-400 text-xs py-4">No overdue tickets</div>
               ) : (
                 overdueTicketsByAgent?.map((item, i) => {
-                  const maxOverdue = Math.max(...overdueTicketsByAgent?.map((o) => o.count), 1);
+                  const maxOverdue = Math.max(...(overdueTicketsByAgent || []).map((o) => o.count), 1);
                   return (
                     <div
                       key={i}
@@ -2268,7 +2268,7 @@ export default function StaffCrmDashboard({
 
               <div className="space-y-2 text-[11px] my-auto">
                 {acaConsentStatusData?.map((item, i) => {
-                  const maxConsent = Math.max(...acaConsentStatusData?.map((c) => c.count), 1);
+                  const maxConsent = Math.max(...(acaConsentStatusData || []).map((c) => c.count), 1);
                   return (
                     <div
                       key={i}
@@ -2322,7 +2322,7 @@ export default function StaffCrmDashboard({
 
               <div className="space-y-2 text-[11px] my-auto">
                 {acaConsentStatusData?.map((item, i) => {
-                  const maxVal = Math.max(...acaConsentStatusData?.map((c) => c.count), 1);
+                  const maxVal = Math.max(...(acaConsentStatusData || []).map((c) => c.count), 1);
                   return (
                     <div
                       key={i}
@@ -2394,7 +2394,7 @@ export default function StaffCrmDashboard({
                   <div className="text-center text-slate-400 text-xs py-4">No active policies found</div>
                 ) : (
                   activePoliciesObNotDoneAca?.map((row, idx) => {
-                    const maxRowVal = Math.max(...activePoliciesObNotDoneAca?.map((r) => r.total), 1);
+                    const maxRowVal = Math.max(...(activePoliciesObNotDoneAca || []).map((r) => r.total), 1);
                     return (
                       <div
                         key={idx}
@@ -2765,7 +2765,7 @@ export default function StaffCrmDashboard({
 
                 <div className="flex-grow flex flex-col justify-between space-y-3 py-1 border-l border-slate-300 relative">
                   {soaStatusData?.map((row, idx) => {
-                    const maxSoa = Math.max(...soaStatusData?.map((s) => s.total), 1);
+                    const maxSoa = Math.max(...(soaStatusData || []).map((s) => s.total), 1);
                     return (
                       <div
                         key={idx}

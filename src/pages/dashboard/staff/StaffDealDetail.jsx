@@ -168,7 +168,7 @@ export default function StaffDealDetail({
       const existingTasks = Array.isArray(deal?.tasks) ? deal.tasks : (dealInfo.tasks || []);
       const mergedTasks = [
         ...storeDealTasks,
-        ...existingTasks?.filter((et) => !storeDealTasks?.some((st) => String(st.id) === String(et.id))),
+        ...(existingTasks || []).filter((et) => !storeDealTasks?.some((st) => String(st.id) === String(et.id))),
       ];
       setTasksList(mergedTasks);
 
@@ -822,7 +822,7 @@ export default function StaffDealDetail({
     const existing = Array.isArray(deal?.tasks) ? deal.tasks : (dealInfo.tasks || []);
     return [
       ...storeDealTasks,
-      ...existing?.filter((et) => !storeDealTasks?.some((st) => String(st.id) === String(et.id))),
+      ...(existing || []).filter((et) => !storeDealTasks?.some((st) => String(st.id) === String(et.id))),
     ];
   });
 

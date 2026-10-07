@@ -431,7 +431,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
 
   // Unique carrier list for filter
   const carrierOptions = useMemo(() => {
-    const set = new Set([...ALL_CARRIERS, ...commissionList?.map((c) => c.carrier)?.filter(Boolean)]);
+    const set = new Set([...ALL_CARRIERS, ...(commissionList || []).map((c) => c.carrier)?.filter(Boolean)]);
     return ['All', ...Array.from(set)];
   }, [commissionList]);
 
@@ -497,7 +497,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
 
     const csvContent =
       'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows?.map((e) => e.join(','))].join('\n');
+      [headers.join(','), ...(rows || []).map((e) => e.join(','))].join('\n');
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');

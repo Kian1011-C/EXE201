@@ -64,7 +64,7 @@ export default function AddDealModal({
     }).catch(() => {});
   }, []);
 
-  const ownerOptions = ['--', ...agentAccounts?.map((a) => a.name)];
+  const ownerOptions = ['--', ...(agentAccounts || []).map((a) => a.name)];
 
   // Form states matching media_1790575726166.png
   const [dealName, setDealName] = useState('');

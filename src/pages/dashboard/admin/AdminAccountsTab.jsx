@@ -322,7 +322,7 @@ export default function AdminAccountsTab({
       setStatusFilter('all');
       setSearch('');
 
-      setLocalAccounts((prev) => [created, ...prev?.filter((a) => a.id !== created.id)]);
+      setLocalAccounts((prev) => [created, ...(prev || []).filter((a) => a.id !== created.id)]);
 
       // Temp password lives only in component state (never localStorage)
       setCreatedCredentials({

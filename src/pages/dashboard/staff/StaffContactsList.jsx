@@ -142,7 +142,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
 
   // Unique owners for filter
   const ownerOptions = useMemo(() => {
-    return ['The Best Rate Insurance', ...agentAccounts?.map((a) => a.name)];
+    return ['The Best Rate Insurance', ...(agentAccounts || []).map((a) => a.name)];
   }, [agentAccounts]);
 
   // Handle Quick Create

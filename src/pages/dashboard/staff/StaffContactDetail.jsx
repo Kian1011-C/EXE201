@@ -5,6 +5,12 @@ import { ACA_ACCOUNT_STATUS_OPTIONS } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, recordPropertyUpdate, getPersonName } from '../../../services/propertyHistoryService';
 import { getUsers, getContactDeals, addContactActivity, updateContact, createTicket, updateTicket, createContact, addContactNote, createDeal, addContactTask, createTask, updateTask, deleteTask } from '../../../services/api';
+import AddMemberPanel from './AddMemberPanel';
+import AddDealModal from './AddDealModal';
+import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
+import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
+import MemberSection from './MemberSection';
+import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
 
 export const AGENT_OPTIONS = [
   'The Best Rate Insurance',
@@ -85,7 +91,7 @@ export default function StaffContactDetail({
     const existing = Array.isArray(contact?.tasks) ? contact.tasks : [];
     return [
       ...storeContactTasks,
-      ...existing?.filter((et) => !storeContactTasks?.some((st) => String(st.id) === String(et.id))),
+      ...(existing || []).filter((et) => !storeContactTasks?.some((st) => String(st.id) === String(et.id))),
     ];
   });
 
@@ -841,7 +847,7 @@ export default function StaffContactDetail({
       const existingTasks = Array.isArray(contact.tasks) ? contact.tasks : [];
       const mergedTasks = [
         ...storeContactTasks,
-        ...existingTasks?.filter((et) => !storeContactTasks?.some((st) => String(st.id) === String(et.id))),
+        ...(existingTasks || []).filter((et) => !storeContactTasks?.some((st) => String(st.id) === String(et.id))),
       ];
       setTasksList(mergedTasks);
     }
