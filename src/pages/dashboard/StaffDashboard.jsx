@@ -632,11 +632,7 @@ export default function StaffDashboard() {
           onSelectTask={handleSelectTask}
           onUpdateContact={(updated) => {
             setSelectedContact((prev) => ({ ...prev, ...updated }));
-            if (updated?.id) {
-              apiUpdateContact(updated.id, updated).catch((err) =>
-                console.warn('[StaffDashboard] Could not persist contact update:', err)
-              );
-            }
+            
           }}
         />
       )}
@@ -651,11 +647,7 @@ export default function StaffDashboard() {
           onSelectTask={handleSelectTask}
           onUpdateDeal={(updated) => {
             setSelectedDeal((prev) => ({ ...prev, ...updated }));
-            if (updated?.id) {
-              apiUpdateDeal(updated.id, updated).catch((err) =>
-                console.warn('[StaffDashboard] Could not persist deal update:', err)
-              );
-            }
+            
           }}
         />
       )}
@@ -696,11 +688,7 @@ export default function StaffDashboard() {
           onSelectDeal={handleSelectDeal}
           onUpdateTicket={(updated) => {
             setSelectedTicket((prev) => ({ ...prev, ...updated }));
-            if (updated?.id) {
-              apiUpdateTicket(updated.id, updated).catch((err) =>
-                console.warn('[StaffDashboard] Could not persist ticket update:', err)
-              );
-            }
+            
             setSelectedContact((prev) => {
               if (!prev) return prev;
               const tList = prev.associatedTickets || prev.tickets || [];
@@ -744,11 +732,7 @@ export default function StaffDashboard() {
           onSelectTicket={handleSelectTicket}
           onUpdateTask={(updated) => {
             setSelectedTask((prev) => ({ ...prev, ...updated }));
-            if (updated?.id) {
-              apiUpdateTask(updated.id, updated).catch((err) =>
-                console.warn('[StaffDashboard] Could not persist task update:', err)
-              );
-            }
+            
           }}
         />
       )}

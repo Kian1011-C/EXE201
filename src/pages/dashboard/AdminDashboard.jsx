@@ -719,11 +719,7 @@ export default function AdminDashboard() {
           onSelectTask={handleSelectTask}
           onUpdateContact={(updated) => {
             setSelectedContact((prev) => ({ ...prev, ...updated }));
-            if (updated?.id) {
-              apiUpdateContact(updated.id, updated).catch((err) =>
-                console.warn('[AdminDashboard] Could not update contact:', err)
-              );
-            }
+            
           }}
         />
       )}
@@ -813,11 +809,7 @@ export default function AdminDashboard() {
           onSelectTask={handleSelectTask}
           onUpdateDeal={(updated) => {
             setSelectedDeal((prev) => ({ ...prev, ...updated }));
-            if (updated?.id) {
-              apiUpdateDeal(updated.id, updated).catch((err) =>
-                console.warn('[AdminDashboard] Could not persist deal update:', err)
-              );
-            }
+            
           }}
         />
       )}
@@ -839,11 +831,7 @@ export default function AdminDashboard() {
           onSelectDeal={handleSelectDeal}
           onUpdateTicket={(updated) => {
             setSelectedTicket((prev) => ({ ...prev, ...updated }));
-            if (updated?.id) {
-              apiUpdateTicket(updated.id, updated).catch((err) =>
-                console.warn('[AdminDashboard] Could not update ticket:', err)
-              );
-            }
+            
             setSelectedContact((prev) => {
               if (!prev) return prev;
               const tList = prev.associatedTickets || prev.tickets || [];
@@ -887,11 +875,7 @@ export default function AdminDashboard() {
           onSelectTicket={handleSelectTicket}
           onUpdateTask={(updated) => {
             setSelectedTask((prev) => ({ ...prev, ...updated }));
-            if (updated?.id) {
-              apiUpdateTask(updated.id, updated).catch((err) =>
-                console.warn('[AdminDashboard] Could not update task:', err)
-              );
-            }
+            
           }}
         />
       )}
