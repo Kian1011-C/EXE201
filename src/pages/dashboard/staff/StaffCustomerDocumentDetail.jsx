@@ -18,9 +18,9 @@ export default function StaffCustomerDocumentDetail({
     ...(documentData || {}),
   };
 
-  const [docName, setDocName] = useState(doc.name || 'Hai Nguyen');
+  const [docName, setDocName] = useState(doc.name || '');
   const [contactOwner, setContactOwner] = useState(
-    doc.contactOwner || 'Khanh Nguyen (khanhnguyen31@7)'
+    doc.contactOwner || ''
   );
   const [aboutOpen, setAboutOpen] = useState(true);
   const [lastModifiedTime, setLastModifiedTime] = useState(
@@ -84,7 +84,7 @@ export default function StaffCustomerDocumentDetail({
 
   const currentInitials =
     doc.initials ||
-    (docName || 'Hai Nguyen')
+    (docName || '')
       ?.split(' ')
       ?.filter(Boolean)
       ?.map((w) => w[0])
@@ -151,7 +151,7 @@ export default function StaffCustomerDocumentDetail({
         totalFiles,
         categoriesSummary,
         lastModifiedTime: newTimestamp,
-        lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
+        lastModifiedBy: doc.lastModifiedBy || '',
       };
 
       updateDocument(updatedDoc);
@@ -224,7 +224,7 @@ export default function StaffCustomerDocumentDetail({
         totalFiles,
         categoriesSummary,
         lastModifiedTime: newTimestamp,
-        lastModifiedBy: doc.lastModifiedBy || 'Khanh Nguyen',
+        lastModifiedBy: doc.lastModifiedBy || '',
       };
 
       updateDocument(updatedDoc);
@@ -242,9 +242,9 @@ export default function StaffCustomerDocumentDetail({
   }
 
   const associatedContact = doc.associatedContact || {
-    id: doc.contactId || 'CT26002600',
+    id: doc.contactId || '',
     name: docName,
-    phone: doc.phone || '+1 (714) 837-2395',
+    phone: doc.phone || '',
     email: doc.email || 'tuannhat.n2@gmail.com',
     leadOwner: contactOwner,
     language: doc.language || 'Vietnamese',
@@ -324,7 +324,7 @@ export default function StaffCustomerDocumentDetail({
               <div className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
                 <span className="text-slate-500">Last modified by:</span>
-                <span className="font-semibold text-slate-800">{doc.lastModifiedBy || 'Khanh Nguyen'}</span>
+                <span className="font-semibold text-slate-800">{doc.lastModifiedBy || ''}</span>
               </div>
             </div>
 

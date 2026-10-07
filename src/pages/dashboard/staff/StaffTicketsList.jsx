@@ -154,7 +154,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
           pipeline: t.pipeline || 'ACA account',
           stage: t.stage || (t.pipeline === 'Payment' ? 'Make payment (Payment)' : 'Need Create ACA Account (ACA account)'),
           status: t.status || t.ticketStatus || 'Open',
-          ticketOwner: typeof t.ticketOwner === 'object' ? (t.ticketOwner?.name || 'Khanh Nguyen') : (t.ticketOwner || t.owner?.name || t.ticketOwnerName || 'Khanh Nguyen'),
+          ticketOwner: typeof t.ticketOwner === 'object' ? (t.ticketOwner?.name || '') : (t.ticketOwner || t.owner?.name || t.ticketOwnerName || ''),
           ticketOwnerAvatar: ((typeof t.ticketOwner === 'object' ? t.ticketOwner?.name : t.ticketOwner) || 'KN').slice(0, 2).toUpperCase(),
           ticketOwnerBg: 'bg-emerald-600',
           closeDate: t.closeDate || '',

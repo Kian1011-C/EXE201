@@ -436,7 +436,7 @@ export default function StaffContactDetail({
       carrier: ticketItem.carrier || contact?.dealCarrier || '',
       dealTitle: ticketItem.dealTitle || '',
       dealId: ticketItem.dealId || '',
-      ticketOwner: ticketItem.ticketOwner || leadContactOwner || 'Khanh Nguyen',
+      ticketOwner: ticketItem.ticketOwner || leadContactOwner || '',
       serviceAgent: ticketItem.serviceAgent || leadContactOwner || 'Platform Staff',
       status: ticketItem.status || ticketItem.stage || 'Open',
       stage: ticketItem.stage || (ticketItem.pipeline === 'ACA account' ? 'Need Create ACA Account (ACA account)' : ''),
@@ -457,7 +457,7 @@ export default function StaffContactDetail({
     setAcaAccountStatus(val);
     setIsAcaStatusDropdownOpen(false);
 
-    const contactId = contact?.id || contact?.code || 'CT26002600';
+    const contactId = contact?.id || contact?.code || '';
     recordPropertyUpdate(
       'contact',
       contactId,
@@ -517,7 +517,7 @@ export default function StaffContactDetail({
             day: '2-digit',
             year: 'numeric',
           }),
-          ticketOwner: leadContactOwner || 'Khanh Nguyen',
+          ticketOwner: leadContactOwner || '',
           ticketOwnerAvatar: (leadContactOwner || 'KN').slice(0, 2).toUpperCase(),
           serviceAgent: leadContactOwner || 'Platform Staff',
           contactName: cName,
@@ -1381,7 +1381,7 @@ export default function StaffContactDetail({
       taskType: taskType || '--',
       attachments: [...taskAttachments],
       status: 'Pending',
-      author: currentActor || 'Khanh Nguyen (khanhnguyen31@7)',
+      author: currentActor || '',
       createdAt: timeStr,
       contactId: targetContactId,
       contactName: targetContactName,
@@ -1514,7 +1514,7 @@ export default function StaffContactDetail({
     null;
 
     // Record property history updates in batch with dynamic current actor
-    const contactId = contact?.id || contact?.code || 'CT26002600';
+    const contactId = contact?.id || contact?.code || '';
     const oldCF = contact?.contactFields || {};
     const oldPrimary = contact?.primary || {};
     const oldAca = contact?.acaAccount || {};
@@ -5177,7 +5177,7 @@ export default function StaffContactDetail({
         onClose={() => setShowPropertyHistoryModal(false)}
         initialFieldName={selectedHistoryField}
         entityType="contact"
-        entityId={contact?.id || contact?.code || 'CT26002600'}
+        entityId={contact?.id || contact?.code || ''}
         entityName={currentFullName || contact?.fullName || 'Contact'}
         entityData={{
           ...contact,

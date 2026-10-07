@@ -295,8 +295,7 @@ export default function AgentDashboard() {
       }
     }
 
-    const isDemoSample = contact.id === 'CT26002600' && !contact.isNew;
-    const defaultData = isDemoSample ? null : {
+    const defaultData = {
       primary: {},
       contactFields: {},
       acaAccount: {
@@ -327,16 +326,16 @@ export default function AgentDashboard() {
       customerDocuments: contact.isNew ? [] : (contact.customerDocuments || []),
       customerDocument: contact.isNew ? null : (contact.customerDocument || null),
       isNew: Boolean(contact.isNew),
-      firstName: firstName || (isDemoSample ? 'Nhat Huu Tuan' : ''),
+      firstName: firstName || '',
       middleName: middleName || '',
-      lastName: lastName || (isDemoSample ? 'Dang' : ''),
-      fullName: contact.fullName || [firstName, middleName, lastName]?.filter(Boolean).join(' ') || (isDemoSample ? 'Nhat Huu Tuan Dang' : ''),
+      lastName: lastName || '',
+      fullName: contact.fullName || [firstName, middleName, lastName]?.filter(Boolean).join(' ') || '',
       primary: {
         ...(defaultData.primary || {}),
         ...(contact.primary || {}),
-        firstName: firstName || (isDemoSample ? 'Nhat Huu Tuan' : ''),
+        firstName: firstName || '',
         middleName: middleName || '',
-        lastName: lastName || (isDemoSample ? 'Dang' : ''),
+        lastName: lastName || '',
       },
       contactFields: {
         ...(defaultData.contactFields || {}),
@@ -354,7 +353,7 @@ export default function AgentDashboard() {
         whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
         contactOwner: contact.contactOwner?.name || contact.contactOwner || (isDemoSample ? 'Khanh Nguyen (khanhnguyen31@7)' : 'The Best Rate Insurance'),
       },
-      initials: (contact.fullName || (isDemoSample ? 'ND' : (firstName ? firstName[0] : 'CT')))
+      initials: (contact.fullName || (firstName ? firstName[0] : 'CT'))
         ?.split(' ')
         ?.filter(Boolean)
         ?.map((w) => w[0])
@@ -426,7 +425,7 @@ export default function AgentDashboard() {
     setSelectedDeal(dealWithContact);
     setCurrentTab('deals');
     setCurrentView('deal-detail');
-    const targetCode = targetDeal.code || targetDeal.id || 'D26005033';
+    const targetCode = targetDeal.code || targetDeal.id || '';
     navigate(`/dashboard/agent/deals/${targetCode}`, { replace: false });
   }
 
@@ -434,16 +433,16 @@ export default function AgentDashboard() {
     pushHistory();
     const targetDoc = doc || selectedContact?.customerDocument || {
       id: `doc-${selectedContact?.id || Date.now()}`,
-      name: selectedContact?.fullName || 'Hai Nguyen',
+      name: selectedContact?.fullName || '',
       contactOwner:
         selectedContact?.contactOwner ||
         selectedContact?.leadOwner ||
         'Khanh Nguyen (khanhnguyen31@7)',
       associatedContact: {
-        id: selectedContact?.code || selectedContact?.id || 'CT26002600',
-        name: selectedContact?.fullName || 'Hai Nguyen',
-        phone: selectedContact?.phone || '+1 (714) 837-2395',
-        email: selectedContact?.email || 'hainguyen@example.com',
+        id: selectedContact?.code || selectedContact?.id || '',
+        name: selectedContact?.fullName || '',
+        phone: selectedContact?.phone || '',
+        email: selectedContact?.email || '',
         leadOwner:
           selectedContact?.contactOwner ||
           selectedContact?.leadOwner ||
@@ -467,7 +466,7 @@ export default function AgentDashboard() {
         minute: '2-digit',
         hour12: false,
       }),
-      lastModifiedBy: selectedContact?.contactOwner || 'Khanh Nguyen',
+      lastModifiedBy: selectedContact?.contactOwner || '',
     };
     setSelectedDocument(targetDoc);
     setCurrentView('customer-document-detail');
@@ -540,19 +539,19 @@ export default function AgentDashboard() {
   function handleBackToContactDetail() {
     setCurrentTab('contacts');
     setCurrentView('contact-detail');
-    navigate(`/dashboard/agent/contacts/${selectedContact?.id || 'CT26002600'}`, { replace: false });
+    navigate(`/dashboard/agent/contacts/${selectedContact?.id || ''}`, { replace: false });
   }
 
   function handleBackToDealDetail() {
     setCurrentTab('deals');
     setCurrentView('deal-detail');
-    navigate(`/dashboard/agent/deals/${selectedDeal?.id || 'D26005033'}`, { replace: false });
+    navigate(`/dashboard/agent/deals/${selectedDeal?.id || ''}`, { replace: false });
   }
 
   function handleBackToTicketDetail() {
     setCurrentTab('tickets');
     setCurrentView('ticket-detail');
-    navigate(`/dashboard/agent/tickets/${selectedTicket?.id || 'TC26001001'}`, { replace: false });
+    navigate(`/dashboard/agent/tickets/${selectedTicket?.id || ''}`, { replace: false });
   }
 
   function handleBackFromCustomerDocument() {

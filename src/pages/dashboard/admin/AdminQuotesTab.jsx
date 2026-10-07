@@ -54,7 +54,7 @@ export default function AdminQuotesTab({
 
   function handleOpenDispatch(quote) {
     setSelectedQuote(quote);
-    setSelectedAgent(verifiedAgents[0]?.name || 'Khanh Nguyen');
+    setSelectedAgent(verifiedAgents[0]?.name || '');
     setDispatchModalOpen(true);
   }
 

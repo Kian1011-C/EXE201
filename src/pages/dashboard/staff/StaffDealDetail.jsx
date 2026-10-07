@@ -264,7 +264,7 @@ export default function StaffDealDetail({
     ]);
 
     // Record in Property History
-    const dealId = deal?.id || dealInfo.id || 'D26005033';
+    const dealId = deal?.id || dealInfo.id || '';
     recordPropertyUpdate('deal', dealId, 'Stage', oldStage, newStage, currentActor);
 
     // Log activity in middle timeline
@@ -365,7 +365,7 @@ export default function StaffDealDetail({
   // Form states for ADMIN ONLY
   const initialDealOwner = typeof dealInfo.dealOwner === 'object'
     ? (dealInfo.dealOwner?.name || dealInfo.dealOwner?.fullName || '')
-    : (dealInfo.dealOwner || dealInfo.adminOnly?.dealOwner || 'Khanh Nguyen (khanhnguyen31@7)');
+    : (dealInfo.dealOwner || dealInfo.adminOnly?.dealOwner || '');
   const [dealOwner, setDealOwner] = useState(initialDealOwner);
 
   const [primaryMemberId, setPrimaryMemberId] = useState(
@@ -472,7 +472,7 @@ export default function StaffDealDetail({
       carrier: ticketItem.carrier || dealInfo.carrier || deal?.carrier || '',
       dealTitle: ticketItem.dealTitle || dealTitle,
       dealId: ticketItem.dealId || dealInfo.id || dealInfo.code || '',
-      ticketOwner: ticketItem.ticketOwner || (typeof dealInfo.dealOwner === 'object' ? dealInfo.dealOwner?.name : dealInfo.dealOwner) || 'Khanh Nguyen',
+      ticketOwner: ticketItem.ticketOwner || (typeof dealInfo.dealOwner === 'object' ? dealInfo.dealOwner?.name : dealInfo.dealOwner) || '',
       serviceAgent: ticketItem.serviceAgent || 'Platform Staff',
       status: ticketItem.status || ticketItem.stage || 'Open',
     };
@@ -499,7 +499,7 @@ export default function StaffDealDetail({
           day: '2-digit',
           year: 'numeric',
         }),
-        ticketOwner: typeof dealInfo.dealOwner === 'object' ? (dealInfo.dealOwner?.name || 'Khanh Nguyen') : (dealInfo.dealOwner || 'Khanh Nguyen'),
+        ticketOwner: typeof dealInfo.dealOwner === 'object' ? (dealInfo.dealOwner?.name || '') : (dealInfo.dealOwner || ''),
         serviceAgent: 'Platform Staff',
         contactName: dealInfo.contactName || 'Client',
         contactId: dealInfo.contactId || '',
@@ -527,7 +527,7 @@ export default function StaffDealDetail({
       };
       setActivitiesList((prev) => [newAct, ...prev]);
 
-      const dealId = deal?.id || dealInfo.id || 'D26005033';
+      const dealId = deal?.id || dealInfo.id || '';
       recordPropertyUpdate('deal', dealId, 'Need Upload', deal?.needUpload || 'No', 'Yes', currentActor);
 
       if (onUpdateDeal) {
@@ -540,7 +540,7 @@ export default function StaffDealDetail({
       }
       showToast('Đã chọn Need Upload = Yes: Tự động xuất Ticket Upload document!');
     } else {
-      const dealId = deal?.id || dealInfo.id || 'D26005033';
+      const dealId = deal?.id || dealInfo.id || '';
       recordPropertyUpdate('deal', dealId, 'Need Upload', deal?.needUpload || 'Yes', 'No', currentActor);
 
       if (onUpdateDeal) {
@@ -621,7 +621,7 @@ export default function StaffDealDetail({
         closedLostReason,
       },
     };
-    const dealId = deal?.id || dealInfo.id || 'D26005033';
+    const dealId = deal?.id || dealInfo.id || '';
     const oldAdmin = deal?.adminOnly || dealInfo.adminOnly || {};
     const newAmountStr = enrollAmount ? `$${enrollAmount}` : amount;
 
@@ -923,7 +923,7 @@ export default function StaffDealDetail({
   function handleUpdateSaleSupportStatus(newSss) {
     const oldSss = saleSupportStatus;
     setSaleSupportStatus(newSss);
-    const dealId = deal?.id || dealInfo.id || 'D26005033';
+    const dealId = deal?.id || dealInfo.id || '';
     recordPropertyUpdate('deal', dealId, 'Sale Support Status', oldSss, newSss, currentActor);
     logActivity('Deal Property Updated', `changed Sale Support Status to "${newSss}"`);
     if (onUpdateDeal) {
@@ -1378,7 +1378,7 @@ export default function StaffDealDetail({
       taskType: taskType || '--',
       attachments: [...taskAttachments],
       status: 'Pending',
-      author: currentActor || 'Khanh Nguyen (khanhnguyen31@7)',
+      author: currentActor || '',
       createdAt: timeStr,
       dealId: currentDealId,
       dealName: currentDealTitle,
@@ -1842,7 +1842,7 @@ export default function StaffDealDetail({
                       <div className="w-4 h-4 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0">
                         KN
                       </div>
-                      <span className="truncate">{dealInfo.adminOnly?.leadOwner || 'Khanh Nguyen (khanhnguyen31@7)'}</span>
+                      <span className="truncate">{dealInfo.adminOnly?.leadOwner || ''}</span>
                     </div>
                   </div>
 
@@ -1881,7 +1881,7 @@ export default function StaffDealDetail({
                     <input
                       type="text"
                       readOnly
-                      value={dealInfo.adminOnly?.code || 'D26005033'}
+                      value={dealInfo.adminOnly?.code || ''}
                       className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-slate-100 font-mono text-xs text-slate-700"
                     />
                   </div>
@@ -4349,7 +4349,7 @@ export default function StaffDealDetail({
         onClose={() => setShowPropertyHistoryModal(false)}
         initialFieldName={selectedHistoryField}
         entityType="deal"
-        entityId={deal?.id || dealInfo.id || 'D26005033'}
+        entityId={deal?.id || dealInfo.id || ''}
         entityName={dealTitle || deal?.title || 'Deal'}
         entityData={{
           ...deal,

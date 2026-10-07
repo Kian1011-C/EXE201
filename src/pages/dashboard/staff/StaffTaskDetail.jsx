@@ -191,8 +191,8 @@ export default function StaffTaskDetail({
         ...{},
         ...dObj,
         title: dObj.title || dObj.dealName || 'Deal',
-        id: dObj.code || dObj.id || 'D26005033',
-        code: dObj.code || 'D26005033',
+        id: dObj.code || dObj.id || '',
+        code: dObj.code || '',
       };
     }
 

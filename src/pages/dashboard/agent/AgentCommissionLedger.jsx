@@ -295,7 +295,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
             policyNumber: c.policyId || `POL-${String(c.id).slice(-6)}`,
             memberId: c.policyId || 'MID-UNKNOWN',
             clientName: c.deal?.title?.split('–')[0]?.trim() || c.agentName || 'Khách hàng',
-            clientCode: c.deal?.contactId || 'CT26002600',
+            clientCode: c.deal?.contactId || '',
             carrier: c.carrier,
             category: c.commissionType === 'MEDICARE' ? 'Medicare' : 'Obamacare / ACA',
             planName: c.planName || c.deal?.title || 'Standard Plan',
@@ -326,10 +326,10 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
 
           baseList.push({
             id: `COMM-${deal.id}`,
-            policyNumber: deal.id || deal.code || 'D26005033',
+            policyNumber: deal.id || deal.code || '',
             memberId: deal.adminOnly?.primaryMemberId || `MID-${deal.id}`,
             clientName: deal.contactName || deal.title || 'Hồ sơ bảo hiểm CRM',
-            clientCode: deal.contactId || 'CT26002600',
+            clientCode: deal.contactId || '',
             carrier: dealCarrier,
             category: (deal.pipeline || '')?.toLowerCase().includes('medicare') ? 'Medicare' : 'Obamacare / ACA',
             planName: deal.title || 'ACA Qualified Health Plan',

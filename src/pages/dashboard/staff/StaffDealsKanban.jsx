@@ -383,7 +383,7 @@ export default function StaffDealsKanban({
                       : isAgent
                       ? '/dashboard/agent/deals'
                       : '/dashboard/staff/deals';
-                    const dealUrl = `${baseRoute}/${deal.id || deal.code || 'D26005033'}`;
+                    const dealUrl = `${baseRoute}/${deal.id || deal.code || ''}`;
                     const isMenuOpen = activeMenuDealId === deal.id;
 
                     return (

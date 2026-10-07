@@ -58,7 +58,7 @@ export default function StaffCrmDashboard({
   }, []);
 
   const defaultDashboard = isAgentUser
-    ? (agentName || effectiveAgent?.name || user?.name || 'Khanh Nguyen')
+    ? (agentName || effectiveAgent?.name || user?.name || '')
     : COMPANY_OVERVIEW;
 
   const [selectedDashboard, setSelectedDashboard] = useState(defaultDashboard);
@@ -67,7 +67,7 @@ export default function StaffCrmDashboard({
 
   useEffect(() => {
     if (isAgentUser) {
-      setSelectedDashboard(agentName || effectiveAgent?.name || user?.name || 'Khanh Nguyen');
+      setSelectedDashboard(agentName || effectiveAgent?.name || user?.name || '');
     }
   }, [isAgentUser, agentName, effectiveAgent?.name, user?.name]);
 
@@ -249,7 +249,7 @@ export default function StaffCrmDashboard({
   // Determine active target agent & company overview mode
   const activeTargetAgent = useMemo(() => {
     if (isAgentUser) {
-      return agentName || effectiveAgent?.name || user?.name || 'Khanh Nguyen';
+      return agentName || effectiveAgent?.name || user?.name || '';
     }
     if (
       !selectedDashboard ||
@@ -1176,7 +1176,7 @@ export default function StaffCrmDashboard({
                   </span>
                 </div>
                 <p className="text-xs text-blue-700/90 mt-0.5">
-                  Đang xem dữ liệu thuộc quyền phụ trách của <strong>{agentName || effectiveUser?.name || 'Khanh Nguyen'}</strong> (Contact, Deal, Ticket, Task được giao).
+                  Đang xem dữ liệu thuộc quyền phụ trách của <strong>{agentName || effectiveUser?.name || ''}</strong> (Contact, Deal, Ticket, Task được giao).
                 </p>
               </div>
             </div>

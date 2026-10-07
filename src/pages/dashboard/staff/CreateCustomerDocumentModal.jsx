@@ -231,15 +231,15 @@ export default function CreateCustomerDocumentModal({
       name: finalDocName,
       initials,
       contactName: contactName || finalDocName,
-      contactId: contact?.id || contact?.code || 'CT26002600',
+      contactId: contact?.id || contact?.code || '',
       contactOwner: ownerString,
       lastModifiedTime: `${dStr}, ${tStr}`,
-      lastModifiedBy: selectedOwner?.name || 'Khanh Nguyen',
+      lastModifiedBy: selectedOwner?.name || '',
       totalFiles,
       categoriesSummary,
       filesByCategory: attachedFiles,
       associatedContact: {
-        id: contact?.id || contact?.code || 'CT26002600',
+        id: contact?.id || contact?.code || '',
         name: contactName,
         phone: contact?.phone || contact?.rawPhone || '',
         email: contact?.email || '',
@@ -408,7 +408,7 @@ export default function CreateCustomerDocumentModal({
                       {selectedOwner?.avatar || 'KN'}
                     </div>
                     <span className="font-medium text-slate-800 truncate">
-                      {selectedOwner?.name || 'Khanh Nguyen'} ({selectedOwner?.handle || 'khanhnguyen37@7'})
+                      {selectedOwner?.name || ''} ({selectedOwner?.handle || 'khanhnguyen37@7'})
                     </span>
                   </div>
 

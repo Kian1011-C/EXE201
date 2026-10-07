@@ -1109,7 +1109,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                                 : isAgent
                                 ? '/dashboard/agent/deals'
                                 : '/dashboard/staff/deals';
-                              const dealUrl = `${baseRoute}/${deal.id || deal.code || 'D26005033'}`;
+                              const dealUrl = `${baseRoute}/${deal.id || deal.code || ''}`;
                               window.open(dealUrl, '_blank');
                             }}
                             className="p-1 rounded hover:bg-blue-100 text-slate-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition cursor-pointer shrink-0"
@@ -1195,7 +1195,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                           >
                             {deal.dealOwner?.avatar || 'KN'}
                           </div>
-                          <span>{deal.dealOwner?.name || 'Khanh Nguyen'}</span>
+                          <span>{deal.dealOwner?.name || ''}</span>
                         </div>
                       </td>
 

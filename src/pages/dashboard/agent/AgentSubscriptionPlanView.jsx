@@ -20,7 +20,7 @@ export default function AgentSubscriptionPlanView({ agentName = 'Khanh Nguyen', 
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 8812');
   const [cardExpiry, setCardExpiry] = useState('12/28');
   const [cardCvv, setCardCvv] = useState('889');
-  const [cardName, setCardName] = useState(agentName || 'Khanh Nguyen');
+  const [cardName, setCardName] = useState(agentName || '');
 
   useEffect(() => {
     const sub = getAgentSubscription(agentName || agentEmail);
@@ -61,7 +61,7 @@ export default function AgentSubscriptionPlanView({ agentName = 'Khanh Nguyen', 
           : 'Stripe Direct Gateway';
 
       const updated = subscribeOrUpgradePlan({
-        agentName: agentName || subscription?.agentName || 'Khanh Nguyen',
+        agentName: agentName || subscription?.agentName || '',
         agentEmail: agentEmail || subscription?.agentEmail || 'khanh@insurmatch.us',
         planKey: selectedPlanForCheckout,
         billingCycle,

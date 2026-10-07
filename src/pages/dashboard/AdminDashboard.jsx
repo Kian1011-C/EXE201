@@ -374,8 +374,7 @@ export default function AdminDashboard() {
       else { firstName = parts.slice(0, -1).join(' '); lastName = parts[parts.length - 1]; }
     }
 
-    const isDemoSample = contact.id === 'CT26002600' && !contact.isNew;
-    const defaultData = isDemoSample ? null : {
+    const defaultData = {
       primary: {},
       contactFields: {},
       acaAccount: {
@@ -401,16 +400,16 @@ export default function AdminDashboard() {
     const mergedContact = {
       ...defaultData,
       ...contact,
-      firstName: firstName || (isDemoSample ? 'Nhat Huu Tuan' : ''),
+      firstName: firstName || '',
       middleName: middleName || '',
-      lastName: lastName || (isDemoSample ? 'Dang' : ''),
-      fullName: contact.fullName || [firstName, middleName, lastName]?.filter(Boolean).join(' ') || (isDemoSample ? 'Nhat Huu Tuan Dang' : ''),
+      lastName: lastName || '',
+      fullName: contact.fullName || [firstName, middleName, lastName]?.filter(Boolean).join(' ') || '',
       primary: {
         ...(defaultData.primary || {}),
         ...(contact.primary || {}),
-        firstName: firstName || (isDemoSample ? 'Nhat Huu Tuan' : ''),
+        firstName: firstName || '',
         middleName: middleName || '',
-        lastName: lastName || (isDemoSample ? 'Dang' : ''),
+        lastName: lastName || '',
       },
       contactFields: {
         ...(defaultData.contactFields || {}),
@@ -428,7 +427,7 @@ export default function AdminDashboard() {
         whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
         contactOwner: contact.contactOwner?.name || contact.contactOwner || 'The Best Rate Insurance',
       },
-      initials: (contact.fullName || (isDemoSample ? 'ND' : (firstName ? firstName[0] : 'CT')))
+      initials: (contact.fullName || (firstName ? firstName[0] : 'CT'))
         ?.split(' ')
         ?.filter(Boolean)
         ?.map((w) => w[0])
@@ -491,7 +490,7 @@ export default function AdminDashboard() {
     setSelectedDeal(dealWithContact);
     setActiveTab('deals');
     setCurrentView('deal-detail');
-    navigate(`/dashboard/admin/deals/${deal?.id || 'D26005033'}`, { replace: false });
+    navigate(`/dashboard/admin/deals/${deal?.id || ''}`, { replace: false });
   }
 
   // ── Document Handler ───────────────────────────────────────────────────────
@@ -499,16 +498,16 @@ export default function AdminDashboard() {
     pushHistory();
     const targetDoc = doc || selectedContact?.customerDocument || {
       id: `doc-${selectedContact?.id || Date.now()}`,
-      name: selectedContact?.fullName || 'Hai Nguyen',
+      name: selectedContact?.fullName || '',
       contactOwner:
         selectedContact?.contactOwner ||
         selectedContact?.leadOwner ||
         'Khanh Nguyen (khanhnguyen31@7)',
       associatedContact: {
-        id: selectedContact?.code || selectedContact?.id || 'CT26002600',
-        name: selectedContact?.fullName || 'Hai Nguyen',
-        phone: selectedContact?.phone || '+1 (714) 837-2395',
-        email: selectedContact?.email || 'hainguyen@example.com',
+        id: selectedContact?.code || selectedContact?.id || '',
+        name: selectedContact?.fullName || '',
+        phone: selectedContact?.phone || '',
+        email: selectedContact?.email || '',
         leadOwner:
           selectedContact?.contactOwner ||
           selectedContact?.leadOwner ||
@@ -532,7 +531,7 @@ export default function AdminDashboard() {
         minute: '2-digit',
         hour12: false,
       }),
-      lastModifiedBy: selectedContact?.contactOwner || 'Khanh Nguyen',
+      lastModifiedBy: selectedContact?.contactOwner || '',
     };
     setSelectedDocument(targetDoc);
     setActiveTab('contacts');
@@ -609,19 +608,19 @@ export default function AdminDashboard() {
   function handleBackToContactDetail() {
     setActiveTab('contacts');
     setCurrentView('contact-detail');
-    navigate(`/dashboard/admin/contacts/${selectedContact?.id || 'CT26002600'}`, { replace: false });
+    navigate(`/dashboard/admin/contacts/${selectedContact?.id || ''}`, { replace: false });
   }
 
   function handleBackToDealDetail() {
     setActiveTab('deals');
     setCurrentView('deal-detail');
-    navigate(`/dashboard/admin/deals/${selectedDeal?.id || 'D26005033'}`, { replace: false });
+    navigate(`/dashboard/admin/deals/${selectedDeal?.id || ''}`, { replace: false });
   }
 
   function handleBackToTicketDetail() {
     setActiveTab('tickets');
     setCurrentView('ticket-detail');
-    navigate(`/dashboard/admin/tickets/${selectedTicket?.id || 'TC26001001'}`, { replace: false });
+    navigate(`/dashboard/admin/tickets/${selectedTicket?.id || ''}`, { replace: false });
   }
 
   function handleBackFromCustomerDocument() {

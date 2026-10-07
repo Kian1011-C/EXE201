@@ -626,7 +626,7 @@ export default function StaffTicketDetail({
         try {
           const res = await createDocument({
             name: `${contactName} - Customer Documents`,
-            contactOwner: ticketOwner || 'Khanh Nguyen',
+            contactOwner: ticketOwner || '',
             lastModifiedBy: serviceAgent || 'Platform Staff',
             contactId: ticket?.contactId || '24',
           });
