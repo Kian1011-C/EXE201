@@ -862,10 +862,10 @@ export async function submitQuote(data) {
 }
 
 
-export async function deleteContact(id) { return await request(/contacts/\, { method: 'DELETE' }); }
-export async function deleteDeal(id) { return await request(/deals/\, { method: 'DELETE' }); }
-export async function deleteTicket(id) { return await request(/tickets/\, { method: 'DELETE' }); }
-export async function deleteTask(id) { return await request(/tasks/\, { method: 'DELETE' }); }
-export async function deleteCommission(id) { return await request(/commissions/\, { method: 'DELETE' }); }
-export async function deleteAdminAccount(id) { return await request(/admin/accounts/\, { method: 'DELETE' }); }
 
+export async function deleteContact(id) { return await request(/contacts/, { method: 'DELETE' }); }
+export async function deleteDeal(id) { return await request(/deals/, { method: 'DELETE' }); }
+export async function deleteTicket(id) { return await request(/tickets/, { method: 'DELETE' }); }
+export async function deleteTask(id) { return await request(/tasks/, { method: 'DELETE' }); }
+export async function deleteCommission(id) { return await request(/commissions/, { method: 'DELETE' }); }
+export async function deleteAdminAccount(id) { return await request(/admin/accounts/, { method: 'DELETE' }); }
