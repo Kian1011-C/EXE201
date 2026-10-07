@@ -65,6 +65,51 @@ export default function StaffCrmDashboard({
   const [showDashboardDropdown, setShowDashboardDropdown] = useState(false);
   const [agentSearchQuery, setAgentSearchQuery] = useState('');
 
+  // ── Drilldown Modal & Tooltip Popover (Images 2 & 3) ───────────────────
+  const [chartTooltip, setChartTooltip] = useState(null);
+  const [drilldownModal, setDrilldownModal] = useState(null);
+  const [distinctData, setDistinctData] = useState(true);
+
+  const modalDeals = useMemo(() => {
+    if (!drilldownModal || !drilldownModal.deals) return [];
+    if (!distinctData) return drilldownModal.deals;
+    const seen = new Set();
+    return drilldownModal.deals.filter((d) => {
+      const key = String(d.id || d.code || d.title || '');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [drilldownModal, distinctData]);
+
+  function handleExportModalCsv() {
+    if (!drilldownModal || !modalDeals || modalDeals.length === 0) {
+      toast.error('Không có dữ liệu để xuất file!');
+      return;
+    }
+    const rows = [
+      ['No.', 'Deal (Id)', 'Stage', 'Support Agent'],
+      ...modalDeals.map((d, i) => [
+        i + 1,
+        `"${(d.title || d.name || d.id || '').replace(/"/g, '""')}"`,
+        `"${(d.stage || drilldownModal.stage || '').replace(/"/g, '""')}"`,
+        `"${(d.dealOwnerName || getPersonName(d.dealOwner) || '').replace(/"/g, '""')}"`,
+      ]),
+    ];
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map((e) => e.join(',')).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute(
+      'download',
+      `${(drilldownModal.title || 'Deals_Report').replace(/\s+/g, '_')}_${(drilldownModal.stage || '').replace(/[^a-zA-Z0-9]/g, '_')}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Đã xuất file CSV thành công!');
+  }
+
   useEffect(() => {
     if (isAgentUser) {
       setSelectedDashboard(agentName || effectiveAgent?.name || user?.name || '');
@@ -1240,9 +1285,34 @@ export default function StaffCrmDashboard({
                 obStagesData?.map((item, idx) => (
                   <div
                     key={idx}
-                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    onMouseEnter={(e) => {
+                      setChartTooltip({
+                        title: item.stage,
+                        agents: item.agents,
+                        total: item.count,
+                        x: e.clientX,
+                        y: e.clientY,
+                      });
+                    }}
+                    onMouseMove={(e) => {
+                      setChartTooltip((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : null));
+                    }}
+                    onMouseLeave={() => setChartTooltip(null)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setChartTooltip(null);
+                      const matching = obDeals.filter(
+                        (d) => (d.stage || 'Ready to Enroll (Obamacare 2026)') === item.stage
+                      );
+                      setDrilldownModal({
+                        title: 'TOTAL OBAMACARE DEALS 2026',
+                        stage: item.stage,
+                        deals: matching,
+                        supportAgent: isAgentUser ? (agentName || 'Khanh Nguyen') : 'All',
+                      });
+                    }}
                     className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
-                    title={`Click to view all ${item.stage} deals (${item.count})`}
+                    title={`Click để mở danh sách chi tiết deals ${item.stage} (${item.count})`}
                   >
                     <div
                       className="w-56 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition"
@@ -1353,9 +1423,34 @@ export default function StaffCrmDashboard({
                 medStagesData?.map((item, idx) => (
                   <div
                     key={idx}
-                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    onMouseEnter={(e) => {
+                      setChartTooltip({
+                        title: item.stage,
+                        agents: item.agents,
+                        total: item.count,
+                        x: e.clientX,
+                        y: e.clientY,
+                      });
+                    }}
+                    onMouseMove={(e) => {
+                      setChartTooltip((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : null));
+                    }}
+                    onMouseLeave={() => setChartTooltip(null)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setChartTooltip(null);
+                      const matching = medDeals.filter(
+                        (d) => (d.stage || 'Enrolled - Active (Medicare 2026)') === item.stage
+                      );
+                      setDrilldownModal({
+                        title: 'TOTAL MEDICARE DEALS 2026',
+                        stage: item.stage,
+                        deals: matching,
+                        supportAgent: isAgentUser ? (agentName || 'Khanh Nguyen') : 'All',
+                      });
+                    }}
                     className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
-                    title={`Click to view all ${item.stage} deals (${item.count})`}
+                    title={`Click để mở danh sách chi tiết deals ${item.stage} (${item.count})`}
                   >
                     <div
                       className="w-60 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition"
@@ -1420,9 +1515,35 @@ export default function StaffCrmDashboard({
                 activeObByAgent?.map((item, i) => (
                   <div
                     key={i}
-                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    onMouseEnter={(e) => {
+                      setChartTooltip({
+                        title: `Active OB Deals - ${item.agent}`,
+                        agents: { [item.agent]: item.count },
+                        total: item.count,
+                        x: e.clientX,
+                        y: e.clientY,
+                      });
+                    }}
+                    onMouseMove={(e) => {
+                      setChartTooltip((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : null));
+                    }}
+                    onMouseLeave={() => setChartTooltip(null)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setChartTooltip(null);
+                      const matching = obDeals.filter((d) => {
+                        const ag = d.dealOwnerName || getPersonName(d.dealOwner);
+                        return ag === item.agent && (d.stage || '').toLowerCase().includes('active');
+                      });
+                      setDrilldownModal({
+                        title: 'TOTAL ACTIVE OB 2026 - AGENT REPORT',
+                        stage: 'Enrolled - Active (Obamacare 2026)',
+                        deals: matching,
+                        supportAgent: item.agent,
+                      });
+                    }}
                     className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click to view deals handled by ${item.agent}`}
+                    title={`Click để xem chi tiết deals của ${item.agent}`}
                   >
                     <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">
                       {item.agent}
@@ -1473,9 +1594,35 @@ export default function StaffCrmDashboard({
                 medDealsByAgent?.map((item, i) => (
                   <div
                     key={i}
-                    onClick={() => onSelectTab && onSelectTab('deals')}
+                    onMouseEnter={(e) => {
+                      setChartTooltip({
+                        title: `Medicare Deals - ${item.agent}`,
+                        agents: { [item.agent]: item.count },
+                        total: item.count,
+                        x: e.clientX,
+                        y: e.clientY,
+                      });
+                    }}
+                    onMouseMove={(e) => {
+                      setChartTooltip((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : null));
+                    }}
+                    onMouseLeave={() => setChartTooltip(null)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setChartTooltip(null);
+                      const matching = medDeals.filter((d) => {
+                        const ag = d.dealOwnerName || getPersonName(d.dealOwner);
+                        return ag === item.agent;
+                      });
+                      setDrilldownModal({
+                        title: 'TOTAL MEDICARE DEALS 2026 - AGENT REPORT',
+                        stage: 'Medicare Active & Renew',
+                        deals: matching,
+                        supportAgent: item.agent,
+                      });
+                    }}
                     className="flex items-center gap-2 text-xs hover:bg-amber-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click to view Medicare deals handled by ${item.agent}`}
+                    title={`Click để xem chi tiết deals Medicare của ${item.agent}`}
                   >
                     <span className="w-20 truncate text-slate-600 text-right group-hover:text-amber-700">
                       {item.agent}
@@ -2928,6 +3075,185 @@ export default function StaffCrmDashboard({
           </div>
         )}
       </div>
+
+      {/* ── TOOLTIP POPOVER (IMAGE 3) ─────────────────────────────────── */}
+      {chartTooltip && (
+        <div
+          style={{
+            position: 'fixed',
+            top: Math.min(chartTooltip.y + 12, window.innerHeight - 250),
+            left: Math.min(chartTooltip.x + 12, window.innerWidth - 320),
+            zIndex: 9999,
+            pointerEvents: 'none',
+          }}
+          className="w-72 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden text-xs animate-fade-in"
+        >
+          {/* Dark Navy Header (matching Image 3) */}
+          <div className="bg-[#1E3A8A] text-white font-bold px-3.5 py-2.5 text-[11px] leading-tight">
+            {chartTooltip.title}
+          </div>
+          {/* Body with Agent Breakdown */}
+          <div className="p-3 space-y-2 bg-white">
+            {Object.entries(chartTooltip.agents || {}).map(([agentName, count], idx) => (
+              <div key={agentName} className="flex items-center justify-between text-slate-700">
+                <div className="flex items-center gap-2 truncate">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: getAgentColor(agentName, idx) }}
+                  />
+                  <span className="font-medium truncate">{agentName}:</span>
+                </div>
+                <span className="font-bold text-slate-900 font-mono pl-2">{count}</span>
+              </div>
+            ))}
+            <div className="border-t border-slate-200 pt-2 mt-2 flex items-center justify-between font-bold text-slate-900 text-xs">
+              <span>Total:</span>
+              <span className="font-mono text-sm">{chartTooltip.total}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── DRILLDOWN MODAL TABLE (IMAGE 2) ────────────────────────────── */}
+      {drilldownModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-6"
+          onClick={() => setDrilldownModal(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Dark Navy Header (matching Image 2) */}
+            <div className="bg-[#0B1E3D] text-white px-5 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-blue-400">article</span>
+                <h2 className="text-xs sm:text-sm font-bold tracking-wide uppercase font-mono">
+                  {drilldownModal.title}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDrilldownModal(null)}
+                className="text-slate-400 hover:text-white transition p-1 cursor-pointer"
+                title="Đóng"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            {/* Sub-header Controls (matching Image 2) */}
+            <div className="bg-slate-50 border-b border-slate-200 px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+              <div className="flex items-center gap-6 flex-wrap">
+                <div>
+                  By: Stage: <strong className="text-slate-900 font-semibold">{drilldownModal.stage}</strong>
+                </div>
+                <div>
+                  Support Agent: <strong className="text-slate-900 font-semibold">{drilldownModal.supportAgent || 'All'}</strong>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-xs">
+                <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 font-medium select-none">
+                  <input
+                    type="checkbox"
+                    checked={distinctData}
+                    onChange={(e) => setDistinctData(e.target.checked)}
+                    className="rounded text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer"
+                  />
+                  <span>Distinct data</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => fetchStats()}
+                  className="flex items-center gap-1 text-slate-600 hover:text-blue-600 font-medium cursor-pointer transition"
+                  title="Refresh data"
+                >
+                  <span className="material-symbols-outlined text-[16px]">refresh</span>
+                  <span>Refresh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportModalCsv}
+                  className="flex items-center gap-1 text-slate-600 hover:text-blue-600 font-medium cursor-pointer transition"
+                  title="Export CSV"
+                >
+                  <span className="material-symbols-outlined text-[16px]">download</span>
+                  <span>Export</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Table (matching Image 2) */}
+            <div className="flex-1 overflow-auto bg-white">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-50/90 sticky top-0 border-b border-slate-200 text-slate-600 font-semibold text-[11px]">
+                  <tr>
+                    <th className="py-2.5 px-4 w-14 text-center">No.</th>
+                    <th className="py-2.5 px-4">Deal (Id)</th>
+                    <th className="py-2.5 px-4">Stage</th>
+                    <th className="py-2.5 px-4">Support Agent</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {modalDeals.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-12 text-center text-slate-400 text-xs">
+                        Không có deal nào trong giai đoạn này.
+                      </td>
+                    </tr>
+                  ) : (
+                    modalDeals.map((deal, idx) => {
+                      const agentName = deal.dealOwnerName || getPersonName(deal.dealOwner) || 'Anya Nguyen';
+                      const dealTitle =
+                        deal.title || deal.name || deal.clientName || `Deal #${deal.id || deal.code || idx + 1}`;
+                      return (
+                        <tr
+                          key={deal.id || idx}
+                          onClick={() => {
+                            if (onSelectDeal) {
+                              onSelectDeal(deal);
+                              setDrilldownModal(null);
+                            }
+                          }}
+                          className="hover:bg-blue-50/50 transition cursor-pointer group"
+                          title="Click để xem chi tiết Deal"
+                        >
+                          <td className="py-2.5 px-4 text-center text-slate-400 font-mono text-[11px]">
+                            {idx + 1}
+                          </td>
+                          <td className="py-2.5 px-4 font-medium text-slate-800 group-hover:text-blue-600">
+                            {dealTitle}
+                          </td>
+                          <td className="py-2.5 px-4 text-slate-600">
+                            {deal.stage || drilldownModal.stage}
+                          </td>
+                          <td className="py-2.5 px-4 text-slate-700 font-medium">
+                            {agentName}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-slate-50 border-t border-slate-200 px-5 py-2.5 flex items-center justify-between text-xs text-slate-500">
+              <span>
+                Hiển thị <strong>{modalDeals.length}</strong> deals
+              </span>
+              <button
+                type="button"
+                onClick={() => setDrilldownModal(null)}
+                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-medium cursor-pointer transition"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
