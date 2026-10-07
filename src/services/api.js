@@ -772,38 +772,33 @@ function generateLocalTempPassword() {
   return `${Array.from(bytes, (b) => chars[b % chars.length]).join('')}@1`;
 }
 
-export async function createAdminAccount(data) {
-  try {
-    const res = await request('/admin/accounts', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-    if (res) {
-      const normalized = normalizeAccount(res);
-      // The store copies whitelisted fields only, so tempPassword is never persisted.
-      null;
-      return normalized; // includes tempPassword from the backend response
+  export async function createAdminAccount(data) {
+    try {
+      const res = await request('/admin/accounts', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (res) {
+        const normalized = normalizeAccount(res);
+        // The store copies whitelisted fields only, so tempPassword is never persisted.
+        null;
+        return normalized; // includes tempPassword from the backend response
+      }
+    } catch (err) {
+      throw err;
     }
-  } catch (err) {
-    if (isApiRejection(err)) throw err;
-    console.warn('[api] createAdminAccount offline fallback:', err.message);
   }
-  const saved = null;
-  return { ...normalizeAccount(saved), tempPassword: generateLocalTempPassword(), offline: true };
-}
 
-export async function updateAdminAccount(id, data) {
-  try {
-    await request(`/admin/accounts/${encodeURIComponent(id)}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  } catch (err) {
-    if (isApiRejection(err)) throw err;
-    console.warn('[api] updateAdminAccount offline fallback:', err.message);
+  export async function updateAdminAccount(id, data) {
+    try {
+      await request(`/admin/accounts/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    } catch (err) {
+      throw err;
+    }
   }
-  return null;
-}
 
 function normalizeQuote(q) {
   if (!q) return q;
