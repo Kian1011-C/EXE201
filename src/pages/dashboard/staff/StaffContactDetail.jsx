@@ -5,6 +5,12 @@ import { ACA_ACCOUNT_STATUS_OPTIONS } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, recordPropertyUpdate, getPersonName } from '../../../services/propertyHistoryService';
 import { getUsers, getContactDeals, getAllCustomerDocuments, addContactActivity, updateContact, createTicket, updateTicket, createContact, addContactNote, updateContactNote, deleteContactNote, createDeal, addContactTask, updateContactTask, createTask, updateTask, deleteTask } from '../../../services/api';
+import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
+import AddDealModal from './AddDealModal';
+import AddMemberPanel from './AddMemberPanel';
+import MemberSection from './MemberSection';
+import CreateCustomerDocumentModal from './CreateCustomerDocumentModal';
+import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistoryModal';
 
 export const AGENT_OPTIONS = [
   'The Best Rate Insurance',
