@@ -581,20 +581,78 @@ export async function getDocument(id) {
   return null;
 }
 
+export function extractDbId(val, type = '') {
+  if (!val) return null;
+  if (typeof val === 'number') return val;
+  const str = String(val).trim();
+  if (!isNaN(Number(str))) return Number(str);
+  const digits = str.replace(/^[^0-9]+/, '');
+  if (digits.startsWith('2600') && digits.length > 4) {
+    const rest = Number(digits.substring(4));
+    if (!isNaN(rest)) {
+      if (type === 'deal' && rest > 5000) return rest - 5000;
+      if (type === 'contact' && rest > 2000) return rest - 2000;
+      if (type === 'contact' && rest > 1000) return rest - 1000;
+      if (type === 'ticket' && rest > 1000) return rest - 1000;
+      if (rest > 5000) return rest - 5000;
+      if (rest > 2000) return rest - 2000;
+      if (rest > 1000) return rest - 1000;
+      return rest;
+    }
+  }
+  const num = Number(digits);
+  return !isNaN(num) && num > 0 ? num : null;
+}
+
 export async function createDocument(docData) {
-  const contactId = docData.contactId || (docData.associatedContact ? docData.associatedContact.id : null);
+  if (!docData) return null;
+  const rawContactId = docData.contactId || (docData.associatedContact ? docData.associatedContact.id : null);
+  const contactId = extractDbId(rawContactId, 'contact') || rawContactId;
   const query = contactId ? `?contactId=${encodeURIComponent(contactId)}` : '';
-  return await request(`/documents${query}`, {
-    method: 'POST',
-    body: JSON.stringify(docData),
-  });
+  const payload = {
+    name: docData.name || 'Hồ sơ tài liệu',
+    contactOwner: typeof docData.contactOwner === 'object' ? (docData.contactOwner?.name || '') : (docData.contactOwner || ''),
+    lastModifiedBy: typeof docData.lastModifiedBy === 'object' ? (docData.lastModifiedBy?.name || '') : (docData.lastModifiedBy || 'Staff'),
+    initials: docData.initials || 'TL',
+  };
+  try {
+    const res = await request(`/documents${query}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (res) {
+      const merged = { ...docData, ...res, id: res.id, code: res.code };
+      addCustomerDocumentToStore(merged);
+      return merged;
+    }
+  } catch (err) {
+    console.warn('[api.js] createDocument backend fallback:', err);
+  }
+  addCustomerDocumentToStore(docData);
+  return docData;
 }
 
 export async function updateDocument(id, docData) {
-  return await request(`/documents/${encodeURIComponent(id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(docData),
-  });
+  if (!docData) return null;
+  const isTemp = !id || String(id).startsWith('doc-');
+  if (isTemp) {
+    return await createDocument(docData);
+  }
+  try {
+    const res = await request(`/documents/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(docData),
+    });
+    if (res) {
+      const merged = { ...docData, ...res, id: res.id, code: res.code };
+      updateCustomerDocumentInStore(merged);
+      return merged;
+    }
+  } catch (err) {
+    console.warn('[api.js] updateDocument backend fallback:', err);
+  }
+  updateCustomerDocumentInStore({ ...docData, id });
+  return { ...docData, id };
 }
 
 export async function addDocumentFile(docId, fileData) {
@@ -864,18 +922,17 @@ export async function createTicket(data) {
   if (!data) return null;
   addTicketToStore(data);
 
+  const contactDbId = extractDbId(data.contact?.id || data.contactId, 'contact');
+  const dealDbId = extractDbId(data.deal?.id || data.dealId, 'deal');
+
   const payload = {
     ticketName: data.ticketName || data.title || 'Support Ticket',
     pipeline: data.pipeline || 'ACA account',
     ticketStatus: data.ticketStatus || data.status || 'Open',
     priority: data.priority ? String(data.priority).toUpperCase() : 'HIGH',
     ticketDescription: data.ticketDescription || data.description || '',
-    contact: data.contact?.id
-      ? { id: Number(data.contact.id) }
-      : (data.contactId && !isNaN(Number(data.contactId)) ? { id: Number(data.contactId) } : null),
-    deal: data.deal?.id
-      ? { id: Number(data.deal.id) }
-      : (data.dealId && !isNaN(Number(data.dealId)) ? { id: Number(data.dealId) } : null),
+    contact: contactDbId ? { id: contactDbId } : null,
+    deal: dealDbId ? { id: dealDbId } : null,
   };
   if (data.dueDate && /^\d{4}-\d{2}-\d{2}$/.test(data.dueDate)) {
     payload.dueDate = data.dueDate;
@@ -898,6 +955,8 @@ export async function updateTicket(id, data) {
   if (!data) return null;
   addTicketToStore({ ...data, id });
 
+  const numId = extractDbId(id, 'ticket') || id;
+
   const payload = {
     ...(data.ticketName || data.title ? { ticketName: data.ticketName || data.title } : {}),
     ...(data.pipeline ? { pipeline: data.pipeline } : {}),
@@ -907,7 +966,7 @@ export async function updateTicket(id, data) {
   };
 
   try {
-    const res = await request(`/tickets/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(payload) });
+    const res = await request(`/tickets/${encodeURIComponent(numId)}`, { method: 'PUT', body: JSON.stringify(payload) });
     if (res) {
       const normalized = normalizeTicket(res);
       addTicketToStore(normalized);

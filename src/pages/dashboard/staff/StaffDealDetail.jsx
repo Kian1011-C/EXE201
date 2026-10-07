@@ -485,6 +485,13 @@ export default function StaffDealDetail({
       const dealId = deal?.id || dealInfo.id || '';
       recordPropertyUpdate('deal', dealId, 'Need Upload', deal?.needUpload || 'No', 'Yes', currentActor);
 
+      if (dealId) {
+        updateDeal(dealId, {
+          needUpload: 'Yes',
+          uploadRequest: true,
+        }).catch((err) => console.warn('[StaffDealDetail] updateDeal needUpload error:', err));
+      }
+
       if (onUpdateDeal) {
         onUpdateDeal({
           ...deal,
@@ -497,6 +504,13 @@ export default function StaffDealDetail({
     } else {
       const dealId = deal?.id || dealInfo.id || '';
       recordPropertyUpdate('deal', dealId, 'Need Upload', deal?.needUpload || 'Yes', 'No', currentActor);
+
+      if (dealId) {
+        updateDeal(dealId, {
+          needUpload: 'No',
+          uploadRequest: false,
+        }).catch((err) => console.warn('[StaffDealDetail] updateDeal needUpload error:', err));
+      }
 
       if (onUpdateDeal) {
         onUpdateDeal({
@@ -623,6 +637,8 @@ export default function StaffDealDetail({
       stage,
       dealStage: stage,
       amount: enrollAmount ? `$${enrollAmount}` : amount,
+      needUpload,
+      uploadRequest: needUpload === 'Yes',
       primaryMemberId,
       carrier,
       sellingState,

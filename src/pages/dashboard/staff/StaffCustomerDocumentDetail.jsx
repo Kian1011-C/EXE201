@@ -179,18 +179,22 @@ export default function StaffCustomerDocumentDetail({
           name: docName,
           contactOwner: contactOwner,
           lastModifiedBy: doc.lastModifiedBy || 'Staff',
+          contactId: doc.contactId || (doc.associatedContact ? doc.associatedContact.id : null),
+        }).then((savedDoc) => {
+          const targetDocId = savedDoc?.id || doc.id;
+          if (targetDocId && !String(targetDocId).startsWith('doc-')) {
+            newFiles.forEach((nf) => {
+              addDocumentFile(targetDocId, {
+                category: categoryKey,
+                name: nf.name,
+                fullName: nf.fullName,
+                size: nf.size,
+                type: nf.type,
+                url: nf.url || '',
+              }).catch((err) => console.warn('[StaffCustomerDocumentDetail] Add file API fallback:', err));
+            });
+          }
         }).catch((err) => console.warn('[StaffCustomerDocumentDetail] Update doc API fallback:', err));
-
-        newFiles.forEach((nf) => {
-          addDocumentFile(doc.id, {
-            category: categoryKey,
-            name: nf.name,
-            fullName: nf.fullName,
-            size: nf.size,
-            type: nf.type,
-            url: nf.url || '',
-          }).catch((err) => console.warn('[StaffCustomerDocumentDetail] Add file API fallback:', err));
-        });
       }
       if (onUpdateDocument) {
         onUpdateDocument(updatedDoc);

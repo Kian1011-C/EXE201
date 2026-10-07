@@ -635,7 +635,12 @@ export default function StaffContactDetail({
         status: val,
       },
     };
-    null;
+
+    if (contact?.id) {
+      updateContact(contact.id, {
+        acaStatus: val,
+      }).catch((err) => console.warn('[StaffContactDetail] updateContact acaStatus fallback:', err));
+    }
     if (onUpdateContact) {
       onUpdateContact(nextContact);
     }
