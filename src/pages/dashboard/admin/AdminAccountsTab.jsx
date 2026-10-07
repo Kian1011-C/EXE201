@@ -221,7 +221,7 @@ export default function AdminAccountsTab({
     const phone = form.phone.trim();
     const npn = form.npn.trim();
 
-    if (!VALID_ACCOUNT_ROLES.includes(form.role)) errors.role = 'Role must be agent, staff or admin.';
+    if (!['agent', 'staff', 'admin'].includes(form.role)) errors.role = 'Role must be agent, staff or admin.';
     if (!name) errors.name = 'Full name is required.';
 
     if (!email) errors.email = 'Email address is required.';
