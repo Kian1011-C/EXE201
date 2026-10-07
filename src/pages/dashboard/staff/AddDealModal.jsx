@@ -100,7 +100,7 @@ export default function AddDealModal({
     ? MEDICARE_DEAL_STAGES
     : OBAMACARE_DEAL_STAGES;
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const finalTitle = dealName?.trim() || `${contactName} - ${pipeline}`;
     const newCode = `D2600${Math.floor(5000 + Math.random() * 900)}`;
@@ -109,7 +109,7 @@ export default function AddDealModal({
 
     if (!resolvedContactId && resolvedContactName) {
       try {
-        const allContacts = [...[], ...[]];
+        const allContacts = [];
         const matched = allContacts.find((c) =>
           (c.fullName && c.fullName?.trim()?.toLowerCase() === resolvedContactName?.toLowerCase()) ||
           (c.name && c.name?.trim()?.toLowerCase() === resolvedContactName?.toLowerCase())
@@ -134,16 +134,17 @@ export default function AddDealModal({
       id: newCode,
       code: newCode,
       title: finalTitle,
+      dealName: finalTitle,
       shortTitle: finalTitle.length > 25 ? finalTitle.slice(0, 25) + '...' : finalTitle,
       pipeline: pipeline === '--' ? 'Obamacare 2026' : pipeline,
       stage: stage === '--' ? 'Ready to Enroll (Obamacare 2026)' : stage,
       stageBadge: stage.includes('Ready') ? 'Ready to Enroll' : (stage === '--' ? 'Ready to Enroll' : stage.slice(0, 15)),
       stageColor: 'bg-blue-50 text-blue-700 border-blue-200',
-      carrier: carrier,
+      carrier: carrier === '--' ? 'BCBS' : carrier,
       planName: '',
-      amount: '_ _ _ _ _ _ _ _ _ _',
-      closeDate: '_ _ _ _ _ _ _ _ _ _',
-      sellingState: sellingState,
+      amount: null,
+      closeDate: null,
+      sellingState: sellingState === '--' ? 'North Carolina (NC)' : sellingState,
       contactName: resolvedContactName,
       contactId: resolvedContactId,
       contactPhone: initialContactPhone || '',
@@ -179,9 +180,9 @@ export default function AddDealModal({
       },
       enrolledAddress: '',
       applicationId: '',
-      estimateHouseholdIncome: '',
-      householdMember: '',
-      numberMember: '',
+      estimateHouseholdIncome: null,
+      householdMember: null,
+      numberMember: 1,
       quotedCounty: '',
       activities: [
         {
@@ -227,18 +228,29 @@ export default function AddDealModal({
         comments: [],
       };
       createTicket(generatedTicket).catch(() => {});
-      null;
       newDeal.associatedTickets = [generatedTicket];
     }
 
-    null;
-    createDeal(newDeal).catch((err) => console.warn('[AddDealModal] createDeal fallback:', err));
+    let finalDeal = newDeal;
+    try {
+      const serverDeal = await createDeal(newDeal);
+      if (serverDeal && (serverDeal.id || serverDeal.code)) {
+        finalDeal = {
+          ...newDeal,
+          ...serverDeal,
+          id: String(serverDeal.id || serverDeal.code),
+          code: serverDeal.code || newCode,
+        };
+      }
+    } catch (err) {
+      console.warn('[AddDealModal] createDeal fallback:', err);
+    }
 
     // Initialize real property history with current actor
-    getPropertyHistory('deal', newCode, newDeal, currentActor);
+    getPropertyHistory('deal', finalDeal.code || newCode, finalDeal, currentActor);
 
     if (onDealCreated) {
-      onDealCreated(newDeal, generatedTicket);
+      onDealCreated(finalDeal, generatedTicket);
     }
     onClose();
   }

@@ -415,18 +415,64 @@ export async function getDeal(id) {
   return null;
 }
 
+export function sanitizeDealPayload(data) {
+  if (!data || typeof data !== 'object') return data;
+  const clean = { ...data };
+
+  const parseNum = (val) => {
+    if (val === null || val === undefined) return null;
+    if (typeof val === 'number') return isNaN(val) ? null : val;
+    const str = String(val).replace(/[\$,]/g, '').trim();
+    if (!str || str.includes('_') || str === '--' || str.toLowerCase() === 'null') return null;
+    const n = Number(str);
+    return isNaN(n) ? null : n;
+  };
+
+  const parseIntNum = (val) => {
+    const n = parseNum(val);
+    return n !== null ? Math.round(n) : null;
+  };
+
+  clean.amount = parseNum(clean.amount);
+  clean.estimateHouseholdIncome = parseNum(clean.estimateHouseholdIncome || clean.estimatedIncome);
+  clean.monthlyPremium = parseNum(clean.monthlyPremium);
+  clean.subsidyAmount = parseNum(clean.subsidyAmount);
+  clean.agencyCommission = parseNum(clean.agencyCommission);
+  clean.householdMember = parseIntNum(clean.householdMember || clean.householdSize);
+  clean.numberMember = parseIntNum(clean.numberMember);
+
+  if (typeof clean.closeDate === 'string' && (clean.closeDate.includes('_') || clean.closeDate === '--')) {
+    clean.closeDate = null;
+  }
+  if (clean.sellingState === '--') clean.sellingState = '';
+  if (clean.carrier === '--') clean.carrier = '';
+  if (clean.pipeline === '--') clean.pipeline = 'Obamacare 2026';
+  if (clean.stage === '--') clean.stage = 'Ready to Enroll (Obamacare 2026)';
+  if (typeof clean.dealOwner === 'object' && clean.dealOwner?.name) {
+    clean.dealOwner = clean.dealOwner.name;
+  }
+  if (clean.dealOwner === '--') clean.dealOwner = '';
+
+  if (!clean.dealName && clean.title) clean.dealName = clean.title;
+  if (!clean.title && clean.dealName) clean.title = clean.dealName;
+
+  return clean;
+}
+
 export async function createDeal(data) {
+  const sanitized = sanitizeDealPayload(data);
   const res = await request('/deals', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify(sanitized),
   });
   return res ? normalizeDeal(res) : res;
 }
 
 export async function updateDeal(id, data) {
+  const sanitized = sanitizeDealPayload(data);
   const res = await request(`/deals/${encodeURIComponent(id)}`, {
     method: 'PUT',
-    body: JSON.stringify(data),
+    body: JSON.stringify(sanitized),
   });
   return res ? normalizeDeal(res) : res;
 }
