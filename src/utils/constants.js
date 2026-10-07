@@ -373,26 +373,33 @@ export function isValidNpn(npn) {
 export function getAllPlatformMembers() {
   try {
     const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_admin_accounts') : null;
-    const all = raw ? JSON.parse(raw) : [];
-    if (Array.isArray(all) && all.length > 0) {
-      return all.map((a) => {
-        const email = a.email || '';
-        const handle = email.includes('@') ? email.split('@')[0] : (a.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'member');
-        return {
-          id: String(a.id || ''),
-          name: a.name || a.fullName || 'Member',
-          fullName: a.name || a.fullName || 'Member',
-          email,
-          handle,
-          role: (a.role || 'agent').toLowerCase(),
-          avatar: a.avatar || getAccountAvatar(a.name || a.fullName),
-          bg: a.bg || 'bg-slate-700 text-white',
-          npn: a.npn || '',
-          status: a.status || 'Active',
-          department: a.department || 'Operations',
-        };
-      });
+    let all = [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        all = parsed;
+      }
     }
+    if (all.length === 0) {
+      all = DEFAULT_AGENT_ACCOUNTS;
+    }
+    return all.map((a) => {
+      const email = a.email || '';
+      const handle = email.includes('@') ? email.split('@')[0] : (a.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'member');
+      return {
+        id: String(a.id || ''),
+        name: a.name || a.fullName || 'Member',
+        fullName: a.name || a.fullName || 'Member',
+        email,
+        handle,
+        role: (a.role || 'agent').toLowerCase(),
+        avatar: a.avatar || getAccountAvatar(a.name || a.fullName),
+        bg: a.bg || 'bg-slate-700 text-white',
+        npn: a.npn || '',
+        status: a.status || 'Active',
+        department: a.department || 'Operations',
+      };
+    });
   } catch {}
   return [];
 }
@@ -402,90 +409,18 @@ export const DEFAULT_AGENT_ACCOUNTS = [
     id: 'ACC-003',
     name: 'Khanh Nguyen',
     fullName: 'Khanh Nguyen',
-    email: 'khanh@insurmatch.us',
-    handle: 'khanhnguyen31@7',
+    email: 'agent@insurmatch.us',
+    handle: 'khanhnguyen',
     role: 'agent',
     agencyRole: 'Licensed Partner Agent',
-    department: 'Sales Hub',
+    department: 'Medicare & ACA Sales Hub',
     avatar: 'KN',
     bg: 'bg-blue-600 text-white',
     npn: '1984210',
-    statesLicensed: ['TX (TDI)', 'CA (CDI)', 'NC'],
+    statesLicensed: ['TX (TDI)', 'CA (CDI)', 'FL'],
     status: 'Active',
-    phone: '+1 (832) 555-1984',
+    phone: '+1 (838) 776-1434',
     dealsCount: 42,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-002',
-    name: 'Anh Que Pham CPA',
-    fullName: 'Anh Que Pham CPA',
-    email: 'anhque@insurmatch.us',
-    handle: 'anhque',
-    role: 'agent',
-    agencyRole: 'Principal Broker & Agency Sponsor',
-    department: 'Executive Agency Leadership',
-    avatar: 'AQ',
-    bg: 'bg-amber-600 text-white',
-    npn: '20011862',
-    statesLicensed: ['TX (TDI)', 'CA (CDI)', 'FL', 'NC'],
-    status: 'Active',
-    phone: '+1 (832) 555-2001',
-    dealsCount: 84,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-004',
-    name: 'Sean Ngo',
-    fullName: 'Sean Ngo',
-    email: 'sean@insurmatch.us',
-    handle: 'seanngo',
-    role: 'agent',
-    agencyRole: 'Licensed Agent',
-    department: 'Sales Hub',
-    avatar: 'SN',
-    bg: 'bg-emerald-600 text-white',
-    npn: '1994321',
-    statesLicensed: ['TX (TDI)', 'NC'],
-    status: 'Active',
-    phone: '+1 (832) 555-3002',
-    dealsCount: 36,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-007',
-    name: 'Ivy Le',
-    fullName: 'Ivy Le',
-    email: 'ivyle@insurmatch.us',
-    handle: 'ivyle',
-    role: 'agent',
-    agencyRole: 'Licensed Agent',
-    department: 'Sales Hub',
-    avatar: 'IL',
-    bg: 'bg-orange-500 text-white',
-    npn: '1984214',
-    statesLicensed: ['TX (TDI)', 'FL'],
-    status: 'Active',
-    phone: '+1 (832) 555-4003',
-    dealsCount: 18,
-    complianceStatus: 'Verified & Cleared',
-  },
-  {
-    id: 'ACC-008',
-    name: 'James Vu',
-    fullName: 'James Vu',
-    email: 'jamesvu@insurmatch.us',
-    handle: 'jamesvu',
-    role: 'agent',
-    agencyRole: 'Licensed Agent',
-    department: 'Sales Hub',
-    avatar: 'JV',
-    bg: 'bg-slate-600 text-white',
-    npn: '1984216',
-    statesLicensed: ['TX (TDI)'],
-    status: 'Active',
-    phone: '+1 (832) 555-5004',
-    dealsCount: 12,
     complianceStatus: 'Verified & Cleared',
   },
 ];
@@ -493,40 +428,47 @@ export const DEFAULT_AGENT_ACCOUNTS = [
 export function getActiveAgentAccounts() {
   try {
     const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_admin_accounts') : null;
-    const all = raw ? JSON.parse(raw) : [];
-    const list = Array.isArray(all) && all.length > 0 ? all : DEFAULT_AGENT_ACCOUNTS;
+    let list = [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        list = parsed;
+      }
+    }
 
     const isAgent = (a) => {
       const role = (a.role || '').toLowerCase();
-      const name = (a.name || '').toLowerCase();
+      const name = (a.name || a.fullName || '').toLowerCase();
       if (role !== 'agent' && role !== 'broker') return false;
       if (name.includes('admin') || name.includes('staff') || name.includes('platform') || name.includes('insurance')) return false;
+      const status = (a.status || '').toLowerCase();
+      if (status === 'suspended') return false;
       return true;
     };
 
-    const agents = list.filter(isAgent);
-    const existingNames = new Set(agents.map((a) => a.name));
+    let agents = list.filter(isAgent);
+    if (agents.length === 0) {
+      agents = [...DEFAULT_AGENT_ACCOUNTS];
+    }
 
-    // Guarantee default partner agents are present
-    DEFAULT_AGENT_ACCOUNTS.forEach((seed) => {
-      if (!existingNames.has(seed.name)) {
-        agents.push(seed);
-      }
-    });
-
-    return agents.map((a) => {
+    const seen = new Set();
+    const unique = [];
+    for (const a of agents) {
+      const aName = (a.name || a.fullName || '').trim();
+      if (!aName || seen.has(aName.toLowerCase())) continue;
+      seen.add(aName.toLowerCase());
       const email = a.email || '';
-      const handle = email.includes('@') ? email.split('@')[0] : (a.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'agent');
-      return {
-        id: String(a.id || a.name),
-        name: a.name || a.fullName,
-        fullName: a.name || a.fullName,
+      const handle = email.includes('@') ? email.split('@')[0] : (aName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'agent');
+      unique.push({
+        id: String(a.id || aName),
+        name: aName,
+        fullName: aName,
         email,
         handle,
         role: 'agent',
         agencyRole: a.agencyRole || 'Licensed Partner Agent',
         department: a.department || 'Sales Hub',
-        avatar: a.avatar || getAccountAvatar(a.name),
+        avatar: a.avatar || getAccountAvatar(aName),
         bg: a.bg || 'bg-blue-600 text-white',
         npn: a.npn || '',
         statesLicensed: a.statesLicensed || ['TX (TDI)'],
@@ -534,8 +476,10 @@ export function getActiveAgentAccounts() {
         phone: a.phone || '',
         dealsCount: a.dealsCount || 0,
         complianceStatus: a.complianceStatus || 'Verified & Cleared',
-      };
-    });
+      });
+    }
+
+    return unique;
   } catch {
     return DEFAULT_AGENT_ACCOUNTS;
   }

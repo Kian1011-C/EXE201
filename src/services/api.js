@@ -4,6 +4,8 @@
 // ============================================================
 
 
+import { DEFAULT_AGENT_ACCOUNTS } from '../utils/constants';
+
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 /**
@@ -307,9 +309,23 @@ function normalizeAccount(u) {
 export async function getUsers() {
   try {
     const data = await request('/users');
-    if (Array.isArray(data) && data.length > 0) return data;
+    if (Array.isArray(data) && data.length > 0) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('insurmatch_admin_accounts', JSON.stringify(data));
+      }
+      return data;
+    }
   } catch {}
-  return [];
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('insurmatch_admin_accounts');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+  }
+  return DEFAULT_AGENT_ACCOUNTS;
 }
 
 export async function getContacts(params = {}) {
@@ -867,7 +883,20 @@ export async function getDashboardStats() {
 // ── Admin Portal Operations ──────────────────────────────────────────────────
 export async function getAdminStats() { const data = await request('/admin/stats'); if (!data) return null; return { ...data, totalInquiries: data.totalQuotes || data.totalInquiries || 0, verifiedAgents: data.totalUsers || data.verifiedAgents || 0, activeDeals: data.totalDeals || data.activeDeals || 0 }; }
 
-export async function getAdminAccounts() { const data = await request('/admin/accounts'); return Array.isArray(data) ? data.map(normalizeAccount) : []; }
+export async function getAdminAccounts() {
+  try {
+    const data = await request('/admin/accounts');
+    if (Array.isArray(data)) {
+      const normalized = data.map(normalizeAccount);
+      if (typeof window !== 'undefined' && normalized.length > 0) {
+        localStorage.setItem('insurmatch_admin_accounts', JSON.stringify(normalized));
+        window.dispatchEvent(new CustomEvent('insurmatch_accounts_updated'));
+      }
+      return normalized;
+    }
+  } catch {}
+  return [];
+}
 
 // Real API rejections (validation / duplicate) must reach the UI; only an unreachable
 // backend (network error, 5xx/proxy failure, missing auth in mock mode) falls back to mock storage.
@@ -883,33 +912,52 @@ function generateLocalTempPassword() {
   return `${Array.from(bytes, (b) => chars[b % chars.length]).join('')}@1`;
 }
 
-  export async function createAdminAccount(data) {
-    try {
-      const res = await request('/admin/accounts', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-      if (res) {
-        const normalized = normalizeAccount(res);
-        // The store copies whitelisted fields only, so tempPassword is never persisted.
-        null;
-        return normalized; // includes tempPassword from the backend response
+export async function createAdminAccount(data) {
+  try {
+    const res = await request('/admin/accounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (res) {
+      const normalized = normalizeAccount(res);
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('insurmatch_admin_accounts');
+          const current = raw ? JSON.parse(raw) : [];
+          const updated = [normalized, ...current.filter((a) => String(a.id) !== String(normalized.id))];
+          localStorage.setItem('insurmatch_admin_accounts', JSON.stringify(updated));
+          window.dispatchEvent(new CustomEvent('insurmatch_accounts_updated'));
+        } catch {}
       }
-    } catch (err) {
-      throw err;
+      return normalized; // includes tempPassword from the backend response
     }
+  } catch (err) {
+    throw err;
   }
+}
 
-  export async function updateAdminAccount(id, data) {
-    try {
-      await request(`/admin/accounts/${encodeURIComponent(id)}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
-    } catch (err) {
-      throw err;
+export async function updateAdminAccount(id, data) {
+  try {
+    const res = await request(`/admin/accounts/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('insurmatch_admin_accounts');
+        if (raw) {
+          const current = JSON.parse(raw);
+          const updated = current.map((a) => (String(a.id) === String(id) ? { ...a, ...data } : a));
+          localStorage.setItem('insurmatch_admin_accounts', JSON.stringify(updated));
+          window.dispatchEvent(new CustomEvent('insurmatch_accounts_updated'));
+        }
+      } catch {}
     }
+    return res;
+  } catch (err) {
+    throw err;
   }
+}
 
 function normalizeQuote(q) {
   if (!q) return q;
@@ -974,4 +1022,18 @@ export async function deleteDeal(id) { return await request(`/deals/${id}`, { me
 export async function deleteTicket(id) { return await request(`/tickets/${id}`, { method: 'DELETE' }); }
 export async function deleteTask(id) { return await request(`/tasks/${id}`, { method: 'DELETE' }); }
 export async function deleteCommission(id) { return await request(`/commissions/${id}`, { method: 'DELETE' }); }
-export async function deleteAdminAccount(id) { return await request(`/admin/accounts/${id}`, { method: 'DELETE' }); }
+export async function deleteAdminAccount(id) {
+  const res = await request(`/admin/accounts/${id}`, { method: 'DELETE' });
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('insurmatch_admin_accounts');
+      if (raw) {
+        const current = JSON.parse(raw);
+        const updated = current.filter((a) => String(a.id) !== String(id));
+        localStorage.setItem('insurmatch_admin_accounts', JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent('insurmatch_accounts_updated'));
+      }
+    } catch {}
+  }
+  return res;
+}

@@ -41,19 +41,25 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       const usersData = await getUsers();
       setDbUsers(usersData);
       if (Array.isArray(usersData) && usersData.length > 0) {
-        const backendAgents = usersData.filter((u) => (u.role || '').toLowerCase() === 'agent');
+        const backendAgents = usersData.filter((u) => {
+          const role = (u.role || '').toLowerCase();
+          const status = (u.status || '').toLowerCase();
+          return (role === 'agent' || role === 'broker') && status !== 'suspended';
+        });
         if (backendAgents.length > 0) {
-          setAgentAccounts((prev) => {
-            const names = new Set(prev.map((a) => a.name));
-            const newOnes = backendAgents
-              .filter((b) => !names.has(b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim()))
-              .map((b) => ({
-                id: String(b.id),
-                name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
-                role: 'agent',
-              }));
-            return [...prev, ...newOnes];
-          });
+          setAgentAccounts(
+            backendAgents.map((b) => ({
+              id: String(b.id),
+              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+              role: 'agent',
+              avatar: b.avatar,
+              bg: b.bg,
+              email: b.email,
+              phone: b.phone,
+            }))
+          );
+        } else {
+          setAgentAccounts(getActiveAgentAccounts());
         }
       }
 

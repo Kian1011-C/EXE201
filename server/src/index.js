@@ -1402,6 +1402,17 @@ app.get('/api/admin/stats', async (req, res) => {
   }
 });
 
+// GET /api/users - returns public profile of accounts for owner assignment and directory lookup
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(users.map(u => { const { passwordHash, ...safe } = u; return safe; }));
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
 // GET /api/admin/accounts
 // Never exposes credentials (password hashes live in ACCOUNT_CREDENTIALS, not on the account objects).
 app.get('/api/admin/accounts', requireAdmin, async (req, res) => {
