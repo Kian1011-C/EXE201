@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { createTicket, createDeal, getUsers } from '../../../services/api';
+import { createTicket, createDeal, getDeals, getContacts, updateDeal, getUsers } from '../../../services/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 import toast from 'react-hot-toast';
@@ -26,8 +26,11 @@ export default function AddDealModal({
   const currentActor = getCurrentActor(user);
   const [activeTab, setActiveTab] = useState('create'); // 'create' | 'existing'
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+  const [contactsList, setContactsList] = useState([]);
+  const [availableDeals, setAvailableDeals] = useState([]);
 
   useEffect(() => {
     function handleAccountsUpdated() {
@@ -58,18 +61,32 @@ export default function AddDealModal({
   // Existing deals search state for "Add existing" tab
   const [searchExisting, setSearchExisting] = useState('');
 
-  // Sync initial contact when opened
+  // Sync initial contact & fetch options when opened
   useEffect(() => {
     if (isOpen) {
       setContactName(initialContactName || '');
       setDealName('');
       setPipeline('--');
       setStage('--');
-      setDealOwner('--');
+      const defaultOwner = user?.name || '--';
+      setDealOwner(defaultOwner);
       setMember('--');
       setNeedUpload('No');
+      setIsSubmitting(false);
+
+      getContacts()
+        .then((res) => {
+          if (Array.isArray(res)) setContactsList(res);
+        })
+        .catch(() => {});
+
+      getDeals()
+        .then((res) => {
+          if (Array.isArray(res)) setAvailableDeals(res);
+        })
+        .catch(() => {});
     }
-  }, [isOpen, initialContactName]);
+  }, [isOpen, initialContactName, user?.name]);
 
   if (!isOpen) return null;
 
@@ -80,17 +97,20 @@ export default function AddDealModal({
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const finalTitle = dealName?.trim() || `${contactName} - ${pipeline}`;
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    const finalTitle = dealName?.trim() || `${contactName} - ${pipeline === '--' ? 'Obamacare 2026' : pipeline}`;
     const newCode = `D2600${Math.floor(5000 + Math.random() * 900)}`;
     let resolvedContactId = initialContactId || '';
     const resolvedContactName = contactName?.trim();
 
     if (!resolvedContactId && resolvedContactName) {
       try {
-        const allContacts = [];
-        const matched = allContacts.find((c) =>
+        const matched = contactsList.find((c) =>
           (c.fullName && c.fullName?.trim()?.toLowerCase() === resolvedContactName?.toLowerCase()) ||
-          (c.name && c.name?.trim()?.toLowerCase() === resolvedContactName?.toLowerCase())
+          (c.name && c.name?.trim()?.toLowerCase() === resolvedContactName?.toLowerCase()) ||
+          ((c.firstName || c.lastName) && `${c.firstName || ''} ${c.lastName || ''}`.trim().toLowerCase() === resolvedContactName?.toLowerCase())
         );
         if (matched) {
           resolvedContactId = matched.id || matched.code || '';
@@ -178,7 +198,7 @@ export default function AddDealModal({
 
     let generatedTicket = null;
 
-    // Quy trình: Nếu Need upload = Yes -> tự động xuất ticket upload documents
+    // Quy trình: Nếu Need upload = Yes -> chuẩn bị ticket upload documents
     if (needUpload === 'Yes') {
       generatedTicket = {
         id: `TC2600${Math.floor(1000 + Math.random() * 9000)}`,
@@ -197,7 +217,7 @@ export default function AddDealModal({
         ticketOwner: dealOwner === '--' ? '' : dealOwner,
         serviceAgent: 'Platform Staff',
         contactName: contactName,
-        contactId: initialContactId || '',
+        contactId: resolvedContactId || '',
         dealId: newCode,
         dealTitle: finalTitle,
         carrier: carrier,
@@ -205,7 +225,6 @@ export default function AddDealModal({
         activities: [],
         comments: [],
       };
-      createTicket(generatedTicket).catch(() => {});
       newDeal.associatedTickets = [generatedTicket];
     }
 
@@ -219,9 +238,20 @@ export default function AddDealModal({
           id: String(serverDeal.id || serverDeal.code),
           code: serverDeal.code || newCode,
         };
+        // Backend tự động xuất ticket khi needUpload === 'Yes'
+        if (Array.isArray(serverDeal.associatedTickets) && serverDeal.associatedTickets.length > 0) {
+          generatedTicket = serverDeal.associatedTickets[0];
+          finalDeal.associatedTickets = serverDeal.associatedTickets;
+        }
       }
     } catch (err) {
       console.warn('[AddDealModal] createDeal fallback:', err);
+      // Fallback offline: chỉ tạo ticket riêng biệt khi backend không tự động sinh
+      if (needUpload === 'Yes' && generatedTicket) {
+        createTicket(generatedTicket).catch(() => {});
+      }
+    } finally {
+      setIsSubmitting(false);
     }
 
     // Initialize real property history with current actor
@@ -412,8 +442,22 @@ export default function AddDealModal({
                   <input
                     type="text"
                     required
+                    list="deal-contacts-list"
                     value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setContactName(val);
+                      const matched = contactsList.find(
+                        (c) =>
+                          (c.fullName && c.fullName.toLowerCase() === val.trim().toLowerCase()) ||
+                          (c.name && c.name.toLowerCase() === val.trim().toLowerCase())
+                      );
+                      if (matched) {
+                        if (member === '--' || member.includes('(Self)')) {
+                          setMember(`${val} (Self)`);
+                        }
+                      }
+                    }}
                     placeholder="Tên khách hàng..."
                     className="w-full px-3 py-2 pr-9 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 shadow-2xs font-medium"
                   />
@@ -421,6 +465,18 @@ export default function AddDealModal({
                     edit
                   </span>
                 </div>
+                {contactsList.length > 0 && (
+                  <datalist id="deal-contacts-list">
+                    {contactsList.map((c) => (
+                      <option
+                        key={c.id || c.code}
+                        value={c.fullName || c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim()}
+                      >
+                        {c.code ? `[${c.code}] ` : ''}{c.phone ? `${c.phone} ` : ''}{c.email ? `• ${c.email}` : ''}
+                      </option>
+                    ))}
+                  </datalist>
+                )}
               </div>
 
               {/* Member */}
@@ -435,7 +491,7 @@ export default function AddDealModal({
                     className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
                   >
                     <option value="--">--</option>
-                    <option value={`${contactName} (Self)`}>{contactName} (Self)</option>
+                    <option value={`${contactName} (Self)`}>{contactName ? `${contactName} (Self)` : 'Self'}</option>
                     {membersList?.map((m) => (
                       <option key={m.id || m.name} value={`${m.name} (${m.relation || 'Member'})`}>
                         {m.name} ({m.relation || 'Member'})
@@ -528,16 +584,27 @@ export default function AddDealModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2 rounded border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition cursor-pointer"
+                disabled={isSubmitting}
+                className="px-5 py-2 rounded border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 rounded bg-[#183968] hover:bg-[#122b50] text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                disabled={isSubmitting}
+                className="px-6 py-2 rounded bg-[#183968] hover:bg-[#122b50] text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="material-symbols-outlined text-[16px]">save</span>
-                <span>Save Deal</span>
+                {isSubmitting ? (
+                  <>
+                    <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                    <span>Đang lưu...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[16px]">save</span>
+                    <span>Save Deal</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -563,42 +630,58 @@ export default function AddDealModal({
             </div>
 
             <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
-              {[...[], ...[]]
+              {availableDeals
                 ?.filter((d) =>
                   !searchExisting ||
                   (d.title && d.title?.toLowerCase().includes(searchExisting?.toLowerCase())) ||
-                  (d.code && d.code?.toLowerCase().includes(searchExisting?.toLowerCase()))
+                  (d.dealName && d.dealName?.toLowerCase().includes(searchExisting?.toLowerCase())) ||
+                  (d.code && d.code?.toLowerCase().includes(searchExisting?.toLowerCase())) ||
+                  (d.carrier && d.carrier?.toLowerCase().includes(searchExisting?.toLowerCase()))
                 )
-                .slice(0, 10)
+                .slice(0, 15)
                 ?.map((d) => (
                   <div
                     key={d.id || d.code}
                     className="p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer"
-                    onClick={() => {
+                    onClick={async () => {
                       const linkedDeal = {
                         ...d,
-                        contactName: contactName,
-                        member: member,
+                        contactName: contactName || d.contactName,
+                        member: member !== '--' ? member : (d.member || contactName),
                       };
+                      if (initialContactId) {
+                        try {
+                          await updateDeal(d.id, {
+                            contactId: initialContactId,
+                            contactName: contactName,
+                          });
+                        } catch (_) {}
+                      }
                       if (onDealCreated) onDealCreated(linkedDeal, null);
+                      toast.success(`Đã liên kết Deal ${d.code || d.title} thành công!`);
                       onClose();
                     }}
                   >
                     <div>
-                      <div className="font-semibold text-slate-800">{d.title || d.code}</div>
+                      <div className="font-semibold text-slate-800">{d.title || d.dealName || d.code}</div>
                       <div className="text-[11px] text-slate-500">
-                        {d.pipeline} • {d.carrier} • Stage: {d.stage}
+                        {d.pipeline} • {d.carrier} • Stage: {d.stage || d.dealStage}
                       </div>
                     </div>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button
                       type="button"
-                      className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs flex items-center gap-1"
+                      className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs flex items-center gap-1 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[14px]">link</span>
                       <span>Link</span>
                     </button>
                   </div>
                 ))}
+              {availableDeals.length === 0 && (
+                <div className="p-4 text-center text-slate-400 text-xs">
+                  Không tìm thấy hợp đồng phù hợp
+                </div>
+              )}
             </div>
 
             <div className="pt-3 border-t border-slate-200 flex justify-end">
