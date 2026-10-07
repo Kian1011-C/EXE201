@@ -1338,10 +1338,10 @@ app.post('/api/auth/change-password', requireAuth, async (req, res) => {
 
 app.get('/api/admin/stats', async (req, res) => {
   try {
-    const totalInquiries = await prisma.contact.count({ where: ownerWhere });
-    const activeDeals = await prisma.deal.count({ where: { ...ownerWhere, NOT: { stage: { contains: 'Closed Lost' } } } });
-    const verifiedAgents = ADMIN_ACCOUNTS.filter((a) => a.role === 'agent' && a.status === 'Active').length;
-    const staffMembers = ADMIN_ACCOUNTS.filter((a) => a.role === 'staff' && a.status === 'Active').length;
+    const totalInquiries = await prisma.contact.count();
+    const activeDeals = await prisma.deal.count({ where: { NOT: { stage: { contains: 'Closed Lost' } } } });
+    const verifiedAgents = await prisma.user.count({ where: { role: 'agent', status: 'Active' } });
+    const staffMembers = await prisma.user.count({ where: { role: 'staff', status: 'Active' } });
 
     // Carrier volume
     const allDeals = await prisma.deal.findMany({
@@ -1365,7 +1365,7 @@ app.get('/api/admin/stats', async (req, res) => {
       else sssStats.NONE++;
     });
 
-    const comms = await prisma.commission.findMany({ where: ownerWhere });
+    const comms = await prisma.commission.findMany();
     let totalGrossCommission = 0;
     let totalNetAgentPayout = 0;
     let totalOfficeRetention = 0;
@@ -1478,7 +1478,6 @@ app.delete('/api/admin/accounts/:id', requireAdmin, async (req, res) => {
 // GET /api/admin/quotes
 app.get('/api/admin/quotes', async (req, res) => {
   try {
-    if (authUser.role === 'agent') where.ownerId = authUser.id;
     const contacts = await prisma.contact.findMany({
       orderBy: { createdAt: 'desc' },
       include: { deals: true },

@@ -1854,20 +1854,11 @@ export default function StaffDealDetail({
                         className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
                       >
                         <option value="">-- Chưa chọn Deal Owner --</option>
-                        {dealOwner &&
-                          !allAvailableAgents.some(
-                            (ag) =>
-                              (ag.handle ? `${ag.name} (${ag.handle})` : ag.name) === dealOwner ||
-                              ag.name === dealOwner
-                          ) && <option value={dealOwner}>{dealOwner}</option>}
-                        {allAvailableAgents.map((ag) => {
-                          const val = ag.handle ? `${ag.name} (${ag.handle})` : ag.name;
-                          return (
-                            <option key={ag.name} value={val}>
-                              {ag.name} {ag.handle ? `(${ag.handle})` : ''}
-                            </option>
-                          );
-                        })}
+                        {allAvailableAgents.map((ag) => (
+                          <option key={ag.name} value={ag.name}>
+                            {ag.name}
+                          </option>
+                        ))}
                       </select>
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 flex items-center">
                         <span className="material-symbols-outlined text-[16px]">expand_more</span>

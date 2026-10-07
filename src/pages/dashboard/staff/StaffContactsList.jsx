@@ -142,13 +142,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
 
   // Unique owners for filter
   const ownerOptions = useMemo(() => {
-    const set = new Set(['The Best Rate Insurance', ...agentAccounts.map((a) => a.name)]);
-    scopedContacts.forEach((c) => {
-      const o = typeof c.contactOwner === 'object' ? (c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`.trim()) : c.contactOwner;
-      if (o && o !== 'all' && o !== '--') set.add(o);
-    });
-    return Array.from(set).sort();
-  }, [agentAccounts, scopedContacts]);
+    return ['The Best Rate Insurance', ...agentAccounts.map((a) => a.name)];
+  }, [agentAccounts]);
 
   // Handle Quick Create
   async function handleCreateSubmit(e) {

@@ -200,13 +200,8 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
 
   // Unique owners from deals & registered agents
   const ownerOptions = useMemo(() => {
-    const set = new Set(allAvailableAgents.map((a) => a.name));
-    scopedDeals.forEach((d) => {
-      const oName = typeof d.dealOwner === 'object' ? (d.dealOwner?.name || `${d.dealOwner?.firstName || ''} ${d.dealOwner?.lastName || ''}`.trim()) : d.dealOwner;
-      if (oName && oName !== 'all' && oName !== '--') set.add(oName);
-    });
-    return Array.from(set).sort();
-  }, [allAvailableAgents, scopedDeals]);
+    return allAvailableAgents.map((a) => a.name);
+  }, [allAvailableAgents]);
 
   // Filtered agent list for dropdown search
   const filteredAgentList = useMemo(() => {

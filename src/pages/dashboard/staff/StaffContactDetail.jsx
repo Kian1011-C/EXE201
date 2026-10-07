@@ -14,12 +14,7 @@ import PropertyHistoryModal, { PropertyLabelWithHistory } from './PropertyHistor
 
 export const AGENT_OPTIONS = [
   'The Best Rate Insurance',
-  'Platform Staff',
   'Khanh Nguyen',
-  'Anh Que Pham CPA',
-  'Sean Ngo',
-  'Ivy Le',
-  'James Vu',
 ];
 
 export default function StaffContactDetail({
@@ -2003,7 +1998,6 @@ export default function StaffContactDetail({
                           >
                             <option value="">-- Chưa chọn --</option>
                             <option value="The Best Rate Insurance">The Best Rate Insurance</option>
-                            <option value="Platform Staff">Platform Staff</option>
                             {agentAccounts.map((a) => (
                               <option key={`agent-${a.id}`} value={a.name}>{a.name}</option>
                             ))}

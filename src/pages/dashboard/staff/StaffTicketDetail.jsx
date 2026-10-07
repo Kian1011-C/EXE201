@@ -1807,12 +1807,8 @@ export default function StaffTicketDetail({
                   className="bg-white border border-slate-200 rounded px-2 py-1 text-[11px] text-slate-700 focus:outline-none cursor-pointer pr-6"
                 >
                   <option value="all">Search by created by...</option>
-                  <option value="Ivy Lu">Ivy Lu</option>
-                  <option value="Jay Ly">Jay Ly</option>
-                  <option value="Sean Ngo">Sean Ngo</option>
-                  <option value="Tri Tran">Tri Tran</option>
-                  <option value="Anya Nguyen">Anya Nguyen</option>
                   <option value="Khanh Nguyen">Khanh Nguyen</option>
+                  <option value="Anya Nguyen">Anya Nguyen</option>
                 </select>
               </div>
             </div>
