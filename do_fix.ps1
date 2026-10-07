@@ -1,1 +1,0 @@
-(Get-Content -Path "src\pages\dashboard\staff\StaffTicketDetail.jsx") -replace '\{\!isUploadDoc && \(', '{!isUploadDoc && (<>' -replace '                \)\}', '                </>)}' | Set-Content -Path "src\pages\dashboard\staff\StaffTicketDetail.jsx"
