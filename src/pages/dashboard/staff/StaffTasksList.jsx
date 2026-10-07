@@ -755,7 +755,8 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                       className="py-2.5 px-2 text-center"
                       onClick={(e) => toggleTaskCompletion(e, t.id)}
                     >
-                      <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                      <button
+                        onClick={(e) => toggleTaskCompletion(e, t.id)}
                         type="button"
                         title={t.completed ? 'Mark incomplete' : 'Mark complete'}
                         className={`w-4 h-4 rounded-full flex items-center justify-center transition cursor-pointer ${
