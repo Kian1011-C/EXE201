@@ -946,6 +946,14 @@ export async function createTicket(data) {
     ticketDescription: data.ticketDescription || data.description || '',
     contact: contactDbId ? { id: contactDbId } : null,
     deal: dealDbId ? { id: dealDbId } : null,
+    ...(data.ticketOwner !== undefined || data.ticketOwnerName ? {
+      ticketOwnerName: typeof data.ticketOwner === 'object' ? (data.ticketOwner?.name || data.ticketOwner?.fullName) : (data.ticketOwnerName || data.ticketOwner || ''),
+      ticketOwnerId: data.ticketOwnerId || (typeof data.ticketOwner === 'object' ? data.ticketOwner?.id : null),
+    } : {}),
+    ...(data.serviceAgent !== undefined || data.serviceAgentName ? {
+      serviceAgentName: typeof data.serviceAgent === 'object' ? (data.serviceAgent?.name || data.serviceAgent?.fullName) : (data.serviceAgentName || data.serviceAgent || ''),
+      serviceAgentId: data.serviceAgentId || (typeof data.serviceAgent === 'object' ? data.serviceAgent?.id : null),
+    } : {}),
   };
   if (data.dueDate && /^\d{4}-\d{2}-\d{2}$/.test(data.dueDate)) {
     payload.dueDate = data.dueDate;
@@ -976,6 +984,17 @@ export async function updateTicket(id, data) {
     ...(data.ticketStatus || data.status ? { ticketStatus: data.ticketStatus || data.status } : {}),
     ...(data.priority ? { priority: String(data.priority).toUpperCase() } : {}),
     ...(data.ticketDescription !== undefined ? { ticketDescription: data.ticketDescription } : {}),
+    ...(data.ticketResult !== undefined ? { ticketResult: data.ticketResult } : {}),
+    ...(data.dueDate ? { dueDate: data.dueDate } : {}),
+    ...(data.changeDueDateReason ? { changeDueDateReason: data.changeDueDateReason } : {}),
+    ...(data.ticketOwner !== undefined || data.ticketOwnerName !== undefined ? {
+      ticketOwnerName: typeof data.ticketOwner === 'object' ? (data.ticketOwner?.name || data.ticketOwner?.fullName) : (data.ticketOwnerName !== undefined ? data.ticketOwnerName : (data.ticketOwner || '')),
+      ticketOwnerId: data.ticketOwnerId || (typeof data.ticketOwner === 'object' ? data.ticketOwner?.id : null),
+    } : {}),
+    ...(data.serviceAgent !== undefined || data.serviceAgentName !== undefined ? {
+      serviceAgentName: typeof data.serviceAgent === 'object' ? (data.serviceAgent?.name || data.serviceAgent?.fullName) : (data.serviceAgentName !== undefined ? data.serviceAgentName : (data.serviceAgent || '')),
+      serviceAgentId: data.serviceAgentId || (typeof data.serviceAgent === 'object' ? data.serviceAgent?.id : null),
+    } : {}),
   };
 
   try {

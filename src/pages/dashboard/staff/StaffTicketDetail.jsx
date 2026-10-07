@@ -273,7 +273,24 @@ export default function StaffTicketDetail({
     getUsers()
       .then((res) => {
         if (Array.isArray(res) && res.length > 0) {
-          setPlatformMembers(getActiveAgentAccounts());
+          const agents = res
+            .filter((u) => {
+              const role = (u.role || '').toLowerCase();
+              const status = (u.status || '').toLowerCase();
+              return (role === 'agent' || role === 'broker') && status !== 'suspended';
+            })
+            .map((u) => ({
+              id: u.id,
+              name: u.fullName || u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+              avatar: (u.fullName || u.name || 'A')[0].toUpperCase(),
+              bg: u.bg || 'bg-[#10B981]',
+              handle: u.email || 'agent',
+            }));
+          if (agents.length > 0) {
+            setPlatformMembers(agents);
+          } else {
+            setPlatformMembers(getActiveAgentAccounts());
+          }
         }
       })
       .catch(() => {});
@@ -869,6 +886,113 @@ export default function StaffTicketDetail({
     showToast(`Status updated to ${st}`);
   };
 
+  const handleUpdateTicketOwner = async (newOwner) => {
+    const safeOwnerName = getPersonName(newOwner, '');
+    setTicketOwner(safeOwnerName);
+    setIsTicketOwnerOpen(false);
+
+    const safeAgent = getPersonName(serviceAgent, 'Platform Staff');
+    const newAct = {
+      id: `act-${Date.now()}`,
+      month: 'Aug 2026',
+      type: 'activity',
+      title: 'Ticket Owner Changed',
+      timestamp: new Date().toLocaleString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }),
+      actor: safeAgent,
+      content: `${safeAgent} changed Ticket Owner to ${safeOwnerName || 'Unassigned'}.`,
+    };
+    setTimelineItems((prev) => [newAct, ...prev]);
+
+    const matchedAgent = platformMembers?.find(
+      (m) => m.name === safeOwnerName || m.handle === safeOwnerName
+    );
+
+    const updatedTicket = {
+      ...ticket,
+      ticketOwner: safeOwnerName,
+      ticketOwnerName: safeOwnerName,
+      ticketOwnerId: matchedAgent?.id || null,
+      ticketOwnerObj: matchedAgent || (safeOwnerName ? { name: safeOwnerName } : null),
+      serviceAgent,
+      serviceAgentName: serviceAgent,
+      status,
+      ticketStatus: status,
+      stage: `${status} (${pipeline})`,
+      pipeline,
+      priority,
+      dueDate,
+      ticketResult,
+      carrier,
+      changeDueDateReason,
+    };
+
+    updateTicketInStore(updatedTicket);
+    if (ticket?.id) {
+      try {
+        await updateTicket(ticket.id, updatedTicket);
+      } catch (err) {
+        console.warn('[StaffTicketDetail] updateTicket owner fallback:', err);
+      }
+    }
+
+    if (onUpdateTicket) {
+      onUpdateTicket(updatedTicket);
+    }
+
+    showToast(`Ticket Owner updated to ${safeOwnerName || 'Unassigned'}`);
+  };
+
+  const handleUpdateServiceAgent = async (newAgent) => {
+    const safeAgentName = getPersonName(newAgent, 'Platform Staff');
+    setServiceAgent(safeAgentName);
+    setIsServiceAgentOpen(false);
+
+    const matchedAgent = platformMembers?.find(
+      (m) => m.name === safeAgentName || m.handle === safeAgentName
+    );
+
+    const updatedTicket = {
+      ...ticket,
+      serviceAgent: safeAgentName,
+      serviceAgentName: safeAgentName,
+      serviceAgentId: matchedAgent?.id || null,
+      serviceAgentObj: matchedAgent || { name: safeAgentName },
+      ticketOwner,
+      ticketOwnerName: ticketOwner,
+      status,
+      ticketStatus: status,
+      stage: `${status} (${pipeline})`,
+      pipeline,
+      priority,
+      dueDate,
+      ticketResult,
+      carrier,
+      changeDueDateReason,
+    };
+
+    updateTicketInStore(updatedTicket);
+    if (ticket?.id) {
+      try {
+        await updateTicket(ticket.id, updatedTicket);
+      } catch (err) {
+        console.warn('[StaffTicketDetail] updateTicket serviceAgent fallback:', err);
+      }
+    }
+
+    if (onUpdateTicket) {
+      onUpdateTicket(updatedTicket);
+    }
+
+    showToast(`Service Agent updated to ${safeAgentName}`);
+  };
+
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -1055,6 +1179,13 @@ export default function StaffTicketDetail({
       pipeline,
       priority,
       dueDate,
+      ticketOwner,
+      ticketOwnerName: ticketOwner,
+      serviceAgent,
+      serviceAgentName: serviceAgent,
+      ticketResult,
+      carrier,
+      changeDueDateReason,
     };
     if (ticket?.id) {
       updateTicket(ticket.id, currentTicket).catch(() => {});
@@ -1438,7 +1569,7 @@ export default function StaffTicketDetail({
                         <span
                           onClick={(e) => {
                             e.stopPropagation();
-                            setServiceAgent('');
+                            handleUpdateServiceAgent('');
                           }}
                           className="hover:text-slate-600 text-[11px]"
                         >
@@ -1455,8 +1586,7 @@ export default function StaffTicketDetail({
                             key={ag.name}
                             type="button"
                             onClick={() => {
-                              setServiceAgent(ag.name);
-                              setIsServiceAgentOpen(false);
+                              handleUpdateServiceAgent(ag.name);
                             }}
                             className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-xs flex items-center gap-2"
                           >
@@ -1581,7 +1711,7 @@ export default function StaffTicketDetail({
                         <span
                           onClick={(e) => {
                             e.stopPropagation();
-                            setTicketOwner('');
+                            handleUpdateTicketOwner('');
                           }}
                           className="hover:text-slate-600 text-[11px]"
                         >
@@ -1598,8 +1728,7 @@ export default function StaffTicketDetail({
                             key={ag.name}
                             type="button"
                             onClick={() => {
-                              setTicketOwner(ag.name);
-                              setIsTicketOwnerOpen(false);
+                              handleUpdateTicketOwner(ag.name);
                             }}
                             className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-xs flex items-center gap-2"
                           >
