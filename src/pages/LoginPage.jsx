@@ -13,11 +13,6 @@ const ROLE_REDIRECT = {
   agent: '/dashboard/agent',
 };
 
-const DEMO_HINTS = [
-  { role: 'Admin', email: 'admin@insurmatch.us', password: 'Admin@123', label: 'System Admin' },
-  { role: 'Staff', email: 'staff@insurmatch.us', password: 'Staff@123', label: 'Operations' },
-  { role: 'Agent', email: 'agent@insurmatch.us', password: 'Agent@123', label: 'Licensed Agent Partner' },
-];
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -48,11 +43,6 @@ export default function LoginPage() {
     }
   }
 
-  function fillDemo(hint) {
-    setEmail(hint.email);
-    setPassword(hint.password);
-    setError('');
-  }
 
   return (
     <div className="bg-[#0A1628] h-screen w-full flex text-slate-800 antialiased overflow-hidden">
@@ -212,44 +202,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Demo Quick Fill Section */}
-          <div className="mt-10">
-            <div className="relative flex items-center py-5">
-              <div className="flex-grow border-t border-slate-200"></div>
-              <span className="shrink-0 mx-4 text-[10px] uppercase tracking-widest font-bold text-slate-400">Demo Quick Fill</span>
-              <div className="flex-grow border-t border-slate-200"></div>
-            </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              {DEMO_HINTS.map((hint) => {
-                let icon = 'shield_person';
-                let colorClass = 'text-slate-600 group-hover:text-blue-600 bg-slate-100 group-hover:bg-blue-100';
-                let borderClass = 'border-slate-200 hover:border-blue-300 hover:bg-blue-50';
-                
-                if (hint.role === 'Staff') {
-                  icon = 'support_agent';
-                  colorClass = 'text-blue-600 bg-blue-100 shadow-sm';
-                  borderClass = 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500/20';
-                } else if (hint.role === 'Agent') {
-                  icon = 'cases';
-                }
-
-                return (
-                  <button 
-                    key={hint.role}
-                    type="button"
-                    onClick={() => fillDemo(hint)}
-                    className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all group cursor-pointer ${borderClass}`}
-                  >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${colorClass}`}>
-                      <span className="material-symbols-outlined text-[16px]">{icon}</span>
-                    </div>
-                    <span className="text-xs font-bold text-slate-700 group-hover:text-blue-700">{hint.role}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           {/* Footer link */}
           <div className="mt-8 text-center mb-8">
