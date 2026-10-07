@@ -43,8 +43,8 @@ export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
   const calculation = useMemo(() => {
     let dealComm;
 
-    if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
-      dealComm = (0);
+if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
+      dealComm = calculateCarrierDealCommission('Humana', 1);
     } else if (pipeline === 'Presidio') {
       const gross = customPremium * 0.15;
       dealComm = {
@@ -62,7 +62,7 @@ export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
         formula: `15% × $${customPremium} Premium → Agent nhận 100% = $${gross.toFixed(2)}/tháng`,
       };
     } else {
-      dealComm = (0);
+      dealComm = calculateCarrierDealCommission(carrier, membersCount);
     }
 
     const carrierMeta = CARRIER_COMMISSION_RATES[carrier] || CARRIER_COMMISSION_RATES['BCBS'];
