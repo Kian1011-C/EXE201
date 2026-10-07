@@ -37,25 +37,42 @@ app.get('/api/health', async (req, res) => {
 // ── Contacts Routes ──────────────────────────────────────────────────────────
 // GET /api/contacts
 app.get('/api/contacts', requireAuth, async (req, res) => {
-    const authUser = req.authUser;
+  const authUser = req.authUser;
   try {
     const { search, owner } = req.query;
     const where = {};
+    const andConditions = [];
 
     if (search) {
-      where.OR = [
-        { fullName: { contains: search, mode: 'insensitive' } },
-        { code: { contains: search, mode: 'insensitive' } },
-        { phone: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ];
+      andConditions.push({
+        OR: [
+          { fullName: { contains: search, mode: 'insensitive' } },
+          { code: { contains: search, mode: 'insensitive' } },
+          { phone: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
+      });
     }
 
     if (owner && owner !== 'all') {
-      where.contactOwnerName = { contains: owner, mode: 'insensitive' };
+      andConditions.push({
+        contactOwnerName: { contains: owner, mode: 'insensitive' },
+      });
     }
 
-    if (authUser.role === 'agent') where.ownerId = authUser.id;
+    if (authUser.role === 'agent') {
+      andConditions.push({
+        OR: [
+          { ownerId: authUser.id },
+          { contactOwnerName: { contains: authUser.name, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
     const contacts = await prisma.contact.findMany({
       where,
       orderBy: { no: 'asc' },
@@ -270,15 +287,10 @@ app.get('/api/contacts/:id', requireAuth, async (req, res) => {
 });
 
 // POST /api/contacts
-app.get('/api/contacts', requireAuth, async (req, res) => {
-    const authUser = req.authUser;
-  // Handled above
-});
-
 app.post('/api/contacts', requireAuth, async (req, res) => {
   try {
     const data = req.body;
-    const count = await prisma.contact.count({ where: ownerWhere });
+    const count = await prisma.contact.count();
     const newCode = data.code || `CT2600${2610 + count}`;
     const newId = newCode;
 
@@ -288,7 +300,29 @@ app.post('/api/contacts', requireAuth, async (req, res) => {
     const fullName =
       data.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || 'New Contact';
 
-    data.ownerId = req.authUser.id;
+    const ownerId =
+      data.contactOwnerId ||
+      (req.authUser.role === 'agent'
+        ? req.authUser.id
+        : data.contactOwnerName === 'Khanh Nguyen'
+        ? 'ACC-003'
+        : null);
+
+    const contactOwnerName =
+      data.contactOwner?.name ||
+      data.contactOwnerName ||
+      (req.authUser.role === 'agent' ? req.authUser.name : 'The Best Rate Insurance');
+
+    const contactOwnerAvatar =
+      data.contactOwner?.avatar ||
+      data.contactOwnerAvatar ||
+      (req.authUser.role === 'agent' ? 'KN' : 'TB');
+
+    const contactOwnerBg =
+      data.contactOwner?.bg ||
+      data.contactOwnerBg ||
+      (req.authUser.role === 'agent' ? 'bg-blue-600 text-white' : 'bg-teal-700 text-white');
+
     const contact = await prisma.contact.create({
       data: {
         id: newId,
@@ -301,21 +335,28 @@ app.post('/api/contacts', requireAuth, async (req, res) => {
         phone: data.phone || '',
         email: data.email || '',
         language: data.language || 'Vietnamese',
-        howDoYouKnowUs: data.howDoYouKnowUs || '',
-        whoReferClient: data.whoReferClient || '',
+        howDoYouKnowUs: data.howDoYouKnowUs || data.sourceChannel || '',
+        whoReferClient: data.whoReferClient || data.sourceDetail || '',
         teleSaleTeam: data.teleSaleTeam || '',
-        contactOwnerName: data.contactOwner?.name || data.contactOwnerName || 'The Best Rate Insurance',
-        contactOwnerAvatar: data.contactOwner?.avatar || data.contactOwnerAvatar || 'TB',
-        contactOwnerBg: data.contactOwner?.bg || data.contactOwnerBg || 'bg-teal-700 text-white',
+        contactOwnerName,
+        contactOwnerAvatar,
+        contactOwnerBg,
         supportAgent: data.supportAgent || 'Anya Nguyen (anya42@9)',
-        acaAccountStatus: data.acaAccountStatus || '',
+        acaAccountStatus: data.acaAccountStatus || data.acaStatus || '',
         status: data.status || 'Active',
-        lastModifiedBy: 'Platform Staff',
+        lastModifiedBy: req.authUser.name || 'Platform Staff',
         lastModifiedTime: new Date().toLocaleString(),
-        dob: data.dob || '',
+        dob: data.dob || data.dateOfBirth || '',
         ssn: data.ssn || '',
         gender: data.gender || 'Male',
         state: data.state || '',
+        enrolledAddress: data.enrolledAddress || data.address || '',
+        mailingAddress: data.mailingAddress || '',
+        streetAddress: data.streetAddress || '',
+        city: data.city || '',
+        postalCode: data.postalCode || data.zipCode || '',
+        county: data.county || '',
+        ownerId,
       },
     });
 
@@ -332,12 +373,46 @@ app.put('/api/contacts/:id', requireAuth, async (req, res) => {
     const { id } = req.params;
     const data = req.body;
 
+    const allowedFields = [
+      'firstName', 'middleName', 'lastName', 'fullName', 'phone', 'email',
+      'language', 'howDoYouKnowUs', 'whoReferClient', 'teleSaleTeam',
+      'contactOwnerName', 'contactOwnerAvatar', 'contactOwnerBg', 'supportAgent',
+      'acaAccountStatus', 'status', 'dob', 'ssn', 'familyRelationship', 'gender',
+      'immigrationStatus', 'alienNumber', 'certificateNumber', 'dateExpired',
+      'household', 'enrolledAddress', 'mailingAddress', 'state', 'streetAddress',
+      'city', 'postalCode', 'county', 'career', 'theBestRateEmail', 'acaAccount',
+      'acaPass', 'ownerId'
+    ];
+
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (data[key] !== undefined) updateData[key] = data[key];
+    }
+    // Handle aliases from frontend
+    if (data.dateOfBirth !== undefined && updateData.dob === undefined) updateData.dob = data.dateOfBirth;
+    if (data.address !== undefined && updateData.enrolledAddress === undefined) updateData.enrolledAddress = data.address;
+    if (data.zipCode !== undefined && updateData.postalCode === undefined) updateData.postalCode = data.zipCode;
+    if (data.acaUsername !== undefined && updateData.acaAccount === undefined) updateData.acaAccount = data.acaUsername;
+    if (data.acaPassword !== undefined && updateData.acaPass === undefined) updateData.acaPass = data.acaPassword;
+    if (data.acaStatus !== undefined && updateData.acaAccountStatus === undefined) updateData.acaAccountStatus = data.acaStatus;
+    if (data.sourceChannel !== undefined && updateData.howDoYouKnowUs === undefined) updateData.howDoYouKnowUs = data.sourceChannel;
+    if (data.contactOwnerId !== undefined && updateData.ownerId === undefined) updateData.ownerId = data.contactOwnerId;
+
+    if (data.firstName !== undefined || data.lastName !== undefined) {
+      const f = data.firstName !== undefined ? data.firstName : '';
+      const m = data.middleName !== undefined ? data.middleName : '';
+      const l = data.lastName !== undefined ? data.lastName : '';
+      if (!updateData.fullName && (f || l)) {
+        updateData.fullName = [f, m, l].filter(Boolean).join(' ');
+      }
+    }
+
+    updateData.lastModifiedBy = req.authUser.name || 'Platform Staff';
+    updateData.lastModifiedTime = new Date().toLocaleString();
+
     const updated = await prisma.contact.update({
       where: { id },
-      data: {
-        ...data,
-        lastModifiedTime: new Date().toLocaleString(),
-      },
+      data: updateData,
     });
 
     res.json(updated);
@@ -359,32 +434,47 @@ app.delete('/api/contacts/:id', requireAuth, async (req, res) => {
 // ── Deals Routes ─────────────────────────────────────────────────────────────
 // GET /api/deals
 app.get('/api/deals', requireAuth, async (req, res) => {
-    const authUser = req.authUser;
+  const authUser = req.authUser;
   try {
     const { search, pipeline, stage, owner } = req.query;
     const where = {};
+    const andConditions = [];
 
     if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { code: { contains: search, mode: 'insensitive' } },
-        { carrier: { contains: search, mode: 'insensitive' } },
-      ];
+      andConditions.push({
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { code: { contains: search, mode: 'insensitive' } },
+          { carrier: { contains: search, mode: 'insensitive' } },
+        ],
+      });
     }
 
     if (pipeline && pipeline !== 'all') {
-      where.pipeline = { contains: pipeline, mode: 'insensitive' };
+      andConditions.push({ pipeline: { contains: pipeline, mode: 'insensitive' } });
     }
 
     if (stage && stage !== 'all') {
-      where.stage = { contains: stage, mode: 'insensitive' };
+      andConditions.push({ stage: { contains: stage, mode: 'insensitive' } });
     }
 
     if (owner && owner !== 'all') {
-      where.dealOwnerName = { contains: owner, mode: 'insensitive' };
+      andConditions.push({ dealOwnerName: { contains: owner, mode: 'insensitive' } });
     }
 
-    if (authUser.role === 'agent') where.ownerId = authUser.id;
+    if (authUser.role === 'agent') {
+      andConditions.push({
+        OR: [
+          { ownerId: authUser.id },
+          { dealOwnerName: { contains: authUser.name, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
     const deals = await prisma.deal.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -526,7 +616,18 @@ app.post('/api/deals', requireAuth, async (req, res) => {
     const count = await prisma.deal.count();
     const newCode = data.code || `D2600${5040 + count}`;
 
-    data.ownerId = req.authUser.id;
+    const ownerId =
+      data.dealOwnerId ||
+      (req.authUser.role === 'agent'
+        ? req.authUser.id
+        : data.dealOwnerName === 'Khanh Nguyen'
+        ? 'ACC-003'
+        : null);
+
+    const dealOwnerName =
+      data.dealOwnerName ||
+      (req.authUser.role === 'agent' ? req.authUser.name : 'Khanh Nguyen');
+
     const deal = await prisma.deal.create({
       data: {
         id: newCode,
@@ -539,8 +640,9 @@ app.post('/api/deals', requireAuth, async (req, res) => {
         amount: data.amount || '$0.00',
         closeDate: data.closeDate || '_ _ _ _ _ _ _ _ _ _',
         sellingState: data.sellingState || 'North Carolina (NC)',
-        dealOwnerName: data.dealOwnerName || 'Khanh Nguyen',
+        dealOwnerName,
         enrolledNpn: data.enrolledNpn || 'Anh Que Pham 20011862',
+        ownerId,
       },
     });
 
@@ -696,17 +798,28 @@ app.post('/api/contacts/:id/tasks', async (req, res) => {
 
 // ── Ticket Routes ────────────────────────────────────────────────────────────
 app.get('/api/tickets', requireAuth, async (req, res) => {
-    const authUser = req.authUser;
+  const authUser = req.authUser;
   try {
     const { pipeline, status, priority, contactId, dealId } = req.query;
     const where = {};
-    if (pipeline && pipeline !== 'all') where.pipeline = pipeline;
-    if (status && status !== 'all') where.status = status;
-    if (priority && priority !== 'all') where.priority = priority;
-    if (contactId) where.contactId = contactId;
-    if (dealId) where.dealId = dealId;
+    const andConditions = [];
+    if (pipeline && pipeline !== 'all') andConditions.push({ pipeline });
+    if (status && status !== 'all') andConditions.push({ status });
+    if (priority && priority !== 'all') andConditions.push({ priority });
+    if (contactId) andConditions.push({ contactId });
+    if (dealId) andConditions.push({ dealId });
 
-    if (authUser.role === 'agent') where.ownerId = authUser.id;
+    if (authUser.role === 'agent') {
+      andConditions.push({
+        OR: [
+          { ownerId: authUser.id },
+          { deal: { dealOwnerName: { contains: authUser.name, mode: 'insensitive' } } },
+          { contact: { contactOwnerName: { contains: authUser.name, mode: 'insensitive' } } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) where.AND = andConditions;
     const tickets = await prisma.ticket.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -809,17 +922,27 @@ app.delete('/api/tickets/:id', requireAuth, async (req, res) => {
 
 // ── Task Routes ──────────────────────────────────────────────────────────────
 app.get('/api/tasks', requireAuth, async (req, res) => {
-    const authUser = req.authUser;
+  const authUser = req.authUser;
   try {
     const { status, priority, assignedTo, contactId, dealId } = req.query;
     const where = {};
-    if (status && status !== 'all') where.status = status;
-    if (priority && priority !== 'all') where.priority = priority;
-    if (assignedTo && assignedTo !== 'all') where.assignedTo = assignedTo;
-    if (contactId) where.contactId = contactId;
-    if (dealId) where.dealId = dealId;
+    const andConditions = [];
+    if (status && status !== 'all') andConditions.push({ status });
+    if (priority && priority !== 'all') andConditions.push({ priority });
+    if (assignedTo && assignedTo !== 'all') andConditions.push({ assignedTo });
+    if (contactId) andConditions.push({ contactId });
+    if (dealId) andConditions.push({ dealId });
 
-    if (authUser.role === 'agent') where.ownerId = authUser.id;
+    if (authUser.role === 'agent') {
+      andConditions.push({
+        OR: [
+          { ownerId: authUser.id },
+          { assignedTo: { contains: authUser.name, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) where.AND = andConditions;
     const tasks = await prisma.task.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -904,16 +1027,26 @@ app.delete('/api/tasks/:id', requireAuth, async (req, res) => {
 
 // ── Commission Routes ────────────────────────────────────────────────────────
 app.get('/api/commissions', requireAuth, async (req, res) => {
-    const authUser = req.authUser;
+  const authUser = req.authUser;
   try {
     const { agentName, period, status, carrier } = req.query;
     const where = {};
-    if (agentName && agentName !== 'all') where.agentName = agentName;
-    if (period && period !== 'all') where.period = period;
-    if (status && status !== 'all') where.status = status;
-    if (carrier && carrier !== 'all') where.carrier = carrier;
+    const andConditions = [];
+    if (agentName && agentName !== 'all') andConditions.push({ agentName: { contains: agentName, mode: 'insensitive' } });
+    if (period && period !== 'all') andConditions.push({ period });
+    if (status && status !== 'all') andConditions.push({ status });
+    if (carrier && carrier !== 'all') andConditions.push({ carrier: { contains: carrier, mode: 'insensitive' } });
 
-    if (authUser.role === 'agent') where.ownerId = authUser.id;
+    if (authUser.role === 'agent') {
+      andConditions.push({
+        OR: [
+          { ownerId: authUser.id },
+          { agentName: { contains: authUser.name, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) where.AND = andConditions;
     const commissions = await prisma.commission.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -927,22 +1060,42 @@ app.get('/api/commissions', requireAuth, async (req, res) => {
 
 app.get('/api/commissions/summary', requireAuth, async (req, res) => {
   try {
-    const all = await prisma.commission.findMany({ where: ownerWhere });
+    const authUser = req.authUser;
+    const where =
+      authUser.role === 'agent'
+        ? {
+            OR: [
+              { ownerId: authUser.id },
+              { agentName: { contains: authUser.name, mode: 'insensitive' } },
+            ],
+          }
+        : {};
+    const all = await prisma.commission.findMany({ where });
     let settledThisMonth = 0;
     let pendingAudit = 0;
     let ytdPaid = 0;
-    
+
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    
-    all.forEach(c => {
+
+    all.forEach((c) => {
       if (c.status === 'SETTLED' && c.period === currentMonth) settledThisMonth += c.netAmount;
       if (c.status === 'PENDING') pendingAudit++;
       if (c.status === 'SETTLED') ytdPaid += c.netAmount; // roughly YTD for simple logic
     });
-    
-    const activePolicies = await prisma.deal.count({ where: { stage: { contains: 'Active' } } });
-    
+
+    const dealWhere =
+      authUser.role === 'agent'
+        ? {
+            stage: { contains: 'Active' },
+            OR: [
+              { ownerId: authUser.id },
+              { dealOwnerName: { contains: authUser.name, mode: 'insensitive' } },
+            ],
+          }
+        : { stage: { contains: 'Active' } };
+    const activePolicies = await prisma.deal.count({ where: dealWhere });
+
     res.json({ settledThisMonth, pendingAudit, ytdPaid, activePolicies });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get commission summary' });
@@ -950,7 +1103,7 @@ app.get('/api/commissions/summary', requireAuth, async (req, res) => {
 });
 
 app.post('/api/commissions', requireAuth, async (req, res) => {
-    req.body.ownerId = req.authUser.id;
+  req.body.ownerId = req.authUser.id;
   try {
     const data = req.body;
     const commission = await prisma.commission.create({ data });
@@ -963,6 +1116,7 @@ app.post('/api/commissions', requireAuth, async (req, res) => {
 // POST /api/commissions/calculate - SSS Commission Rules Engine
 app.post('/api/commissions/calculate', requireAuth, async (req, res) => {
   try {
+    const authUser = req.authUser;
     const { agentName = 'Khanh Nguyen', period, isNewAgent = false } = req.body;
     const now = new Date();
     const currentPeriod = period || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -972,7 +1126,12 @@ app.post('/api/commissions/calculate', requireAuth, async (req, res) => {
       whereDeal.dealOwnerName = { contains: agentName, mode: 'insensitive' };
     }
 
-    if (authUser.role === 'agent') where.ownerId = authUser.id;
+    if (authUser.role === 'agent') {
+      whereDeal.OR = [
+        { ownerId: authUser.id },
+        { dealOwnerName: { contains: authUser.name, mode: 'insensitive' } },
+      ];
+    }
     const deals = await prisma.deal.findMany({
       where: whereDeal,
       include: { contact: true },
@@ -1122,7 +1281,7 @@ app.delete('/api/commissions/:id', requireAuth, async (req, res) => {
 app.post('/api/quotes', async (req, res) => {
   try {
     const data = req.body;
-    const count = await prisma.contact.count({ where: ownerWhere });
+    const count = await prisma.contact.count();
     const newId = `INQ2600${2610 + count}`;
     const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || 'New Quote';
 
@@ -1164,15 +1323,55 @@ app.post('/api/quotes', async (req, res) => {
 app.get('/api/dashboard/stats', requireAuth, async (req, res) => {
   const authUser = req.authUser;
   const isAgent = authUser.role === 'agent';
-  const ownerWhere = isAgent ? { ownerId: authUser.id } : {};
+  const ownerWhere = isAgent
+    ? {
+        OR: [
+          { ownerId: authUser.id },
+          { contactOwnerName: { contains: authUser.name, mode: 'insensitive' } },
+        ],
+      }
+    : {};
+  const dealOwnerWhere = isAgent
+    ? {
+        OR: [
+          { ownerId: authUser.id },
+          { dealOwnerName: { contains: authUser.name, mode: 'insensitive' } },
+        ],
+      }
+    : {};
+  const ticketOwnerWhere = isAgent
+    ? {
+        OR: [
+          { ownerId: authUser.id },
+          { deal: { dealOwnerName: { contains: authUser.name, mode: 'insensitive' } } },
+          { contact: { contactOwnerName: { contains: authUser.name, mode: 'insensitive' } } },
+        ],
+      }
+    : {};
+  const taskOwnerWhere = isAgent
+    ? {
+        OR: [
+          { ownerId: authUser.id },
+          { assignedTo: { contains: authUser.name, mode: 'insensitive' } },
+        ],
+      }
+    : {};
+  const commOwnerWhere = isAgent
+    ? {
+        OR: [
+          { ownerId: authUser.id },
+          { agentName: { contains: authUser.name, mode: 'insensitive' } },
+        ],
+      }
+    : {};
 
   try {
     const totalContacts = await prisma.contact.count({ where: ownerWhere });
-    const activeDeals = await prisma.deal.count({ where: { ...ownerWhere, NOT: { stage: { contains: 'Closed Lost' } } } });
-    const openTickets = await prisma.ticket.count({ where: { ...ownerWhere, status: 'Open' } });
-    const pendingTasks = await prisma.task.count({ where: { ...ownerWhere, status: 'Pending' } });
+    const activeDeals = await prisma.deal.count({ where: { ...dealOwnerWhere, NOT: { stage: { contains: 'Closed Lost' } } } });
+    const openTickets = await prisma.ticket.count({ where: { ...ticketOwnerWhere, status: 'Open' } });
+    const pendingTasks = await prisma.task.count({ where: { ...taskOwnerWhere, status: 'Pending' } });
 
-    const allDeals = await prisma.deal.findMany({ where: ownerWhere, select: { pipeline: true, stage: true } });
+    const allDeals = await prisma.deal.findMany({ where: dealOwnerWhere, select: { pipeline: true, stage: true } });
     const dealsByPipeline = Object.entries(allDeals.reduce((acc, curr) => {
       acc[curr.pipeline] = (acc[curr.pipeline] || 0) + 1;
       return acc;
@@ -1183,7 +1382,7 @@ app.get('/api/dashboard/stats', requireAuth, async (req, res) => {
       return acc;
     }, {})).map(([stage, count]) => ({ stage, count }));
 
-    const allTickets = await prisma.ticket.findMany({ where: ownerWhere, select: { pipeline: true, status: true, dueDate: true } });
+    const allTickets = await prisma.ticket.findMany({ where: ticketOwnerWhere, select: { pipeline: true, status: true, dueDate: true } });
     const ticketsByPipeline = Object.entries(allTickets.reduce((acc, curr) => {
       acc[curr.pipeline] = (acc[curr.pipeline] || 0) + 1;
       return acc;
@@ -1200,13 +1399,13 @@ app.get('/api/dashboard/stats', requireAuth, async (req, res) => {
       if (t.status !== 'Closed' && t.status !== 'Completed' && t.dueDate && t.dueDate < nowStr) overdueTickets++;
     });
 
-    const allTasks = await prisma.task.findMany({ where: ownerWhere, select: { status: true, dueDate: true } });
+    const allTasks = await prisma.task.findMany({ where: taskOwnerWhere, select: { status: true, dueDate: true } });
     let overdueTasks = 0;
     allTasks.forEach(t => {
       if (t.status !== 'Completed' && t.dueDate && t.dueDate < nowStr) overdueTasks++;
     });
 
-    const allComms = await prisma.commission.findMany({ where: ownerWhere });
+    const allComms = await prisma.commission.findMany({ where: commOwnerWhere });
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     let commissionThisMonth = 0;
