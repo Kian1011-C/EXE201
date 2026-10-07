@@ -18,6 +18,12 @@ import {
   getActiveAgentAccounts,
 } from '../../../utils/constants';
 
+const DEFAULT_TASK_NOTE = `• Woodbridge Dental
+• The appt is on 10/12/26 at 12:00pm
+• Address: 11627 S Texas 6 - Sugar Land, TX 77498
+• Pick up: 25401716
+• Return: 25401719`;
+
 export default function StaffDealDetail({
   deal,
   onBack,
@@ -836,6 +842,8 @@ export default function StaffDealDetail({
   const [taskActionsOpen, setTaskActionsOpen] = useState(null);
   const [activeCommentTaskId, setActiveCommentTaskId] = useState(null);
   const [taskCommentInput, setTaskCommentInput] = useState('');
+  const [editingTaskNoteId, setEditingTaskNoteId] = useState(null);
+  const [editingTaskNoteText, setEditingTaskNoteText] = useState('');
 
   // Modals for Note & Task creation (Matching StaffContactDetail 100%)
   const [showCreateNoteModal, setShowCreateNoteModal] = useState(false);
@@ -1349,6 +1357,23 @@ export default function StaffDealDetail({
     showToast('Đã xóa tệp đính kèm khỏi task');
   }
 
+  function handleUpdateTaskAssignee(taskId, newAssignee) {
+    const updatedList = tasksList?.map((t) => (t.id === taskId ? { ...t, assignee: newAssignee } : t));
+    updateAndPersistDealTasks(updatedList);
+    updateTask(taskId, { assignee: newAssignee }).catch(() => {});
+    logActivity('Task Updated', `reassigned task to ${newAssignee}`);
+    showToast(`Đã phân công task cho: ${newAssignee}`);
+  }
+
+  function handleSaveTaskNote(taskId, newContent) {
+    const updatedList = tasksList?.map((t) => (t.id === taskId ? { ...t, content: newContent } : t));
+    updateAndPersistDealTasks(updatedList);
+    updateTask(taskId, { content: newContent, description: newContent }).catch(() => {});
+    logActivity('Task Updated', 'updated task note');
+    setEditingTaskNoteId(null);
+    showToast('Đã lưu nội dung ghi chú của task!');
+  }
+
   function handleAddTaskSubmit(e) {
     if (e) e.preventDefault();
     const title =
@@ -1375,7 +1400,7 @@ export default function StaffDealDetail({
       content: taskContent?.trim(),
       dueDate: dueFormatted || '10/12/2026, 08:00',
       sendRemind: taskRemind || '--',
-      assignee: taskAssignee || 'Thao Phan (therasaphan24@6)',
+      assignee: taskAssignee || (agentAccounts && agentAccounts[0]?.name) || 'Khanh Nguyen',
       priority: taskPriority || 'None',
       taskType: taskType || '--',
       attachments: [...taskAttachments],
@@ -2930,7 +2955,7 @@ export default function StaffDealDetail({
                           </span>
                           <span className="font-semibold text-slate-600">Task assigned to</span>
                           <span className="font-bold text-slate-900">
-                            {task.assignee || 'Thao Phan (therasaphan24@6)'}
+                            {task.assignee || (agentAccounts && agentAccounts[0]?.name) || 'Khanh Nguyen'}
                           </span>
                         </div>
 
@@ -3043,45 +3068,96 @@ export default function StaffDealDetail({
                           {/* Assignee Row */}
                           <div className="text-xs">
                             <div className="text-slate-400 text-[11px] mb-1 font-medium">Assignee</div>
-                            <div className="flex items-center gap-1 font-semibold text-slate-800">
-                              <span>{task.assignee || 'Thao Phan (therasaphan24@6)'}</span>
-                              <span className="material-symbols-outlined text-[14px] text-slate-400">arrow_drop_down</span>
+                            <div className="relative inline-flex items-center">
+                              <select
+                                value={task.assignee || ''}
+                                onChange={(e) => handleUpdateTaskAssignee(task.id, e.target.value)}
+                                className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded px-2.5 py-1 pr-7 text-xs font-semibold text-slate-800 cursor-pointer focus:outline-none focus:border-blue-500 shadow-2xs"
+                              >
+                                <option value="">-- Chọn Agent phụ trách --</option>
+                                {agentAccounts?.map((a) => (
+                                  <option key={`task-card-agent-${a.id || a.name}`} value={a.name}>
+                                    {a.name} {a.npn ? `(#${a.npn})` : ''}
+                                  </option>
+                                ))}
+                                {task.assignee && !agentAccounts?.some((a) => a.name === task.assignee) && (
+                                  <option value={task.assignee}>{task.assignee}</option>
+                                )}
+                              </select>
+                              <span className="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">
+                                arrow_drop_down
+                              </span>
                             </div>
                           </div>
 
-                          {/* Highlighted Task Details Box (Light Teal/Cyan Box matching Screenshots 2 & 3) */}
-                          <div className="bg-[#F0F8FA] border border-[#D0E7ED] rounded-xl p-4 text-xs font-mono text-slate-800 leading-relaxed shadow-2xs">
-                            {task.content ? (
-                              <div className="space-y-1 text-slate-800">
-                                {task.content?.split('\n')?.map((line, idx) => (
-                                  <div key={idx} className="flex items-start gap-2">
-                                    <span className="text-slate-500 font-bold">•</span>
-                                    <span className="font-mono text-xs">{line?.replace(/^•\s*/, '')}</span>
-                                  </div>
-                                ))}
+                          {/* Highlighted Task Details Box (Click to edit note) */}
+                          <div
+                            onClick={() => {
+                              if (editingTaskNoteId !== task.id) {
+                                setEditingTaskNoteId(task.id);
+                                setEditingTaskNoteText(task.content || DEFAULT_TASK_NOTE);
+                              }
+                            }}
+                            className={`rounded-xl p-4 text-xs leading-relaxed transition shadow-2xs group ${
+                              editingTaskNoteId === task.id
+                                ? 'bg-white border-2 border-blue-500'
+                                : 'bg-[#F0F8FA] border border-[#D0E7ED] hover:border-blue-400 hover:bg-[#EAF6F9] cursor-pointer'
+                            }`}
+                            title={editingTaskNoteId === task.id ? '' : 'Bấm vào để chỉnh sửa note'}
+                          >
+                            {editingTaskNoteId === task.id ? (
+                              <div className="space-y-2.5" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-blue-700 flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-[16px]">edit_note</span>
+                                    Chỉnh sửa Task Note
+                                  </span>
+                                  <span className="text-[11px] text-slate-500">Bấm "Lưu note" để hoàn tất</span>
+                                </div>
+                                <textarea
+                                  rows={6}
+                                  value={editingTaskNoteText}
+                                  onChange={(e) => setEditingTaskNoteText(e.target.value)}
+                                  className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-800 leading-relaxed focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-y"
+                                  placeholder="Nhập nội dung note cho task..."
+                                  autoFocus
+                                />
+                                <div className="flex items-center justify-end gap-2 pt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingTaskNoteId(null)}
+                                    className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer transition shadow-2xs"
+                                  >
+                                    Hủy
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSaveTaskNote(task.id, editingTaskNoteText)}
+                                    className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition"
+                                  >
+                                    <span className="material-symbols-outlined text-[15px]">check</span>
+                                    <span>Lưu note</span>
+                                  </button>
+                                </div>
                               </div>
                             ) : (
-                              <div className="space-y-1 text-slate-700">
-                                <div className="flex items-start gap-2">
-                                  <span className="text-slate-500 font-bold">•</span>
-                                  <span>Woodbridge Dental</span>
+                              <div className="relative">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px] text-slate-400">description</span>
+                                    Task Note
+                                  </span>
+                                  <span className="text-[11px] text-blue-600 font-semibold opacity-70 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[13px]">edit</span>
+                                    Bấm vào để sửa note
+                                  </span>
                                 </div>
-                                <div className="flex items-start gap-2">
-                                  <span className="text-slate-500 font-bold">•</span>
-                                  <span>The appt is on 10/12/26 at 12:00pm</span>
-                                </div>
-                                <div className="flex items-start gap-2">
-                                  <span className="text-slate-500 font-bold">•</span>
-                                  <span>Address: 11627 S Texas 6 - Sugar Land, TX 77498</span>
-                                </div>
-                                <div className="flex items-start gap-2">
-                                  <span className="text-slate-500 font-bold">•</span>
-                                  <span>Pick up: 25401716</span>
-                                </div>
-                                <div className="flex items-start gap-2">
-                                  <span className="text-slate-500 font-bold">•</span>
-                                  <span>Return: 25401719</span>
-                                </div>
+                                {(task.content || DEFAULT_TASK_NOTE)?.split('\n')?.map((line, idx) => (
+                                  <div key={idx} className="flex items-start gap-2 font-mono text-slate-800">
+                                    <span className="text-slate-400 font-bold">•</span>
+                                    <span>{line?.replace(/^•\s*/, '')}</span>
+                                  </div>
+                                ))}
                               </div>
                             )}
                           </div>
