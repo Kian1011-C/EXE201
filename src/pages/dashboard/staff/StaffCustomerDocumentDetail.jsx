@@ -30,7 +30,7 @@ export default function StaffCustomerDocumentDetail({
   const [filesByCategory, setFilesByCategory] = useState(() => {
     if (doc.filesByCategory) return doc.filesByCategory;
     if (doc.hasDocs || doc.name === '123 123') {
-      return CUSTOMER_DOCUMENT_DATA.filesByCategory;
+      return ({ filesByCategory: {} }).filesByCategory;
     }
     return {
       consentFormMkp: [],

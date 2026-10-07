@@ -188,7 +188,7 @@ export default function StaffTaskDetail({
     // If deal object has reasonable fields
     if (dObj && typeof dObj === 'object' && (dObj.title || dObj.dealName || dObj.code)) {
       return {
-        ...DEAL_DETAIL_DATA,
+        ...{},
         ...dObj,
         title: dObj.title || dObj.dealName || 'Deal',
         id: dObj.code || dObj.id || 'D26005033',
@@ -374,7 +374,7 @@ export default function StaffTaskDetail({
     if (resolvedDeal && onSelectDeal) {
       onSelectDeal(resolvedDeal);
     } else if (onSelectDeal) {
-      const fallback = [...[], ...[]][0] || DEAL_DETAIL_DATA;
+      const fallback = [...[], ...[]][0] || {};
       onSelectDeal(fallback);
     }
   };

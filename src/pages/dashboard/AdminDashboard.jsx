@@ -53,8 +53,8 @@ export default function AdminDashboard() {
 
   // Selected Entities
   const [selectedContact, setSelectedContact] = useState(null);
-  const [selectedDeal, setSelectedDeal] = useState(DEAL_DETAIL_DATA);
-  const [selectedDocument, setSelectedDocument] = useState(CUSTOMER_DOCUMENT_DATA);
+  const [selectedDeal, setSelectedDeal] = useState({});
+  const [selectedDocument, setSelectedDocument] = useState(({ filesByCategory: {} }));
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
 
@@ -213,10 +213,10 @@ export default function AdminDashboard() {
         const allDeals = [...[], ...[]];
         const localFound = allDeals.find((d) => d.id === dealId || d.code === dealId);
         if (localFound) {
-          setSelectedDeal({ ...DEAL_DETAIL_DATA, ...localFound });
+          setSelectedDeal({ ...{}, ...localFound });
         }
         getDeal(dealId)
-          .then((res) => { if (res) setSelectedDeal((prev) => ({ ...DEAL_DETAIL_DATA, ...res })); })
+          .then((res) => { if (res) setSelectedDeal((prev) => ({ ...{}, ...res })); })
           .catch(() => {});
       }
       setActiveTab('deals');
@@ -474,7 +474,7 @@ export default function AdminDashboard() {
   function handleSelectDeal(deal) {
     pushHistory();
     const dealWithContact = {
-      ...DEAL_DETAIL_DATA,
+      ...{},
       ...(deal || {}),
       contactId: deal?.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
       contactName: deal?.contactName || (selectedContact ? selectedContact.fullName : ''),

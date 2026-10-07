@@ -46,8 +46,8 @@ export default function AgentDashboard() {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedContact, setSelectedContact] = useState(null);
-  const [selectedDeal, setSelectedDeal] = useState(DEAL_DETAIL_DATA);
-  const [selectedDocument, setSelectedDocument] = useState(CUSTOMER_DOCUMENT_DATA);
+  const [selectedDeal, setSelectedDeal] = useState({});
+  const [selectedDocument, setSelectedDocument] = useState(({ filesByCategory: {} }));
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
 
@@ -148,11 +148,11 @@ export default function AgentDashboard() {
           (d.title && d.title.toLowerCase().includes('minh tran') && dealId === '3')
         );
         if (localFound) {
-          setSelectedDeal({ ...DEAL_DETAIL_DATA, ...localFound });
+          setSelectedDeal({ ...{}, ...localFound });
         }
         getDeal(dealId)
           .then((res) => {
-            if (res) setSelectedDeal((prev) => ({ ...DEAL_DETAIL_DATA, ...res }));
+            if (res) setSelectedDeal((prev) => ({ ...{}, ...res }));
           })
           .catch(() => {});
       }
@@ -416,7 +416,7 @@ export default function AgentDashboard() {
     );
     const targetDeal = found || deal || {};
     const dealWithContact = {
-      ...DEAL_DETAIL_DATA,
+      ...{},
       ...targetDeal,
       contactId: targetDeal?.contactId || deal?.contactId || (selectedContact ? selectedContact.id || selectedContact.code : ''),
       contactName: targetDeal?.contactName || deal?.contactName || (selectedContact ? selectedContact.fullName : ''),
