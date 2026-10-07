@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import toast from 'react-hot-toast';
+import { ACA_ACCOUNT_STATUS_OPTIONS } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
-
-
+import { getCurrentActor, recordPropertyUpdate, getPersonName } from '../../../services/propertyHistoryService';
+import { getUsers, getContactDeals, getAllCustomerDocuments, addContactActivity, updateContact, createTicket, updateTicket, createContact, addContactNote, updateContactNote, deleteContactNote, createDeal, addContactTask, updateContactTask, createTask, updateTask, deleteTask } from '../../../services/api';
 
 export const AGENT_OPTIONS = [
   'The Best Rate Insurance',
@@ -1258,7 +1261,7 @@ export default function StaffContactDetail({
   function handleDeleteTask(taskId) {
     const updatedList = tasksList.filter((t) => t.id !== taskId);
     updateAndPersistTasks(updatedList);
-    deleteTaskFromStore(taskId);
+    deleteTask(taskId);
     logActivity('Task Deleted', 'deleted a task');
     showToast('Task deleted successfully');
   }
@@ -1541,7 +1544,7 @@ export default function StaffContactDetail({
       { fieldName: 'The Best Rate Email', oldValue: oldAca.theBestRateEmail || '', newValue: theBestRateEmail },
     ];
 
-    recordPropertyUpdatesBatch('contact', contactId, updates, currentActor);
+    recordPropertyUpdate('contact', contactId, updates, currentActor);
 
     if (contact?.id) {
       const matchingUser = dbUsers.find(u => (u.fullName || u.name) === leadContactOwner);
