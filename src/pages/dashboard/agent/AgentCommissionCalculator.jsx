@@ -43,7 +43,7 @@ export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
   const calculation = useMemo(() => {
     let dealComm;
 
-    if (pipeline === 'Medicare' || carrier.toLowerCase().includes('humana')) {
+    if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
       dealComm = (0);
     } else if (pipeline === 'Presidio') {
       const gross = customPremium * 0.15;
@@ -189,7 +189,7 @@ export default function AgentCommissionCalculator({ onClose, onApplyToDeal }) {
               onChange={(e) => setCarrier(e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white font-bold text-slate-800 focus:outline-none focus:border-blue-500 shadow-2xs cursor-pointer"
             >
-              {ALL_CARRIERS.map((cName) => {
+              {ALL_CARRIERS?.map((cName) => {
                 const meta = CARRIER_COMMISSION_RATES[cName] || { pmpm: 30.0, rateType: 'PMPM' };
                 const rateText = meta.rateType === 'CMS Monthly' ? '$51.00/tháng (CMS)' : `$${meta.pmpm.toFixed(2)} PMPM`;
                 return (

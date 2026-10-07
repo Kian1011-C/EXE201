@@ -33,9 +33,9 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [ownerOptionsList, setOwnerOptionsList] = useState(() => [
     { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
     { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
-    ...[].map((a) => ({
+    ...[]?.map((a) => ({
       name: a.name,
-      handle: a.handle || a.email.split('@')[0],
+      handle: a.handle || a.email?.split('@')[0],
       avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
       bg: a.bg || 'bg-blue-600',
     })),
@@ -46,9 +46,9 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
       setOwnerOptionsList([
         { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
         { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
-        ...[].map((a) => ({
+        ...[]?.map((a) => ({
           name: a.name,
-          handle: a.handle || a.email.split('@')[0],
+          handle: a.handle || a.email?.split('@')[0],
           avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
           bg: a.bg || 'bg-blue-600',
         })),
@@ -147,10 +147,10 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
         search: activeSearch,
       });
       if (Array.isArray(data) && data.length > 0) {
-        const dbTickets = data.map((t, idx) => ({
+        const dbTickets = data?.map((t, idx) => ({
           id: t.id || `T2604${1092 - idx}`,
           code: t.code || t.id || `T2604${1092 - idx}`,
-          title: t.title || t.ticketName || 'ACA account 2026',
+          title: t?.title || t.ticketName || 'ACA account 2026',
           pipeline: t.pipeline || 'ACA account',
           stage: t.stage || (t.pipeline === 'Payment' ? 'Make payment (Payment)' : 'Need Create ACA Account (ACA account)'),
           status: t.status || t.ticketStatus || 'Open',
@@ -203,12 +203,12 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
 
   // Filtered Tickets
   const filteredTickets = useMemo(() => {
-    return scopedTickets.filter((t) => {
+    return scopedTickets?.filter((t) => {
       // 1. Search Query
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
+      if (searchQuery?.trim()) {
+        const q = searchQuery?.toLowerCase()?.trim();
         const matchesQ =
-          t.title?.toLowerCase().includes(q) ||
+          t?.title?.toLowerCase().includes(q) ||
           t.code?.toLowerCase().includes(q) ||
           t.id?.toLowerCase().includes(q) ||
           t.contactName?.toLowerCase().includes(q) ||
@@ -218,21 +218,21 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
 
       // 2. Pipeline Filter
       if (selectedPipeline) {
-        const p1 = t.pipeline?.toLowerCase().trim();
-        const p2 = selectedPipeline.toLowerCase().trim();
+        const p1 = t.pipeline?.toLowerCase()?.trim();
+        const p2 = selectedPipeline?.toLowerCase()?.trim();
         if (!p1.includes(p2) && !p2.includes(p1)) return false;
       }
 
       // 3. Owner Filter
       if (selectedOwner) {
-        const o1 = t.ticketOwner?.toLowerCase().trim() || '';
-        const o2 = selectedOwner.toLowerCase().trim();
+        const o1 = t.ticketOwner?.toLowerCase()?.trim() || '';
+        const o2 = selectedOwner?.toLowerCase()?.trim();
         if (!o1.includes(o2) && !o2.includes(o1)) return false;
       }
 
       // 4. Priority Filter
       if (selectedPriority) {
-        if (t.priority?.toLowerCase() !== selectedPriority.toLowerCase()) return false;
+        if (t.priority?.toLowerCase() !== selectedPriority?.toLowerCase()) return false;
       }
 
       // 5. Close Date Filter
@@ -241,8 +241,8 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
       }
 
       // 6. Advanced filters
-      if (advStage && !t.stage?.toLowerCase().includes(advStage.toLowerCase())) return false;
-      if (advModifiedBy && !t.lastModifiedBy?.toLowerCase().includes(advModifiedBy.toLowerCase())) return false;
+      if (advStage && !t.stage?.toLowerCase().includes(advStage?.toLowerCase())) return false;
+      if (advModifiedBy && !t.lastModifiedBy?.toLowerCase().includes(advModifiedBy?.toLowerCase())) return false;
 
       return true;
     });
@@ -264,13 +264,13 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
     if (isAllSelected) {
       setSelectedRowIds([]);
     } else {
-      setSelectedRowIds(filteredTickets.map((t) => t.id || t.code));
+      setSelectedRowIds(filteredTickets?.map((t) => t.id || t.code));
     }
   };
 
   const toggleSelectRow = (id) => {
     setSelectedRowIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? prev?.filter((i) => i !== id) : [...prev, id]
     );
   };
 
@@ -307,7 +307,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
     onSelectTicket({
       id: ticket.id || ticket.code,
       code: ticket.code || ticket.id,
-      title: ticket.title,
+      title: ticket?.title,
       pipeline: ticket.pipeline || 'ACA account',
       status: ticket.status || ticket.stage || 'Open',
       priority: ticket.priority || 'Medium',
@@ -360,18 +360,18 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   }
 
   // Filtered dropdown items
-  const filteredPipelineOptions = PIPELINE_OPTIONS.filter((p) =>
-    p.toLowerCase().includes(pipelineSearch.toLowerCase())
+  const filteredPipelineOptions = PIPELINE_OPTIONS?.filter((p) =>
+    p?.toLowerCase().includes(pipelineSearch?.toLowerCase())
   );
 
-  const filteredOwnerOptions = ownerOptionsList.filter(
+  const filteredOwnerOptions = ownerOptionsList?.filter(
     (o) =>
-      o.name.toLowerCase().includes(ownerSearch.toLowerCase()) ||
-      o.handle.toLowerCase().includes(ownerSearch.toLowerCase())
+      o.name?.toLowerCase().includes(ownerSearch?.toLowerCase()) ||
+      o.handle?.toLowerCase().includes(ownerSearch?.toLowerCase())
   );
 
-  const filteredPriorityOptions = PRIORITY_OPTIONS.filter((pr) =>
-    pr.label.toLowerCase().includes(prioritySearch.toLowerCase())
+  const filteredPriorityOptions = PRIORITY_OPTIONS?.filter((pr) =>
+    pr.label?.toLowerCase().includes(prioritySearch?.toLowerCase())
   );
 
   // Calendar Helpers for Close Date Picker
@@ -397,7 +397,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
 
     filteredTickets.forEach((t) => {
       const stageKey =
-        defaultStages.find((s) => s.toLowerCase() === t.stage?.toLowerCase()) ||
+        defaultStages.find((s) => s?.toLowerCase() === t.stage?.toLowerCase()) ||
         'Need Create ACA Account (ACA account)';
       if (!grouped[stageKey]) grouped[stageKey] = [];
       grouped[stageKey].push(t);
@@ -594,7 +594,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                       ✕ Clear filter
                     </button>
                   )}
-                  {filteredPipelineOptions.map((opt) => (
+                  {filteredPipelineOptions?.map((opt) => (
                     <button
                       key={opt}
                       type="button"
@@ -673,7 +673,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                       ✕ Clear filter
                     </button>
                   )}
-                  {filteredOwnerOptions.map((o) => (
+                  {filteredOwnerOptions?.map((o) => (
                     <button
                       key={o.name}
                       type="button"
@@ -770,7 +770,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                       ✕ Clear filter
                     </button>
                   )}
-                  {filteredPriorityOptions.map((pr) => (
+                  {filteredPriorityOptions?.map((pr) => (
                     <button
                       key={pr.label}
                       type="button"
@@ -903,7 +903,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                 {/* Days Grid */}
                 <div className="grid grid-cols-7 gap-1 text-center text-[11px]">
                   {/* Prev month days */}
-                  {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                  {Array.from({ length: firstDayOfWeek })?.map((_, i) => (
                     <span
                       key={`prev-${i}`}
                       className="text-slate-300 py-1 cursor-default select-none"
@@ -913,7 +913,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                   ))}
 
                   {/* Current month days */}
-                  {Array.from({ length: daysInCalMonth }).map((_, i) => {
+                  {Array.from({ length: daysInCalMonth })?.map((_, i) => {
                     const dayNum = i + 1;
                     const dateStr = `${String(calMonth + 1).padStart(2, '0')}/${String(
                       dayNum
@@ -1099,7 +1099,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                     </td>
                   </tr>
                 ) : (
-                  filteredTickets.map((t, index) => {
+                  filteredTickets?.map((t, index) => {
                     const rowId = t.id || t.code;
                     const isSelected = selectedRowIds.includes(rowId);
 
@@ -1134,7 +1134,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
 
                         {/* 4. Name */}
                         <td className="py-2.5 px-3 font-medium text-slate-900 group-hover:text-blue-600 transition">
-                          {t.title}
+                          {t?.title}
                         </td>
 
                         {/* 5. Pipeline */}
@@ -1232,7 +1232,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
         ) : (
           /* ── 5B. KANBAN BOARD ────────────────────────────────────────────── */
           <div className="p-4 flex gap-4 overflow-x-auto min-h-full bg-[#F4F6F9] items-start">
-            {Object.entries(kanbanStages).map(([stageName, cards]) => (
+            {Object.entries(kanbanStages)?.map(([stageName, cards]) => (
               <div
                 key={stageName}
                 className="w-80 shrink-0 bg-slate-100 rounded-xl border border-slate-200/80 flex flex-col max-h-[calc(100vh-250px)]"
@@ -1241,7 +1241,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                 <div className="p-3 bg-white rounded-t-xl border-b border-slate-200 flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
                     <h3 className="font-bold text-xs text-slate-800 truncate" title={stageName}>
-                      {stageName.split('(')[0]}
+                      {stageName?.split('(')[0]}
                     </h3>
                     <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold text-[10px]">
                       {cards.length}
@@ -1264,7 +1264,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                   {cards.length === 0 ? (
                     <div className="py-8 text-center text-slate-400 text-xs">No tickets</div>
                   ) : (
-                    cards.map((c) => (
+                    cards?.map((c) => (
                       <div
                         key={c.id || c.code}
                         onClick={() => handleTicketClick(c)}
@@ -1441,7 +1441,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                     onChange={(e) => setCreatePipeline(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                   >
-                    {PIPELINE_OPTIONS.map((p) => (
+                    {PIPELINE_OPTIONS?.map((p) => (
                       <option key={p} value={p}>
                         {p}
                       </option>
@@ -1456,7 +1456,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                     onChange={(e) => setCreatePriority(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                   >
-                    {PRIORITY_OPTIONS.map((pr) => (
+                    {PRIORITY_OPTIONS?.map((pr) => (
                       <option key={pr.label} value={pr.label}>
                         {pr.label}
                       </option>
@@ -1473,7 +1473,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                     onChange={(e) => setCreateOwner(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                   >
-                    {ownerOptionsList.map((o) => (
+                    {ownerOptionsList?.map((o) => (
                       <option key={o.name} value={o.name}>
                         {o.name}
                       </option>

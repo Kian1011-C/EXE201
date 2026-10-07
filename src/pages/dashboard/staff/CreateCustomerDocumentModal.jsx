@@ -15,7 +15,7 @@ const CATEGORIES = [
 
 // Returns icon + color based on file extension
 function getFileTypeInfo(filename) {
-  const ext = (filename.split('.').pop() || '').toLowerCase();
+  const ext = (filename?.split('.').pop() || '')?.toLowerCase();
   if (['pdf'].includes(ext)) return { icon: 'picture_as_pdf', color: 'text-red-500', bg: 'bg-red-50', label: 'PDF' };
   if (['doc', 'docx'].includes(ext)) return { icon: 'description', color: 'text-blue-600', bg: 'bg-blue-50', label: 'Word' };
   if (['xls', 'xlsx', 'csv'].includes(ext)) return { icon: 'table_chart', color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Excel' };
@@ -83,7 +83,7 @@ export default function CreateCustomerDocumentModal({
       const cName =
         contact.fullName ||
         [contact.firstName, contact.middleName, contact.lastName]
-          .filter(Boolean)
+          ?.filter(Boolean)
           .join(' ') ||
         contact.name ||
         '';
@@ -98,13 +98,13 @@ export default function CreateCustomerDocumentModal({
           cOwner &&
           (cOwner.includes(a.name) ||
             cOwner.includes(a.handle) ||
-            cOwner.toLowerCase().includes(a.name.toLowerCase()))
+            cOwner?.toLowerCase().includes(a.name?.toLowerCase()))
       );
       if (matched) {
         setSelectedOwner(matched);
-      } else if (cOwner && cOwner.trim()) {
+      } else if (cOwner && cOwner?.trim()) {
         setSelectedOwner({
-          name: cOwner.split('(')[0].trim(),
+          name: cOwner?.split('(')[0]?.trim(),
           handle: cOwner.includes('@') ? cOwner : 'agent',
           avatar: (cOwner[0] || 'A').toUpperCase(),
           bg: 'bg-[#475569]',
@@ -147,7 +147,7 @@ export default function CreateCustomerDocumentModal({
   }
 
   function addFiles(key, files) {
-    const mapped = files.map((f) => ({
+    const mapped = files?.map((f) => ({
       id: `f-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
       name: f.name,
       fullName: f.name,
@@ -155,7 +155,7 @@ export default function CreateCustomerDocumentModal({
         f.size > 1024 * 1024
           ? `${(f.size / (1024 * 1024)).toFixed(1)} MB`
           : `${Math.round(f.size / 1024)} KB`,
-      type: f.name.split('.').pop() || 'doc',
+      type: f.name?.split('.').pop() || 'doc',
       uploadedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }));
     setAttachedFiles((prev) => ({
@@ -167,7 +167,7 @@ export default function CreateCustomerDocumentModal({
   function handleRemoveFile(key, fileId) {
     setAttachedFiles((prev) => ({
       ...prev,
-      [key]: (prev[key] || []).filter((f) => f.id !== fileId),
+      [key]: (prev[key] || [])?.filter((f) => f.id !== fileId),
     }));
   }
 
@@ -188,15 +188,15 @@ export default function CreateCustomerDocumentModal({
 
   function handleSave() {
     const finalDocName =
-      docName && docName.trim() !== '' && docName !== '--'
-        ? docName.trim()
+      docName && docName?.trim() !== '' && docName !== '--'
+        ? docName?.trim()
         : contactName || 'Customer Document';
 
     const initials =
       finalDocName
-        .split(' ')
-        .filter(Boolean)
-        .map((w) => w[0])
+        ?.split(' ')
+        ?.filter(Boolean)
+        ?.map((w) => w[0])
         .slice(0, 2)
         .join('')
         .toUpperCase() || 'CD';
@@ -213,14 +213,14 @@ export default function CreateCustomerDocumentModal({
       ? `${selectedOwner.name} (${selectedOwner.handle})`
       : 'Khanh Nguyen (khanhnguyen37@7)';
 
-    const totalFiles = Object.values(attachedFiles).reduce(
+    const totalFiles = Object.values(attachedFiles)?.reduce(
       (sum, list) => sum + list.length,
       0
     );
 
     const categoriesSummary = Object.entries(attachedFiles)
-      .filter(([_, list]) => list.length > 0)
-      .map(([k, list]) => ({
+      ?.filter(([_, list]) => list.length > 0)
+      ?.map(([k, list]) => ({
         key: k,
         label: CATEGORIES.find((c) => c.key === k)?.label || k,
         count: list.length,
@@ -262,8 +262,8 @@ export default function CreateCustomerDocumentModal({
   }
 
   // Filtered owners for dropdown
-  const filteredOwners = platformMembers.filter((a) =>
-    `${a.name} ${a.handle || ''}`.toLowerCase().includes(ownerSearchQuery.toLowerCase())
+  const filteredOwners = platformMembers?.filter((a) =>
+    `${a.name} ${a.handle || ''}`?.toLowerCase().includes(ownerSearchQuery?.toLowerCase())
   );
 
   // Available existing documents
@@ -272,7 +272,7 @@ export default function CreateCustomerDocumentModal({
     ...[],
   ];
 
-  const totalUploadedFiles = Object.values(attachedFiles).reduce((sum, list) => sum + list.length, 0);
+  const totalUploadedFiles = Object.values(attachedFiles)?.reduce((sum, list) => sum + list.length, 0);
 
   if (!isOpen) return null;
 
@@ -444,7 +444,7 @@ export default function CreateCustomerDocumentModal({
                       />
                     </div>
                     <div className="max-h-48 overflow-y-auto divide-y divide-slate-50">
-                      {filteredOwners.map((agent) => (
+                      {filteredOwners?.map((agent) => (
                         <div
                           key={agent.handle}
                           onClick={() => {
@@ -517,7 +517,7 @@ export default function CreateCustomerDocumentModal({
                 </div>
 
                 <div className="space-y-2">
-                  {CATEGORIES.map((cat) => {
+                  {CATEGORIES?.map((cat) => {
                     const files = attachedFiles[cat.key] || [];
                     const isDragOver = dragOverKey === cat.key;
 
@@ -581,8 +581,8 @@ export default function CreateCustomerDocumentModal({
                         {/* Uploaded files list */}
                         {files.length > 0 && (
                           <div className="border-t border-slate-100 px-3.5 py-2.5 bg-slate-50/60 space-y-1.5">
-                            {files.map((file) => {
-                              const typeInfo = getFileTypeInfo(file.name);
+                            {files?.map((file) => {
+                              const typeInfo = getFileTypeInfo(file?.name);
                               return (
                                 <div
                                   key={file.id}
@@ -597,8 +597,8 @@ export default function CreateCustomerDocumentModal({
 
                                   {/* File info */}
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-semibold text-slate-800 text-[11px] truncate" title={file.name}>
-                                      {file.name}
+                                    <div className="font-semibold text-slate-800 text-[11px] truncate" title={file?.name}>
+                                      {file?.name}
                                     </div>
                                     <div className="flex items-center gap-2 mt-0.5">
                                       <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${typeInfo.bg} ${typeInfo.color}`}>
@@ -665,7 +665,7 @@ export default function CreateCustomerDocumentModal({
                     Không có customer document nào trong hệ thống
                   </div>
                 ) : (
-                  allExistingDocuments.map((doc) => {
+                  allExistingDocuments?.map((doc) => {
                     const isSelected = selectedExistingId === doc.id;
                     return (
                       <div

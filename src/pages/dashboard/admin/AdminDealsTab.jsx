@@ -34,18 +34,18 @@ export default function AdminDealsTab({
   }, [deals]);
 
   const filteredDeals = useMemo(() => {
-    return localDeals.filter((d) => {
+    return localDeals?.filter((d) => {
       const matchSearch =
         !search ||
-        (d.title || '').toLowerCase().includes(search.toLowerCase()) ||
-        (d.code || '').toLowerCase().includes(search.toLowerCase()) ||
-        (d.contactName || '').toLowerCase().includes(search.toLowerCase()) ||
-        (d.carrier || '').toLowerCase().includes(search.toLowerCase()) ||
-        (d.enrolledNpn || '').toLowerCase().includes(search.toLowerCase());
+        (d.title || '')?.toLowerCase().includes(search?.toLowerCase()) ||
+        (d.code || '')?.toLowerCase().includes(search?.toLowerCase()) ||
+        (d.contactName || '')?.toLowerCase().includes(search?.toLowerCase()) ||
+        (d.carrier || '')?.toLowerCase().includes(search?.toLowerCase()) ||
+        (d.enrolledNpn || '')?.toLowerCase().includes(search?.toLowerCase());
 
       const matchPipeline =
         pipelineFilter === 'all' ||
-        (d.pipeline || '').toLowerCase().includes(pipelineFilter.toLowerCase());
+        (d.pipeline || '')?.toLowerCase().includes(pipelineFilter?.toLowerCase());
 
       const currentSss = String(d.saleSupportStatus || d.adminOnly?.saleSupportStatus || 'None').toUpperCase();
       const matchSss =
@@ -90,7 +90,7 @@ export default function AdminDealsTab({
 
       setSelectedDeal(updatedObj);
       setLocalDeals((prev) =>
-        prev.map((d) => (d.id === selectedDeal.id ? updatedObj : d))
+        prev?.map((d) => (d.id === selectedDeal.id ? updatedObj : d))
       );
 
       setToastMessage(`Updated Admin Governance settings for deal ${selectedDeal.code}!`);
@@ -115,7 +115,7 @@ export default function AdminDealsTab({
       }).catch((err) => console.warn('Offline mode: reclaiming AOR in local state', err.message));
 
       setLocalDeals((prev) =>
-        prev.map((d) =>
+        prev?.map((d) =>
           d.id === deal.id
             ? {
                 ...d,
@@ -218,7 +218,7 @@ export default function AdminDealsTab({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredDeals.map((d) => {
+                {filteredDeals?.map((d) => {
                   const sss = d.saleSupportStatus || d.adminOnly?.saleSupportStatus || 'None';
                   const isSelected = selectedDeal?.id === d.id;
 

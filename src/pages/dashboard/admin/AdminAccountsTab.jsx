@@ -57,30 +57,30 @@ export default function AdminAccountsTab({
   }, [accounts]);
 
   const filteredAccounts = useMemo(() => {
-    return localAccounts.filter((a) => {
-      const aName = a.name || `${a.firstName || ''} ${a.lastName || ''}`.trim() || '';
+    return localAccounts?.filter((a) => {
+      const aName = a.name || `${a.firstName || ''} ${a.lastName || ''}`?.trim() || '';
       const aEmail = a.email || '';
       const aNpn = a.npn || '';
       const aId = String(a.id || '');
       const aStatus = a.status || (a.active !== false ? 'Active' : 'Suspended');
-      const aRole = (a.role || '').toLowerCase();
+      const aRole = (a.role || '')?.toLowerCase();
 
       const matchSearch =
         !search ||
-        aName.toLowerCase().includes(search.toLowerCase()) ||
-        aEmail.toLowerCase().includes(search.toLowerCase()) ||
-        aNpn.toLowerCase().includes(search.toLowerCase()) ||
-        aId.toLowerCase().includes(search.toLowerCase());
+        aName?.toLowerCase().includes(search?.toLowerCase()) ||
+        aEmail?.toLowerCase().includes(search?.toLowerCase()) ||
+        aNpn?.toLowerCase().includes(search?.toLowerCase()) ||
+        aId?.toLowerCase().includes(search?.toLowerCase());
 
       const matchRole =
         roleFilter === 'all' ||
-        aRole === roleFilter.toLowerCase() ||
+        aRole === roleFilter?.toLowerCase() ||
         (roleFilter === 'staff' && (aRole === 'support' || aRole === 'telesales')) ||
         (roleFilter === 'admin' && aRole === 'manager');
 
       const matchStatus =
         statusFilter === 'all' ||
-        aStatus.toLowerCase().includes(statusFilter.toLowerCase());
+        aStatus?.toLowerCase().includes(statusFilter?.toLowerCase());
 
       return matchSearch && matchRole && matchStatus;
     });
@@ -108,7 +108,7 @@ export default function AdminAccountsTab({
       });
 
       setLocalAccounts((prev) =>
-        prev.map((a) =>
+        prev?.map((a) =>
           a.id === account.id
             ? { ...a, status: 'Active', complianceStatus: 'Verified & Cleared' }
             : a
@@ -134,7 +134,7 @@ export default function AdminAccountsTab({
       alert('Only Active accounts can be suspended.');
       return;
     }
-    const reason = suspensionReason.trim();
+    const reason = suspensionReason?.trim();
     if (!reason) {
       alert('A suspension reason is required.');
       return;
@@ -148,7 +148,7 @@ export default function AdminAccountsTab({
       });
 
       setLocalAccounts((prev) =>
-        prev.map((a) =>
+        prev?.map((a) =>
           a.id === selectedAccount.id
             ? { ...a, status: 'Suspended', complianceStatus: `Suspended: ${reason}`, suspensionReason: reason }
             : a
@@ -178,7 +178,7 @@ export default function AdminAccountsTab({
       });
 
       setLocalAccounts((prev) =>
-        prev.map((a) =>
+        prev?.map((a) =>
           a.id === account.id
             ? { ...a, status: 'Active', complianceStatus: 'Verified & Cleared', suspensionReason: '' }
             : a
@@ -217,17 +217,17 @@ export default function AdminAccountsTab({
 
   function validateCreateForm(form) {
     const errors = {};
-    const name = form.name.trim();
-    const email = form.email.trim();
-    const phone = form.phone.trim();
-    const npn = form.npn.trim();
+    const name = form.name?.trim();
+    const email = form.email?.trim();
+    const phone = form.phone?.trim();
+    const npn = form.npn?.trim();
 
     if (!['agent', 'staff', 'admin'].includes(form.role)) errors.role = 'Role must be agent, staff or admin.';
     if (!name) errors.name = 'Full name is required.';
 
     if (!email) errors.email = 'Email address is required.';
     else if (!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) errors.email = 'Enter a valid email address (e.g. name@domain.com).';
-    else if (localAccounts.some((a) => String(a.email || '').trim().toLowerCase() === email.toLowerCase())) {
+    else if (localAccounts?.some((a) => String(a.email || '')?.trim()?.toLowerCase() === email?.toLowerCase())) {
       errors.email = 'An account with this email already exists.';
     }
 
@@ -235,7 +235,7 @@ export default function AdminAccountsTab({
       if (!phone) errors.phone = 'Phone number is required for agents.';
       if (!npn) errors.npn = 'NPN is required for agents.';
       else if (!(/^\d+$/.test(npn))) errors.npn = 'NPN must be 7-8 digits (numbers only).';
-      else if (localAccounts.some((a) => String(a.npn || '').trim() === npn)) {
+      else if (localAccounts?.some((a) => String(a.npn || '')?.trim() === npn)) {
         errors.npn = 'This NPN is already registered to another account.';
       }
     }
@@ -299,21 +299,21 @@ export default function AdminAccountsTab({
     setIsProcessing(true);
     try {
       const statesArr = newAccountForm.statesLicensed
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
+        ?.split(',')
+        ?.map((s) => s?.trim())
+        ?.filter(Boolean);
 
       // Status / complianceStatus are decided by the backend (agents start Pending,
       // staff/admin start Active) — the form only sends identity data.
       const payload = {
-        name: newAccountForm.name.trim(),
-        email: newAccountForm.email.trim(),
+        name: newAccountForm.name?.trim(),
+        email: newAccountForm.email?.trim(),
         role: newAccountForm.role,
-        phone: newAccountForm.phone.trim(),
+        phone: newAccountForm.phone?.trim(),
         statesLicensed: statesArr,
-        department: newAccountForm.department.trim(),
+        department: newAccountForm.department?.trim(),
       };
-      if (newAccountForm.role === 'agent') payload.npn = newAccountForm.npn.trim();
+      if (newAccountForm.role === 'agent') payload.npn = newAccountForm.npn?.trim();
 
       const { tempPassword, offline, ...created } = await createAdminAccount(payload);
 
@@ -322,7 +322,7 @@ export default function AdminAccountsTab({
       setStatusFilter('all');
       setSearch('');
 
-      setLocalAccounts((prev) => [created, ...prev.filter((a) => a.id !== created.id)]);
+      setLocalAccounts((prev) => [created, ...prev?.filter((a) => a.id !== created.id)]);
 
       // Temp password lives only in component state (never localStorage)
       setCreatedCredentials({
@@ -448,7 +448,7 @@ export default function AdminAccountsTab({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredAccounts.map((acc) => {
+              {filteredAccounts?.map((acc) => {
                 const isActive = getStatus(acc) === 'Active';
                 const isPending = isPendingStatus(acc);
                 const isSuspended = getStatus(acc) === 'Suspended';
@@ -487,7 +487,7 @@ export default function AdminAccountsTab({
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-wrap gap-1 max-w-xs">
-                        {(acc.statesLicensed || []).map((st) => (
+                        {(acc.statesLicensed || [])?.map((st) => (
                           <span key={st} className="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-semibold text-slate-700 border border-slate-200">
                             {st}
                           </span>

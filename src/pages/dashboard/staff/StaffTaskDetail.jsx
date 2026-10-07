@@ -128,11 +128,11 @@ export default function StaffTaskDetail({
   const resolvedDeal = useMemo(() => {
     const allDeals = [...[], ...[]];
     const dObj = currentTask.deal || currentTask.rawTask?.deal;
-    const dId = String(currentTask.dealId || dObj?.id || dObj?.code || '').trim();
+    const dId = String(currentTask.dealId || dObj?.id || dObj?.code || '')?.trim();
     const dTitle = String(
       currentTask.dealTitle || dObj?.dealName || dObj?.title || ''
-    ).trim().toLowerCase();
-    const taskTitle = String(currentTask.title || '').toLowerCase();
+    )?.trim()?.toLowerCase();
+    const taskTitle = String(currentTask.title || '')?.toLowerCase();
 
     // Direct ID / Code match
     if (dId) {
@@ -151,7 +151,7 @@ export default function StaffTaskDetail({
       const match = allDeals.find(
         (d) =>
           d.title &&
-          (d.title.toLowerCase().includes(dTitle) || dTitle.includes(d.title.toLowerCase()))
+          (d.title?.toLowerCase().includes(dTitle) || dTitle.includes(d.title?.toLowerCase()))
       );
       if (match) return match;
     }
@@ -159,28 +159,28 @@ export default function StaffTaskDetail({
     // Match by keywords in task title (e.g. "Minh Tran", "Hai Nguyen", "Chi Trung")
     if (
       taskTitle.includes('minh tran') ||
-      (currentTask.contactName && currentTask.contactName.toLowerCase().includes('minh tran'))
+      (currentTask.contactName && currentTask.contactName?.toLowerCase().includes('minh tran'))
     ) {
       const match = allDeals.find(
-        (d) => d.title && d.title.toLowerCase().includes('minh tran')
+        (d) => d.title && d.title?.toLowerCase().includes('minh tran')
       );
       if (match) return match;
     }
     if (
       taskTitle.includes('hai nguyen') ||
-      (currentTask.contactName && currentTask.contactName.toLowerCase().includes('hai nguyen'))
+      (currentTask.contactName && currentTask.contactName?.toLowerCase().includes('hai nguyen'))
     ) {
       const match = allDeals.find(
-        (d) => d.title && d.title.toLowerCase().includes('hai nguyen')
+        (d) => d.title && d.title?.toLowerCase().includes('hai nguyen')
       );
       if (match) return match;
     }
     if (
       taskTitle.includes('chi trung') ||
-      (currentTask.contactName && currentTask.contactName.toLowerCase().includes('chi trung'))
+      (currentTask.contactName && currentTask.contactName?.toLowerCase().includes('chi trung'))
     ) {
       const match = allDeals.find(
-        (d) => d.title && d.title.toLowerCase().includes('chi trung')
+        (d) => d.title && d.title?.toLowerCase().includes('chi trung')
       );
       if (match) return match;
     }
@@ -204,11 +204,11 @@ export default function StaffTaskDetail({
   const resolvedContact = useMemo(() => {
     const allContacts = [...[], ...[]];
     const cObj = currentTask.contact || currentTask.rawTask?.contact;
-    const cId = String(currentTask.contactId || cObj?.id || cObj?.code || '').trim();
+    const cId = String(currentTask.contactId || cObj?.id || cObj?.code || '')?.trim();
     const cName = String(
       currentTask.contactName || cObj?.fullName || cObj?.name || ''
-    ).trim().toLowerCase();
-    const taskTitle = String(currentTask.title || '').toLowerCase();
+    )?.trim()?.toLowerCase();
+    const taskTitle = String(currentTask.title || '')?.toLowerCase();
 
     if (cId) {
       const match = allContacts.find(
@@ -223,8 +223,8 @@ export default function StaffTaskDetail({
     if (cName) {
       const match = allContacts.find(
         (c) =>
-          (c.fullName && c.fullName.toLowerCase().includes(cName)) ||
-          (c.name && c.name.toLowerCase().includes(cName))
+          (c.fullName && c.fullName?.toLowerCase().includes(cName)) ||
+          (c.name && c.name?.toLowerCase().includes(cName))
       );
       if (match) return match;
     }
@@ -233,13 +233,13 @@ export default function StaffTaskDetail({
       const match = allContacts.find(
         (c) =>
           c.fullName &&
-          (c.fullName.toLowerCase().includes('tracy') || c.fullName.toLowerCase().includes('nguyen'))
+          (c.fullName?.toLowerCase().includes('tracy') || c.fullName?.toLowerCase().includes('nguyen'))
       );
       if (match) return match;
     }
     if (taskTitle.includes('minh tran')) {
       const match = allContacts.find(
-        (c) => c.fullName && c.fullName.toLowerCase().includes('minh')
+        (c) => c.fullName && c.fullName?.toLowerCase().includes('minh')
       );
       if (match) return match;
     }
@@ -252,7 +252,7 @@ export default function StaffTaskDetail({
   const resolvedTicket = useMemo(() => {
     const allTickets = [...[], ...[]];
     const tObj = currentTask.ticket || currentTask.rawTask?.ticket;
-    const tId = String(currentTask.ticketId || tObj?.id || tObj?.code || '').trim();
+    const tId = String(currentTask.ticketId || tObj?.id || tObj?.code || '')?.trim();
 
     if (tId) {
       const match = allTickets.find(
@@ -282,10 +282,10 @@ export default function StaffTaskDetail({
   };
 
   const handleSaveTitle = () => {
-    if (!editedTitle.trim()) return;
+    if (!editedTitle?.trim()) return;
     const updated = {
       ...currentTask,
-      title: editedTitle.trim(),
+      title: editedTitle?.trim(),
       lastModifiedTime: new Date().toLocaleString(),
     };
     setCurrentTask(updated);
@@ -319,12 +319,12 @@ export default function StaffTaskDetail({
   };
 
   const handleSendComment = () => {
-    if (!newCommentText.trim()) return;
+    if (!newCommentText?.trim()) return;
     const newComment = {
       id: `cm-${Date.now()}`,
       author: currentUserName,
       time: new Date().toLocaleString(),
-      text: newCommentText.trim(),
+      text: newCommentText?.trim(),
     };
     const updatedComments = [newComment, ...(currentTask.comments || [])];
     const updated = {
@@ -343,7 +343,7 @@ export default function StaffTaskDetail({
     if (!file) return;
     const newAtt = {
       id: `att-${Date.now()}`,
-      name: file.name,
+      name: file?.name,
       size: `${(file.size / 1024).toFixed(1)} KB`,
       type: file.type,
       time: new Date().toLocaleDateString(),
@@ -355,13 +355,13 @@ export default function StaffTaskDetail({
     };
     setCurrentTask(updated);
     if (onUpdateTask) onUpdateTask(updated);
-    toast.success(`Đã đính kèm tệp: ${file.name}`);
+    toast.success(`Đã đính kèm tệp: ${file?.name}`);
   };
 
   const handleDeleteAttachment = (attId) => {
     const updated = {
       ...currentTask,
-      attachments: (currentTask.attachments || []).filter((a) => a.id !== attId),
+      attachments: (currentTask.attachments || [])?.filter((a) => a.id !== attId),
       lastModifiedTime: new Date().toLocaleString(),
     };
     setCurrentTask(updated);
@@ -529,7 +529,7 @@ export default function StaffTaskDetail({
                 <div className="flex items-center gap-2 text-slate-800 font-medium">
                   <input
                     type="text"
-                    value={`${currentTask.dueDate || ''} ${currentTask.dueTime || ''}`.trim()}
+                    value={`${currentTask.dueDate || ''} ${currentTask.dueTime || ''}`?.trim()}
                     onChange={(e) => handleFieldChange('dueDate', e.target.value)}
                     className="border border-transparent hover:border-slate-300 focus:border-blue-500 rounded px-2 py-0.5 text-xs text-slate-800 font-semibold focus:outline-none"
                   />
@@ -582,7 +582,7 @@ export default function StaffTaskDetail({
                     className="bg-transparent border border-slate-200 hover:border-slate-300 rounded px-2 py-1 text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
                   >
                     <option value="Jena Le (jena78@9)">Jena Le (jena78@9)</option>
-                    {availableAgents.map((ag) => (
+                    {availableAgents?.map((ag) => (
                       <option key={ag.name} value={`${ag.name} (${ag.handle || 'agent'})`}>
                         {ag.name} ({ag.handle || 'agent'})
                       </option>
@@ -616,7 +616,7 @@ export default function StaffTaskDetail({
                   />
                   {currentTask.attachments && currentTask.attachments.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
-                      {currentTask.attachments.map((att) => (
+                      {currentTask.attachments?.map((att) => (
                         <div
                           key={att.id}
                           className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded text-xs text-slate-700"
@@ -788,7 +788,7 @@ export default function StaffTaskDetail({
               </div>
             ) : (
               <div className="space-y-3 divide-y divide-slate-100">
-                {currentTask.comments.map((cm) => (
+                {currentTask.comments?.map((cm) => (
                   <div key={cm.id} className="pt-3 first:pt-0">
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold flex items-center justify-center">

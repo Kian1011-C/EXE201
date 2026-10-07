@@ -43,7 +43,7 @@ export default function StaffCustomerDocumentsList({
     setLoading(true);
     try {
       const params = {};
-      if (search && search.trim()) params.search = search.trim();
+      if (search && search?.trim()) params.search = search?.trim();
       if (owner && owner !== 'all') params.owner = owner;
       const data = await getDocuments(params);
       if (Array.isArray(data)) {
@@ -82,7 +82,7 @@ export default function StaffCustomerDocumentsList({
 
   // Unique owners
   const ownerOptions = useMemo(() => {
-    const set = new Set(scopedDocuments.map((d) => d.contactOwner).filter(Boolean));
+    const set = new Set(scopedDocuments?.map((d) => d.contactOwner)?.filter(Boolean));
     return Array.from(set);
   }, [scopedDocuments]);
 
@@ -90,7 +90,7 @@ export default function StaffCustomerDocumentsList({
   function countDocumentFiles(doc) {
     if (doc.totalFiles !== undefined) return doc.totalFiles;
     if (!doc.filesByCategory) return 0;
-    return Object.values(doc.filesByCategory).reduce(
+    return Object.values(doc.filesByCategory)?.reduce(
       (sum, files) => sum + (Array.isArray(files) ? files.length : 0),
       0
     );
@@ -119,12 +119,12 @@ export default function StaffCustomerDocumentsList({
 
   // Filtered documents
   const filteredDocuments = useMemo(() => {
-    return scopedDocuments.filter((doc) => {
-      const q = searchQuery.toLowerCase().trim();
-      const name = (doc.name || '').toLowerCase();
-      const contactName = (doc.contactName || doc.associatedContact?.name || '').toLowerCase();
-      const contactCode = (doc.contactId || doc.associatedContact?.id || '').toLowerCase();
-      const owner = (doc.contactOwner || '').toLowerCase();
+    return scopedDocuments?.filter((doc) => {
+      const q = searchQuery?.toLowerCase()?.trim();
+      const name = (doc.name || '')?.toLowerCase();
+      const contactName = (doc.contactName || doc.associatedContact?.name || '')?.toLowerCase();
+      const contactCode = (doc.contactId || doc.associatedContact?.id || '')?.toLowerCase();
+      const owner = (doc.contactOwner || '')?.toLowerCase();
 
       const matchesSearch =
         !q ||
@@ -134,12 +134,12 @@ export default function StaffCustomerDocumentsList({
         owner.includes(q);
 
       const matchesOwner =
-        ownerFilter === 'all' || owner.includes(ownerFilter.toLowerCase());
+        ownerFilter === 'all' || owner.includes(ownerFilter?.toLowerCase());
 
       const activeCats = getActiveCategories(doc);
       const matchesCategory =
         categoryFilter === 'all' ||
-        activeCats.some((c) => c.key === categoryFilter);
+        activeCats?.some((c) => c.key === categoryFilter);
 
       const totalFiles = countDocumentFiles(doc);
       let matchesStatus = true;
@@ -178,17 +178,17 @@ export default function StaffCustomerDocumentsList({
 
   function handleToggleSelectAll() {
     if (allCurrentPageSelected) {
-      const pageIds = new Set(paginatedDocs.map((d) => d.id));
-      setSelectedRowIds((prev) => prev.filter((id) => !pageIds.has(id)));
+      const pageIds = new Set(paginatedDocs?.map((d) => d.id));
+      setSelectedRowIds((prev) => prev?.filter((id) => !pageIds.has(id)));
     } else {
-      const newIds = paginatedDocs.map((d) => d.id);
+      const newIds = paginatedDocs?.map((d) => d.id);
       setSelectedRowIds((prev) => Array.from(new Set([...prev, ...newIds])));
     }
   }
 
   function handleToggleRow(id) {
     setSelectedRowIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? prev?.filter((i) => i !== id) : [...prev, id]
     );
   }
 
@@ -208,7 +208,7 @@ export default function StaffCustomerDocumentsList({
     if (availableContacts.length > 0) {
       const first = availableContacts[0];
       setNewContactId(first.id || first.code || '');
-      setNewDocName(first.fullName || `${first.firstName || ''} ${first.lastName || ''}`.trim() || 'Customer Document');
+      setNewDocName(first.fullName || `${first.firstName || ''} ${first.lastName || ''}`?.trim() || 'Customer Document');
       setNewDocOwner(typeof first.contactOwner === 'string' ? first.contactOwner : 'Khanh Nguyen (khanhnguyen31@7)');
     }
     setShowCreateModal(true);
@@ -217,11 +217,11 @@ export default function StaffCustomerDocumentsList({
   function handleCreateSubmit(e) {
     e.preventDefault();
     const contact = availableContacts.find((c) => c.id === newContactId || c.code === newContactId);
-    const cName = newDocName.trim() || contact?.fullName || 'Customer Document';
+    const cName = newDocName?.trim() || contact?.fullName || 'Customer Document';
     const initials = cName
-      .split(' ')
-      .filter(Boolean)
-      .map((w) => w[0])
+      ?.split(' ')
+      ?.filter(Boolean)
+      ?.map((w) => w[0])
       .slice(0, 2)
       .join('')
       .toUpperCase() || 'CD';
@@ -238,7 +238,7 @@ export default function StaffCustomerDocumentsList({
       contactId: contact?.id || contact?.code || 'CT26009999',
       contactOwner: newDocOwner,
       lastModifiedTime: `${dStr}, ${tStr}`,
-      lastModifiedBy: newDocOwner.split('(')[0].trim() || 'Staff',
+      lastModifiedBy: newDocOwner?.split('(')[0]?.trim() || 'Staff',
       totalFiles: 0,
       categoriesSummary: [],
       filesByCategory: {
@@ -420,7 +420,7 @@ export default function StaffCustomerDocumentsList({
             className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-blue-500 shadow-2xs cursor-pointer"
           >
             <option value="all">All Owners</option>
-            {ownerOptions.map((o) => (
+            {ownerOptions?.map((o) => (
               <option key={o} value={o}>
                 {o}
               </option>
@@ -437,7 +437,7 @@ export default function StaffCustomerDocumentsList({
             className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-blue-500 shadow-2xs cursor-pointer"
           >
             <option value="all">All Categories</option>
-            {DOCUMENT_CATEGORIES.map((cat) => (
+            {DOCUMENT_CATEGORIES?.map((cat) => (
               <option key={cat.key} value={cat.key}>
                 {cat.label}
               </option>
@@ -540,7 +540,7 @@ export default function StaffCustomerDocumentsList({
                     </td>
                   </tr>
                 ) : (
-                  paginatedDocs.map((doc, idx) => {
+                  paginatedDocs?.map((doc, idx) => {
                     const rowNo = (currentPage - 1) * displayCount + idx + 1;
                     const isSelected = selectedRowIds.includes(doc.id);
                     const totalFiles = countDocumentFiles(doc);
@@ -614,7 +614,7 @@ export default function StaffCustomerDocumentsList({
                         <td className="px-3 py-2.5">
                           {activeCats.length > 0 ? (
                             <div className="flex flex-wrap items-center gap-1 max-w-[280px]">
-                              {activeCats.map((cat) => (
+                              {activeCats?.map((cat) => (
                                 <span
                                   key={cat.key}
                                   className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${cat.color || 'bg-slate-100 text-slate-700 border-slate-200'}`}

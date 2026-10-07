@@ -4,7 +4,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 export function parseAmount(val) {
   if (!val) return 0;
   if (typeof val === 'number') return val;
-  const cleaned = String(val).replace(/[^0-9.-]+/g, '');
+  const cleaned = String(val)?.replace(/[^0-9.-]+/g, '');
   const num = parseFloat(cleaned);
   return isNaN(num) ? 0 : num;
 }
@@ -23,17 +23,17 @@ export function formatCurrency(num) {
 export function getCleanStageLabel(stage) {
   if (!stage) return 'UNASSIGNED';
   return stage
-    .replace(/\s*\((Obamacare|Medicare)\s*\d*\)/gi, '')
-    .trim()
+    ?.replace(/\s*\((Obamacare|Medicare)\s*\d*\)/gi, '')
+    ?.trim()
     .toUpperCase();
 }
 
 export function normalizeStageName(str) {
   if (!str) return '';
   return str
-    .toLowerCase()
-    .replace(/\s*\((obamacare|medicare)\s*\d*\)/gi, '')
-    .trim();
+    ?.toLowerCase()
+    ?.replace(/\s*\((obamacare|medicare)\s*\d*\)/gi, '')
+    ?.trim();
 }
 
 // ── Standard Pipeline Stage Sequences ─────────────────────────────────────────
@@ -193,9 +193,9 @@ export default function StaffDealsKanban({
   // Dynamically assemble all columns based on pipeline + deal stages
   const columns = useMemo(() => {
     let baseStages = [];
-    if (pipeline && pipeline.toLowerCase().includes('medicare')) {
+    if (pipeline && pipeline?.toLowerCase().includes('medicare')) {
       baseStages = [...PIPELINE_STAGE_TEMPLATES['Medicare 2026']];
-    } else if (pipeline && pipeline.toLowerCase().includes('obamacare')) {
+    } else if (pipeline && pipeline?.toLowerCase().includes('obamacare')) {
       baseStages = [...PIPELINE_STAGE_TEMPLATES['Obamacare 2026']];
     } else {
       baseStages = [...PIPELINE_STAGE_TEMPLATES.all];
@@ -205,21 +205,21 @@ export default function StaffDealsKanban({
     deals.forEach((d) => {
       if (!d.stage) return;
       const norm = normalizeStageName(d.stage);
-      const found = baseStages.some((st) => normalizeStageName(st) === norm);
+      const found = baseStages?.some((st) => normalizeStageName(st) === norm);
       if (!found) {
         baseStages.push(d.stage);
       }
     });
 
-    const mapped = baseStages.map((stageStr) => {
+    const mapped = baseStages?.map((stageStr) => {
       const norm = normalizeStageName(stageStr);
       const cleanLabel = getCleanStageLabel(stageStr);
-      const colDeals = deals.filter((d) => normalizeStageName(d.stage) === norm);
-      const totalAmount = colDeals.reduce((sum, d) => sum + parseAmount(d.amount), 0);
+      const colDeals = deals?.filter((d) => normalizeStageName(d.stage) === norm);
+      const totalAmount = colDeals?.reduce((sum, d) => sum + parseAmount(d.amount), 0);
       const colors = getStageColorClasses(norm);
 
       return {
-        id: norm.replace(/[^a-z0-9]+/g, '_'),
+        id: norm?.replace(/[^a-z0-9]+/g, '_'),
         rawStage: stageStr,
         canonicalStage: stageStr,
         label: cleanLabel,
@@ -232,13 +232,13 @@ export default function StaffDealsKanban({
     });
 
     if (filterMode === 'active') {
-      return mapped.filter((c) => c.count > 0);
+      return mapped?.filter((c) => c.count > 0);
     }
     return mapped;
   }, [deals, pipeline, filterMode]);
 
   const activeColumnsCount = useMemo(() => {
-    return columns.filter((c) => c.count > 0).length;
+    return columns?.filter((c) => c.count > 0).length;
   }, [columns]);
 
   return (
@@ -280,7 +280,7 @@ export default function StaffDealsKanban({
 
       {/* ── Kanban Columns Track ─────────────────────────────────────────── */}
       <div className="flex-grow flex gap-3 overflow-x-auto pb-4 pt-1 px-1 min-h-[580px] scrollbar-thin">
-        {columns.map((col) => {
+        {columns?.map((col) => {
           const isCollapsed = Boolean(collapsedColumns[col.id]);
 
           if (isCollapsed) {
@@ -373,7 +373,7 @@ export default function StaffDealsKanban({
                     <span className="font-medium text-[11px]">Không có deal nào (Kéo thả vào đây)</span>
                   </div>
                 ) : (
-                  col.deals.map((deal) => {
+                  col.deals?.map((deal) => {
                     const formattedTime = deal.lastModifiedTime || '09/18/2026, 15:39';
                     const isStaff = window.location.pathname.includes('/staff');
                     const isAdmin = window.location.pathname.includes('/admin');

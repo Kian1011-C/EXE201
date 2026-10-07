@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }) {
 
       {/* Nav */}
       <nav className="flex-grow px-3 py-4 space-y-1">
-        {navItems.map((item) => {
+        {navItems?.map((item) => {
           const active = location.pathname === item.path;
           return (
             <Link

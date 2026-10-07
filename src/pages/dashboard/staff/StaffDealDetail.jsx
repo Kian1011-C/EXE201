@@ -49,22 +49,22 @@ export default function StaffDealDetail({
 
     const cId = String(
       dealInfo.contactId || (typeof dealInfo.contact === 'string' ? dealInfo.contact : '') || ''
-    ).trim();
-    const cName = String(dealInfo.contactName || '').trim();
+    )?.trim();
+    const cName = String(dealInfo.contactName || '')?.trim();
 
     if (!base && (cId || cName)) {
       const allContacts = [...[], ...[]];
       const found = allContacts.find(
         (c) =>
           (cId && (String(c.id) === cId || String(c.code) === cId)) ||
-          (cName && c.fullName && c.fullName.trim().toLowerCase() === cName.toLowerCase())
+          (cName && c.fullName && c.fullName?.trim()?.toLowerCase() === cName?.toLowerCase())
       );
       if (found) {
         base = {
           id: found.id || found.code || cId,
           fullName:
             found.fullName ||
-            `${found.firstName || ''} ${found.lastName || ''}`.trim() ||
+            `${found.firstName || ''} ${found.lastName || ''}`?.trim() ||
             cName,
           phone: found.phone || found.contactFields?.phonePrimary || dealInfo.contactPhone || '',
           email: found.email || found.contactFields?.emailPrimary || dealInfo.contactEmail || '',
@@ -94,7 +94,7 @@ export default function StaffDealDetail({
     const existingDeals = Array.isArray(base.associatedDeals)
       ? base.associatedDeals
       : (Array.isArray(base.deals) ? base.deals : []);
-    const filteredDeals = existingDeals.filter(
+    const filteredDeals = existingDeals?.filter(
       (d) => (d.id || d.code) !== currentDealItem.id
     );
     const updatedDeals = [currentDealItem, ...filteredDeals];
@@ -158,17 +158,17 @@ export default function StaffDealDetail({
 
       // Merge dynamic tasks store with deal.tasks to prevent task loss when navigating
       const dId = String(nextId || deal?.code || dealInfo.code || '');
-      const dTitle = String(deal?.title || dealInfo.title || '').trim().toLowerCase();
+      const dTitle = String(deal?.title || dealInfo.title || '')?.trim()?.toLowerCase();
       const dynamicTasks = typeof window !== 'undefined' ? [] : [];
-      const storeDealTasks = dynamicTasks.filter(
+      const storeDealTasks = dynamicTasks?.filter(
         (t) =>
           (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId || String(t.deal?.code) === dId)) ||
-          (dTitle && t.dealName && String(t.dealName).trim().toLowerCase() === dTitle)
+          (dTitle && t.dealName && String(t.dealName)?.trim()?.toLowerCase() === dTitle)
       );
       const existingTasks = Array.isArray(deal?.tasks) ? deal.tasks : (dealInfo.tasks || []);
       const mergedTasks = [
         ...storeDealTasks,
-        ...existingTasks.filter((et) => !storeDealTasks.some((st) => String(st.id) === String(et.id))),
+        ...existingTasks?.filter((et) => !storeDealTasks?.some((st) => String(st.id) === String(et.id))),
       ];
       setTasksList(mergedTasks);
 
@@ -189,7 +189,7 @@ export default function StaffDealDetail({
       setQuotedCounty(deal?.quotedCounty || '');
       setIsBackdateDeal(deal?.isBackdateDeal || 'No');
       setPlanName(deal?.planName || '');
-      setEnrollAmount(deal?.amount && deal.amount !== '_ _ _ _ _ _ _ _ _ _' ? String(deal.amount).replace('$', '').trim() : '');
+      setEnrollAmount(deal?.amount && deal.amount !== '_ _ _ _ _ _ _ _ _ _' ? String(deal.amount)?.replace('$', '')?.trim() : '');
       setMonthlyPremium(deal?.monthlyPremium || '');
       setSubsidyAmount(deal?.subsidyAmount || '');
       setAgencyCommission(deal?.agencyCommission || '');
@@ -229,8 +229,8 @@ export default function StaffDealDetail({
     ? MEDICARE_DEAL_STAGES
     : OBAMACARE_DEAL_STAGES;
 
-  const filteredStages = currentPipelineStages.filter((st) =>
-    st.toLowerCase().includes(stageSearchQuery.toLowerCase().trim())
+  const filteredStages = currentPipelineStages?.filter((st) =>
+    st?.toLowerCase().includes(stageSearchQuery?.toLowerCase()?.trim())
   );
 
   function handleSelectStage(newStage) {
@@ -328,16 +328,16 @@ export default function StaffDealDetail({
   useEffect(() => {
     getUsers().then((data) => {
       if (Array.isArray(data) && data.length > 0) {
-        const backendAgents = data.filter((u) => {
-          const role = (u.role || '').toLowerCase();
-          const status = (u.status || '').toLowerCase();
+        const backendAgents = data?.filter((u) => {
+          const role = (u.role || '')?.toLowerCase();
+          const status = (u.status || '')?.toLowerCase();
           return (role === 'agent' || role === 'broker') && status !== 'suspended';
         });
         if (backendAgents.length > 0) {
           setAgentAccounts(
-            backendAgents.map((b) => ({
+            backendAgents?.map((b) => ({
               id: String(b.id),
-              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`?.trim(),
               role: 'agent',
               avatar: b.avatar,
               bg: b.bg,
@@ -353,9 +353,9 @@ export default function StaffDealDetail({
   }, []);
 
   const allAvailableAgents = useMemo(() => {
-    const list = agentAccounts.map((a) => ({
+    const list = agentAccounts?.map((a) => ({
       name: a.name,
-      handle: a.handle || a.email.split('@')[0],
+      handle: a.handle || a.email?.split('@')[0],
       avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
       bg: a.bg || 'bg-[#2563EB]',
     }));
@@ -407,20 +407,20 @@ export default function StaffDealDetail({
       'James Vu 1854201',
     ];
 
-    const fromAgents = agentAccounts.map((a) => {
+    const fromAgents = agentAccounts?.map((a) => {
       const npnStr = a.npn ? ` ${a.npn}` : '';
-      return `${a.name}${npnStr}`.trim();
+      return `${a.name}${npnStr}`?.trim();
     });
 
     const combined = [...fromAgents, ...baseline];
-    if (enrolledNpn && enrolledNpn.trim()) {
-      combined.unshift(enrolledNpn.trim());
+    if (enrolledNpn && enrolledNpn?.trim()) {
+      combined.unshift(enrolledNpn?.trim());
     }
 
     const seen = new Set();
-    return combined.filter((item) => {
-      if (!item || seen.has(item.toLowerCase())) return false;
-      seen.add(item.toLowerCase());
+    return combined?.filter((item) => {
+      if (!item || seen.has(item?.toLowerCase())) return false;
+      seen.add(item?.toLowerCase());
       return true;
     });
   }, [agentAccounts, enrolledNpn]);
@@ -447,7 +447,7 @@ export default function StaffDealDetail({
     dealInfo.planName || ''
   );
   const [enrollAmount, setEnrollAmount] = useState(
-    dealInfo.amount && dealInfo.amount !== '_ _ _ _ _ _ _ _ _ _' ? String(dealInfo.amount).replace('$', '').trim() : ''
+    dealInfo.amount && dealInfo.amount !== '_ _ _ _ _ _ _ _ _ _' ? String(dealInfo.amount)?.replace('$', '')?.trim() : ''
   );
   const [needUpload, setNeedUpload] = useState(
     deal?.needUpload || (deal?.uploadRequest ? 'Yes' : 'No')
@@ -677,43 +677,43 @@ export default function StaffDealDetail({
   // Current snapshot for debounced auto-save
   const currentDealSnapshot = useMemo(() => {
     return JSON.stringify({
-      dealTitle: String(dealTitle || '').trim(),
-      dealOwner: String(typeof dealOwner === 'object' ? dealOwner?.name || '' : dealOwner || '').trim(),
-      pipeline: String(pipeline || '').trim(),
-      stage: String(stage || '').trim(),
-      amount: String(amount !== undefined && amount !== null ? amount : '').trim(),
-      enrollAmount: String(enrollAmount !== undefined && enrollAmount !== null ? enrollAmount : '').trim(),
-      primaryMemberId: String(primaryMemberId || '').trim(),
-      carrier: String(carrier || '').trim(),
-      sellingState: String(sellingState || '').trim(),
-      numberMember: String(numberMember !== undefined && numberMember !== null ? numberMember : '').trim(),
-      enrolledNpn: String(enrolledNpn || '').trim(),
-      brokerEffectiveDate: String(brokerEffectiveDate || '').trim(),
-      terminationDate: String(terminationDate || '').trim(),
-      saleSupportStatus: String(saleSupportStatus || '').trim(),
-      closedLostReason: String(closedLostReason || '').trim(),
-      appId: String(appId || '').trim(),
-      estimateHouseholdIncome: String(estimateHouseholdIncome !== undefined && estimateHouseholdIncome !== null ? estimateHouseholdIncome : '').trim(),
-      householdMember: String(householdMember !== undefined && householdMember !== null ? householdMember : '').trim(),
-      enrollNumberMember: String(enrollNumberMember !== undefined && enrollNumberMember !== null ? enrollNumberMember : '').trim(),
-      enrolledAddress: String(enrolledAddress || '').trim(),
-      quotedCounty: String(quotedCounty || '').trim(),
-      isBackdateDeal: String(isBackdateDeal || '').trim(),
-      planName: String(planName || '').trim(),
-      monthlyPremium: String(monthlyPremium !== undefined && monthlyPremium !== null ? monthlyPremium : '').trim(),
-      subsidyAmount: String(subsidyAmount !== undefined && subsidyAmount !== null ? subsidyAmount : '').trim(),
-      agencyCommission: String(agencyCommission !== undefined && agencyCommission !== null ? agencyCommission : '').trim(),
-      bonusTier: String(bonusTier || '').trim(),
-      paymentOption: String(paymentOption || '').trim(),
-      paymentVerification: String(paymentVerification || '').trim(),
-      paymentStatus: String(paymentStatus || '').trim(),
-      payThroughDate: String(payThroughDate || '').trim(),
-      quoteCloseDealRep: String(quoteCloseDealRep || '').trim(),
-      autopayDate: String(autopayDate || '').trim(),
-      nameOnCreditCard: String(nameOnCreditCard || '').trim(),
-      creditCardNumber: String(creditCardNumber || '').trim(),
-      expirationDate: String(expirationDate || '').trim(),
-      cvv: String(cvv || '').trim(),
+      dealTitle: String(dealTitle || '')?.trim(),
+      dealOwner: String(typeof dealOwner === 'object' ? dealOwner?.name || '' : dealOwner || '')?.trim(),
+      pipeline: String(pipeline || '')?.trim(),
+      stage: String(stage || '')?.trim(),
+      amount: String(amount !== undefined && amount !== null ? amount : '')?.trim(),
+      enrollAmount: String(enrollAmount !== undefined && enrollAmount !== null ? enrollAmount : '')?.trim(),
+      primaryMemberId: String(primaryMemberId || '')?.trim(),
+      carrier: String(carrier || '')?.trim(),
+      sellingState: String(sellingState || '')?.trim(),
+      numberMember: String(numberMember !== undefined && numberMember !== null ? numberMember : '')?.trim(),
+      enrolledNpn: String(enrolledNpn || '')?.trim(),
+      brokerEffectiveDate: String(brokerEffectiveDate || '')?.trim(),
+      terminationDate: String(terminationDate || '')?.trim(),
+      saleSupportStatus: String(saleSupportStatus || '')?.trim(),
+      closedLostReason: String(closedLostReason || '')?.trim(),
+      appId: String(appId || '')?.trim(),
+      estimateHouseholdIncome: String(estimateHouseholdIncome !== undefined && estimateHouseholdIncome !== null ? estimateHouseholdIncome : '')?.trim(),
+      householdMember: String(householdMember !== undefined && householdMember !== null ? householdMember : '')?.trim(),
+      enrollNumberMember: String(enrollNumberMember !== undefined && enrollNumberMember !== null ? enrollNumberMember : '')?.trim(),
+      enrolledAddress: String(enrolledAddress || '')?.trim(),
+      quotedCounty: String(quotedCounty || '')?.trim(),
+      isBackdateDeal: String(isBackdateDeal || '')?.trim(),
+      planName: String(planName || '')?.trim(),
+      monthlyPremium: String(monthlyPremium !== undefined && monthlyPremium !== null ? monthlyPremium : '')?.trim(),
+      subsidyAmount: String(subsidyAmount !== undefined && subsidyAmount !== null ? subsidyAmount : '')?.trim(),
+      agencyCommission: String(agencyCommission !== undefined && agencyCommission !== null ? agencyCommission : '')?.trim(),
+      bonusTier: String(bonusTier || '')?.trim(),
+      paymentOption: String(paymentOption || '')?.trim(),
+      paymentVerification: String(paymentVerification || '')?.trim(),
+      paymentStatus: String(paymentStatus || '')?.trim(),
+      payThroughDate: String(payThroughDate || '')?.trim(),
+      quoteCloseDealRep: String(quoteCloseDealRep || '')?.trim(),
+      autopayDate: String(autopayDate || '')?.trim(),
+      nameOnCreditCard: String(nameOnCreditCard || '')?.trim(),
+      creditCardNumber: String(creditCardNumber || '')?.trim(),
+      expirationDate: String(expirationDate || '')?.trim(),
+      cvv: String(cvv || '')?.trim(),
     });
   }, [
     dealTitle,
@@ -812,17 +812,17 @@ export default function StaffDealDetail({
   const [notesList, setNotesList] = useState(dealInfo.notes || []);
   const [tasksList, setTasksList] = useState(() => {
     const dId = String(deal?.id || dealInfo.id || deal?.code || dealInfo.code || '');
-    const dTitle = String(deal?.title || dealInfo.title || '').trim().toLowerCase();
+    const dTitle = String(deal?.title || dealInfo.title || '')?.trim()?.toLowerCase();
     const dynamicTasks = typeof window !== 'undefined' ? [] : [];
-    const storeDealTasks = dynamicTasks.filter(
+    const storeDealTasks = dynamicTasks?.filter(
       (t) =>
         (dId && (String(t.dealId) === dId || String(t.deal?.id) === dId || String(t.deal?.code) === dId)) ||
-        (dTitle && t.dealName && String(t.dealName).trim().toLowerCase() === dTitle)
+        (dTitle && t.dealName && String(t.dealName)?.trim()?.toLowerCase() === dTitle)
     );
     const existing = Array.isArray(deal?.tasks) ? deal.tasks : (dealInfo.tasks || []);
     return [
       ...storeDealTasks,
-      ...existing.filter((et) => !storeDealTasks.some((st) => String(st.id) === String(et.id))),
+      ...existing?.filter((et) => !storeDealTasks?.some((st) => String(st.id) === String(et.id))),
     ];
   });
 
@@ -942,9 +942,9 @@ export default function StaffDealDetail({
   function handleFileAttach(e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const newAttach = files.map((file) => ({
+    const newAttach = files?.map((file) => ({
       id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: file.name,
+      name: file?.name,
       size:
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
@@ -957,12 +957,12 @@ export default function StaffDealDetail({
   }
 
   function handleRemoveAttachment(id) {
-    setNoteAttachments((prev) => prev.filter((a) => a.id !== id));
+    setNoteAttachments((prev) => prev?.filter((a) => a.id !== id));
   }
 
   function handleAddNoteSubmit(e) {
     if (e) e.preventDefault();
-    if (!noteBody.trim() && noteAttachments.length === 0) return;
+    if (!noteBody?.trim() && noteAttachments.length === 0) return;
     const now = new Date();
     const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
       now.getDate()
@@ -986,14 +986,14 @@ export default function StaffDealDetail({
     const currentAuthor = getActiveStaffAuthor();
 
     const title =
-      noteTitle.trim() ||
-      (noteBody.trim() ? noteBody.trim().split('\n')[0].slice(0, 60) : '') ||
+      noteTitle?.trim() ||
+      (noteBody?.trim() ? noteBody?.trim()?.split('\n')[0].slice(0, 60) : '') ||
       (noteAttachments.length > 0 ? `Attachment: ${noteAttachments[0].name}` : 'Deal Note');
 
     const newNote = {
       id: `note-${Date.now()}`,
       title,
-      body: noteBody.trim(),
+      body: noteBody?.trim(),
       attachments: [...noteAttachments],
       author: currentAuthor,
       time: timeStr,
@@ -1005,7 +1005,7 @@ export default function StaffDealDetail({
     if (currentDealIdentifier) {
       addDealNote(currentDealIdentifier, {
         title,
-        text: noteBody.trim(),
+        text: noteBody?.trim(),
         author: currentAuthor,
         attachments: JSON.stringify(noteAttachments),
       }).catch((err) => console.warn('[StaffDealDetail] addDealNote fallback:', err));
@@ -1085,9 +1085,9 @@ export default function StaffDealDetail({
   function handleCardFileAttach(noteId, e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const newAttach = files.map((file) => ({
+    const newAttach = files?.map((file) => ({
       id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: file.name,
+      name: file?.name,
       size:
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
@@ -1095,7 +1095,7 @@ export default function StaffDealDetail({
       url: URL.createObjectURL(file),
       type: file.type || 'application/octet-stream',
     }));
-    const updatedList = notesList.map((n) =>
+    const updatedList = notesList?.map((n) =>
       n.id === noteId
         ? { ...n, attachments: [...(n.attachments || []), ...newAttach] }
         : n
@@ -1107,9 +1107,9 @@ export default function StaffDealDetail({
   }
 
   function handleRemoveAttachmentFromNote(noteId, attId) {
-    const updatedList = notesList.map((n) =>
+    const updatedList = notesList?.map((n) =>
       n.id === noteId
-        ? { ...n, attachments: (n.attachments || []).filter((a) => a.id !== attId) }
+        ? { ...n, attachments: (n.attachments || [])?.filter((a) => a.id !== attId) }
         : n
     );
     updateAndPersistDealNotes(updatedList);
@@ -1117,7 +1117,7 @@ export default function StaffDealDetail({
   }
 
   function handleAddComment(noteId) {
-    if (!commentInput.trim()) return;
+    if (!commentInput?.trim()) return;
     const now = new Date();
     const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
       now.getDate()
@@ -1136,7 +1136,7 @@ export default function StaffDealDetail({
 
     const newC = {
       id: `c-${Date.now()}`,
-      text: commentInput.trim(),
+      text: commentInput?.trim(),
       author,
       time: timeStr,
     };
@@ -1156,11 +1156,11 @@ export default function StaffDealDetail({
   }
 
   function handleSaveInlineEdit(noteId) {
-    if (!inlineEditBody.trim()) return;
-    const updatedTitle = inlineEditBody.trim().split('\n')[0].slice(0, 60);
-    const updatedList = notesList.map((n) =>
+    if (!inlineEditBody?.trim()) return;
+    const updatedTitle = inlineEditBody?.trim()?.split('\n')[0].slice(0, 60);
+    const updatedList = notesList?.map((n) =>
       n.id === noteId
-        ? { ...n, title: updatedTitle, body: inlineEditBody.trim(), edited: true }
+        ? { ...n, title: updatedTitle, body: inlineEditBody?.trim(), edited: true }
         : n
     );
     updateAndPersistDealNotes(updatedList);
@@ -1180,12 +1180,12 @@ export default function StaffDealDetail({
 
   function handleEditNoteSubmit(e) {
     if (e) e.preventDefault();
-    if (!editNoteBody.trim() && editNoteAttachments.length === 0) return;
+    if (!editNoteBody?.trim() && editNoteAttachments.length === 0) return;
     const updatedTitle =
-      editNoteBody.trim().split('\n')[0].slice(0, 60) || (editingNote ? editingNote.title : 'Deal Note');
-    const updatedList = notesList.map((n) =>
+      editNoteBody?.trim()?.split('\n')[0].slice(0, 60) || (editingNote ? editingNote.title : 'Deal Note');
+    const updatedList = notesList?.map((n) =>
       n.id === editingNote.id
-        ? { ...n, title: updatedTitle, body: editNoteBody.trim(), attachments: [...editNoteAttachments], edited: true }
+        ? { ...n, title: updatedTitle, body: editNoteBody?.trim(), attachments: [...editNoteAttachments], edited: true }
         : n
     );
     updateAndPersistDealNotes(updatedList);
@@ -1199,7 +1199,7 @@ export default function StaffDealDetail({
   }
 
   function handleDeleteNote(noteId) {
-    const updatedList = notesList.filter((n) => n.id !== noteId);
+    const updatedList = notesList?.filter((n) => n.id !== noteId);
     updateAndPersistDealNotes(updatedList);
     logActivity('Note Deleted', 'deleted a note');
     setNoteActionsOpen(null);
@@ -1209,9 +1209,9 @@ export default function StaffDealDetail({
   function handleEditFileAttach(e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const newAttach = files.map((file) => ({
+    const newAttach = files?.map((file) => ({
       id: `att-e-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: file.name,
+      name: file?.name,
       size:
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
@@ -1226,9 +1226,9 @@ export default function StaffDealDetail({
   function handleTaskFileAttach(e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const newAttach = files.map((file) => ({
+    const newAttach = files?.map((file) => ({
       id: `att-t-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: file.name,
+      name: file?.name,
       size:
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
@@ -1241,7 +1241,7 @@ export default function StaffDealDetail({
   }
 
   function handleRemoveTaskAttachment(id) {
-    setTaskAttachments((prev) => prev.filter((a) => a.id !== id));
+    setTaskAttachments((prev) => prev?.filter((a) => a.id !== id));
   }
 
   // ── Task card interaction handlers (matching Screenshots 2 & 3) ────────────
@@ -1251,7 +1251,7 @@ export default function StaffDealDetail({
     const isCompleted = task.status === 'Completed' || task.status === 'COMPLETED' || task.status === 'DONE';
     const newStatus = isCompleted ? 'Pending' : 'Completed';
     const updated = { ...task, status: newStatus };
-    const updatedList = tasksList.map((t) => (t.id === taskId ? updated : t));
+    const updatedList = tasksList?.map((t) => (t.id === taskId ? updated : t));
     updateAndPersistDealTasks(updatedList);
     null;
     updateTask(taskId, updated).catch(() => {});
@@ -1260,7 +1260,7 @@ export default function StaffDealDetail({
   }
 
   function handleDeleteTask(taskId) {
-    const updatedList = tasksList.filter((t) => t.id !== taskId);
+    const updatedList = tasksList?.filter((t) => t.id !== taskId);
     updateAndPersistDealTasks(updatedList);
     deleteTask(taskId);
     logActivity('Task Deleted', 'deleted a task');
@@ -1268,7 +1268,7 @@ export default function StaffDealDetail({
   }
 
   function handleAddTaskComment(taskId) {
-    if (!taskCommentInput.trim()) return;
+    if (!taskCommentInput?.trim()) return;
     const now = new Date();
     const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(
       now.getDate()
@@ -1287,12 +1287,12 @@ export default function StaffDealDetail({
 
     const newComment = {
       id: `tc-${Date.now()}`,
-      text: taskCommentInput.trim(),
+      text: taskCommentInput?.trim(),
       author,
       time: timeStr,
     };
 
-    const updatedList = tasksList.map((t) => {
+    const updatedList = tasksList?.map((t) => {
       if (t.id === taskId) {
         const comments = [...(t.comments || []), newComment];
         const updatedT = { ...t, comments };
@@ -1309,9 +1309,9 @@ export default function StaffDealDetail({
   function handleCardTaskFileAttach(taskId, e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const newAttach = files.map((file) => ({
+    const newAttach = files?.map((file) => ({
       id: `att-t-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: file.name,
+      name: file?.name,
       size:
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
@@ -1319,7 +1319,7 @@ export default function StaffDealDetail({
       url: URL.createObjectURL(file),
       type: file.type || 'application/octet-stream',
     }));
-    const updatedList = tasksList.map((t) => {
+    const updatedList = tasksList?.map((t) => {
       if (t.id === taskId) {
         const attachments = [...(t.attachments || []), ...newAttach];
         const updatedT = { ...t, attachments };
@@ -1334,9 +1334,9 @@ export default function StaffDealDetail({
   }
 
   function handleRemoveAttachmentFromTask(taskId, attId) {
-    const updatedList = tasksList.map((t) => {
+    const updatedList = tasksList?.map((t) => {
       if (t.id === taskId) {
-        const attachments = (t.attachments || []).filter((a) => a.id !== attId);
+        const attachments = (t.attachments || [])?.filter((a) => a.id !== attId);
         const updatedT = { ...t, attachments };
         null;
         return updatedT;
@@ -1350,8 +1350,8 @@ export default function StaffDealDetail({
   function handleAddTaskSubmit(e) {
     if (e) e.preventDefault();
     const title =
-      taskTitle.trim() ||
-      (taskContent.trim() ? taskContent.trim().split('\n')[0].slice(0, 60) : '') ||
+      taskTitle?.trim() ||
+      (taskContent?.trim() ? taskContent?.trim()?.split('\n')[0].slice(0, 60) : '') ||
       'Follow-up Task';
 
     const now = new Date();
@@ -1359,7 +1359,7 @@ export default function StaffDealDetail({
       now.getDate()
     ).padStart(2, '0')}/${now.getFullYear()}`;
 
-    const dueFormatted = `${taskDueDate} ${taskDueTime}`.trim();
+    const dueFormatted = `${taskDueDate} ${taskDueTime}`?.trim();
 
     const currentDealId = deal?.id || dealInfo.id || deal?.code || dealInfo.code || '';
     const currentDealTitle = dealTitle || deal?.title || dealInfo.title || 'Deal';
@@ -1370,7 +1370,7 @@ export default function StaffDealDetail({
       id: `task-${Date.now()}`,
       code: `TSK2600${Math.floor(1000 + Math.random() * 9000)}`,
       title,
-      content: taskContent.trim(),
+      content: taskContent?.trim(),
       dueDate: dueFormatted || '10/12/2026, 08:00',
       sendRemind: taskRemind || '--',
       assignee: taskAssignee || 'Thao Phan (therasaphan24@6)',
@@ -1603,7 +1603,7 @@ export default function StaffDealDetail({
 
                 {isPipelineDropdownOpen && (
                   <div className="absolute left-20 top-full mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-xs animate-fade-in">
-                    {['Obamacare 2026', 'Medicare 2026'].map((p) => (
+                    {['Obamacare 2026', 'Medicare 2026']?.map((p) => (
                       <button
                         key={p}
                         type="button"
@@ -1678,7 +1678,7 @@ export default function StaffDealDetail({
                           No matching stages found
                         </div>
                       ) : (
-                        filteredStages.map((item) => {
+                        filteredStages?.map((item) => {
                           const isSelected = item === stage;
                           return (
                             <button
@@ -1754,7 +1754,7 @@ export default function StaffDealDetail({
                         className="w-full appearance-none pl-2.5 pr-14 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:border-blue-500 font-medium cursor-pointer"
                       >
                         <option value="">-- Chưa chọn NPN --</option>
-                        {enrolledNpnOptions.map((opt) => (
+                        {enrolledNpnOptions?.map((opt) => (
                           <option key={opt} value={opt}>
                             {opt}
                           </option>
@@ -1860,7 +1860,7 @@ export default function StaffDealDetail({
                         className="w-full appearance-none pl-2.5 pr-8 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
                       >
                         <option value="">-- Chưa chọn Deal Owner --</option>
-                        {allAvailableAgents.map((ag) => (
+                        {allAvailableAgents?.map((ag) => (
                           <option key={ag.name} value={ag.name}>
                             {ag.name}
                           </option>
@@ -2026,7 +2026,7 @@ export default function StaffDealDetail({
                         {carrier && !ALL_CARRIERS.includes(carrier) && (
                           <option value={carrier}>{carrier}</option>
                         )}
-                        {ALL_CARRIERS.map((c) => (
+                        {ALL_CARRIERS?.map((c) => (
                           <option key={c} value={c}>
                             {c}
                           </option>
@@ -2375,7 +2375,7 @@ export default function StaffDealDetail({
                         {carrier && !ALL_CARRIERS.includes(carrier) && (
                           <option value={carrier}>{carrier}</option>
                         )}
-                        {ALL_CARRIERS.map((c) => (
+                        {ALL_CARRIERS?.map((c) => (
                           <option key={c} value={c}>
                             {c}
                           </option>
@@ -2543,7 +2543,7 @@ export default function StaffDealDetail({
                 { key: 'activity', label: 'Activity', icon: 'history' },
                 { key: 'notes', label: 'Notes', icon: 'note' },
                 { key: 'tasks', label: 'Tasks', icon: 'task_alt' },
-              ].map((tab) => (
+              ]?.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
@@ -2635,7 +2635,7 @@ export default function StaffDealDetail({
                     </div>
 
                     <div className="space-y-2.5">
-                      {activitiesList.map((act) => (
+                      {activitiesList?.map((act) => (
                         <div
                           key={act.id}
                           className="p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition shadow-xs flex flex-col gap-1 text-xs"
@@ -2688,7 +2688,7 @@ export default function StaffDealDetail({
                 </div>
               ) : (
                 <div className="space-y-3 mt-1">
-                  {notesList.map((note) => (
+                  {notesList?.map((note) => (
                     <div key={note.id} className="rounded-xl border border-slate-200 bg-white shadow-xs relative">
                       {/* Note Header - HubSpot style matching media_1790667070854.png */}
                       <div className={`flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/80 ${collapsedNotes[note.id] ? 'rounded-xl border-b-0' : 'rounded-t-xl'}`}>
@@ -2796,7 +2796,7 @@ export default function StaffDealDetail({
                               {/* Attached files list if any */}
                               {note.attachments && note.attachments.length > 0 && (
                                 <div className="flex flex-wrap gap-2 pt-1">
-                                  {note.attachments.map((att) => (
+                                  {note.attachments?.map((att) => (
                                     <div
                                       key={att.id}
                                       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-slate-700 hover:text-blue-700 text-[11px] transition shadow-2xs group"
@@ -2869,7 +2869,7 @@ export default function StaffDealDetail({
                             <div className="p-3 bg-slate-50 border-t border-slate-100 text-xs">
                               {noteComments[note.id] && noteComments[note.id].length > 0 && (
                                 <div className="space-y-2 mb-2">
-                                  {noteComments[note.id].map((c) => (
+                                  {noteComments[note.id]?.map((c) => (
                                     <div key={c.id} className="p-2 rounded bg-white border border-slate-200">
                                       <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
                                         <span className="font-semibold text-slate-700">{c.author}</span>
@@ -2939,7 +2939,7 @@ export default function StaffDealDetail({
                     Sep 2026
                   </div>
 
-                  {tasksList.map((task) => (
+                  {tasksList?.map((task) => (
                     <div
                       key={task.id}
                       className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden transition hover:border-slate-300"
@@ -3078,10 +3078,10 @@ export default function StaffDealDetail({
                           <div className="bg-[#F0F8FA] border border-[#D0E7ED] rounded-xl p-4 text-xs font-mono text-slate-800 leading-relaxed shadow-2xs">
                             {task.content ? (
                               <div className="space-y-1 text-slate-800">
-                                {task.content.split('\n').map((line, idx) => (
+                                {task.content?.split('\n')?.map((line, idx) => (
                                   <div key={idx} className="flex items-start gap-2">
                                     <span className="text-slate-500 font-bold">•</span>
-                                    <span className="font-mono text-xs">{line.replace(/^•\s*/, '')}</span>
+                                    <span className="font-mono text-xs">{line?.replace(/^•\s*/, '')}</span>
                                   </div>
                                 ))}
                               </div>
@@ -3129,7 +3129,7 @@ export default function StaffDealDetail({
 
                             {task.attachments && task.attachments.length > 0 && (
                               <div className="flex flex-wrap gap-2 pt-1">
-                                {task.attachments.map((att) => (
+                                {task.attachments?.map((att) => (
                                   <div
                                     key={att.id}
                                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-slate-700 hover:text-blue-700 text-[11px] transition shadow-2xs group"
@@ -3207,7 +3207,7 @@ export default function StaffDealDetail({
 
                               {(task.comments || []).length > 0 && (
                                 <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                                  {(task.comments || []).map((c) => (
+                                  {(task.comments || [])?.map((c) => (
                                     <div key={c.id} className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
                                       <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
                                         <span className="font-bold text-slate-800">{c.author}</span>
@@ -3355,7 +3355,7 @@ export default function StaffDealDetail({
                     </p>
                   </div>
                 ) : (
-                  dealTickets.map((associatedTicket) => (
+                  dealTickets?.map((associatedTicket) => (
                     <div key={associatedTicket.id || associatedTicket.code || Math.random()} className="space-y-1">
                       <div
                         onClick={() => handleOpenTicket(associatedTicket)}
@@ -3690,7 +3690,7 @@ export default function StaffDealDetail({
                 {/* List of Attached Files (if any) */}
                 {noteAttachments.length > 0 && (
                   <div className="flex flex-wrap gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
-                    {noteAttachments.map((file) => (
+                    {noteAttachments?.map((file) => (
                       <div
                         key={file.id}
                         className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs hover:bg-blue-50 transition group"
@@ -3702,7 +3702,7 @@ export default function StaffDealDetail({
                           title="Bấm để xem và mở tệp trực tiếp"
                         >
                           <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
-                          <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file.name}</span>
+                          <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file?.name}</span>
                           <span className="text-[10px] text-slate-400">({file.size})</span>
                           <span className="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-blue-600">visibility</span>
                         </button>
@@ -3849,7 +3849,7 @@ export default function StaffDealDetail({
                 </div>
                 {editNoteAttachments.length > 0 && (
                   <div className="flex flex-wrap gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
-                    {editNoteAttachments.map((file) => (
+                    {editNoteAttachments?.map((file) => (
                       <div
                         key={file.id}
                         className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs hover:bg-blue-50 transition group"
@@ -3861,13 +3861,13 @@ export default function StaffDealDetail({
                           title="Bấm để xem và mở tệp trực tiếp"
                         >
                           <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
-                          <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file.name}</span>
+                          <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file?.name}</span>
                           <span className="text-[10px] text-slate-400">({file.size})</span>
                           <span className="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-blue-600">visibility</span>
                         </button>
                         <button
                           type="button"
-                          onClick={() => setEditNoteAttachments((prev) => prev.filter((a) => a.id !== file.id))}
+                          onClick={() => setEditNoteAttachments((prev) => prev?.filter((a) => a.id !== file.id))}
                           className="text-slate-400 hover:text-rose-500 transition cursor-pointer ml-1 text-xs"
                           title="Remove file"
                         >
@@ -4149,7 +4149,7 @@ export default function StaffDealDetail({
                 {/* Attached Files List */}
                 {taskAttachments.length > 0 && (
                   <div className="flex flex-wrap gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
-                    {taskAttachments.map((file) => (
+                    {taskAttachments?.map((file) => (
                       <div
                         key={file.id}
                         className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs shadow-2xs hover:bg-blue-50 transition group"
@@ -4161,7 +4161,7 @@ export default function StaffDealDetail({
                           title="Bấm để xem và mở tệp trực tiếp"
                         >
                           <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
-                          <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file.name}</span>
+                          <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file?.name}</span>
                           <span className="text-[10px] text-slate-400">({file.size})</span>
                           <span className="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-blue-600">visibility</span>
                         </button>
@@ -4315,7 +4315,7 @@ export default function StaffDealDetail({
               </button>
             </div>
             <div className="p-4 max-h-80 overflow-y-auto space-y-3">
-              {stageHistory.map((h, i) => (
+              {stageHistory?.map((h, i) => (
                 <div key={i} className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1 text-xs">
                   <div className="flex items-center justify-between text-[11px] text-slate-400">
                     <span>{h.date}</span>

@@ -85,9 +85,9 @@ export default function StaffCustomerDocumentDetail({
   const currentInitials =
     doc.initials ||
     (docName || 'Hai Nguyen')
-      .split(' ')
-      .filter(Boolean)
-      .map((w) => w[0])
+      ?.split(' ')
+      ?.filter(Boolean)
+      ?.map((w) => w[0])
       .slice(0, 2)
       .join('')
       .toUpperCase() ||
@@ -97,17 +97,17 @@ export default function StaffCustomerDocumentDetail({
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const newFiles = Array.from(files).map((file) => {
+    const newFiles = Array.from(files)?.map((file) => {
       const isPdf =
-        file.type.includes('pdf') || file.name.toLowerCase().endsWith('.pdf');
+        file.type.includes('pdf') || file?.name?.toLowerCase().endsWith('.pdf');
       const isImg =
         file.type.startsWith('image/') ||
-        /\.(jpe?g|png|gif|webp|bmp|heic)$/i.test(file.name);
+        /\.(jpe?g|png|gif|webp|bmp|heic)$/i.test(file?.name);
 
       return {
         id: 'file-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
-        name: file.name.length > 24 ? file.name.slice(0, 20) + '...' : file.name,
-        fullName: file.name,
+        name: file?.name.length > 24 ? file?.name.slice(0, 20) + '...' : file?.name,
+        fullName: file?.name,
         size: formatFileSize(file.size),
         type: isPdf ? 'pdf' : isImg ? 'image' : 'document',
         url: URL.createObjectURL(file),
@@ -129,13 +129,13 @@ export default function StaffCustomerDocumentDetail({
         ...prev,
         [categoryKey]: [...(prev[categoryKey] || []), ...newFiles],
       };
-      const totalFiles = Object.values(updated).reduce(
+      const totalFiles = Object.values(updated)?.reduce(
         (sum, list) => sum + (Array.isArray(list) ? list.length : 0),
         0
       );
       const categoriesSummary = categories
-        .filter((c) => Array.isArray(updated[c.key]) && updated[c.key].length > 0)
-        .map((c) => ({
+        ?.filter((c) => Array.isArray(updated[c.key]) && updated[c.key].length > 0)
+        ?.map((c) => ({
           key: c.key,
           label: c.label,
           count: updated[c.key].length,
@@ -200,15 +200,15 @@ export default function StaffCustomerDocumentDetail({
     setFilesByCategory((prev) => {
       const updated = {
         ...prev,
-        [categoryKey]: (prev[categoryKey] || []).filter((f) => f.id !== fileId),
+        [categoryKey]: (prev[categoryKey] || [])?.filter((f) => f.id !== fileId),
       };
-      const totalFiles = Object.values(updated).reduce(
+      const totalFiles = Object.values(updated)?.reduce(
         (sum, list) => sum + (Array.isArray(list) ? list.length : 0),
         0
       );
       const categoriesSummary = categories
-        .filter((c) => Array.isArray(updated[c.key]) && updated[c.key].length > 0)
-        .map((c) => ({
+        ?.filter((c) => Array.isArray(updated[c.key]) && updated[c.key].length > 0)
+        ?.map((c) => ({
           key: c.key,
           label: c.label,
           count: updated[c.key].length,
@@ -403,7 +403,7 @@ export default function StaffCustomerDocumentDetail({
 
                 {/* 3 - 9. 7 Document Categories */}
                 <div className="space-y-4 pt-1">
-                  {categories.map((cat) => {
+                  {categories?.map((cat) => {
                     const catFiles = filesByCategory[cat.key] || [];
 
                     return (
@@ -436,10 +436,10 @@ export default function StaffCustomerDocumentDetail({
                         {/* File Cards List */}
                         {catFiles.length > 0 && (
                           <div className="space-y-1.5">
-                            {catFiles.map((file) => {
+                            {catFiles?.map((file) => {
                               const isPdf =
                                 file.type === 'pdf' ||
-                                file.name?.toLowerCase().endsWith('.pdf');
+                                file?.name?.toLowerCase().endsWith('.pdf');
 
                               return (
                                 <div
@@ -473,9 +473,9 @@ export default function StaffCustomerDocumentDetail({
                                     <div className="min-w-0 flex-grow">
                                       <p
                                         className="text-xs font-semibold text-slate-800 truncate group-hover:text-blue-600 transition"
-                                        title={file.fullName || file.name}
+                                        title={file.fullName || file?.name}
                                       >
-                                        {file.name}
+                                        {file?.name}
                                       </p>
                                       <p className="text-[11px] text-slate-400">
                                         {file.size}
@@ -487,7 +487,7 @@ export default function StaffCustomerDocumentDetail({
                                   <button
                                     type="button"
                                     onClick={() =>
-                                      handleDeleteFile(cat.key, file.id, file.name)
+                                      handleDeleteFile(cat.key, file.id, file?.name)
                                     }
                                     title="Delete file"
                                     className="w-7 h-7 rounded bg-rose-50 hover:bg-rose-100 text-rose-500 flex items-center justify-center shrink-0 transition cursor-pointer"

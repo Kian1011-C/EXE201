@@ -161,16 +161,16 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   useEffect(() => {
     getUsers().then((data) => {
       if (Array.isArray(data) && data.length > 0) {
-        const backendAgents = data.filter((u) => {
-          const role = (u.role || '').toLowerCase();
-          const status = (u.status || '').toLowerCase();
+        const backendAgents = data?.filter((u) => {
+          const role = (u.role || '')?.toLowerCase();
+          const status = (u.status || '')?.toLowerCase();
           return (role === 'agent' || role === 'broker') && status !== 'suspended';
         });
         if (backendAgents.length > 0) {
           setAgentAccounts(
-            backendAgents.map((b) => ({
+            backendAgents?.map((b) => ({
               id: String(b.id),
-              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`?.trim(),
               role: 'agent',
               avatar: b.avatar,
               bg: b.bg,
@@ -195,9 +195,9 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
 
   // Combined agent directory for Deal Owner dropdown (Tất cả agent hiện tại)
   const allAvailableAgents = useMemo(() => {
-    const list = agentAccounts.map((a) => ({
+    const list = agentAccounts?.map((a) => ({
       name: a.name,
-      handle: a.handle || a.email.split('@')[0],
+      handle: a.handle || a.email?.split('@')[0],
       avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
       bg: a.bg || 'bg-[#2563EB]',
     }));
@@ -206,24 +206,24 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
 
   // Unique owners from deals & registered agents
   const ownerOptions = useMemo(() => {
-    return allAvailableAgents.map((a) => a.name);
+    return allAvailableAgents?.map((a) => a.name);
   }, [allAvailableAgents]);
 
   // Filtered agent list for dropdown search
   const filteredAgentList = useMemo(() => {
-    const q = ownerSearchText.trim().toLowerCase();
+    const q = ownerSearchText?.trim()?.toLowerCase();
     if (!q) return allAvailableAgents;
-    return allAvailableAgents.filter(
-      (a) => a.name.toLowerCase().includes(q) || a.handle.toLowerCase().includes(q)
+    return allAvailableAgents?.filter(
+      (a) => a.name?.toLowerCase().includes(q) || a.handle?.toLowerCase().includes(q)
     );
   }, [allAvailableAgents, ownerSearchText]);
 
   // Filtered Deals
   const filteredDeals = useMemo(() => {
-    return scopedDeals.filter((d) => {
+    return scopedDeals?.filter((d) => {
       // 1. Tab-based matching
       if (activeIsAgent || activeViewTab === 'my') {
-        const matchesMy = d.dealOwner?.name?.toLowerCase().includes(effectiveAgent.name.toLowerCase());
+        const matchesMy = d.dealOwner?.name?.toLowerCase().includes(effectiveAgent.name?.toLowerCase());
         if (!matchesMy) return false;
       } else if (activeViewTab.startsWith('view_')) {
         const cv = customViews.find((v) => v.id === activeViewTab);
@@ -234,20 +234,20 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         }
         const dOwnerName = d.dealOwner?.name || '';
         const matchesCustom =
-          dOwnerName.toLowerCase().includes(targetOwner.toLowerCase()) ||
-          targetOwner.toLowerCase().includes(dOwnerName.toLowerCase());
+          dOwnerName?.toLowerCase().includes(targetOwner?.toLowerCase()) ||
+          targetOwner?.toLowerCase().includes(dOwnerName?.toLowerCase());
         if (!matchesCustom) return false;
       }
 
       // 2. Search query matching
-      const q = searchQuery.toLowerCase().trim();
+      const q = searchQuery?.toLowerCase()?.trim();
       const matchesSearch =
         !q ||
-        (d.title && d.title.toLowerCase().includes(q)) ||
-        (d.dealName && d.dealName.toLowerCase().includes(q)) ||
-        (d.code && d.code.toLowerCase().includes(q)) ||
-        (d.contactName && d.contactName.toLowerCase().includes(q)) ||
-        (d.carrier && d.carrier.toLowerCase().includes(q));
+        (d.title && d.title?.toLowerCase().includes(q)) ||
+        (d.dealName && d.dealName?.toLowerCase().includes(q)) ||
+        (d.code && d.code?.toLowerCase().includes(q)) ||
+        (d.contactName && d.contactName?.toLowerCase().includes(q)) ||
+        (d.carrier && d.carrier?.toLowerCase().includes(q));
 
       // 3. Dropdown owner matching (if on All Deals tab and not agent)
       let matchesOwner = true;
@@ -255,28 +255,28 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         matchesOwner =
           ownerFilter === 'all' ||
           ownerFilter === '__none__' ||
-          (d.dealOwner?.name && d.dealOwner.name.toLowerCase().includes(ownerFilter.toLowerCase()));
+          (d.dealOwner?.name && d.dealOwner.name?.toLowerCase().includes(ownerFilter?.toLowerCase()));
       }
 
       const matchesPipeline =
         pipelineFilter === 'all' ||
-        (d.pipeline && d.pipeline.toLowerCase().includes(pipelineFilter.toLowerCase()));
+        (d.pipeline && d.pipeline?.toLowerCase().includes(pipelineFilter?.toLowerCase()));
 
       const matchesCarrier =
         carrierFilter === 'all' ||
         (d.carrier && (
-          d.carrier.toLowerCase() === carrierFilter.toLowerCase() ||
-          d.carrier.toLowerCase().includes(carrierFilter.toLowerCase()) ||
-          carrierFilter.toLowerCase().includes(d.carrier.toLowerCase()) ||
-          (carrierFilter === 'BCBS' && d.carrier.toLowerCase().includes('blue cross')) ||
-          (carrierFilter.toLowerCase().includes('blue cross') && d.carrier === 'BCBS') ||
-          (carrierFilter === 'UnitedHealthcare' && (d.carrier === 'UHC' || d.carrier.toLowerCase().includes('united'))) ||
-          (carrierFilter === 'UHC' && d.carrier.toLowerCase().includes('united'))
+          d.carrier?.toLowerCase() === carrierFilter?.toLowerCase() ||
+          d.carrier?.toLowerCase().includes(carrierFilter?.toLowerCase()) ||
+          carrierFilter?.toLowerCase().includes(d.carrier?.toLowerCase()) ||
+          (carrierFilter === 'BCBS' && d.carrier?.toLowerCase().includes('blue cross')) ||
+          (carrierFilter?.toLowerCase().includes('blue cross') && d.carrier === 'BCBS') ||
+          (carrierFilter === 'UnitedHealthcare' && (d.carrier === 'UHC' || d.carrier?.toLowerCase().includes('united'))) ||
+          (carrierFilter === 'UHC' && d.carrier?.toLowerCase().includes('united'))
         ));
 
       const matchesStage =
         stageFilter === 'all' ||
-        (d.stage && d.stage.toLowerCase().includes(stageFilter.toLowerCase()));
+        (d.stage && d.stage?.toLowerCase().includes(stageFilter?.toLowerCase()));
 
       return (
         matchesSearch &&
@@ -304,7 +304,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     if (!agent) {
       setOwnerFilter('all');
       if (activeViewTab.startsWith('view_')) {
-        const updated = customViews.map((v) =>
+        const updated = customViews?.map((v) =>
           v.id === activeViewTab ? { ...v, owner: '' } : v
         );
         setCustomViews(updated);
@@ -320,7 +320,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     setOwnerFilter(agent.name);
     // If currently in a custom view tab, bind this owner to the view and save!
     if (activeViewTab.startsWith('view_')) {
-      const updated = customViews.map((v) =>
+      const updated = customViews?.map((v) =>
         v.id === activeViewTab ? { ...v, owner: agent.name } : v
       );
       setCustomViews(updated);
@@ -336,7 +336,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   // Handle creating custom view
   function handleCreateCustomView(e) {
     if (e) e.preventDefault();
-    const trimmed = newViewName.trim();
+    const trimmed = newViewName?.trim();
     if (!trimmed) {
       showToast('Vui lòng nhập tên view!');
       return;
@@ -360,7 +360,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
 
   // Handle deleting custom view
   function handleDeleteCustomView(viewId) {
-    const updated = customViews.filter((v) => v.id !== viewId);
+    const updated = customViews?.filter((v) => v.id !== viewId);
     setCustomViews(updated);
     try {
       localStorage.setItem('insurmatch_custom_deal_views', JSON.stringify(updated));
@@ -375,11 +375,11 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
   // Unique carriers (Tất cả hãng bảo hiểm hiện tại trong hệ thống)
   const carrierOptions = useMemo(() => {
     const list = [...ALL_CARRIERS];
-    const existing = new Set(list.map((c) => c.toLowerCase()));
+    const existing = new Set(list?.map((c) => c?.toLowerCase()));
     dealsList.forEach((d) => {
-      if (d.carrier && !existing.has(d.carrier.toLowerCase())) {
+      if (d.carrier && !existing.has(d.carrier?.toLowerCase())) {
         list.push(d.carrier);
-        existing.add(d.carrier.toLowerCase());
+        existing.add(d.carrier?.toLowerCase());
       }
     });
     return list;
@@ -387,9 +387,9 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
 
   // Filtered carriers for dropdown search
   const filteredCarrierList = useMemo(() => {
-    const q = carrierSearchText.trim().toLowerCase();
+    const q = carrierSearchText?.trim()?.toLowerCase();
     if (!q) return carrierOptions;
-    return carrierOptions.filter((c) => c.toLowerCase().includes(q));
+    return carrierOptions?.filter((c) => c?.toLowerCase().includes(q));
   }, [carrierOptions, carrierSearchText]);
 
   function handleSelectCarrier(carrierName) {
@@ -414,7 +414,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     )}:${String(now.getMinutes()).padStart(2, '0')}`;
 
     setDealsList((prev) =>
-      prev.map((d) => {
+      prev?.map((d) => {
         if (d.id === dealId) {
           const oldStage = d.stage || 'Ready to Enroll';
           const newAct = {
@@ -598,13 +598,13 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             </button>
 
             {/* Custom Views added by Staff / Admin */}
-            {customViews.map((cv) => {
+            {customViews?.map((cv) => {
               const count = cv.owner
-                ? scopedDeals.filter((d) => {
+                ? scopedDeals?.filter((d) => {
                     const dOwnerName = d.dealOwner?.name || '';
                     return (
-                      dOwnerName.toLowerCase().includes(cv.owner.toLowerCase()) ||
-                      cv.owner.toLowerCase().includes(dOwnerName.toLowerCase())
+                      dOwnerName?.toLowerCase().includes(cv.owner?.toLowerCase()) ||
+                      cv.owner?.toLowerCase().includes(dOwnerName?.toLowerCase())
                     );
                   }).length
                 : 0;
@@ -786,10 +786,10 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                     <span className="font-medium text-slate-700">Tất cả Deal Owner</span>
                   </button>
 
-                  {filteredAgentList.map((ag) => {
+                  {filteredAgentList?.map((ag) => {
                     const isSelected =
-                      ownerFilter.toLowerCase() === ag.name.toLowerCase() ||
-                      ownerFilter.toLowerCase().includes(ag.name.toLowerCase());
+                      ownerFilter?.toLowerCase() === ag.name?.toLowerCase() ||
+                      ownerFilter?.toLowerCase().includes(ag.name?.toLowerCase());
                     return (
                       <button
                         key={ag.handle + ag.name}
@@ -896,8 +896,8 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                     <span className="font-medium text-slate-700">Tất cả Carrier</span>
                   </button>
 
-                  {filteredCarrierList.map((c) => {
-                    const isSelected = carrierFilter.toLowerCase() === c.toLowerCase();
+                  {filteredCarrierList?.map((c) => {
+                    const isSelected = carrierFilter?.toLowerCase() === c?.toLowerCase();
                     return (
                       <button
                         key={c}
@@ -1072,7 +1072,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                   </td>
                 </tr>
               ) : (
-                filteredDeals.map((deal, index) => {
+                filteredDeals?.map((deal, index) => {
                   const isNhatDangDeal = deal.code === 'D26005033';
                   return (
                     <tr

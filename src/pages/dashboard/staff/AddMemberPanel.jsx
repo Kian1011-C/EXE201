@@ -88,8 +88,8 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
 
     // Basic validation
     const newErrors = {};
-    if (!formData.firstName.trim()) newErrors.firstName = 'Vui lòng nhập tên (First name)';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Vui lòng nhập họ (Last name)';
+    if (!formData.firstName?.trim()) newErrors.firstName = 'Vui lòng nhập tên (First name)';
+    if (!formData.lastName?.trim()) newErrors.lastName = 'Vui lòng nhập họ (Last name)';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);

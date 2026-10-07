@@ -39,7 +39,7 @@ export default function AgentSubscriptionPlanView({ agentName = 'Khanh Nguyen', 
     return () => window.removeEventListener('insurmatch_subscriptions_updated', handleStorageUpdate);
   }, [agentName, agentEmail]);
 
-  const currentPlanKey = (subscription?.plan || 'Professional').toLowerCase();
+  const currentPlanKey = (subscription?.plan || 'Professional')?.toLowerCase();
 
   function handleOpenCheckout(planKey) {
     setSelectedPlanForCheckout(planKey);
@@ -55,7 +55,7 @@ export default function AgentSubscriptionPlanView({ agentName = 'Khanh Nguyen', 
     setTimeout(() => {
       const paymentDisplay =
         paymentMethodType === 'card'
-          ? `Visa •••• ${cardNumber.replace(/\D/g, '').slice(-4) || '8812'}`
+          ? `Visa •••• ${cardNumber?.replace(/\D/g, '').slice(-4) || '8812'}`
           : paymentMethodType === 'qr'
           ? 'VietQR Instant Transfer'
           : 'Stripe Direct Gateway';
@@ -246,7 +246,7 @@ export default function AgentSubscriptionPlanView({ agentName = 'Khanh Nguyen', 
 
         {/* 3 Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-          {Object.entries(SAAS_PLANS).map(([key, plan]) => {
+          {Object.entries(SAAS_PLANS)?.map(([key, plan]) => {
             const isCurrent = currentPlanKey === key;
             const displayPrice = billingCycle === 'Annual' ? Math.round(plan.annualPrice / 12) : plan.monthlyPrice;
 
@@ -296,7 +296,7 @@ export default function AgentSubscriptionPlanView({ agentName = 'Khanh Nguyen', 
 
                   {/* Feature Checklist */}
                   <ul className="space-y-2.5 text-xs text-slate-700">
-                    {plan.features.map((feat, idx) => (
+                    {plan.features?.map((feat, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <span className="material-symbols-outlined text-[16px] text-emerald-600 shrink-0 mt-0.5">
                           check_circle
@@ -380,7 +380,7 @@ export default function AgentSubscriptionPlanView({ agentName = 'Khanh Nguyen', 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
-              {invoices.map((inv) => (
+              {invoices?.map((inv) => (
                 <tr key={inv.invoiceId} className="hover:bg-slate-50/60 transition">
                   <td className="py-3 px-4 font-mono font-bold text-slate-900">{inv.invoiceId}</td>
                   <td className="py-3 px-4 text-slate-600">

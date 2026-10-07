@@ -95,17 +95,17 @@ export default function AdminCommissionTab({
 
   // Filtered subscribers list
   const filteredSubscribers = useMemo(() => {
-    return (subscribers || []).filter((sub) => {
-      const q = searchQuery.toLowerCase().trim();
+    return (subscribers || [])?.filter((sub) => {
+      const q = searchQuery?.toLowerCase()?.trim();
       const matchSearch =
         !q ||
-        (sub.agencyName || sub.name || '').toLowerCase().includes(q) ||
-        (sub.agentName || sub.agent || '').toLowerCase().includes(q) ||
-        (sub.agentEmail || '').toLowerCase().includes(q) ||
-        (sub.id || '').toLowerCase().includes(q) ||
-        (sub.salesRep || '').toLowerCase().includes(q);
+        (sub.agencyName || sub.name || '')?.toLowerCase().includes(q) ||
+        (sub.agentName || sub.agent || '')?.toLowerCase().includes(q) ||
+        (sub.agentEmail || '')?.toLowerCase().includes(q) ||
+        (sub.id || '')?.toLowerCase().includes(q) ||
+        (sub.salesRep || '')?.toLowerCase().includes(q);
 
-      const matchPlan = planFilter === 'all' || (sub.plan || '').toLowerCase() === planFilter.toLowerCase();
+      const matchPlan = planFilter === 'all' || (sub.plan || '')?.toLowerCase() === planFilter?.toLowerCase();
       return matchSearch && matchPlan;
     });
   }, [subscribers, searchQuery, planFilter]);
@@ -118,7 +118,7 @@ export default function AdminCommissionTab({
       return;
     }
 
-    const planKey = newPlan.toLowerCase();
+    const planKey = newPlan?.toLowerCase();
     const planMeta = SAAS_PLANS[planKey] || SAAS_PLANS.professional;
     const price = newBillingCycle === 'Annual' ? Math.round(planMeta.annualPrice / 12) : planMeta.monthlyPrice;
 
@@ -126,7 +126,7 @@ export default function AdminCommissionTab({
       id: `SUB-${Date.now().toString().slice(-4)}`,
       agencyName: newAgencyName,
       agentName: newAgentName,
-      agentEmail: newAgentEmail || `${newAgentName.toLowerCase().replace(/\s+/g, '')}@insurmatch.us`,
+      agentEmail: newAgentEmail || `${newAgentName?.toLowerCase()?.replace(/\s+/g, '')}@insurmatch.us`,
       plan: newPlan,
       billingCycle: newBillingCycle,
       price: price,
@@ -137,8 +137,8 @@ export default function AdminCommissionTab({
       maxContacts: planMeta.maxContacts,
       salesRep: newSalesRep,
       commissionPaid: planMeta.salesCommissionAmount,
-      startDate: new Date().toISOString().split('T')[0],
-      nextRenewalDate: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split('T')[0],
+      startDate: new Date().toISOString()?.split('T')[0],
+      nextRenewalDate: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString()?.split('T')[0],
       paymentMethod: newPaymentMethod,
     };
 
@@ -155,7 +155,7 @@ export default function AdminCommissionTab({
   }
 
   function handleToggleStatus(subId) {
-    const nextList = subscribers.map((sub) => {
+    const nextList = subscribers?.map((sub) => {
       if (sub.id === subId) {
         const nextStatus = sub.status === 'Active' ? 'Suspended' : 'Active';
         return { ...sub, status: nextStatus };
@@ -169,7 +169,7 @@ export default function AdminCommissionTab({
 
   function handleDeleteSubscriber(subId) {
     if (!window.confirm(`Bạn có chắc chắn muốn hủy và xóa hợp đồng ${subId}?`)) return;
-    const nextList = subscribers.filter((sub) => sub.id !== subId);
+    const nextList = subscribers?.filter((sub) => sub.id !== subId);
     saveSubscribers(nextList);
     setSubscribers(nextList);
     showToast(`Đã hủy hợp đồng ${subId}!`);
@@ -177,10 +177,10 @@ export default function AdminCommissionTab({
 
   function handleSavePlanChange() {
     if (!changePlanSub) return;
-    const targetKey = selectedChangePlan.toLowerCase();
+    const targetKey = selectedChangePlan?.toLowerCase();
     const planMeta = SAAS_PLANS[targetKey] || SAAS_PLANS.professional;
 
-    const nextList = subscribers.map((sub) => {
+    const nextList = subscribers?.map((sub) => {
       if (sub.id === changePlanSub.id) {
         return {
           ...sub,
@@ -657,8 +657,8 @@ export default function AdminCommissionTab({
                   </td>
                 </tr>
               ) : (
-                filteredSubscribers.map((sub) => {
-                  const planKey = (sub.plan || '').toLowerCase();
+                filteredSubscribers?.map((sub) => {
+                  const planKey = (sub.plan || '')?.toLowerCase();
                   return (
                     <tr key={sub.id} className="hover:bg-slate-50/70 transition">
                       <td className="py-3 px-4 font-mono font-semibold text-slate-700">{sub.id}</td>
@@ -696,7 +696,7 @@ export default function AdminCommissionTab({
                           onClick={() => handleToggleStatus(sub.id)}
                           title="Bấm để đổi trạng thái"
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold transition cursor-pointer ${
-                            (sub.status || '').toLowerCase().includes('active')
+                            (sub.status || '')?.toLowerCase().includes('active')
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
                               : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
                           }`}

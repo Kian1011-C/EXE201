@@ -72,16 +72,16 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
   const activeFinancials = viewMode === 'real' ? realFinancials : simFinancials;
 
   const filteredSubscribers = useMemo(() => {
-    return (subscribers || []).filter((sub) => {
-      const q = searchQuery.toLowerCase().trim();
+    return (subscribers || [])?.filter((sub) => {
+      const q = searchQuery?.toLowerCase()?.trim();
       const matchSearch =
         !q ||
-        (sub.agencyName || sub.name || '').toLowerCase().includes(q) ||
-        (sub.agentName || sub.agent || '').toLowerCase().includes(q) ||
-        (sub.id || '').toLowerCase().includes(q) ||
-        (sub.salesRep || '').toLowerCase().includes(q);
+        (sub.agencyName || sub.name || '')?.toLowerCase().includes(q) ||
+        (sub.agentName || sub.agent || '')?.toLowerCase().includes(q) ||
+        (sub.id || '')?.toLowerCase().includes(q) ||
+        (sub.salesRep || '')?.toLowerCase().includes(q);
 
-      const matchPlan = planFilter === 'all' || (sub.plan || '').toLowerCase() === planFilter.toLowerCase();
+      const matchPlan = planFilter === 'all' || (sub.plan || '')?.toLowerCase() === planFilter?.toLowerCase();
       return matchSearch && matchPlan;
     });
   }, [subscribers, searchQuery, planFilter]);
@@ -503,8 +503,8 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredSubscribers.map((sub) => {
-                  const planKey = (sub.plan || '').toLowerCase();
+                {filteredSubscribers?.map((sub) => {
+                  const planKey = (sub.plan || '')?.toLowerCase();
                   return (
                     <tr key={sub.id} className="hover:bg-slate-50/70 transition">
                       <td className="py-3 px-4 font-mono font-semibold text-slate-700">{sub.id}</td>
@@ -528,7 +528,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            (sub.status || '').toLowerCase().includes('active')
+                            (sub.status || '')?.toLowerCase().includes('active')
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : 'bg-amber-50 text-amber-700 border border-amber-200'
                           }`}

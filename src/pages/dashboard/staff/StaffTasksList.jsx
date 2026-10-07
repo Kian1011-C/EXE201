@@ -22,9 +22,9 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
   const [assigneeOptionsList, setAssigneeOptionsList] = useState(() => [
     { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
     { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
-    ...[].map((a) => ({
+    ...[]?.map((a) => ({
       name: a.name,
-      handle: a.handle || a.email.split('@')[0],
+      handle: a.handle || a.email?.split('@')[0],
       avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
       bg: a.bg || 'bg-blue-600',
     })),
@@ -35,9 +35,9 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
       setAssigneeOptionsList([
         { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
         { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
-        ...[].map((a) => ({
+        ...[]?.map((a) => ({
           name: a.name,
-          handle: a.handle || a.email.split('@')[0],
+          handle: a.handle || a.email?.split('@')[0],
           avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
           bg: a.bg || 'bg-blue-600',
         })),
@@ -113,7 +113,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
         status: activeStatus,
       });
       if (Array.isArray(data) && data.length > 0) {
-        const dbTasks = data.map((t, idx) => {
+        const dbTasks = data?.map((t, idx) => {
           const assignedName = typeof t.assignedTo === 'object' ? (t.assignedTo?.name || 'Jessica Nguyen') : (t.assignedToName || t.assignedTo || 'Jessica Nguyen');
           const assignedAvatar = (typeof assignedName === 'string' ? assignedName : 'JN').slice(0, 2).toUpperCase();
           const isComp = t.status === 'Completed' || t.status === 'COMPLETED' || t.status === 'DONE';
@@ -121,7 +121,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
             id: t.id || `TSK-DB-${idx}`,
             code: t.code || t.id || `TSK2600${1000 + idx}`,
             no: idx + 1,
-            title: t.title || 'Support task',
+            title: t?.title || 'Support task',
             completed: isComp,
             status: t.status || 'OPEN',
             assignee: {
@@ -186,7 +186,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
     const taskObj = tasksList.find((t) => t.id === taskId);
     const nextCompleted = !taskObj?.completed;
     setTasksList((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, completed: nextCompleted } : t))
+      prev?.map((t) => (t.id === taskId ? { ...t, completed: nextCompleted } : t))
     );
     try {
       await updateTask(taskId, {
@@ -211,12 +211,12 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
 
   // Filtered tasks
   const filteredTasks = useMemo(() => {
-    return scopedTasks.filter((t) => {
+    return scopedTasks?.filter((t) => {
       // 1. Search Query
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
+      if (searchQuery?.trim()) {
+        const q = searchQuery?.toLowerCase()?.trim();
         const matchesQ =
-          t.title?.toLowerCase().includes(q) ||
+          t?.title?.toLowerCase().includes(q) ||
           t.assignee?.name?.toLowerCase().includes(q) ||
           t.assignee?.handle?.toLowerCase().includes(q);
         if (!matchesQ) return false;
@@ -224,13 +224,13 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
 
       // 2. Priority Filter
       if (selectedPriority) {
-        if (t.priority?.toLowerCase() !== selectedPriority.toLowerCase()) return false;
+        if (t.priority?.toLowerCase() !== selectedPriority?.toLowerCase()) return false;
       }
 
       // 3. Assignee Filter
       if (selectedAssignee) {
         const a1 = t.assignee?.name?.toLowerCase() || '';
-        const a2 = selectedAssignee.toLowerCase();
+        const a2 = selectedAssignee?.toLowerCase();
         if (!a1.includes(a2) && !a2.includes(a1)) return false;
       }
 
@@ -240,7 +240,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
       if (advTaskType !== 'All' && t.taskType !== advTaskType) return false;
       if (
         advModifiedBy &&
-        !t.lastModifiedBy?.name?.toLowerCase().includes(advModifiedBy.toLowerCase())
+        !t.lastModifiedBy?.name?.toLowerCase().includes(advModifiedBy?.toLowerCase())
       )
         return false;
 
@@ -318,7 +318,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
       completed: false,
       assignee: {
         name: createAssignee,
-        handle: createAssignee.toLowerCase().replace(/\s+/g, ''),
+        handle: createAssignee?.toLowerCase()?.replace(/\s+/g, ''),
         avatar: createAssignee.slice(0, 2).toUpperCase(),
         bg: 'bg-blue-600',
       },
@@ -354,14 +354,14 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
   };
 
   // Filtered dropdown items
-  const filteredPriorityOptions = PRIORITY_OPTIONS.filter((pr) =>
-    pr.label.toLowerCase().includes(prioritySearch.toLowerCase())
+  const filteredPriorityOptions = PRIORITY_OPTIONS?.filter((pr) =>
+    pr.label?.toLowerCase().includes(prioritySearch?.toLowerCase())
   );
 
-  const filteredAssigneeOptions = assigneeOptionsList.filter(
+  const filteredAssigneeOptions = assigneeOptionsList?.filter(
     (o) =>
-      o.name.toLowerCase().includes(assigneeSearch.toLowerCase()) ||
-      o.handle.toLowerCase().includes(assigneeSearch.toLowerCase())
+      o.name?.toLowerCase().includes(assigneeSearch?.toLowerCase()) ||
+      o.handle?.toLowerCase().includes(assigneeSearch?.toLowerCase())
   );
 
   return (
@@ -542,7 +542,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                       ✕ Clear filter
                     </button>
                   )}
-                  {filteredPriorityOptions.map((pr) => (
+                  {filteredPriorityOptions?.map((pr) => (
                     <button
                       key={pr.label}
                       type="button"
@@ -619,7 +619,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                       ✕ Clear filter
                     </button>
                   )}
-                  {filteredAssigneeOptions.map((o) => (
+                  {filteredAssigneeOptions?.map((o) => (
                     <button
                       key={o.name}
                       type="button"
@@ -751,7 +751,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                   </td>
                 </tr>
               ) : (
-                filteredTasks.map((t, index) => (
+                filteredTasks?.map((t, index) => (
                   <tr
                     key={t.id}
                     onClick={() => handleTaskClick(t)}
@@ -783,7 +783,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                     {/* 3. Name */}
                     <td className="py-2.5 px-3 font-medium text-slate-900 group-hover:text-blue-600 transition">
                       <span className={t.completed ? 'line-through text-slate-400' : ''}>
-                        {t.title}
+                        {t?.title}
                       </span>
                     </td>
 
@@ -1023,7 +1023,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                     onChange={(e) => setCreateAssignee(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                   >
-                    {assigneeOptionsList.map((a) => (
+                    {assigneeOptionsList?.map((a) => (
                       <option key={a.name} value={a.name}>
                         {a.name} ({a.handle})
                       </option>
@@ -1064,7 +1064,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
                     onChange={(e) => setCreatePriority(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                   >
-                    {PRIORITY_OPTIONS.map((pr) => (
+                    {PRIORITY_OPTIONS?.map((pr) => (
                       <option key={pr.label} value={pr.label}>
                         {pr.label}
                       </option>

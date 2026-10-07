@@ -41,16 +41,16 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       const usersData = await getUsers();
       setDbUsers(usersData);
       if (Array.isArray(usersData) && usersData.length > 0) {
-        const backendAgents = usersData.filter((u) => {
-          const role = (u.role || '').toLowerCase();
-          const status = (u.status || '').toLowerCase();
+        const backendAgents = usersData?.filter((u) => {
+          const role = (u.role || '')?.toLowerCase();
+          const status = (u.status || '')?.toLowerCase();
           return (role === 'agent' || role === 'broker') && status !== 'suspended';
         });
         if (backendAgents.length > 0) {
           setAgentAccounts(
-            backendAgents.map((b) => ({
+            backendAgents?.map((b) => ({
               id: String(b.id),
-              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`?.trim(),
               role: 'agent',
               avatar: b.avatar,
               bg: b.bg,
@@ -117,24 +117,24 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
 
   // Filtered contacts
   const filteredContacts = useMemo(() => {
-    return scopedContacts.filter((c) => {
-      const q = searchQuery.toLowerCase().trim();
-      const cName = c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || '';
+    return scopedContacts?.filter((c) => {
+      const q = searchQuery?.toLowerCase()?.trim();
+      const cName = c.fullName || `${c.firstName || ''} ${c.lastName || ''}`?.trim() || '';
       const cCode = c.code || `CT2600${c.id || ''}`;
       const cPhone = c.phone || '';
       const cEmail = c.email || '';
-      const ownerName = (typeof c.contactOwner === 'object' ? (c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`.trim()) : c.contactOwner) || '';
+      const ownerName = (typeof c.contactOwner === 'object' ? (c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`?.trim()) : c.contactOwner) || '';
 
       const matchesSearch =
         !q ||
-        cName.toLowerCase().includes(q) ||
-        cCode.toLowerCase().includes(q) ||
-        cPhone.toLowerCase().includes(q) ||
-        cEmail.toLowerCase().includes(q);
+        cName?.toLowerCase().includes(q) ||
+        cCode?.toLowerCase().includes(q) ||
+        cPhone?.toLowerCase().includes(q) ||
+        cEmail?.toLowerCase().includes(q);
 
       const matchesOwner =
         ownerFilter === 'all' ||
-        ownerName.toLowerCase().includes(ownerFilter.toLowerCase());
+        ownerName?.toLowerCase().includes(ownerFilter?.toLowerCase());
 
       return matchesSearch && matchesOwner;
     });
@@ -142,23 +142,23 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
 
   // Unique owners for filter
   const ownerOptions = useMemo(() => {
-    return ['The Best Rate Insurance', ...agentAccounts.map((a) => a.name)];
+    return ['The Best Rate Insurance', ...agentAccounts?.map((a) => a.name)];
   }, [agentAccounts]);
 
   // Handle Quick Create
   async function handleCreateSubmit(e) {
     e.preventDefault();
-    const fName = firstName.trim();
-    const mName = middleName.trim();
-    const lName = lastName.trim();
-    const fullNameParts = [fName, mName, lName].filter(Boolean);
+    const fName = firstName?.trim();
+    const mName = middleName?.trim();
+    const lName = lastName?.trim();
+    const fullNameParts = [fName, mName, lName]?.filter(Boolean);
     const fullName = fullNameParts.length > 0 ? fullNameParts.join(' ') : (fName || 'New Contact');
 
     const newCode = `CT2600${Math.floor(10000 + Math.random() * 90000)}`;
-    const formattedPhone = phone.trim()
-      ? phone.trim().startsWith('+1')
-        ? phone.trim()
-        : `+1 ${phone.trim()}`
+    const formattedPhone = phone?.trim()
+      ? phone?.trim().startsWith('+1')
+        ? phone?.trim()
+        : `+1 ${phone?.trim()}`
       : '—';
 
     const ownerNameResolved = contactOwner || (activeIsAgent ? effectiveAgent.name : 'The Best Rate Insurance');
@@ -177,8 +177,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       lastName: lName,
       fullName: fullName,
       phone: formattedPhone,
-      rawPhone: phone.trim(),
-      email: email.trim() || '',
+      rawPhone: phone?.trim(),
+      email: email?.trim() || '',
       language: language || 'Vietnamese',
       contactOwner: {
         name: ownerNameResolved,
@@ -270,7 +270,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         lastName: lName,
         fullName: fullName,
         phone: formattedPhone,
-        email: email.trim(),
+        email: email?.trim(),
         language: language || 'Vietnamese',
         howDoYouKnowUs: howDoYouKnowUs,
         whoReferClient: whoReferClient,
@@ -282,7 +282,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       });
       if (saved && (saved.id || saved.code)) {
         setContactsList((prev) =>
-          prev.map((c) =>
+          prev?.map((c) =>
             c.code === newCode
               ? {
                   ...newRecord,
@@ -431,7 +431,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
               className="appearance-none pl-3 pr-8 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus:border-blue-500 transition shadow-xs cursor-pointer"
             >
               <option value="all">Contact Owner: All</option>
-              {ownerOptions.map((owner) => (
+              {ownerOptions?.map((owner) => (
                 <option key={owner} value={owner}>
                   {owner}
                 </option>
@@ -543,7 +543,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                   </td>
                 </tr>
               ) : (
-                filteredContacts.map((contact, index) => {
+                filteredContacts?.map((contact, index) => {
                   const isNhatDang = contact.fullName === 'Nhat Huu Tuan Dang';
                   return (
                     <tr
@@ -917,7 +917,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                   >
                     <option value="">--</option>
                     <option value="The Best Rate Insurance">The Best Rate Insurance</option>
-                    {agentAccounts.map((a) => (
+                    {agentAccounts?.map((a) => (
                       <option key={a.id} value={a.name}>
                         {a.name}
                       </option>

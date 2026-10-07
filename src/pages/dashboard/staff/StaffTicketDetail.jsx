@@ -14,14 +14,14 @@ import toast from 'react-hot-toast';
 
 export function isDealBelongingToContact(deal, contactName, contactId) {
   if (!deal) return false;
-  const dContactId = String(deal.contactId || (typeof deal.contact === 'object' ? deal.contact?.id : '') || '').trim();
-  const cId = String(contactId || '').trim();
-  const cName = String(contactName || '').trim().toLowerCase();
+  const dContactId = String(deal.contactId || (typeof deal.contact === 'object' ? deal.contact?.id : '') || '')?.trim();
+  const cId = String(contactId || '')?.trim();
+  const cName = String(contactName || '')?.trim()?.toLowerCase();
   const dContact = String(
     deal.contactName ||
       (typeof deal.contact === 'object' ? (deal.contact?.fullName || deal.contact?.name) : '') ||
       ''
-  ).trim().toLowerCase();
+  )?.trim()?.toLowerCase();
 
   // If both IDs exist, require exact ID match
   if (cId && dContactId) {
@@ -238,7 +238,7 @@ export default function StaffTicketDetail({
 }) {
   const isPayment =
     ticket?.pipeline === 'Payment' ||
-    (ticket?.title && ticket.title.toLowerCase().includes('pay'));
+    (ticket?.title && ticket?.title?.toLowerCase().includes('pay'));
 
   const baseDefaults = isPayment ? PAYMENT_TICKET_DEFAULTS : ACA_TICKET_DEFAULTS;
   const initialData = {
@@ -263,7 +263,7 @@ export default function StaffTicketDetail({
   const [platformMembers, setPlatformMembers] = useState(() => [
     { name: 'Platform Staff', avatar: 'PS', bg: 'bg-slate-600' },
     { name: 'The Best Rate Insurance', avatar: 'TB', bg: 'bg-cyan-700' },
-    ...[].map((a) => ({
+    ...[]?.map((a) => ({
       name: a.name,
       avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
       bg: a.bg || 'bg-blue-600',
@@ -275,7 +275,7 @@ export default function StaffTicketDetail({
       setPlatformMembers([
         { name: 'Platform Staff', avatar: 'PS', bg: 'bg-slate-600' },
         { name: 'The Best Rate Insurance', avatar: 'TB', bg: 'bg-cyan-700' },
-        ...[].map((a) => ({
+        ...[]?.map((a) => ({
           name: a.name,
           avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
           bg: a.bg || 'bg-blue-600',
@@ -375,17 +375,17 @@ export default function StaffTicketDetail({
           ? currentTicket.contact?.fullName || currentTicket.contact?.name
           : '') ||
         ''
-    ).trim();
+    )?.trim();
     const cId = String(
       currentTicket.contactId ||
         (typeof currentTicket.contact === 'object' ? currentTicket.contact?.id : currentTicket.contact) ||
         ''
-    ).trim();
+    )?.trim();
     const dId = String(
       currentTicket.dealId ||
         (typeof currentTicket.deal === 'object' ? currentTicket.deal?.id || currentTicket.deal?.code : currentTicket.deal) ||
         ''
-    ).trim();
+    )?.trim();
 
     let matched = null;
 
@@ -397,7 +397,7 @@ export default function StaffTicketDetail({
     }
 
     // 2. Direct title passed on currentTicket.dealTitle ONLY IF dId is also present
-    if (!matched && dId && currentTicket.dealTitle && typeof currentTicket.dealTitle === 'string' && currentTicket.dealTitle.trim()) {
+    if (!matched && dId && currentTicket.dealTitle && typeof currentTicket.dealTitle === 'string' && currentTicket.dealTitle?.trim()) {
       matched = {
         id: dId,
         code: dId,
@@ -468,7 +468,7 @@ export default function StaffTicketDetail({
 
     const isPaymentTicket =
       rawTicket?.pipeline === 'Payment' ||
-      (rawTicket?.title && rawTicket.title.toLowerCase().includes('pay'));
+      (rawTicket?.title && rawTicket.title?.toLowerCase().includes('pay'));
     const base = isPaymentTicket ? PAYMENT_TICKET_DEFAULTS : ACA_TICKET_DEFAULTS;
     const current = {
       ...base,
@@ -513,10 +513,10 @@ export default function StaffTicketDetail({
 
     // Clean timeline items - avoid leaking Ken Ho / Kaylee Ho dummy records
     const rawTimeline = Array.isArray(current.timeline) ? current.timeline : (base.timeline || []);
-    const cleanTimeline = rawTimeline.filter((item) => {
-      const dName = String(item.dealName || item.title || item.creator || '').toLowerCase();
+    const cleanTimeline = rawTimeline?.filter((item) => {
+      const dName = String(item.dealName || item.title || item.creator || '')?.toLowerCase();
       if (dName.includes('ken ho') || dName.includes('kaylee ho') || dName.includes('kylie ho')) {
-        const cNameLower = resolvedContactName.toLowerCase();
+        const cNameLower = resolvedContactName?.toLowerCase();
         if (!cNameLower.includes('ken') && !cNameLower.includes('ho')) return false;
       }
       return true;
@@ -548,7 +548,7 @@ export default function StaffTicketDetail({
             setContactDocId(doc.id);
             const initialMap = {};
             (doc.files || []).forEach((f) => {
-              const fname = (f.name || f.fullName || '').toLowerCase();
+              const fname = (f.name || f.fullName || '')?.toLowerCase();
               const ftype = f.type || (fname.endsWith('.pdf') ? 'pdf' : (fname.match(/\.(png|jpg|jpeg)$/) ? 'image' : 'document'));
               const item = {
                 id: f.id,
@@ -584,7 +584,7 @@ export default function StaffTicketDetail({
     setUploadingCatId(catId);
     try {
       const catConfig = UPLOAD_CATEGORIES.find((c) => c.id === catId);
-      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      const ext = (file?.name?.split('.').pop() || '')?.toLowerCase();
       const fileType = ['png', 'jpg', 'jpeg'].includes(ext) ? 'image' : (ext === 'pdf' ? 'pdf' : 'document');
       const formattedSize = file.size > 1024 * 1024
         ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
@@ -599,8 +599,8 @@ export default function StaffTicketDetail({
 
       const newFileItem = {
         id: `doc-${catId}-${Date.now()}`,
-        name: file.name,
-        fullName: file.name,
+        name: file?.name,
+        fullName: file?.name,
         size: formattedSize,
         type: fileType,
         category: catConfig?.backendCat || 'otherDocument',
@@ -643,8 +643,8 @@ export default function StaffTicketDetail({
       if (targetDocId) {
         try {
           const fileRes = await addDocumentFile(targetDocId, {
-            name: file.name,
-            fullName: file.name,
+            name: file?.name,
+            fullName: file?.name,
             size: formattedSize,
             type: fileType,
             category: catConfig?.backendCat || 'otherDocument',
@@ -660,7 +660,7 @@ export default function StaffTicketDetail({
       }
 
       // Add activity to timeline
-      const actContent = `Tải lên file "${file.name}" cho danh mục "${catConfig?.title || catId}"`;
+      const actContent = `Tải lên file "${file?.name}" cho danh mục "${catConfig?.title || catId}"`;
       const newAct = {
         id: `act-doc-${Date.now()}`,
         month: 'Aug 2026',
@@ -695,8 +695,8 @@ export default function StaffTicketDetail({
         }).catch((err) => console.warn('[StaffTicketDetail] updateTicket status fallback:', err));
         showToast('Đã tải lên đủ 4/4 tài liệu bắt buộc! Trạng thái ticket đã chuyển sang "Uploaded - Waiting for Verification"');
       } else {
-        const countUploaded = requiredCats.filter((c) => updated[c]).length;
-        showToast(`Đã tải lên: ${file.name} (${countUploaded}/4 tài liệu bắt buộc)`);
+        const countUploaded = requiredCats?.filter((c) => updated[c]).length;
+        showToast(`Đã tải lên: ${file?.name} (${countUploaded}/4 tài liệu bắt buộc)`);
       }
     } catch (err) {
       console.error('Upload error:', err);
@@ -776,8 +776,8 @@ export default function StaffTicketDetail({
 
   // Handlers
   const handleSaveTitle = () => {
-    if (tempTitle.trim()) {
-      setTicketTitle(tempTitle.trim());
+    if (tempTitle?.trim()) {
+      setTicketTitle(tempTitle?.trim());
       showToast('Ticket title updated');
     }
     setIsEditingTitle(false);
@@ -790,7 +790,7 @@ export default function StaffTicketDetail({
   };
 
   const confirmDueDateUpdate = () => {
-    if (!tempReason.trim()) {
+    if (!tempReason?.trim()) {
       alert('Please provide a reason for changing the due date.');
       return;
     }
@@ -830,7 +830,7 @@ export default function StaffTicketDetail({
   };
 
   const handleStatusSelect = (st) => {
-    if (st === 'Closed' && !ticketResult.trim()) {
+    if (st === 'Closed' && !ticketResult?.trim()) {
       showToast('Validation Warning: Ticket Result is required before closing.');
       return;
     }
@@ -879,12 +879,12 @@ export default function StaffTicketDetail({
     const file = e.target.files?.[0];
     if (file) {
       const newFile = {
-        name: file.name,
+        name: file?.name,
         size: `${(file.size / 1024).toFixed(1)} KB`,
         uploadedAt: new Date().toLocaleDateString(),
       };
       setFilesList((prev) => [...prev, newFile]);
-      showToast(`File "${file.name}" uploaded`);
+      showToast(`File "${file?.name}" uploaded`);
     }
   };
 
@@ -892,17 +892,17 @@ export default function StaffTicketDetail({
     const file = e.target.files?.[0];
     if (file) {
       const newProof = {
-        name: file.name,
+        name: file?.name,
         size: `${(file.size / 1024).toFixed(1)} KB`,
         uploadedAt: new Date().toLocaleDateString(),
       };
       setProofList((prev) => [...prev, newProof]);
-      showToast(`Proof "${file.name}" uploaded`);
+      showToast(`Proof "${file?.name}" uploaded`);
     }
   };
 
   const handleAddNote = () => {
-    if (!newNoteContent.trim()) return;
+    if (!newNoteContent?.trim()) return;
     const item = {
       id: `note-${Date.now()}`,
       month: 'Aug 2026',
@@ -916,9 +916,9 @@ export default function StaffTicketDetail({
         minute: '2-digit',
         hour12: false,
       }),
-      actor: (typeof serviceAgent === 'string' && serviceAgent) ? (serviceAgent.trim().split(/\s+/)[0] + ' ' + (serviceAgent.trim().split(/\s+/)[1] || '')).trim() : 'Unknown',
+      actor: (typeof serviceAgent === 'string' && serviceAgent) ? (serviceAgent?.trim()?.split(/\s+/)[0] + ' ' + (serviceAgent?.trim()?.split(/\s+/)[1] || ''))?.trim() : 'Unknown',
       isExpanded: true,
-      content: newNoteContent.trim(),
+      content: newNoteContent?.trim(),
     };
     setTimelineItems((prev) => [item, ...prev]);
 
@@ -936,10 +936,10 @@ export default function StaffTicketDetail({
   };
 
   const handleSaveTicketNote = (id) => {
-    if (!editTicketNoteContent.trim()) return;
+    if (!editTicketNoteContent?.trim()) return;
     setTimelineItems((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, content: editTicketNoteContent.trim(), isEdited: true } : t
+      prev?.map((t) =>
+        t.id === id ? { ...t, content: editTicketNoteContent?.trim(), isEdited: true } : t
       )
     );
     setEditingTicketNoteId(null);
@@ -948,12 +948,12 @@ export default function StaffTicketDetail({
   };
 
   const handleDeleteTicketNote = (id) => {
-    setTimelineItems((prev) => prev.filter((t) => t.id !== id));
+    setTimelineItems((prev) => prev?.filter((t) => t.id !== id));
     showToast('Note deleted');
   };
 
   const handleCreateTask = () => {
-    if (!taskTitle.trim()) return;
+    if (!taskTitle?.trim()) return;
     const item = {
       id: `task-${Date.now()}`,
       month: 'Aug 2026',
@@ -977,7 +977,7 @@ export default function StaffTicketDetail({
   };
 
   const handleSendEmail = () => {
-    if (!emailBody.trim()) return;
+    if (!emailBody?.trim()) return;
     const item = {
       id: `email-${Date.now()}`,
       month: 'Aug 2026',
@@ -1002,30 +1002,30 @@ export default function StaffTicketDetail({
 
   const toggleItemExpand = (id) => {
     setTimelineItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, isExpanded: !item.isExpanded } : item))
+      prev?.map((item) => (item.id === id ? { ...item, isExpanded: !item.isExpanded } : item))
     );
   };
 
   const handleCollapseAll = () => {
-    setTimelineItems((prev) => prev.map((item) => ({ ...item, isExpanded: false })));
+    setTimelineItems((prev) => prev?.map((item) => ({ ...item, isExpanded: false })));
   };
 
   const handleExpandAll = () => {
-    setTimelineItems((prev) => prev.map((item) => ({ ...item, isExpanded: true })));
+    setTimelineItems((prev) => prev?.map((item) => ({ ...item, isExpanded: true })));
   };
 
   const isAca =
     pipeline === 'ACA account' ||
-    (ticket?.title && ticket.title.toLowerCase().includes('aca'));
+    (ticket?.title && ticket?.title?.toLowerCase().includes('aca'));
 
   const isUploadDoc =
     pipeline === 'Upload document' ||
     pipeline === 'Collect Document' ||
-    (typeof pipeline === 'string' && pipeline.toLowerCase().includes('document')) ||
-    (typeof ticketTitle === 'string' && ticketTitle.toLowerCase().includes('upload doc')) ||
-    (ticket?.pipeline && typeof ticket.pipeline === 'string' && ticket.pipeline.toLowerCase().includes('document')) ||
-    (ticket?.title && typeof ticket.title === 'string' && ticket.title.toLowerCase().includes('upload doc')) ||
-    (ticket?.category && typeof ticket.category === 'string' && ticket.category.toLowerCase().includes('upload doc'));
+    (typeof pipeline === 'string' && pipeline?.toLowerCase().includes('document')) ||
+    (typeof ticketTitle === 'string' && ticketTitle?.toLowerCase().includes('upload doc')) ||
+    (ticket?.pipeline && typeof ticket.pipeline === 'string' && ticket.pipeline?.toLowerCase().includes('document')) ||
+    (ticket?.title && typeof ticket?.title === 'string' && ticket?.title?.toLowerCase().includes('upload doc')) ||
+    (ticket?.category && typeof ticket.category === 'string' && ticket.category?.toLowerCase().includes('upload doc'));
 
   const statusOptions = isPayment
     ? STATUS_OPTIONS_PAYMENT
@@ -1034,12 +1034,12 @@ export default function StaffTicketDetail({
     : STATUS_OPTIONS_DEFAULT;
 
   // Group timeline items by month
-  const filteredTimeline = timelineItems.filter((item) => {
+  const filteredTimeline = timelineItems?.filter((item) => {
     if (filterAuthor !== 'all') {
       const a = getPersonName(item.actor, '');
       const c = getPersonName(item.creator, '');
-      const matchActor = a && a.toLowerCase().includes(filterAuthor.toLowerCase());
-      const matchCreator = c && c.toLowerCase().includes(filterAuthor.toLowerCase());
+      const matchActor = a && a?.toLowerCase().includes(filterAuthor?.toLowerCase());
+      const matchCreator = c && c?.toLowerCase().includes(filterAuthor?.toLowerCase());
       if (!matchActor && !matchCreator) return false;
     }
     if (activeCenterTab === 'notes') return item.type === 'note';
@@ -1048,7 +1048,7 @@ export default function StaffTicketDetail({
     return true;
   });
 
-  const months = Array.from(new Set(filteredTimeline.map((item) => item.month)));
+  const months = Array.from(new Set(filteredTimeline?.map((item) => item.month)));
 
   return (
     <div
@@ -1192,7 +1192,7 @@ export default function StaffTicketDetail({
                       </button>
                       {isPriorityOpen && (
                         <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-28">
-                          {PRIORITY_OPTIONS.map((p) => (
+                          {PRIORITY_OPTIONS?.map((p) => (
                             <button
                               key={p}
                               type="button"
@@ -1260,7 +1260,7 @@ export default function StaffTicketDetail({
                       </button>
                       {isPipelineOpen && (
                         <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-36">
-                          {PIPELINE_OPTIONS.map((pl) => (
+                          {PIPELINE_OPTIONS?.map((pl) => (
                             <button
                               key={pl}
                               type="button"
@@ -1296,7 +1296,7 @@ export default function StaffTicketDetail({
                       </button>
                       {isStatusOpen && (
                         <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-56">
-                          {statusOptions.map((st) => (
+                          {statusOptions?.map((st) => (
                             <button
                               key={st}
                               type="button"
@@ -1410,8 +1410,8 @@ export default function StaffTicketDetail({
                       <div className="flex items-center gap-1.5 min-w-0">
                         {serviceAgent ? (
                           <span className="w-5 h-5 rounded-full bg-[#0EA5E9] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                            {(getPersonName(serviceAgent).trim().split(/\s+/)[0]?.[0] || '?')}
-                            {getPersonName(serviceAgent).trim().split(/\s+/)[1]?.[0] || ''}
+                            {(getPersonName(serviceAgent)?.trim()?.split(/\s+/)[0]?.[0] || '?')}
+                            {getPersonName(serviceAgent)?.trim()?.split(/\s+/)[1]?.[0] || ''}
                           </span>
                         ) : null}
                         <span className="truncate">{getPersonName(serviceAgent, 'Unassigned')}</span>
@@ -1432,7 +1432,7 @@ export default function StaffTicketDetail({
 
                     {isServiceAgentOpen && (
                       <div className="absolute left-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-full">
-                        {platformMembers.map((ag) => (
+                        {platformMembers?.map((ag) => (
                           <button
                             key={ag.name}
                             type="button"
@@ -1493,7 +1493,7 @@ export default function StaffTicketDetail({
 
                       {isPaymentStatusOpen && (
                         <div className="absolute left-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-full">
-                          {PAYMENT_STATUS_OPTIONS.map((ps) => (
+                          {PAYMENT_STATUS_OPTIONS?.map((ps) => (
                             <button
                               key={ps}
                               type="button"
@@ -1553,8 +1553,8 @@ export default function StaffTicketDetail({
                       <div className="flex items-center gap-1.5 min-w-0">
                         {ticketOwner ? (
                           <span className="w-5 h-5 rounded-full bg-[#10B981] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                            {(getPersonName(ticketOwner).trim().split(/\s+/)[0]?.[0] || '?')}
-                            {getPersonName(ticketOwner).trim().split(/\s+/)[1]?.[0] || ''}
+                            {(getPersonName(ticketOwner)?.trim()?.split(/\s+/)[0]?.[0] || '?')}
+                            {getPersonName(ticketOwner)?.trim()?.split(/\s+/)[1]?.[0] || ''}
                           </span>
                         ) : null}
                         <span className="truncate">{getPersonName(ticketOwner, 'Unassigned')}</span>
@@ -1575,7 +1575,7 @@ export default function StaffTicketDetail({
 
                     {isTicketOwnerOpen && (
                       <div className="absolute left-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 w-full">
-                        {platformMembers.map((ag) => (
+                        {platformMembers?.map((ag) => (
                           <button
                             key={ag.name}
                             type="button"
@@ -1624,7 +1624,7 @@ export default function StaffTicketDetail({
                   </div>
                   {filesList.length > 0 ? (
                     <div className="space-y-1">
-                      {filesList.map((f, i) => (
+                      {filesList?.map((f, i) => (
                         <div
                           key={i}
                           className="flex items-center justify-between p-1.5 bg-slate-50 rounded border border-slate-200 text-[11px]"
@@ -1632,7 +1632,7 @@ export default function StaffTicketDetail({
                           <span className="truncate font-medium text-slate-700">{f.name}</span>
                           <button
                             type="button"
-                            onClick={() => setFilesList((prev) => prev.filter((_, idx) => idx !== i))}
+                            onClick={() => setFilesList((prev) => prev?.filter((_, idx) => idx !== i))}
                             className="text-rose-500 hover:text-rose-700 text-xs"
                           >
                             ✕
@@ -1683,7 +1683,7 @@ export default function StaffTicketDetail({
                     </div>
                     {proofList.length > 0 && (
                       <div className="space-y-1">
-                        {proofList.map((p, i) => (
+                        {proofList?.map((p, i) => (
                           <div
                             key={i}
                             className="flex items-center justify-between p-1.5 bg-slate-50 rounded border border-slate-200 text-[11px]"
@@ -1691,7 +1691,7 @@ export default function StaffTicketDetail({
                             <span className="truncate font-medium text-slate-700">{p.name}</span>
                             <button
                               type="button"
-                              onClick={() => setProofList((prev) => prev.filter((_, idx) => idx !== i))}
+                              onClick={() => setProofList((prev) => prev?.filter((_, idx) => idx !== i))}
                               className="text-rose-500 hover:text-rose-700 text-xs"
                             >
                               ✕
@@ -1902,7 +1902,7 @@ export default function StaffTicketDetail({
                       <div>
                         <h4 className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
                           <span>Document Collection Progress</span>
-                          {Object.keys(uploadedDocs).filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length >= 4 ? (
+                          {Object.keys(uploadedDocs)?.filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length >= 4 ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                               <span className="material-symbols-outlined text-[12px]">verified</span>
                               Completed (4/4)
@@ -1915,13 +1915,13 @@ export default function StaffTicketDetail({
                           )}
                         </h4>
                         <p className="text-[11px] text-slate-500">
-                          {Object.keys(uploadedDocs).filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length} of 4 required documents uploaded
+                          {Object.keys(uploadedDocs)?.filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length} of 4 required documents uploaded
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <span className="text-xs font-bold text-blue-700">
-                        {Math.round((Object.keys(uploadedDocs).filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length / 4) * 100)}%
+                        {Math.round((Object.keys(uploadedDocs)?.filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length / 4) * 100)}%
                       </span>
                     </div>
                   </div>
@@ -1930,7 +1930,7 @@ export default function StaffTicketDetail({
                     <div
                       className="bg-blue-600 h-full rounded-full transition-all duration-500"
                       style={{
-                        width: `${Math.min(100, Math.round((Object.keys(uploadedDocs).filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length / 4) * 100))}%`,
+                        width: `${Math.min(100, Math.round((Object.keys(uploadedDocs)?.filter((k) => ['income', 'citizenship', 'ssn', 'id'].includes(k)).length / 4) * 100))}%`,
                       }}
                     />
                   </div>
@@ -1938,7 +1938,7 @@ export default function StaffTicketDetail({
 
                 {/* ── 6 Document Cards Grid ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {UPLOAD_CATEGORIES.map((doc) => {
+                  {UPLOAD_CATEGORIES?.map((doc) => {
                     const uploadedItem = uploadedDocs[doc.id];
                     const isUploading = uploadingCatId === doc.id;
 
@@ -2096,14 +2096,14 @@ export default function StaffTicketDetail({
                 </div>
               )
             ) : (
-              months.map((month) => {
-                const itemsInMonth = filteredTimeline.filter((item) => item.month === month);
+              months?.map((month) => {
+                const itemsInMonth = filteredTimeline?.filter((item) => item.month === month);
                 return (
                   <div key={month} className="space-y-3">
                     <h3 className="text-xs font-bold text-slate-700">{month}</h3>
 
                     <div className="space-y-3">
-                      {itemsInMonth.map((item, itemIdx) => {
+                      {itemsInMonth?.map((item, itemIdx) => {
                         // 1. Deal move to Enrolled - Active / Enrolled - 1st Payment done
                         if (item.type === 'deal_move_active' || item.type === 'deal_move_payment') {
                           return (
@@ -2447,8 +2447,8 @@ export default function StaffTicketDetail({
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                          {contactName ? (String(contactName).trim().split(/\s+/)[0]?.[0] || 'U') : 'U'}
-                          {contactName ? (String(contactName).trim().split(/\s+/)[1]?.[0] || '') : 'H'}
+                          {contactName ? (String(contactName)?.trim()?.split(/\s+/)[0]?.[0] || 'U') : 'U'}
+                          {contactName ? (String(contactName)?.trim()?.split(/\s+/)[1]?.[0] || '') : 'H'}
                         </div>
                         <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs">
                           {contactName}
@@ -2556,8 +2556,8 @@ export default function StaffTicketDetail({
                         >
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full bg-[#52B4C9] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition font-bold text-[11px]">
-                              {dealTitle ? (String(dealTitle).trim().split(/\s+/)[0]?.[0] || 'D') : 'D'}
-                              {dealTitle ? (String(dealTitle).trim().split(/\s+/)[1]?.[0] || '') : ''}
+                              {dealTitle ? (String(dealTitle)?.trim()?.split(/\s+/)[0]?.[0] || 'D') : 'D'}
+                              {dealTitle ? (String(dealTitle)?.trim()?.split(/\s+/)[1]?.[0] || '') : ''}
                             </div>
                             <span className="font-bold text-[#104882] group-hover:text-blue-600 transition text-xs truncate">
                               {dealShortTitle || dealTitle}

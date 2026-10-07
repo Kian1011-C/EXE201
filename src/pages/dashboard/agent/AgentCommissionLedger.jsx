@@ -287,7 +287,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
       let baseList = INITIAL_COMMISSION_DATA;
 
       if (Array.isArray(comms) && comms.length > 0) {
-        baseList = comms.map((c) => {
+        baseList = comms?.map((c) => {
           const dealMembers = c.memberCount || 1;
           const gross = c.grossAmount || 30.0;
           return {
@@ -319,7 +319,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
       // Check CRM dynamic deals to auto-calculate any missing deals
       const crmDeals = [...[], ...[]];
       crmDeals.forEach((deal) => {
-        if (deal && deal.id && !baseList.some((item) => item.policyNumber === deal.id || item.policyNumber === deal.code)) {
+        if (deal && deal.id && !baseList?.some((item) => item.policyNumber === deal.id || item.policyNumber === deal.code)) {
           const dealCarrier = deal.carrier || deal.dealCarrier || deal.adminOnly?.carrier || 'BCBS';
           const members = parseInt(deal.numberMember || deal.adminOnly?.numberMember) || 1;
           const calculated = (0);
@@ -331,7 +331,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
             clientName: deal.contactName || deal.title || 'Hồ sơ bảo hiểm CRM',
             clientCode: deal.contactId || 'CT26002600',
             carrier: dealCarrier,
-            category: (deal.pipeline || '').toLowerCase().includes('medicare') ? 'Medicare' : 'Obamacare / ACA',
+            category: (deal.pipeline || '')?.toLowerCase().includes('medicare') ? 'Medicare' : 'Obamacare / ACA',
             planName: deal.title || 'ACA Qualified Health Plan',
             membersCount: members,
             premium: 400,
@@ -385,7 +385,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
     try {
       await updateCommission(id, { status: newStatus });
       setCommissionList((prev) =>
-        prev.map((c) =>
+        prev?.map((c) =>
           c.id === id
             ? {
                 ...c,
@@ -398,7 +398,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
       showToast(`Cập nhật trạng thái chi trả thành: ${newStatus}`);
     } catch {
       setCommissionList((prev) =>
-        prev.map((c) =>
+        prev?.map((c) =>
           c.id === id ? { ...c, status: newStatus === 'SETTLED' ? 'Settled' : newStatus } : c
         )
       );
@@ -409,14 +409,14 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
   // Summary Metrics: 100% Agent Payout
   const stats = useMemo(() => {
     const settled = commissionList
-      .filter((c) => c.status === 'Settled')
-      .reduce((acc, c) => acc + c.commissionAmount, 0);
+      ?.filter((c) => c.status === 'Settled')
+      ?.reduce((acc, c) => acc + c.commissionAmount, 0);
 
     const pending = commissionList
-      .filter((c) => c.status === 'Pending Carrier Review' || c.status === 'In Processing')
-      .reduce((acc, c) => acc + c.commissionAmount, 0);
+      ?.filter((c) => c.status === 'Pending Carrier Review' || c.status === 'In Processing')
+      ?.reduce((acc, c) => acc + c.commissionAmount, 0);
 
-    const totalProjected = commissionList.reduce((acc, c) => acc + c.annualProjected, 0);
+    const totalProjected = commissionList?.reduce((acc, c) => acc + c.annualProjected, 0);
     const totalPolicies = commissionList.length;
 
     return {
@@ -431,20 +431,20 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
 
   // Unique carrier list for filter
   const carrierOptions = useMemo(() => {
-    const set = new Set([...ALL_CARRIERS, ...commissionList.map((c) => c.carrier).filter(Boolean)]);
+    const set = new Set([...ALL_CARRIERS, ...commissionList?.map((c) => c.carrier)?.filter(Boolean)]);
     return ['All', ...Array.from(set)];
   }, [commissionList]);
 
   // Filtered rows
   const filteredList = useMemo(() => {
-    return commissionList.filter((item) => {
-      const q = searchQuery.toLowerCase().trim();
+    return commissionList?.filter((item) => {
+      const q = searchQuery?.toLowerCase()?.trim();
       const matchSearch =
         !q ||
-        item.clientName.toLowerCase().includes(q) ||
-        item.policyNumber.toLowerCase().includes(q) ||
-        item.memberId.toLowerCase().includes(q) ||
-        item.carrier.toLowerCase().includes(q);
+        item.clientName?.toLowerCase().includes(q) ||
+        item.policyNumber?.toLowerCase().includes(q) ||
+        item.memberId?.toLowerCase().includes(q) ||
+        item.carrier?.toLowerCase().includes(q);
 
       const matchCarrier = carrierFilter === 'All' || item.carrier === carrierFilter;
       const matchCategory = categoryFilter === 'All' || item.category === categoryFilter;
@@ -477,7 +477,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
       'Payout Date',
       'Direct Deposit Ref',
     ];
-    const rows = filteredList.map((r) => [
+    const rows = filteredList?.map((r) => [
       r.id,
       r.policyNumber,
       r.memberId,
@@ -497,12 +497,12 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
 
     const csvContent =
       'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      [headers.join(','), ...rows?.map((e) => e.join(','))].join('\n');
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Agent_Commission_100_Statement_${selectedCycle.replace('/', '-')}.csv`);
+    link.setAttribute('download', `Agent_Commission_100_Statement_${selectedCycle?.replace('/', '-')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -657,7 +657,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
               onChange={(e) => setCalcCarrier(e.target.value)}
               className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
             >
-              {ALL_CARRIERS.map((c) => (
+              {ALL_CARRIERS?.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
@@ -728,7 +728,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {Object.values(CARRIER_COMMISSION_RATES).map((cr) => (
+                {Object.values(CARRIER_COMMISSION_RATES)?.map((cr) => (
                   <tr key={cr.code} className="hover:bg-slate-50/70 transition">
                     <td className="py-2.5 px-3 font-bold text-slate-900">{cr.name}</td>
                     <td className="py-2.5 px-3">
@@ -873,7 +873,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
               onChange={(e) => setCarrierFilter(e.target.value)}
               className="bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl text-slate-700 text-xs focus:outline-none cursor-pointer"
             >
-              {carrierOptions.map((c) => (
+              {carrierOptions?.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
@@ -937,7 +937,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
-              {filteredList.map((row) => (
+              {filteredList?.map((row) => (
                 <tr key={row.id} className="hover:bg-blue-50/40 transition">
                   {/* Policy */}
                   <td className="py-3 px-3.5">
@@ -1059,7 +1059,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
             <span>Quy chế: Agent hưởng 100% hoa hồng trực tiếp từ các hãng bảo hiểm, không trừ phí 7/3.</span>
           </div>
           <div className="font-semibold text-slate-800">
-            Tổng thu nhập hàng tháng: <span className="text-blue-700 font-bold font-mono text-sm">${filteredList.reduce((s, r) => s + r.commissionAmount, 0).toFixed(2)}</span> / tháng
+            Tổng thu nhập hàng tháng: <span className="text-blue-700 font-bold font-mono text-sm">${filteredList?.reduce((s, r) => s + r.commissionAmount, 0).toFixed(2)}</span> / tháng
           </div>
         </div>
       </div>

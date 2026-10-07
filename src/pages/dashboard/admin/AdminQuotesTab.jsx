@@ -23,11 +23,11 @@ export default function AdminQuotesTab({
   }, [quotes]);
 
   const verifiedAgents = useMemo(() => {
-    return accounts.filter((a) => a.role === 'agent' && a.status === 'Active');
+    return accounts?.filter((a) => a.role === 'agent' && a.status === 'Active');
   }, [accounts]);
 
   const filteredQuotes = useMemo(() => {
-    return localQuotes.filter((q) => {
+    return localQuotes?.filter((q) => {
       const qName = q.name || q.fullName || '';
       const qPhone = q.phone || '';
       const qEmail = q.email || '';
@@ -35,18 +35,18 @@ export default function AdminQuotesTab({
 
       const matchSearch =
         !search ||
-        qName.toLowerCase().includes(search.toLowerCase()) ||
+        qName?.toLowerCase().includes(search?.toLowerCase()) ||
         qPhone.includes(search) ||
-        qEmail.toLowerCase().includes(search.toLowerCase()) ||
-        qId.toLowerCase().includes(search.toLowerCase());
+        qEmail?.toLowerCase().includes(search?.toLowerCase()) ||
+        qId?.toLowerCase().includes(search?.toLowerCase());
 
       const matchType =
         filterType === 'all' ||
-        (q.insuranceType || '').toLowerCase().includes(filterType.toLowerCase());
+        (q.insuranceType || '')?.toLowerCase().includes(filterType?.toLowerCase());
 
       const matchStatus =
         filterStatus === 'all' ||
-        (q.status || '').toLowerCase() === filterStatus.toLowerCase();
+        (q.status || '')?.toLowerCase() === filterStatus?.toLowerCase();
 
       return matchSearch && matchType && matchStatus;
     });
@@ -69,7 +69,7 @@ export default function AdminQuotesTab({
       }).catch((err) => console.warn('Offline mode: dispatching in local state', err.message));
 
       setLocalQuotes((prev) =>
-        prev.map((q) =>
+        prev?.map((q) =>
           q.id === selectedQuote.id
             ? { ...q, assignedAgent: selectedAgent, enrolledNpn: selectedNpn, status: 'Dispatched to Agent' }
             : q
@@ -170,7 +170,7 @@ export default function AdminQuotesTab({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredQuotes.map((q) => {
+              {filteredQuotes?.map((q) => {
                 const isNew = q.status === 'New Inquiry';
                 const isMatched = q.status === 'Matched & Enrolled';
                 return (
@@ -275,7 +275,7 @@ export default function AdminQuotesTab({
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-blue-500 bg-white"
                   required
                 >
-                  {verifiedAgents.map((ag) => (
+                  {verifiedAgents?.map((ag) => (
                     <option key={ag.id} value={ag.name}>
                       {ag.name} (NPN #{ag.npn}) — {ag.statesLicensed.join(', ')}
                     </option>

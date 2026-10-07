@@ -80,7 +80,7 @@ export default function PropertyHistoryModal({
   const fieldOptions = useMemo(() => {
     const list = new Set();
     rawHistoryList.forEach((item) => {
-      if (item.fieldName) list.add(item.fieldName);
+      if (item?.fieldName) list.add(item?.fieldName);
     });
     if (Array.isArray(availableFields)) {
       availableFields.forEach((f) => {
@@ -94,34 +94,34 @@ export default function PropertyHistoryModal({
 
   // Filtered field options for search inside the dropdown
   const filteredFieldOptions = useMemo(() => {
-    if (!fieldSearchTerm.trim()) return fieldOptions;
-    return fieldOptions.filter((f) =>
-      f.toLowerCase().includes(fieldSearchTerm.toLowerCase())
+    if (!fieldSearchTerm?.trim()) return fieldOptions;
+    return fieldOptions?.filter((f) =>
+      f?.toLowerCase().includes(fieldSearchTerm?.toLowerCase())
     );
   }, [fieldOptions, fieldSearchTerm]);
 
   // Filtered history records
   const filteredHistory = useMemo(() => {
-    return rawHistoryList.filter((item) => {
+    return rawHistoryList?.filter((item) => {
       // 1. Field name filter
       if (selectedField && selectedField !== 'All') {
-        if ((item.fieldName || '').toLowerCase() !== selectedField.toLowerCase()) {
+        if ((item?.fieldName || '')?.toLowerCase() !== selectedField?.toLowerCase()) {
           return false;
         }
       }
       // 2. Actor filter
-      if (actorQuery.trim()) {
-        const actor = (item.sourceActor || '').toLowerCase();
-        if (!actor.includes(actorQuery.toLowerCase())) return false;
+      if (actorQuery?.trim()) {
+        const actor = (item.sourceActor || '')?.toLowerCase();
+        if (!actor.includes(actorQuery?.toLowerCase())) return false;
       }
       // 3. Date filter
-      if (dateFilter.trim()) {
-        const madeOn = (item.madeOn || '').toLowerCase();
-        if (!madeOn.includes(dateFilter.toLowerCase())) return false;
+      if (dateFilter?.trim()) {
+        const madeOn = (item.madeOn || '')?.toLowerCase();
+        if (!madeOn.includes(dateFilter?.toLowerCase())) return false;
       }
       // 4. Action filter
       if (actionFilter && actionFilter !== 'All' && actionFilter !== 'Action...') {
-        if ((item.action || '').toLowerCase() !== actionFilter.toLowerCase()) {
+        if ((item.action || '')?.toLowerCase() !== actionFilter?.toLowerCase()) {
           return false;
         }
       }
@@ -241,7 +241,7 @@ export default function PropertyHistoryModal({
                         </span>
                       )}
                     </button>
-                    {filteredFieldOptions.map((opt) => (
+                    {filteredFieldOptions?.map((opt) => (
                       <button
                         key={opt}
                         type="button"
@@ -405,7 +405,7 @@ export default function PropertyHistoryModal({
                   </td>
                 </tr>
               ) : (
-                filteredHistory.map((item, idx) => (
+                filteredHistory?.map((item, idx) => (
                   <tr
                     key={item.id || idx}
                     className="hover:bg-slate-50/70 transition-colors"
@@ -417,7 +417,7 @@ export default function PropertyHistoryModal({
 
                     {/* Field name */}
                     <td className="py-2.5 px-3 border-r border-slate-200 font-medium text-slate-800">
-                      {item.fieldName || '—'}
+                      {item?.fieldName || '—'}
                     </td>
 
                     {/* Old value */}

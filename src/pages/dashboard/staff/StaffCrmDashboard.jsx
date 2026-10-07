@@ -86,8 +86,8 @@ export default function StaffCrmDashboard({
 
       const dynDeals = [];
       if (Array.isArray(dealsRes) && dealsRes.length > 0) {
-        const dbIds = new Set(dealsRes.map((d) => String(d.id)));
-        const uniqueDyn = dynDeals.filter((d) => !dbIds.has(String(d.id)));
+        const dbIds = new Set(dealsRes?.map((d) => String(d.id)));
+        const uniqueDyn = dynDeals?.filter((d) => !dbIds.has(String(d.id)));
         setLiveDeals(dealsRes);
       } else {
         setLiveDeals([]);
@@ -95,9 +95,9 @@ export default function StaffCrmDashboard({
 
       const dynContacts = [];
       if (Array.isArray(contactsRes) && contactsRes.length > 0) {
-        const dbIds = new Set(contactsRes.map((c) => String(c.id)));
-        const uniqueDyn = dynContacts.filter((c) => !dbIds.has(String(c.id)));
-        const remainingSamples = [].filter((s) => !dbIds.has(String(s.id)));
+        const dbIds = new Set(contactsRes?.map((c) => String(c.id)));
+        const uniqueDyn = dynContacts?.filter((c) => !dbIds.has(String(c.id)));
+        const remainingSamples = []?.filter((s) => !dbIds.has(String(s.id)));
         setLiveContacts(contactsRes);
       } else {
         setLiveContacts([]);
@@ -105,8 +105,8 @@ export default function StaffCrmDashboard({
 
       const dynTickets = [];
       if (Array.isArray(ticketsRes) && ticketsRes.length > 0) {
-        const dbIds = new Set(ticketsRes.map((t) => String(t.id)));
-        const uniqueDyn = dynTickets.filter((t) => !dbIds.has(String(t.id)));
+        const dbIds = new Set(ticketsRes?.map((t) => String(t.id)));
+        const uniqueDyn = dynTickets?.filter((t) => !dbIds.has(String(t.id)));
         setLiveTickets(ticketsRes);
       } else {
         setLiveTickets([]);
@@ -188,7 +188,7 @@ export default function StaffCrmDashboard({
     if (typeof val === 'object') {
       return (
         val.name ||
-        [val.firstName, val.lastName].filter(Boolean).join(' ') ||
+        [val.firstName, val.lastName]?.filter(Boolean).join(' ') ||
         val.fullName ||
         val.email ||
         'Unassigned'
@@ -215,15 +215,15 @@ export default function StaffCrmDashboard({
 
   // ── Available Agent Roster (Chỉ các tài khoản Agent thực tế hiện có trong hệ thống) ──
   const availableAgents = useMemo(() => {
-    const list = agentAccounts.map((ag) => {
-      const dealsCount = liveDeals.filter(
+    const list = agentAccounts?.map((ag) => {
+      const dealsCount = liveDeals?.filter(
         (d) =>
           isOwnerMatch(d.dealOwner, { role: 'agent', name: ag.name }) ||
           isOwnerMatch(d.dealOwnerName, { role: 'agent', name: ag.name }) ||
           isOwnerMatch(d.leadOwner, { role: 'agent', name: ag.name }) ||
           isOwnerMatch(d.agentName, { role: 'agent', name: ag.name })
       ).length;
-      const contactsCount = liveContacts.filter(
+      const contactsCount = liveContacts?.filter(
         (c) =>
           isOwnerMatch(c.contactOwner, { role: 'agent', name: ag.name }) ||
           isOwnerMatch(c.contactOwnerName, { role: 'agent', name: ag.name })
@@ -236,13 +236,13 @@ export default function StaffCrmDashboard({
 
   // Filtered agents for dropdown search
   const filteredAgents = useMemo(() => {
-    const q = agentSearchQuery.trim().toLowerCase();
+    const q = agentSearchQuery?.trim()?.toLowerCase();
     if (!q) return availableAgents;
-    return availableAgents.filter(
+    return availableAgents?.filter(
       (a) =>
-        a.name.toLowerCase().includes(q) ||
-        (a.handle && a.handle.toLowerCase().includes(q)) ||
-        (a.npn && a.npn.toLowerCase().includes(q))
+        a.name?.toLowerCase().includes(q) ||
+        (a.handle && a.handle?.toLowerCase().includes(q)) ||
+        (a.npn && a.npn?.toLowerCase().includes(q))
     );
   }, [availableAgents, agentSearchQuery]);
 
@@ -300,16 +300,16 @@ export default function StaffCrmDashboard({
 
   // 1. Deals breakdowns
   const obDeals = useMemo(
-    () => scopedDeals.filter((d) => (d.pipeline || '').toLowerCase().includes('obamacare')),
+    () => scopedDeals?.filter((d) => (d.pipeline || '')?.toLowerCase().includes('obamacare')),
     [scopedDeals]
   );
   const medDeals = useMemo(
-    () => scopedDeals.filter((d) => (d.pipeline || '').toLowerCase().includes('medicare')),
+    () => scopedDeals?.filter((d) => (d.pipeline || '')?.toLowerCase().includes('medicare')),
     [scopedDeals]
   );
   const activeDealsList = useMemo(
     () =>
-      scopedDeals.filter(
+      scopedDeals?.filter(
         (d) =>
           !d.stage?.toLowerCase().includes('lost') &&
           !d.stage?.toLowerCase().includes('termination')
@@ -319,12 +319,12 @@ export default function StaffCrmDashboard({
 
   // 2. Tickets & Tasks breakdowns
   const openTicketsList = useMemo(
-    () => scopedTickets.filter((t) => t.status !== 'Closed' && t.status !== 'Resolved'),
+    () => scopedTickets?.filter((t) => t.status !== 'Closed' && t.status !== 'Resolved'),
     [scopedTickets]
   );
   const overdueTicketsList = useMemo(
     () =>
-      scopedTickets.filter((t) => {
+      scopedTickets?.filter((t) => {
         if (t.status === 'Closed' || t.status === 'Resolved') return false;
         if (!t.dueDate) return false;
         return new Date(t.dueDate) < new Date();
@@ -332,12 +332,12 @@ export default function StaffCrmDashboard({
     [scopedTickets]
   );
   const openTasksList = useMemo(
-    () => scopedTasks.filter((t) => t.status !== 'Completed' && t.status !== 'Done'),
+    () => scopedTasks?.filter((t) => t.status !== 'Completed' && t.status !== 'Done'),
     [scopedTasks]
   );
   const overdueTasksList = useMemo(
     () =>
-      scopedTasks.filter((t) => {
+      scopedTasks?.filter((t) => {
         if (t.status === 'Completed' || t.status === 'Done') return false;
         if (!t.dueDate) return false;
         return new Date(t.dueDate) < new Date();
@@ -379,7 +379,7 @@ export default function StaffCrmDashboard({
   }, [obDeals]);
 
   const maxObCount = useMemo(() => {
-    const counts = obStagesData.map((s) => s.count);
+    const counts = obStagesData?.map((s) => s.count);
     return Math.max(...counts, 1);
   }, [obStagesData]);
 
@@ -400,7 +400,7 @@ export default function StaffCrmDashboard({
   }, [medDeals]);
 
   const maxMedCount = useMemo(() => {
-    const counts = medStagesData.map((s) => s.count);
+    const counts = medStagesData?.map((s) => s.count);
     return Math.max(...counts, 1);
   }, [medStagesData]);
 
@@ -415,19 +415,19 @@ export default function StaffCrmDashboard({
 
   // ── Card 3: Active OB by Agent (100% Real DB Data) ─────────────────────────
   const activeObByAgent = useMemo(() => {
-    const activeOB = obDeals.filter((d) => (d.stage || '').toLowerCase().includes('active'));
+    const activeOB = obDeals?.filter((d) => (d.stage || '')?.toLowerCase().includes('active'));
     const map = {};
     activeOB.forEach((d) => {
       const agent = d.dealOwnerName || getPersonName(d.dealOwner);
       map[agent] = (map[agent] || 0) + 1;
     });
     return Object.entries(map)
-      .map(([agent, count]) => ({ agent, count }))
+      ?.map(([agent, count]) => ({ agent, count }))
       .sort((a, b) => b.count - a.count);
   }, [obDeals]);
 
   const maxActiveObAgent = useMemo(
-    () => Math.max(...activeObByAgent.map((a) => a.count), 1),
+    () => Math.max(...activeObByAgent?.map((a) => a.count), 1),
     [activeObByAgent]
   );
 
@@ -439,12 +439,12 @@ export default function StaffCrmDashboard({
       map[agent] = (map[agent] || 0) + 1;
     });
     return Object.entries(map)
-      .map(([agent, count]) => ({ agent, count }))
+      ?.map(([agent, count]) => ({ agent, count }))
       .sort((a, b) => b.count - a.count);
   }, [medDeals]);
 
   const maxMedAgent = useMemo(
-    () => Math.max(...medDealsByAgent.map((a) => a.count), 1),
+    () => Math.max(...medDealsByAgent?.map((a) => a.count), 1),
     [medDealsByAgent]
   );
 
@@ -469,7 +469,7 @@ export default function StaffCrmDashboard({
   }, [scopedContacts]);
 
   const maxContactOwner = useMemo(
-    () => Math.max(...contactsByOwner.map((c) => c.total), 1),
+    () => Math.max(...contactsByOwner?.map((c) => c.total), 1),
     [contactsByOwner]
   );
 
@@ -479,7 +479,7 @@ export default function StaffCrmDashboard({
     activeDealsList.forEach((d) => {
       const owner = d.dealOwnerName || getPersonName(d.dealOwner);
       if (!map[owner]) map[owner] = { name: owner, ob: 0, med: 0, total: 0 };
-      if ((d.pipeline || '').toLowerCase().includes('medicare')) {
+      if ((d.pipeline || '')?.toLowerCase().includes('medicare')) {
         map[owner].med += 1;
       } else {
         map[owner].ob += 1;
@@ -490,7 +490,7 @@ export default function StaffCrmDashboard({
   }, [activeDealsList]);
 
   const maxAgentDealTotal = useMemo(
-    () => Math.max(...dealsByAgentChart.map((d) => d.total), 1),
+    () => Math.max(...dealsByAgentChart?.map((d) => d.total), 1),
     [dealsByAgentChart]
   );
 
@@ -502,7 +502,7 @@ export default function StaffCrmDashboard({
       map[agent] = (map[agent] || 0) + 1;
     });
     return Object.entries(map)
-      .map(([agent, count]) => ({ agent, count }))
+      ?.map(([agent, count]) => ({ agent, count }))
       .sort((a, b) => b.count - a.count);
   }, [openTasksList]);
 
@@ -513,14 +513,14 @@ export default function StaffCrmDashboard({
       map[agent] = (map[agent] || 0) + 1;
     });
     return Object.entries(map)
-      .map(([agent, count]) => ({ agent, count }))
+      ?.map(([agent, count]) => ({ agent, count }))
       .sort((a, b) => b.count - a.count);
   }, [overdueTasksList]);
 
   // ── Card 9: Tickets Overdue Details Pivot Table (100% Real DB Data) ────────
   const overduePivotTable = useMemo(() => {
     const matchPipeline = (pipeStr) => {
-      const p = (pipeStr || '').toLowerCase();
+      const p = (pipeStr || '')?.toLowerCase();
       if (p.includes('payment') || p.includes('pay')) return 'Payment';
       if (p.includes('aca') || p.includes('account')) return 'ACA account';
       if (p.includes('upload') || p.includes('collect') || p.includes('doc')) return 'Upload document';
@@ -547,7 +547,7 @@ export default function StaffCrmDashboard({
           total: 0,
         };
       }
-      const pCat = matchPipeline(t.pipeline || t.title);
+      const pCat = matchPipeline(t.pipeline || t?.title);
       combos[key].counts[pCat] = (combos[key].counts[pCat] || 0) + 1;
       combos[key].total += 1;
     });
@@ -597,16 +597,16 @@ export default function StaffCrmDashboard({
 
   // ── Card 12: Need Extend Tickets ────────────────────────────────────────────
   const needExtendTickets = useMemo(() => {
-    return scopedTickets.filter(
+    return scopedTickets?.filter(
       (t) =>
-        (t.title || '').toLowerCase().includes('extend') ||
+        (t?.title || '')?.toLowerCase().includes('extend') ||
         t.category === 'Extend'
     );
   }, [scopedTickets]);
 
   // ── Card 13: Need Update Member ID ──────────────────────────────────────────
   const needUpdateMemberIdData = useMemo(() => {
-    const missing = scopedDeals.filter(
+    const missing = scopedDeals?.filter(
       (d) => !d.primaryMemberId || d.primaryMemberId === '---' || d.primaryMemberId === ''
     );
     const map = {};
@@ -615,7 +615,7 @@ export default function StaffCrmDashboard({
       map[agent] = (map[agent] || 0) + 1;
     });
     const maxVal = Math.max(...Object.values(map), 1);
-    return Object.entries(map).map(([agent, count]) => ({
+    return Object.entries(map)?.map(([agent, count]) => ({
       agent,
       count,
       widthPercent: Math.max((count / maxVal) * 100, 10),
@@ -624,7 +624,7 @@ export default function StaffCrmDashboard({
 
   // ── Card 14: Need Create Member Account ─────────────────────────────────────
   const needCreateMemberAccountData = useMemo(() => {
-    const needAccount = scopedContacts.filter(
+    const needAccount = scopedContacts?.filter(
       (c) =>
         !c.acaAccount ||
         c.acaAccountStatus?.toLowerCase().includes('need create') ||
@@ -638,7 +638,7 @@ export default function StaffCrmDashboard({
       map[agent] = (map[agent] || 0) + 1;
     });
     const maxVal = Math.max(...Object.values(map), 1);
-    return Object.entries(map).map(([agent, count]) => ({
+    return Object.entries(map)?.map(([agent, count]) => ({
       agent,
       count,
       widthPercent: Math.max((count / maxVal) * 100, 10),
@@ -647,20 +647,20 @@ export default function StaffCrmDashboard({
 
   // ── Card 15: Open Upload Document Ticket Table (100% Real DB Data) ──────────
   const uploadTicketsDisplay = useMemo(() => {
-    const docTix = scopedTickets.filter(
+    const docTix = scopedTickets?.filter(
       (t) =>
         t.pipeline === 'COLLECT_DOCUMENT' ||
         t.pipeline === 'Upload documents' ||
-        (t.title || '').toLowerCase().includes('document') ||
-        (t.title || '').toLowerCase().includes('upload')
+        (t?.title || '')?.toLowerCase().includes('document') ||
+        (t?.title || '')?.toLowerCase().includes('upload')
     );
-    return docTix.map((t, idx) => ({
+    return docTix?.map((t, idx) => ({
       no: idx + 1,
-      ticketId: t.title || `Collect Document #${String(t.id || '').slice(-4)}`,
+      ticketId: t?.title || `Collect Document #${String(t.id || '').slice(-4)}`,
       due: formatDate(t.dueDate),
       owner:
         t.contact?.fullName ||
-        (t.contact ? [t.contact.firstName, t.contact.lastName].filter(Boolean).join(' ') : '') ||
+        (t.contact ? [t.contact.firstName, t.contact.lastName]?.filter(Boolean).join(' ') : '') ||
         getPersonName(t.ticketOwner || t.owner) ||
         'Customer',
       stage:
@@ -688,7 +688,7 @@ export default function StaffCrmDashboard({
 
   // ── Card 18: Active Policies OB 26 Not Done ACA - Manager ──────────────────
   const activePoliciesObNotDoneAca = useMemo(() => {
-    const activeOB = obDeals.filter((d) => (d.stage || '').toLowerCase().includes('active'));
+    const activeOB = obDeals?.filter((d) => (d.stage || '')?.toLowerCase().includes('active'));
     const map = {};
     activeOB.forEach((d) => {
       const st = d.contact?.acaAccountStatus || d.stageAca || 'Pending - Waiting for Document';
@@ -707,7 +707,7 @@ export default function StaffCrmDashboard({
       if (t.createdAt) set.add(formatDate(t.createdAt));
       if (t.dueDate) set.add(formatDate(t.dueDate));
     });
-    const arr = Array.from(set).filter(Boolean).sort();
+    const arr = Array.from(set)?.filter(Boolean).sort();
     return arr.slice(0, 9);
   }, [scopedTickets]);
 
@@ -725,10 +725,10 @@ export default function StaffCrmDashboard({
   }, [scopedTickets, activeTargetAgent]);
 
   const dailyCompleteTicketsData = useMemo(() => {
-    const completed = scopedTickets.filter((t) => t.status === 'Closed' || t.status === 'Resolved');
-    const matrix = ticketDistinctAgents.map((agent) => {
-      const vals = ticketDateColumns.map((dt) => {
-        return completed.filter(
+    const completed = scopedTickets?.filter((t) => t.status === 'Closed' || t.status === 'Resolved');
+    const matrix = ticketDistinctAgents?.map((agent) => {
+      const vals = ticketDateColumns?.map((dt) => {
+        return completed?.filter(
           (t) =>
             (t.serviceAgentName === agent ||
               t.assignedToName === agent ||
@@ -739,17 +739,17 @@ export default function StaffCrmDashboard({
       });
       return { agent, vals };
     });
-    const colTotals = ticketDateColumns.map((_, cIdx) => {
-      return matrix.reduce((sum, r) => sum + r.vals[cIdx], 0);
+    const colTotals = ticketDateColumns?.map((_, cIdx) => {
+      return matrix?.reduce((sum, r) => sum + r.vals[cIdx], 0);
     });
     return { matrix, colTotals };
   }, [scopedTickets, ticketDateColumns, ticketDistinctAgents]);
 
   const dailyNewTicketsData = useMemo(() => {
-    const newTix = scopedTickets.filter((t) => t.status === 'Open' || t.status === 'In Progress');
-    const matrix = ticketDistinctAgents.map((agent) => {
-      const vals = ticketDateColumns.map((dt) => {
-        return newTix.filter(
+    const newTix = scopedTickets?.filter((t) => t.status === 'Open' || t.status === 'In Progress');
+    const matrix = ticketDistinctAgents?.map((agent) => {
+      const vals = ticketDateColumns?.map((dt) => {
+        return newTix?.filter(
           (t) =>
             (t.serviceAgentName === agent ||
               t.assignedToName === agent ||
@@ -760,24 +760,24 @@ export default function StaffCrmDashboard({
       });
       return { agent, vals };
     });
-    const colTotals = ticketDateColumns.map((_, cIdx) => {
-      return matrix.reduce((sum, r) => sum + r.vals[cIdx], 0);
+    const colTotals = ticketDateColumns?.map((_, cIdx) => {
+      return matrix?.reduce((sum, r) => sum + r.vals[cIdx], 0);
     });
     return { matrix, colTotals };
   }, [scopedTickets, ticketDateColumns, ticketDistinctAgents]);
 
   // ── Card 21: Need Manager Enroll ────────────────────────────────────────────
   const needManagerEnrollData = useMemo(() => {
-    const waiting = scopedDeals.filter(
+    const waiting = scopedDeals?.filter(
       (d) =>
-        (d.stage || '').toLowerCase().includes('waiting for document') ||
-        (d.stage || '').toLowerCase().includes('ready to enroll')
+        (d.stage || '')?.toLowerCase().includes('waiting for document') ||
+        (d.stage || '')?.toLowerCase().includes('ready to enroll')
     );
-    const waitingDocCount = waiting.filter((d) =>
-      (d.stage || '').toLowerCase().includes('waiting for document')
+    const waitingDocCount = waiting?.filter((d) =>
+      (d.stage || '')?.toLowerCase().includes('waiting for document')
     ).length;
-    const readyEnrollCount = waiting.filter((d) =>
-      (d.stage || '').toLowerCase().includes('ready to enroll')
+    const readyEnrollCount = waiting?.filter((d) =>
+      (d.stage || '')?.toLowerCase().includes('ready to enroll')
     ).length;
     return {
       total: waiting.length,
@@ -801,11 +801,11 @@ export default function StaffCrmDashboard({
 
   // ── ROW 14: Commissions Summary & Ledger ──────────────────────────────────
   const commissionsSummary = useMemo(() => {
-    const totalGross = scopedCommissions.reduce((sum, c) => sum + (Number(c.grossAmount) || 0), 0);
-    const totalNet = scopedCommissions.reduce((sum, c) => sum + (Number(c.netAmount) || 0), 0);
-    const totalDeduction = scopedCommissions.reduce((sum, c) => sum + (Number(c.supportDeduction) || 0), 0);
-    const settledCount = scopedCommissions.filter((c) => c.status === 'SETTLED' || c.status === 'PAID').length;
-    const pendingCount = scopedCommissions.filter((c) => c.status === 'PENDING' || c.status === 'AUDIT').length;
+    const totalGross = scopedCommissions?.reduce((sum, c) => sum + (Number(c.grossAmount) || 0), 0);
+    const totalNet = scopedCommissions?.reduce((sum, c) => sum + (Number(c.netAmount) || 0), 0);
+    const totalDeduction = scopedCommissions?.reduce((sum, c) => sum + (Number(c.supportDeduction) || 0), 0);
+    const settledCount = scopedCommissions?.filter((c) => c.status === 'SETTLED' || c.status === 'PAID').length;
+    const pendingCount = scopedCommissions?.filter((c) => c.status === 'PENDING' || c.status === 'AUDIT').length;
 
     // By Carrier
     const carrierMap = {};
@@ -983,7 +983,7 @@ export default function StaffCrmDashboard({
                         Không tìm thấy agent "{agentSearchQuery}"
                       </div>
                     ) : (
-                      filteredAgents.map((ag) => {
+                      filteredAgents?.map((ag) => {
                         const isSelected = !isCompanyOverview && activeTargetAgent === ag.name;
                         return (
                           <button
@@ -1120,7 +1120,7 @@ export default function StaffCrmDashboard({
             { id: 'tickets', label: 'Tickets & Ops', count: 8, icon: 'confirmation_number' },
             { id: 'tasks', label: 'Tasks & SLA', count: 4, icon: 'checklist' },
             ...(canSeeCommissions ? [{ id: 'commissions', label: 'Commissions', count: 1, icon: 'payments' }] : []),
-          ].map((cat) => {
+          ]?.map((cat) => {
             const active = categoryFilter === cat.id;
             return (
               <button
@@ -1237,7 +1237,7 @@ export default function StaffCrmDashboard({
               {obStagesData.length === 0 ? (
                 <div className="py-8 text-center text-slate-400">No Obamacare deals found</div>
               ) : (
-                obStagesData.map((item, idx) => (
+                obStagesData?.map((item, idx) => (
                   <div
                     key={idx}
                     onClick={() => onSelectTab && onSelectTab('deals')}
@@ -1251,7 +1251,7 @@ export default function StaffCrmDashboard({
                       {item.stage}
                     </div>
                     <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-sm group-hover:ring-1 group-hover:ring-blue-300">
-                      {Object.entries(item.agents).map(([agent, segCount], sIdx) => {
+                      {Object.entries(item.agents)?.map(([agent, segCount], sIdx) => {
                         const widthPercent = (segCount / maxObCount) * 100;
                         return (
                           <div
@@ -1334,7 +1334,7 @@ export default function StaffCrmDashboard({
 
             {/* Dynamic Agent Legend */}
             <div className="flex items-center justify-center gap-3 text-[10px] text-slate-600 my-2 flex-wrap">
-              {medUniqueAgents.map((agent, aIdx) => (
+              {medUniqueAgents?.map((agent, aIdx) => (
                 <div key={agent} className="flex items-center gap-1">
                   <span
                     className="w-3 h-2 rounded-xs"
@@ -1350,7 +1350,7 @@ export default function StaffCrmDashboard({
               {medStagesData.length === 0 ? (
                 <div className="py-8 text-center text-slate-400">No Medicare deals found</div>
               ) : (
-                medStagesData.map((item, idx) => (
+                medStagesData?.map((item, idx) => (
                   <div
                     key={idx}
                     onClick={() => onSelectTab && onSelectTab('deals')}
@@ -1364,7 +1364,7 @@ export default function StaffCrmDashboard({
                       {item.stage}
                     </div>
                     <div className="flex-grow bg-slate-100 rounded-sm h-3.5 flex overflow-hidden max-w-xs group-hover:ring-1 group-hover:ring-blue-300">
-                      {Object.entries(item.agents).map(([agent, segCount], sIdx) => {
+                      {Object.entries(item.agents)?.map(([agent, segCount], sIdx) => {
                         const widthPercent = (segCount / maxMedCount) * 100;
                         return (
                           <div
@@ -1417,7 +1417,7 @@ export default function StaffCrmDashboard({
               {activeObByAgent.length === 0 ? (
                 <div className="py-4 text-center text-xs text-slate-400">Không có deal Obamacare active</div>
               ) : (
-                activeObByAgent.map((item, i) => (
+                activeObByAgent?.map((item, i) => (
                   <div
                     key={i}
                     onClick={() => onSelectTab && onSelectTab('deals')}
@@ -1470,7 +1470,7 @@ export default function StaffCrmDashboard({
               {medDealsByAgent.length === 0 ? (
                 <div className="py-4 text-center text-xs text-slate-400">Không có deal Medicare active</div>
               ) : (
-                medDealsByAgent.map((item, i) => (
+                medDealsByAgent?.map((item, i) => (
                   <div
                     key={i}
                     onClick={() => onSelectTab && onSelectTab('deals')}
@@ -1535,7 +1535,7 @@ export default function StaffCrmDashboard({
                   {contactsByOwner.length === 0 ? (
                     <div className="py-4 text-center text-xs text-slate-400">Không có khách hàng được phân công</div>
                   ) : (
-                    contactsByOwner.map((item, i) => (
+                    contactsByOwner?.map((item, i) => (
                       <div
                         key={i}
                         onClick={() => onSelectTab && onSelectTab('contacts')}
@@ -1614,7 +1614,7 @@ export default function StaffCrmDashboard({
                 Không có deal nào thuộc quyền phụ trách của agent này
               </div>
             ) : (
-              dealsByAgentChart.map((d, i) => {
+              dealsByAgentChart?.map((d, i) => {
                 const maxHeight = 210;
                 const totalHeight = Math.max((d.total / maxAgentDealTotal) * maxHeight, d.total > 0 ? 12 : 2);
                 const obHeight = (d.ob / (d.total || 1)) * totalHeight;
@@ -1684,8 +1684,8 @@ export default function StaffCrmDashboard({
               {openTasksByAgent.length === 0 ? (
                 <div className="text-center text-slate-400 text-xs py-4">No open tasks</div>
               ) : (
-                openTasksByAgent.map((item, idx) => {
-                  const maxTask = Math.max(...openTasksByAgent.map((t) => t.count), 1);
+                openTasksByAgent?.map((item, idx) => {
+                  const maxTask = Math.max(...openTasksByAgent?.map((t) => t.count), 1);
                   return (
                     <div
                       key={idx}
@@ -1742,8 +1742,8 @@ export default function StaffCrmDashboard({
               {overdueTasksByAgent.length === 0 ? (
                 <div className="text-center text-slate-400 text-xs py-4">No overdue tasks</div>
               ) : (
-                overdueTasksByAgent.map((item, idx) => {
-                  const maxOverdue = Math.max(...overdueTasksByAgent.map((t) => t.count), 1);
+                overdueTasksByAgent?.map((item, idx) => {
+                  const maxOverdue = Math.max(...overdueTasksByAgent?.map((t) => t.count), 1);
                   return (
                     <div
                       key={idx}
@@ -1821,7 +1821,7 @@ export default function StaffCrmDashboard({
                     </td>
                   </tr>
                 ) : (
-                  overduePivotTable.map((row, idx) => (
+                  overduePivotTable?.map((row, idx) => (
                     <tr
                       key={idx}
                       onClick={() => onSelectTab && onSelectTab('tickets')}
@@ -1920,8 +1920,8 @@ export default function StaffCrmDashboard({
               {openTicketsByAgent.length === 0 ? (
                 <div className="text-center text-slate-400 text-xs py-4">No open tickets</div>
               ) : (
-                openTicketsByAgent.map((item, i) => {
-                  const maxOpen = Math.max(...openTicketsByAgent.map((o) => o.count), 1);
+                openTicketsByAgent?.map((item, i) => {
+                  const maxOpen = Math.max(...openTicketsByAgent?.map((o) => o.count), 1);
                   return (
                     <div
                       key={i}
@@ -1974,8 +1974,8 @@ export default function StaffCrmDashboard({
               {overdueTicketsByAgent.length === 0 ? (
                 <div className="text-center text-slate-400 text-xs py-4">No overdue tickets</div>
               ) : (
-                overdueTicketsByAgent.map((item, i) => {
-                  const maxOverdue = Math.max(...overdueTicketsByAgent.map((o) => o.count), 1);
+                overdueTicketsByAgent?.map((item, i) => {
+                  const maxOverdue = Math.max(...overdueTicketsByAgent?.map((o) => o.count), 1);
                   return (
                     <div
                       key={i}
@@ -2062,7 +2062,7 @@ export default function StaffCrmDashboard({
                   {needUpdateMemberIdData.length === 0 ? (
                     <div className="text-center text-slate-400 text-xs py-4">All deals have Member IDs</div>
                   ) : (
-                    needUpdateMemberIdData.map((item, idx) => (
+                    needUpdateMemberIdData?.map((item, idx) => (
                       <div
                         key={idx}
                         onClick={() => onSelectTab && onSelectTab('deals')}
@@ -2112,7 +2112,7 @@ export default function StaffCrmDashboard({
                   {needCreateMemberAccountData.length === 0 ? (
                     <div className="text-center text-slate-400 text-xs py-4">All contacts have accounts</div>
                   ) : (
-                    needCreateMemberAccountData.map((item, idx) => (
+                    needCreateMemberAccountData?.map((item, idx) => (
                       <div
                         key={idx}
                         onClick={() => onSelectTab && onSelectTab('contacts')}
@@ -2192,7 +2192,7 @@ export default function StaffCrmDashboard({
                       </td>
                     </tr>
                   ) : (
-                    uploadTicketsDisplay.map((row) => (
+                    uploadTicketsDisplay?.map((row) => (
                       <tr
                         key={row.no}
                         onClick={() => {
@@ -2267,8 +2267,8 @@ export default function StaffCrmDashboard({
               </div>
 
               <div className="space-y-2 text-[11px] my-auto">
-                {acaConsentStatusData.map((item, i) => {
-                  const maxConsent = Math.max(...acaConsentStatusData.map((c) => c.count), 1);
+                {acaConsentStatusData?.map((item, i) => {
+                  const maxConsent = Math.max(...acaConsentStatusData?.map((c) => c.count), 1);
                   return (
                     <div
                       key={i}
@@ -2321,8 +2321,8 @@ export default function StaffCrmDashboard({
               </div>
 
               <div className="space-y-2 text-[11px] my-auto">
-                {acaConsentStatusData.map((item, i) => {
-                  const maxVal = Math.max(...acaConsentStatusData.map((c) => c.count), 1);
+                {acaConsentStatusData?.map((item, i) => {
+                  const maxVal = Math.max(...acaConsentStatusData?.map((c) => c.count), 1);
                   return (
                     <div
                       key={i}
@@ -2393,8 +2393,8 @@ export default function StaffCrmDashboard({
                 {activePoliciesObNotDoneAca.length === 0 ? (
                   <div className="text-center text-slate-400 text-xs py-4">No active policies found</div>
                 ) : (
-                  activePoliciesObNotDoneAca.map((row, idx) => {
-                    const maxRowVal = Math.max(...activePoliciesObNotDoneAca.map((r) => r.total), 1);
+                  activePoliciesObNotDoneAca?.map((row, idx) => {
+                    const maxRowVal = Math.max(...activePoliciesObNotDoneAca?.map((r) => r.total), 1);
                     return (
                       <div
                         key={idx}
@@ -2474,14 +2474,14 @@ export default function StaffCrmDashboard({
                     <th rowSpan={2} className="px-4 py-2 border border-slate-200 text-slate-700 min-w-[140px]">
                       Service Agent
                     </th>
-                    {ticketDateColumns.map((date) => (
+                    {ticketDateColumns?.map((date) => (
                       <th key={date} className="px-3 py-1.5 border border-slate-200 text-center font-semibold text-slate-700">
                         {date}
                       </th>
                     ))}
                   </tr>
                   <tr className="border-b border-slate-200 bg-slate-50/50 text-[10px] text-slate-400 font-normal">
-                    {ticketDateColumns.map((_, i) => (
+                    {ticketDateColumns?.map((_, i) => (
                       <th key={i} className="px-3 py-1 border border-slate-200 text-center font-normal text-slate-400">
                         TicketId
                       </th>
@@ -2489,7 +2489,7 @@ export default function StaffCrmDashboard({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {dailyCompleteTicketsData.matrix.map((row, idx) => (
+                  {dailyCompleteTicketsData.matrix?.map((row, idx) => (
                     <tr
                       key={idx}
                       onClick={() => onSelectTab && onSelectTab('tickets')}
@@ -2499,7 +2499,7 @@ export default function StaffCrmDashboard({
                       <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800 group-hover:text-blue-700">
                         {row.agent}
                       </td>
-                      {row.vals.map((v, vIdx) => (
+                      {row.vals?.map((v, vIdx) => (
                         <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700 group-hover:text-blue-800">
                           {v}
                         </td>
@@ -2515,7 +2515,7 @@ export default function StaffCrmDashboard({
                     <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider group-hover:text-blue-800">
                       TOTAL
                     </td>
-                    {dailyCompleteTicketsData.colTotals.map((t, idx) => (
+                    {dailyCompleteTicketsData.colTotals?.map((t, idx) => (
                       <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900 group-hover:text-blue-800">
                         {t}
                       </td>
@@ -2563,14 +2563,14 @@ export default function StaffCrmDashboard({
                     <th rowSpan={2} className="px-4 py-2 border border-slate-200 text-slate-700 min-w-[140px]">
                       Service Agent
                     </th>
-                    {ticketDateColumns.map((date) => (
+                    {ticketDateColumns?.map((date) => (
                       <th key={date} className="px-3 py-1.5 border border-slate-200 text-center font-semibold text-slate-700">
                         {date}
                       </th>
                     ))}
                   </tr>
                   <tr className="border-b border-slate-200 bg-slate-50/50 text-[10px] text-slate-400 font-normal">
-                    {ticketDateColumns.map((_, i) => (
+                    {ticketDateColumns?.map((_, i) => (
                       <th key={i} className="px-3 py-1 border border-slate-200 text-center font-normal text-slate-400">
                         TicketId
                       </th>
@@ -2578,7 +2578,7 @@ export default function StaffCrmDashboard({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {dailyNewTicketsData.matrix.map((row, idx) => (
+                  {dailyNewTicketsData.matrix?.map((row, idx) => (
                     <tr
                       key={idx}
                       onClick={() => onSelectTab && onSelectTab('tickets')}
@@ -2588,7 +2588,7 @@ export default function StaffCrmDashboard({
                       <td className="px-4 py-2 border border-slate-200 font-medium text-slate-800 group-hover:text-blue-700">
                         {row.agent}
                       </td>
-                      {row.vals.map((v, vIdx) => (
+                      {row.vals?.map((v, vIdx) => (
                         <td key={vIdx} className="px-3 py-2 border border-slate-200 text-right font-medium text-slate-700 group-hover:text-blue-800">
                           {v}
                         </td>
@@ -2604,7 +2604,7 @@ export default function StaffCrmDashboard({
                     <td className="px-4 py-2 border border-slate-200 text-slate-900 tracking-wider group-hover:text-blue-800">
                       TOTAL
                     </td>
-                    {dailyNewTicketsData.colTotals.map((t, idx) => (
+                    {dailyNewTicketsData.colTotals?.map((t, idx) => (
                       <td key={idx} className="px-3 py-2 border border-slate-200 text-right font-bold text-slate-900 group-hover:text-blue-800">
                         {t}
                       </td>
@@ -2744,7 +2744,7 @@ export default function StaffCrmDashboard({
 
               {/* Dynamic Legend */}
               <div className="flex items-center justify-center gap-4 text-[10px] text-slate-600 mb-6 flex-wrap">
-                {medUniqueAgents.map((ag, idx) => (
+                {medUniqueAgents?.map((ag, idx) => (
                   <div key={ag} className="flex items-center gap-1.5">
                     <span
                       className="w-3 h-2 rounded-xs"
@@ -2764,8 +2764,8 @@ export default function StaffCrmDashboard({
                 </div>
 
                 <div className="flex-grow flex flex-col justify-between space-y-3 py-1 border-l border-slate-300 relative">
-                  {soaStatusData.map((row, idx) => {
-                    const maxSoa = Math.max(...soaStatusData.map((s) => s.total), 1);
+                  {soaStatusData?.map((row, idx) => {
+                    const maxSoa = Math.max(...soaStatusData?.map((s) => s.total), 1);
                     return (
                       <div
                         key={idx}
@@ -2891,7 +2891,7 @@ export default function StaffCrmDashboard({
                       </td>
                     </tr>
                   ) : (
-                    commissionsSummary.byCarrier.map((item, idx) => (
+                    commissionsSummary.byCarrier?.map((item, idx) => (
                       <tr
                         key={idx}
                         onClick={() => onSelectTab && onSelectTab('commission')}

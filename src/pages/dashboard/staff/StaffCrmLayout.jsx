@@ -31,7 +31,7 @@ export default function StaffCrmLayout({
   // Global Ctrl+K / Cmd+K listener for Command Palette
   useEffect(() => {
     function handleKeyDown(e) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key?.toLowerCase() === 'k') {
         e.preventDefault();
         setShowCommandPalette((prev) => !prev);
       }
@@ -640,7 +640,7 @@ export default function StaffCrmLayout({
           <div className="w-6 h-px bg-slate-800 my-1" />
 
           {/* Direct Module Buttons with Floating Tooltips */}
-          {navItems.map((item) => {
+          {navItems?.map((item) => {
             const active = currentTab === item.id;
             return (
               <div key={item.id} className="relative group w-full flex justify-center">
@@ -707,7 +707,7 @@ export default function StaffCrmLayout({
 
       {/* ── Mobile Bottom Navigation Bar (Visible only on < md) ───────────── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0A1628]/95 backdrop-blur-md border-t border-slate-800/80 px-2 py-1 flex items-center justify-around shadow-2xl">
-        {navItems.map((item) => {
+        {navItems?.map((item) => {
           const active = currentTab === item.id;
           return (
             <button

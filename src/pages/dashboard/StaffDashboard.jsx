@@ -114,10 +114,10 @@ export default function StaffDashboard() {
       setCurrentTab('dashboard');
       setCurrentView('dashboard');
     } else if (path.includes('/dashboard/staff/tickets/')) {
-      const parts = path.split('/dashboard/staff/tickets/');
+      const parts = path?.split('/dashboard/staff/tickets/');
       const ticketId = parts[1];
       if (ticketId) {
-        const cleanId = String(ticketId).replace(/\/$/, '');
+        const cleanId = String(ticketId)?.replace(/\/$/, '');
         const dynContacts = [];
         const dynDeals = [];
         const contactTickets = [...dynContacts, ...[]].flatMap((c) => c.associatedTickets || c.tickets || []);
@@ -138,7 +138,7 @@ export default function StaffDashboard() {
             id: cleanId,
             code: cleanId,
             title: cleanId.startsWith('TC26') ? `Ticket ACA - ${cleanId}` : `Support Ticket - ${cleanId}`,
-            pipeline: cleanId.toLowerCase().includes('upload') ? 'Upload document' : 'ACA account',
+            pipeline: cleanId?.toLowerCase().includes('upload') ? 'Upload document' : 'ACA account',
             status: 'Need Create ACA Account',
             stage: 'Need Create ACA Account (ACA account)',
             priority: 'High',
@@ -156,7 +156,7 @@ export default function StaffDashboard() {
       setCurrentTab('tickets');
       setCurrentView('tickets-list');
     } else if (path.includes('/dashboard/staff/tasks/')) {
-      const parts = path.split('/dashboard/staff/tasks/');
+      const parts = path?.split('/dashboard/staff/tasks/');
       const taskId = parts[1];
       if (taskId) {
         getTask(taskId)
@@ -169,7 +169,7 @@ export default function StaffDashboard() {
       setCurrentTab('tasks');
       setCurrentView('tasks-list');
     } else if (path.includes('/dashboard/staff/documents/')) {
-      const parts = path.split('/dashboard/staff/documents/');
+      const parts = path?.split('/dashboard/staff/documents/');
       const docId = parts[1];
       if (docId) {
         getDocument(docId)
@@ -182,7 +182,7 @@ export default function StaffDashboard() {
       setCurrentTab('documents');
       setCurrentView('customer-documents-list');
     } else if (path.includes('/dashboard/staff/deals/')) {
-      const parts = path.split('/dashboard/staff/deals/');
+      const parts = path?.split('/dashboard/staff/deals/');
       const dealId = parts[1]?.replace(/\/$/, '')?.trim();
       if (dealId) {
         const allDeals = [...[], ...[]];
@@ -191,7 +191,7 @@ export default function StaffDashboard() {
           String(d.code) === String(dealId) ||
           (dealId === '3' && (d.code === 'D26005033' || d.id === 'D26005033')) ||
           (dealId === '4' && (d.code === 'D26005034' || d.id === 'D26005034')) ||
-          (d.title && d.title.toLowerCase().includes('minh tran') && dealId === '3')
+          (d.title && d.title?.toLowerCase().includes('minh tran') && dealId === '3')
         );
         if (localFound) {
           setSelectedDeal({ ...{}, ...localFound });
@@ -209,7 +209,7 @@ export default function StaffDashboard() {
       setCurrentTab('commission');
       setCurrentView('commission-ledger');
     } else if (path.includes('/dashboard/staff/contacts/')) {
-      const parts = path.split('/dashboard/staff/contacts/');
+      const parts = path?.split('/dashboard/staff/contacts/');
       const contactId = parts[1];
       if (contactId) {
         const allContacts = [...[], ...[]];
@@ -243,7 +243,7 @@ export default function StaffDashboard() {
     let lastName = contact.lastName || p.lastName;
 
     if (!firstName && !lastName && contact.fullName) {
-      const parts = contact.fullName.trim().split(/\s+/);
+      const parts = contact.fullName?.trim()?.split(/\s+/);
       if (parts.length === 1) { firstName = parts[0]; lastName = ''; }
       else if (parts.length === 2) { firstName = parts[0]; lastName = parts[1]; }
       else { firstName = parts.slice(0, -1).join(' '); lastName = parts[parts.length - 1]; }
@@ -284,7 +284,7 @@ export default function StaffDashboard() {
       firstName: firstName || (isDemoSample ? 'Nhat Huu Tuan' : ''),
       middleName: middleName || '',
       lastName: lastName || (isDemoSample ? 'Dang' : ''),
-      fullName: contact.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || (isDemoSample ? 'Nhat Huu Tuan Dang' : ''),
+      fullName: contact.fullName || [firstName, middleName, lastName]?.filter(Boolean).join(' ') || (isDemoSample ? 'Nhat Huu Tuan Dang' : ''),
       primary: {
         ...(defaultData.primary || {}),
         ...(contact.primary || {}),
@@ -309,30 +309,30 @@ export default function StaffDashboard() {
         contactOwner: contact.contactOwner?.name || contact.contactOwner || 'The Best Rate Insurance',
       },
       initials: (contact.fullName || (isDemoSample ? 'ND' : (firstName ? firstName[0] : 'CT')))
-        .split(' ')
-        .filter(Boolean)
-        .map((w) => w[0])
+        ?.split(' ')
+        ?.filter(Boolean)
+        ?.map((w) => w[0])
         .slice(0, 2)
         .join('')
         .toUpperCase(),
     };
 
     // Ensure all matching deals from dynamic store and sample data are linked
-    const resolvedContactId = String(contact.id || contact.code || '').trim();
+    const resolvedContactId = String(contact.id || contact.code || '')?.trim();
     const resolvedContactName = String(
-      mergedContact.fullName || contact.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || ''
-    ).trim().toLowerCase();
+      mergedContact.fullName || contact.fullName || [firstName, middleName, lastName]?.filter(Boolean).join(' ') || ''
+    )?.trim()?.toLowerCase();
 
     const existingDeals = Array.isArray(contact.associatedDeals) && contact.associatedDeals.length > 0
       ? contact.associatedDeals
       : (Array.isArray(contact.deals) && contact.deals.length > 0 ? contact.deals : []);
 
-    const matchingLocalDeals = [...[], ...[]].filter((d) => {
-      const dCId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
-      const dCName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
-      const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
+    const matchingLocalDeals = [...[], ...[]]?.filter((d) => {
+      const dCId = String(d.contactId || d.contact?.id || d.contact?.code || '')?.trim();
+      const dCName = String(d.contactName || d.contact?.fullName || d.contact?.name || '')?.trim()?.toLowerCase();
+      const dTitle = String(d.title || d.dealName || '')?.trim()?.toLowerCase();
       return (
-        (resolvedContactId && (dCId === resolvedContactId || dCId.toLowerCase() === resolvedContactId.toLowerCase())) ||
+        (resolvedContactId && (dCId === resolvedContactId || dCId?.toLowerCase() === resolvedContactId?.toLowerCase())) ||
         (resolvedContactName && dCName && dCName === resolvedContactName) ||
         (resolvedContactName && (dTitle.startsWith(resolvedContactName) || dTitle.includes(resolvedContactName)))
       );
@@ -340,7 +340,7 @@ export default function StaffDashboard() {
 
     const allResolvedDeals = [...existingDeals, ...matchingLocalDeals];
     const seenDealKeys = new Set();
-    const finalAssociatedDeals = allResolvedDeals.filter((d) => {
+    const finalAssociatedDeals = allResolvedDeals?.filter((d) => {
       const key = d.id || d.code;
       if (!key || seenDealKeys.has(key)) return false;
       seenDealKeys.add(key);
@@ -367,8 +367,8 @@ export default function StaffDashboard() {
       String(d.code) === dealId ||
       (dealId === '3' && (d.code === 'D26005033' || d.id === 'D26005033')) ||
       (dealId === '4' && (d.code === 'D26005034' || d.id === 'D26005034')) ||
-      (deal?.title && d.title && (d.title.toLowerCase() === deal.title.toLowerCase() || d.title.toLowerCase().includes(deal.title.toLowerCase()))) ||
-      (deal?.dealName && d.title && (d.title.toLowerCase().includes(deal.dealName.toLowerCase()) || deal.dealName.toLowerCase().includes(d.title.toLowerCase())))
+      (deal?.title && d.title && (d.title?.toLowerCase() === deal.title?.toLowerCase() || d.title?.toLowerCase().includes(deal.title?.toLowerCase()))) ||
+      (deal?.dealName && d.title && (d.title?.toLowerCase().includes(deal.dealName?.toLowerCase()) || deal.dealName?.toLowerCase().includes(d.title?.toLowerCase())))
     );
     const targetDeal = found || deal || {};
     const dealWithContact = {
@@ -441,7 +441,7 @@ export default function StaffDashboard() {
           (d) => d.id === updatedDoc.id || d.name === updatedDoc.name
         );
         const updatedList = idx >= 0
-          ? prevDocs.map((d, i) => (i === idx ? updatedDoc : d))
+          ? prevDocs?.map((d, i) => (i === idx ? updatedDoc : d))
           : [updatedDoc, ...prevDocs];
         return {
           ...prev,
@@ -562,8 +562,8 @@ export default function StaffDashboard() {
         selectedContact &&
         (
           (selectedDeal?.contactId && (selectedDeal.contactId === selectedContact.id || selectedDeal.contactId === selectedContact.code)) ||
-          (selectedDeal?.contactName && (selectedContact.fullName || '').toLowerCase().includes(selectedDeal.contactName.toLowerCase())) ||
-          (selectedDeal?.title && (selectedContact.fullName || '').toLowerCase().includes(selectedDeal.title.toLowerCase()))
+          (selectedDeal?.contactName && (selectedContact.fullName || '')?.toLowerCase().includes(selectedDeal.contactName?.toLowerCase())) ||
+          (selectedDeal?.title && (selectedContact.fullName || '')?.toLowerCase().includes(selectedDeal.title?.toLowerCase()))
         )
       ) {
         handleBackToContactDetail();
@@ -710,7 +710,7 @@ export default function StaffDashboard() {
             setSelectedContact((prev) => {
               if (!prev) return prev;
               const tList = prev.associatedTickets || prev.tickets || [];
-              const nextTickets = tList.map((t) => (t.id === updated.id || t.code === updated.code ? { ...t, ...updated } : t));
+              const nextTickets = tList?.map((t) => (t.id === updated.id || t.code === updated.code ? { ...t, ...updated } : t));
               const isAca = updated?.pipeline === 'ACA account';
               const nextContact = {
                 ...prev,

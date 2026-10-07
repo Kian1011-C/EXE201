@@ -10,10 +10,10 @@ export default function AdminOverviewTab({
   dbStatus,
   onNavigateTab,
 }) {
-  const verifiedAgentsCount = accounts.filter((a) => (a.role === 'agent' || a.role === 'AGENT') && (a.status === 'Active' || a.active !== false)).length;
-  const pendingAgentsCount = accounts.filter((a) => (a.role === 'agent' || a.role === 'AGENT') && (a.status ? a.status.includes('Pending') : a.active === false)).length;
-  const staffCount = accounts.filter((a) => (a.role === 'staff' || a.role === 'support' || a.role === 'SUPPORT') && (a.status === 'Active' || a.active !== false)).length;
-  const activeDealsCount = deals.filter((d) => !(d.stage || d.dealStage || '').includes('Closed Lost')).length;
+  const verifiedAgentsCount = accounts?.filter((a) => (a.role === 'agent' || a.role === 'AGENT') && (a.status === 'Active' || a.active !== false)).length;
+  const pendingAgentsCount = accounts?.filter((a) => (a.role === 'agent' || a.role === 'AGENT') && (a.status ? a.status.includes('Pending') : a.active === false)).length;
+  const staffCount = accounts?.filter((a) => (a.role === 'staff' || a.role === 'support' || a.role === 'SUPPORT') && (a.status === 'Active' || a.active !== false)).length;
+  const activeDealsCount = deals?.filter((d) => !(d.stage || d.dealStage || '').includes('Closed Lost')).length;
 
   // Carrier distribution
   const carrierCounts = {};
@@ -53,7 +53,7 @@ export default function AdminOverviewTab({
     {
       label: 'Total Match Inquiries',
       value: quotes.length > 0 ? quotes.length : (stats?.totalInquiries || '120+'),
-      subtext: `${quotes.filter((q) => q.status === 'New Inquiry').length || 14} pending dispatch`,
+      subtext: `${quotes?.filter((q) => q.status === 'New Inquiry').length || 14} pending dispatch`,
       icon: 'contact_support',
       bg: 'bg-blue-50 text-blue-700 border-blue-200',
       tab: 'quotes',
@@ -120,7 +120,7 @@ export default function AdminOverviewTab({
 
       {/* ── KPI Cards ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {KPI_CARDS.map((kpi, idx) => (
+        {KPI_CARDS?.map((kpi, idx) => (
           <motion.div
             key={kpi.label}
             initial={{ opacity: 0, y: 10 }}
@@ -158,7 +158,7 @@ export default function AdminOverviewTab({
 
           <div className="space-y-3">
             {Object.entries(carrierCounts).length > 0 ? (
-              Object.entries(carrierCounts).map(([carrier, count]) => {
+              Object.entries(carrierCounts)?.map(([carrier, count]) => {
                 const total = deals.length || 1;
                 const pct = Math.round((count / total) * 100);
                 return (
@@ -191,7 +191,7 @@ export default function AdminOverviewTab({
 
           <div className="space-y-3">
             {Object.entries(stateCounts).length > 0 ? (
-              Object.entries(stateCounts).map(([state, count]) => {
+              Object.entries(stateCounts)?.map(([state, count]) => {
                 const total = deals.length || 1;
                 const pct = Math.round((count / total) * 100);
                 return (

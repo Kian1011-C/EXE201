@@ -40,16 +40,16 @@ export default function AddDealModal({
   useEffect(() => {
     getUsers().then((data) => {
       if (Array.isArray(data) && data.length > 0) {
-        const backendAgents = data.filter((u) => {
-          const role = (u.role || '').toLowerCase();
-          const status = (u.status || '').toLowerCase();
+        const backendAgents = data?.filter((u) => {
+          const role = (u.role || '')?.toLowerCase();
+          const status = (u.status || '')?.toLowerCase();
           return (role === 'agent' || role === 'broker') && status !== 'suspended';
         });
         if (backendAgents.length > 0) {
           setAgentAccounts(
-            backendAgents.map((b) => ({
+            backendAgents?.map((b) => ({
               id: String(b.id),
-              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`?.trim(),
               role: 'agent',
               avatar: b.avatar,
               bg: b.bg,
@@ -64,7 +64,7 @@ export default function AddDealModal({
     }).catch(() => {});
   }, []);
 
-  const ownerOptions = ['--', ...agentAccounts.map((a) => a.name)];
+  const ownerOptions = ['--', ...agentAccounts?.map((a) => a.name)];
 
   // Form states matching media_1790575726166.png
   const [dealName, setDealName] = useState('');
@@ -102,17 +102,17 @@ export default function AddDealModal({
 
   function handleSubmit(e) {
     e.preventDefault();
-    const finalTitle = dealName.trim() || `${contactName} - ${pipeline}`;
+    const finalTitle = dealName?.trim() || `${contactName} - ${pipeline}`;
     const newCode = `D2600${Math.floor(5000 + Math.random() * 900)}`;
     let resolvedContactId = initialContactId || '';
-    const resolvedContactName = contactName.trim();
+    const resolvedContactName = contactName?.trim();
 
     if (!resolvedContactId && resolvedContactName) {
       try {
         const allContacts = [...[], ...[]];
         const matched = allContacts.find((c) =>
-          (c.fullName && c.fullName.trim().toLowerCase() === resolvedContactName.toLowerCase()) ||
-          (c.name && c.name.trim().toLowerCase() === resolvedContactName.toLowerCase())
+          (c.fullName && c.fullName?.trim()?.toLowerCase() === resolvedContactName?.toLowerCase()) ||
+          (c.name && c.name?.trim()?.toLowerCase() === resolvedContactName?.toLowerCase())
         );
         if (matched) {
           resolvedContactId = matched.id || matched.code || '';
@@ -374,7 +374,7 @@ export default function AddDealModal({
                     className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
                   >
                     <option value="--">--</option>
-                    {availableStages.map((st) => (
+                    {availableStages?.map((st) => (
                       <option key={st} value={st}>
                         {st}
                       </option>
@@ -398,7 +398,7 @@ export default function AddDealModal({
                   onChange={(e) => setDealOwner(e.target.value)}
                   className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
                 >
-                  {ownerOptions.map((o) => (
+                  {ownerOptions?.map((o) => (
                     <option key={o} value={o}>
                       {o}
                     </option>
@@ -445,7 +445,7 @@ export default function AddDealModal({
                   >
                     <option value="--">--</option>
                     <option value={`${contactName} (Self)`}>{contactName} (Self)</option>
-                    {membersList.map((m) => (
+                    {membersList?.map((m) => (
                       <option key={m.id || m.name} value={`${m.name} (${m.relation || 'Member'})`}>
                         {m.name} ({m.relation || 'Member'})
                       </option>
@@ -473,7 +473,7 @@ export default function AddDealModal({
                     onChange={(e) => setCarrier(e.target.value)}
                     className="w-full px-3 py-2 rounded border border-slate-200 bg-white focus:outline-none focus:border-blue-500 text-xs font-semibold text-blue-700 cursor-pointer shadow-2xs"
                   >
-                    {ALL_CARRIERS.map((c) => (
+                    {ALL_CARRIERS?.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
@@ -573,13 +573,13 @@ export default function AddDealModal({
 
             <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
               {[...[], ...[]]
-                .filter((d) =>
+                ?.filter((d) =>
                   !searchExisting ||
-                  (d.title && d.title.toLowerCase().includes(searchExisting.toLowerCase())) ||
-                  (d.code && d.code.toLowerCase().includes(searchExisting.toLowerCase()))
+                  (d.title && d.title?.toLowerCase().includes(searchExisting?.toLowerCase())) ||
+                  (d.code && d.code?.toLowerCase().includes(searchExisting?.toLowerCase()))
                 )
                 .slice(0, 10)
-                .map((d) => (
+                ?.map((d) => (
                   <div
                     key={d.id || d.code}
                     className="p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer"

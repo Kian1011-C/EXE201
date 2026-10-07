@@ -147,10 +147,10 @@ export default function AdminDashboard() {
     const path = location.pathname;
 
     if (path.includes('/dashboard/admin/tickets/')) {
-      const parts = path.split('/dashboard/admin/tickets/');
+      const parts = path?.split('/dashboard/admin/tickets/');
       const ticketId = parts[1];
       if (ticketId) {
-        const cleanId = String(ticketId).replace(/\/$/, '');
+        const cleanId = String(ticketId)?.replace(/\/$/, '');
         const dynContacts = [];
         const dynDeals = [];
         const contactTickets = [...dynContacts, ...[]].flatMap((c) => c.associatedTickets || c.tickets || []);
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
             id: cleanId,
             code: cleanId,
             title: cleanId.startsWith('TC26') ? `Ticket ACA - ${cleanId}` : `Support Ticket - ${cleanId}`,
-            pipeline: cleanId.toLowerCase().includes('upload') ? 'Upload document' : 'ACA account',
+            pipeline: cleanId?.toLowerCase().includes('upload') ? 'Upload document' : 'ACA account',
             status: 'Need Create ACA Account',
             stage: 'Need Create ACA Account (ACA account)',
             priority: 'High',
@@ -189,7 +189,7 @@ export default function AdminDashboard() {
       setActiveTab('tickets');
       setCurrentView('tickets-list');
     } else if (path.includes('/dashboard/admin/tasks/')) {
-      const parts = path.split('/dashboard/admin/tasks/');
+      const parts = path?.split('/dashboard/admin/tasks/');
       const taskId = parts[1];
       if (taskId) {
         getTask(taskId)
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
       setActiveTab('tasks');
       setCurrentView('tasks-list');
     } else if (path.includes('/dashboard/admin/documents/')) {
-      const parts = path.split('/dashboard/admin/documents/');
+      const parts = path?.split('/dashboard/admin/documents/');
       const docId = parts[1];
       if (docId) {
         getDocument(docId)
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
       setActiveTab('documents');
       setCurrentView('customer-documents-list');
     } else if (path.includes('/dashboard/admin/deals/')) {
-      const parts = path.split('/dashboard/admin/deals/');
+      const parts = path?.split('/dashboard/admin/deals/');
       const dealId = parts[1];
       if (dealId) {
         const allDeals = [...[], ...[]];
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
       setActiveTab('deals');
       setCurrentView('deals-list');
     } else if (path.includes('/dashboard/admin/contacts/')) {
-      const parts = path.split('/dashboard/admin/contacts/');
+      const parts = path?.split('/dashboard/admin/contacts/');
       const contactId = parts[1];
       if (contactId) {
         const allContacts = [...[], ...[]];
@@ -368,7 +368,7 @@ export default function AdminDashboard() {
     let lastName = contact.lastName || p.lastName;
 
     if (!firstName && !lastName && contact.fullName) {
-      const parts = contact.fullName.trim().split(/\s+/);
+      const parts = contact.fullName?.trim()?.split(/\s+/);
       if (parts.length === 1) { firstName = parts[0]; lastName = ''; }
       else if (parts.length === 2) { firstName = parts[0]; lastName = parts[1]; }
       else { firstName = parts.slice(0, -1).join(' '); lastName = parts[parts.length - 1]; }
@@ -404,7 +404,7 @@ export default function AdminDashboard() {
       firstName: firstName || (isDemoSample ? 'Nhat Huu Tuan' : ''),
       middleName: middleName || '',
       lastName: lastName || (isDemoSample ? 'Dang' : ''),
-      fullName: contact.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || (isDemoSample ? 'Nhat Huu Tuan Dang' : ''),
+      fullName: contact.fullName || [firstName, middleName, lastName]?.filter(Boolean).join(' ') || (isDemoSample ? 'Nhat Huu Tuan Dang' : ''),
       primary: {
         ...(defaultData.primary || {}),
         ...(contact.primary || {}),
@@ -429,30 +429,30 @@ export default function AdminDashboard() {
         contactOwner: contact.contactOwner?.name || contact.contactOwner || 'The Best Rate Insurance',
       },
       initials: (contact.fullName || (isDemoSample ? 'ND' : (firstName ? firstName[0] : 'CT')))
-        .split(' ')
-        .filter(Boolean)
-        .map((w) => w[0])
+        ?.split(' ')
+        ?.filter(Boolean)
+        ?.map((w) => w[0])
         .slice(0, 2)
         .join('')
         .toUpperCase(),
     };
 
     // Ensure all matching deals from dynamic store and sample data are linked
-    const resolvedContactId = String(contact.id || contact.code || '').trim();
+    const resolvedContactId = String(contact.id || contact.code || '')?.trim();
     const resolvedContactName = String(
-      mergedContact.fullName || contact.fullName || [firstName, middleName, lastName].filter(Boolean).join(' ') || ''
-    ).trim().toLowerCase();
+      mergedContact.fullName || contact.fullName || [firstName, middleName, lastName]?.filter(Boolean).join(' ') || ''
+    )?.trim()?.toLowerCase();
 
     const existingDeals = Array.isArray(contact.associatedDeals) && contact.associatedDeals.length > 0
       ? contact.associatedDeals
       : (Array.isArray(contact.deals) && contact.deals.length > 0 ? contact.deals : []);
 
-    const matchingLocalDeals = [...[], ...[]].filter((d) => {
-      const dCId = String(d.contactId || d.contact?.id || d.contact?.code || '').trim();
-      const dCName = String(d.contactName || d.contact?.fullName || d.contact?.name || '').trim().toLowerCase();
-      const dTitle = String(d.title || d.dealName || '').trim().toLowerCase();
+    const matchingLocalDeals = [...[], ...[]]?.filter((d) => {
+      const dCId = String(d.contactId || d.contact?.id || d.contact?.code || '')?.trim();
+      const dCName = String(d.contactName || d.contact?.fullName || d.contact?.name || '')?.trim()?.toLowerCase();
+      const dTitle = String(d.title || d.dealName || '')?.trim()?.toLowerCase();
       return (
-        (resolvedContactId && (dCId === resolvedContactId || dCId.toLowerCase() === resolvedContactId.toLowerCase())) ||
+        (resolvedContactId && (dCId === resolvedContactId || dCId?.toLowerCase() === resolvedContactId?.toLowerCase())) ||
         (resolvedContactName && dCName && dCName === resolvedContactName) ||
         (resolvedContactName && (dTitle.startsWith(resolvedContactName) || dTitle.includes(resolvedContactName)))
       );
@@ -460,7 +460,7 @@ export default function AdminDashboard() {
 
     const allResolvedDeals = [...existingDeals, ...matchingLocalDeals];
     const seenDealKeys = new Set();
-    const finalAssociatedDeals = allResolvedDeals.filter((d) => {
+    const finalAssociatedDeals = allResolvedDeals?.filter((d) => {
       const key = d.id || d.code;
       if (!key || seenDealKeys.has(key)) return false;
       seenDealKeys.add(key);
@@ -551,7 +551,7 @@ export default function AdminDashboard() {
           (d) => d.id === updatedDoc.id || d.name === updatedDoc.name
         );
         const updatedList = idx >= 0
-          ? prevDocs.map((d, i) => (i === idx ? updatedDoc : d))
+          ? prevDocs?.map((d, i) => (i === idx ? updatedDoc : d))
           : [updatedDoc, ...prevDocs];
         return {
           ...prev,
@@ -641,8 +641,8 @@ export default function AdminDashboard() {
         selectedContact &&
         (
           (selectedDeal?.contactId && (selectedDeal.contactId === selectedContact.id || selectedDeal.contactId === selectedContact.code)) ||
-          (selectedDeal?.contactName && (selectedContact.fullName || '').toLowerCase().includes(selectedDeal.contactName.toLowerCase())) ||
-          (selectedDeal?.title && (selectedContact.fullName || '').toLowerCase().includes(selectedDeal.title.toLowerCase()))
+          (selectedDeal?.contactName && (selectedContact.fullName || '')?.toLowerCase().includes(selectedDeal.contactName?.toLowerCase())) ||
+          (selectedDeal?.title && (selectedContact.fullName || '')?.toLowerCase().includes(selectedDeal.title?.toLowerCase()))
         )
       ) {
         handleBackToContactDetail();
@@ -689,8 +689,8 @@ export default function AdminDashboard() {
       isAdmin={true}
       currentTab={activeTab}
       onSelectTab={handleSelectTab}
-      quotesBadge={quotes.filter((q) => q.status === 'New Inquiry').length || '14'}
-      accountsBadge={accounts.filter((a) => a.role === 'agent' && a.status.includes('Pending')).length || '1'}
+      quotesBadge={quotes?.filter((q) => q.status === 'New Inquiry').length || '14'}
+      accountsBadge={accounts?.filter((a) => a.role === 'agent' && a.status.includes('Pending')).length || '1'}
       onManualRefresh={handleManualRefresh}
       isRefreshing={refreshing}
     >
@@ -848,7 +848,7 @@ export default function AdminDashboard() {
             setSelectedContact((prev) => {
               if (!prev) return prev;
               const tList = prev.associatedTickets || prev.tickets || [];
-              const nextTickets = tList.map((t) => (t.id === updated.id || t.code === updated.code ? { ...t, ...updated } : t));
+              const nextTickets = tList?.map((t) => (t.id === updated.id || t.code === updated.code ? { ...t, ...updated } : t));
               const isAca = updated?.pipeline === 'ACA account';
               const nextContact = {
                 ...prev,

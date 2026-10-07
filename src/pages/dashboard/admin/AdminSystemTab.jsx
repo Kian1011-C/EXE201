@@ -194,7 +194,7 @@ export default function AdminSystemTab({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {CARRIER_WEBHOOKS.map((carrier) => (
+          {CARRIER_WEBHOOKS?.map((carrier) => (
             <div key={carrier.name} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
               <div>
                 <strong className="text-xs font-bold text-slate-900 block truncate">{carrier.name}</strong>
@@ -239,7 +239,7 @@ export default function AdminSystemTab({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {auditLogs.map((log) => (
+              {auditLogs?.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-50/70 transition-colors">
                   <td className="px-5 py-3.5 font-mono text-[11px] text-slate-500">{log.timestamp}</td>
                   <td className="px-5 py-3.5 font-bold text-slate-800">{log.action}</td>
