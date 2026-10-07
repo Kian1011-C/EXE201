@@ -10,7 +10,7 @@ import {
 } from '../../../services/propertyHistoryService';
 import { useAuth } from '../../../auth/AuthContext';
 import toast from 'react-hot-toast';
-import { ALL_CARRIERS } from '../../../utils/constants';
+import { ALL_CARRIERS, OBAMACARE_DEAL_STAGES, MEDICARE_DEAL_STAGES } from '../../../utils/constants';
 
 export default function StaffDealDetail({
   deal,

@@ -1,6 +1,64 @@
-export const ACA_ACCOUNT_STATUS_OPTIONS = ['Active', 'Pending', 'Suspended'];
-export const MEDICARE_DEAL_STAGES = ['New Lead', 'Contacted', 'App Submitted', 'Approved', 'Closed Won', 'Closed Lost'];
-export const OBAMACARE_DEAL_STAGES = ['New Lead', 'Contacted', 'Quoted', 'Enrolled', 'Closed Won', 'Closed Lost'];
+export const ACA_ACCOUNT_STATUS_OPTIONS = [
+  'Need Create ACA Account',
+  'Pending - Waiting for Document',
+  'Uploaded - Waiting for Verification',
+  'VERIFIED',
+  'Unverified - Can not Create',
+  'DONE',
+  'Plan Cancelled',
+  '(Trống / Chưa chọn)',
+  'Active',
+  'Pending',
+  'Suspended',
+];
+
+export const OBAMACARE_DEAL_STAGES = [
+  'New Opportunity/Call to Renew (Obamacare 2026)',
+  'Need Agent Contact (Obamacare 2026)',
+  'Need to Quote (Obamacare 2026)',
+  'Quoted - Need Client Confirm (Obamacare 2026)',
+  'Waiting for document (Obamacare 2026)',
+  'Uploaded - Waiting for Verification',
+  'Need Agent Enroll (Obamacare 2026)',
+  'Ready to Enroll (Obamacare 2026)',
+  '$0 plan - Ready to enroll (Obamacare 2026)',
+  'Enrolled - Need 1st Payment (Obamacare 2026)',
+  'Enrolled - 1st Payment done (Obamacare 2026)',
+  'Enrolled - Active (Obamacare 2026)',
+  'Non-Commission - Active (Obamacare 2026)',
+  'Need Telesale Review (Obamacare 2026)',
+  'Termination (Obamacare 2026)',
+  'Termination - Second Change (Obamacare 2026)',
+  'Deal Lost (Obamacare 2026)',
+  'Deal Lost - Second Change (Obamacare 2026)',
+  'Do not contact (Obamacare 2026)',
+  'New Lead',
+  'Contacted',
+  'Quoted',
+  'Enrolled',
+  'Closed Won',
+  'Closed Lost',
+];
+
+export const MEDICARE_DEAL_STAGES = [
+  'New Opportunity/Call to Renew (Medicare 2026)',
+  'Ready to Enroll (Medicare 2026)',
+  'Enrolled (Medicare 2026)',
+  'Enrolled - HRA Done (Medicare 2026)',
+  'Enrolled - Active (Medicare 2026)',
+  'Enrolled - HRA Done - Active (Medicare 2026)',
+  'Auto Renew - Active (Medicare 2026)',
+  'Need Telesale Review (Medicare 2026)',
+  'Deal Lost (Medicare 2026)',
+  'Deal Lost - Second Change (Medicare 2026)',
+  'Do Not Contact (Medicare 2026)',
+  'New Lead',
+  'Contacted',
+  'App Submitted',
+  'Approved',
+  'Closed Won',
+  'Closed Lost',
+];
 
 export const ALL_CARRIERS = [
   'BCBS',
