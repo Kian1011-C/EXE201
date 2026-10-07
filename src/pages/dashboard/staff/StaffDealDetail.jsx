@@ -1915,33 +1915,6 @@ export default function StaffDealDetail({
                     </div>
                   </div>
 
-                  {/* Sale Support Status */}
-                  <div>
-                    <PropertyLabelWithHistory
-                      label="Sale Support Status"
-                      onOpenHistory={handleOpenPropertyHistory}
-                    />
-                    <div className="flex items-center justify-between mb-1 -mt-0.5">
-                      <span className="text-[10px] font-bold text-blue-600">
-                        {saleSupportStatus === 'None' || saleSupportStatus === 'NONE'
-                          ? '7/3 Split (Agent 70% / Platform 30%)'
-                          : saleSupportStatus === 'Partial' || saleSupportStatus === 'PARTIAL'
-                          ? '5/5 Split (Agent 50% / Platform 50%)'
-                          : saleSupportStatus === 'Full' || saleSupportStatus === 'FULL'
-                          ? '3/7 Split (Agent 30% / Platform 70%)'
-                          : ''}
-                      </span>
-                    </div>
-                    <select
-                      value={saleSupportStatus}
-                      onChange={(e) => handleUpdateSaleSupportStatus(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-700 font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                    >
-                      <option value="None">None (7/3)</option>
-                      <option value="Partial">Partial (5/5)</option>
-                      <option value="Full">Full (3/7)</option>
-                    </select>
-                  </div>
 
                   {/* Number Member* */}
                   <div>
@@ -4405,7 +4378,6 @@ export default function StaffDealDetail({
           'Deal Owner',
           'Code',
           'Primary Member Id',
-          'Sale Support Status',
           'Number Member',
           'Selling State',
           'Carrier',

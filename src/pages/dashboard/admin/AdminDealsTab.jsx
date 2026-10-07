@@ -315,32 +315,16 @@ export default function AdminDealsTab({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Sale Support Status (SSS)</label>
-                  <select
-                    disabled={!isEditing}
-                    value={adminForm.saleSupportStatus}
-                    onChange={(e) => setAdminForm({ ...adminForm, saleSupportStatus: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs disabled:bg-slate-50 focus:outline-none focus:border-blue-500 bg-white"
-                  >
-                    <option value="None">None (7/3 Split)</option>
-                    <option value="Partial">Partial (5/5 Split)</option>
-                    <option value="Full">Full (3/7 Split)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Number of Members</label>
-                  <input
-                    type="number"
-                    min="1"
-                    disabled={!isEditing}
-                    value={adminForm.numberMember}
-                    onChange={(e) => setAdminForm({ ...adminForm, numberMember: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs disabled:bg-slate-50 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Number of Members</label>
+                <input
+                  type="number"
+                  min="1"
+                  disabled={!isEditing}
+                  value={adminForm.numberMember}
+                  onChange={(e) => setAdminForm({ ...adminForm, numberMember: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs disabled:bg-slate-50 focus:outline-none focus:border-blue-500"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
