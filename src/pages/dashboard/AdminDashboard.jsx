@@ -425,7 +425,10 @@ export default function AdminDashboard() {
         ...(contact.sourceOfLead || {}),
         howDoYouKnowUs: contact.howDoYouKnowUs || (contact.sourceOfLead?.howDoYouKnowUs || '---'),
         whoReferClient: contact.whoReferClient || (contact.sourceOfLead?.whoReferClient || ''),
-        contactOwner: contact.contactOwner?.name || contact.contactOwner || 'The Best Rate Insurance',
+        contactOwner: (() => {
+          const o = contact.contactOwner?.name || contact.contactOwner || '';
+          return (o === 'The Best Rate Insurance' || o === 'Platform Staff') ? '' : o;
+        })(),
       },
       initials: (contact.fullName || (firstName ? firstName[0] : 'CT'))
         ?.split(' ')

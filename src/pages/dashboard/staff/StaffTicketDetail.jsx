@@ -9,7 +9,9 @@ import {
   deleteDocumentFile,
   addContactTask,
   getDeals,
+  getUsers,
 } from '../../../services/api';
+import { getActiveAgentAccounts } from '../../../utils/constants';
 import toast from 'react-hot-toast';
 
 export function isDealBelongingToContact(deal, contactName, contactId) {
@@ -260,29 +262,20 @@ export default function StaffTicketDetail({
   const [dueDate, setDueDate] = useState(initialData.dueDate);
 
   // Properties in "About this ticket"
-  const [platformMembers, setPlatformMembers] = useState(() => [
-    { name: 'Platform Staff', avatar: 'PS', bg: 'bg-slate-600' },
-    { name: 'The Best Rate Insurance', avatar: 'TB', bg: 'bg-cyan-700' },
-    ...[]?.map((a) => ({
-      name: a.name,
-      avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
-      bg: a.bg || 'bg-blue-600',
-    })),
-  ]);
+  const [platformMembers, setPlatformMembers] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setPlatformMembers([
-        { name: 'Platform Staff', avatar: 'PS', bg: 'bg-slate-600' },
-        { name: 'The Best Rate Insurance', avatar: 'TB', bg: 'bg-cyan-700' },
-        ...[]?.map((a) => ({
-          name: a.name,
-          avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
-          bg: a.bg || 'bg-blue-600',
-        })),
-      ]);
+      setPlatformMembers(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    getUsers()
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setPlatformMembers(getActiveAgentAccounts());
+        }
+      })
+      .catch(() => {});
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
 

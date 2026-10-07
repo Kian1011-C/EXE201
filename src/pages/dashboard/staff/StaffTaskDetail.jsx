@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../../../auth/AuthContext';
+import { getUsers } from '../../../services/api';
+import { getActiveAgentAccounts } from '../../../utils/constants';
 import toast from 'react-hot-toast';
 
 function getAssigneeName(assignee) {
@@ -25,12 +27,19 @@ export default function StaffTaskDetail({
   const currentUserName = user?.name || 'Platform Staff';
 
   // Available agent accounts for Assignee dropdown
-  const [availableAgents, setAvailableAgents] = useState([]);
+  const [availableAgents, setAvailableAgents] = useState(() => getActiveAgentAccounts());
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAvailableAgents([]);
+      setAvailableAgents(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    getUsers()
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setAvailableAgents(getActiveAgentAccounts());
+        }
+      })
+      .catch(() => {});
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
 
@@ -578,13 +587,12 @@ export default function StaffTaskDetail({
                     onChange={(e) => handleFieldChange('assignee', e.target.value)}
                     className="bg-transparent border border-slate-200 hover:border-slate-300 rounded px-2 py-1 text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
                   >
-                    <option value="Jena Le (jena78@9)">Jena Le (jena78@9)</option>
+                    <option value="">-- Chọn Agent phụ trách --</option>
                     {availableAgents?.map((ag) => (
-                      <option key={ag.name} value={`${ag.name} (${ag.handle || 'agent'})`}>
-                        {ag.name} ({ag.handle || 'agent'})
+                      <option key={ag.id || ag.name} value={ag.name}>
+                        {ag.name}
                       </option>
                     ))}
-                    <option value="Platform Staff (staff)">Platform Staff (staff)</option>
                   </select>
                 </div>
               </div>

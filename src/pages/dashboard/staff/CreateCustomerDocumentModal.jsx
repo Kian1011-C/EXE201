@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { createDocument, addCustomerDocumentToStore } from '../../../services/api';
-import { getAllPlatformMembers } from '../../../utils/constants';
+import { createDocument, addCustomerDocumentToStore, getUsers } from '../../../services/api';
+import { getActiveAgentAccounts } from '../../../utils/constants';
 
 const CATEGORIES = [
   { key: 'identity', label: 'Identity', icon: 'badge', color: 'text-violet-600', bg: 'bg-violet-50' },
@@ -37,25 +37,27 @@ export default function CreateCustomerDocumentModal({
   const [contactName, setContactName] = useState('');
   const [isEditingContact, setIsEditingContact] = useState(false);
 
-  const [platformMembers, setPlatformMembers] = useState(() => [
-    { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
-    { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
-    ...(getAllPlatformMembers() || []),
-  ]);
+  const [platformMembers, setPlatformMembers] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setPlatformMembers([
-        { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-[#0E7490]' },
-        { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-[#475569]' },
-        ...(getAllPlatformMembers() || []),
-      ]);
+      setPlatformMembers(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    getUsers()
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setPlatformMembers(getActiveAgentAccounts());
+        }
+      })
+      .catch(() => {});
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
 
-  const [selectedOwner, setSelectedOwner] = useState(platformMembers[0]);
+  const [selectedOwner, setSelectedOwner] = useState(() => {
+    const list = getActiveAgentAccounts();
+    return list[0] || null;
+  });
   const [showOwnerDropdown, setShowOwnerDropdown] = useState(false);
   const [ownerSearchQuery, setOwnerSearchQuery] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);

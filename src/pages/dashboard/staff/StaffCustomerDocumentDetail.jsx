@@ -1,10 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   addDocumentFile,
   deleteDocumentFile,
   updateDocument,
   updateCustomerDocumentInStore,
+  getUsers,
 } from '../../../services/api';
+import { getActiveAgentAccounts } from '../../../utils/constants';
 import toast from 'react-hot-toast';
 
 export default function StaffCustomerDocumentDetail({
@@ -22,6 +24,23 @@ export default function StaffCustomerDocumentDetail({
   const [contactOwner, setContactOwner] = useState(
     doc.contactOwner || ''
   );
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
+
+  useEffect(() => {
+    function handleAccountsUpdated() {
+      setAgentAccounts(getActiveAgentAccounts());
+    }
+    window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    getUsers()
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setAgentAccounts(getActiveAgentAccounts());
+        }
+      })
+      .catch(() => {});
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+  }, []);
+
   const [aboutOpen, setAboutOpen] = useState(true);
   const [lastModifiedTime, setLastModifiedTime] = useState(
     doc.lastModifiedTime || '09/27/2026, 10:07'
@@ -365,25 +384,27 @@ export default function StaffCustomerDocumentDetail({
                     Contact Owner
                   </label>
                   <div className="relative flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5 hover:border-slate-300 transition">
-                    <div className="w-5 h-5 rounded-full bg-[#718096] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
-                      KN
+                    <div className="w-5 h-5 rounded-full bg-[#2563EB] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
+                      {contactOwner ? contactOwner.slice(0, 2).toUpperCase() : '--'}
                     </div>
-                    <span className="flex-grow text-xs text-slate-800 truncate font-medium">
-                      {contactOwner}
-                    </span>
-                    <div className="flex items-center gap-1 text-slate-400 shrink-0 ml-1">
-                      <button
-                        type="button"
-                        onClick={() => setContactOwner('')}
-                        className="text-[12px] text-rose-500 hover:text-rose-700 cursor-pointer font-bold px-0.5"
-                        title="Clear"
-                      >
-                        ✕
-                      </button>
-                      <span className="h-3 w-px bg-slate-200 mx-0.5" />
-                      <span className="material-symbols-outlined text-[16px] text-slate-600 pointer-events-none">
-                        expand_more
-                      </span>
+                    <select
+                      value={contactOwner || ''}
+                      onChange={(e) => {
+                        const newOwner = e.target.value;
+                        setContactOwner(newOwner);
+                        updateCustomerDocumentInStore(doc.id, { contactOwner: newOwner });
+                      }}
+                      className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-8"
+                    >
+                      <option value="">-- Chưa chọn Agent --</option>
+                      {agentAccounts?.map((a) => (
+                        <option key={`doc-owner-${a.id || a.name}`} value={a.name}>
+                          {a.name} {a.npn ? `(#${a.npn})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 flex items-center">
+                      <span className="material-symbols-outlined text-[16px]">expand_more</span>
                     </div>
                   </div>
                 </div>

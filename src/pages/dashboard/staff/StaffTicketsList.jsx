@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { getTickets, createTicket } from '../../../services/api';
+import { getTickets, createTicket, getUsers } from '../../../services/api';
+import { getActiveAgentAccounts } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterTicketsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
@@ -30,31 +31,20 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'kanban'
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [ownerOptionsList, setOwnerOptionsList] = useState(() => [
-    { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
-    { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
-    ...[]?.map((a) => ({
-      name: a.name,
-      handle: a.handle || a.email?.split('@')[0],
-      avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
-      bg: a.bg || 'bg-blue-600',
-    })),
-  ]);
+  const [ownerOptionsList, setOwnerOptionsList] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setOwnerOptionsList([
-        { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
-        { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
-        ...[]?.map((a) => ({
-          name: a.name,
-          handle: a.handle || a.email?.split('@')[0],
-          avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
-          bg: a.bg || 'bg-blue-600',
-        })),
-      ]);
+      setOwnerOptionsList(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    getUsers()
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setOwnerOptionsList(getActiveAgentAccounts());
+        }
+      })
+      .catch(() => {});
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
 

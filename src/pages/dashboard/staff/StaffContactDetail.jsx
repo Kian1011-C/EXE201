@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
-import { ACA_ACCOUNT_STATUS_OPTIONS } from '../../../utils/constants';
+import { ACA_ACCOUNT_STATUS_OPTIONS, getActiveAgentAccounts } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, recordPropertyUpdate, getPersonName } from '../../../services/propertyHistoryService';
 import { getUsers, getContactDeals, addContactActivity, updateContact, createTicket, updateTicket, createContact, addContactNote, createDeal, addContactTask, createTask, updateTask, deleteTask } from '../../../services/api';
@@ -13,13 +13,14 @@ import MemberSection from './MemberSection';
 import InAppFilePreviewModal from '../../../components/InAppFilePreviewModal';
 
 export const AGENT_OPTIONS = [
-  'The Best Rate Insurance',
-  'Platform Staff',
-  '',
-  'Anh Que Pham CPA',
+  'Khanh Nguyen',
   'Sean Ngo',
   'Ivy Le',
-  'James Vu',
+  'Sarah Thai',
+  'Jay Ly',
+  'Tri Tran',
+  'Quyen Le',
+  'Miranda Pham',
 ];
 
 export default function StaffContactDetail({
@@ -35,19 +36,22 @@ export default function StaffContactDetail({
   const currentActor = getCurrentActor(user);
   
   const [dbUsers, setDbUsers] = useState([]);
-  const [agentAccounts, setAgentAccounts] = useState(() => []);
+  const [agentAccounts, setAgentAccounts] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAgentAccounts([]);
+      setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    getUsers()
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setDbUsers(res);
+          setAgentAccounts(getActiveAgentAccounts());
+        }
+      })
+      .catch(() => {});
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
-  }, []);
-  useEffect(() => {
-    getUsers().then(data => {
-      if (Array.isArray(data)) setDbUsers(data);
-    }).catch(console.error);
   }, []);
 
   const [activeTab, setActiveTab] = useState('activity');
@@ -724,9 +728,10 @@ export default function StaffContactDetail({
   // Source of Lead fields
   const [leadHowDoYouKnowUs, setLeadHowDoYouKnowUs] = useState(contact?.howDoYouKnowUs || '');
   const [leadWhoRefer, setLeadWhoRefer] = useState(contact?.whoReferClient || '');
-  const [leadContactOwner, setLeadContactOwner] = useState(
-    getPersonName(contact?.contactOwner, 'The Best Rate Insurance')
-  );
+  const [leadContactOwner, setLeadContactOwner] = useState(() => {
+    const raw = getPersonName(contact?.contactOwner, '');
+    return (raw === 'The Best Rate Insurance' || raw === 'Platform Staff') ? '' : raw;
+  });
 
   // Sync state whenever selected contact changes
   useEffect(() => {
@@ -763,9 +768,9 @@ export default function StaffContactDetail({
       setCounty(contact.county || cf.county || '');
 
       setLeadHowDoYouKnowUs(contact.howDoYouKnowUs || '');
-      setLeadWhoRefer(contact.whoReferClient || '');
+      const rawOwner = getPersonName(contact.contactOwner, '');
       setLeadContactOwner(
-        getPersonName(contact.contactOwner, 'The Best Rate Insurance')
+        (rawOwner === 'The Best Rate Insurance' || rawOwner === 'Platform Staff') ? '' : rawOwner
       );
 
       const aca = contact.acaAccount || {};
@@ -1993,11 +1998,11 @@ export default function StaffContactDetail({
                             onChange={(e) => setLeadContactOwner(e.target.value)}
                             className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-12"
                           >
-                            <option value="">-- Chưa chọn --</option>
-                            <option value="The Best Rate Insurance">The Best Rate Insurance</option>
-                            <option value="Platform Staff">Platform Staff</option>
+                            <option value="">-- Chưa chọn Agent --</option>
                             {agentAccounts?.map((a) => (
-                              <option key={`agent-${a.id}`} value={a.name}>{a.name}</option>
+                              <option key={`agent-${a.id || a.name}`} value={a.name}>
+                                {a.name} {a.npn ? `(#${a.npn})` : ''}
+                              </option>
                             ))}
                           </select>
                           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
@@ -4806,10 +4811,12 @@ export default function StaffContactDetail({
                       onChange={(e) => setTaskAssignee(e.target.value)}
                       className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
-                      <option value="">--</option>
-                      <option value="Khanh Nguyen (khanhnguyen31@7)"></option>
-                      <option value="Anya Nguyen (anya42@9)">Anya Nguyen (anya42@9)</option>
-                      <option value="The Best Rate Insurance">The Best Rate Insurance</option>
+                      <option value="">-- Chọn Agent phụ trách --</option>
+                      {agentAccounts?.map((a) => (
+                        <option key={`task-agent-${a.id || a.name}`} value={a.name}>
+                          {a.name} {a.npn ? `(#${a.npn})` : ''}
+                        </option>
+                      ))}
                     </select>
                     <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
                       expand_more

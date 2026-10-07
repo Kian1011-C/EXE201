@@ -81,8 +81,9 @@ function getUserAvatar(name) {
 function normalizeContact(c) {
   if (!c) return c;
   const fullName = c.fullName || [c.firstName, c.middleName, c.lastName].filter(Boolean).join(' ') || 'Unknown Contact';
-  const ownerName = formatUserName(c.contactOwner) || 'The Best Rate Insurance';
-  const modifiedByName = formatUserName(c.lastModifiedBy) || ownerName;
+  const rawOwner = formatUserName(c.contactOwner);
+  const ownerName = (rawOwner && rawOwner !== 'The Best Rate Insurance' && rawOwner !== 'Platform Staff') ? rawOwner : '';
+  const modifiedByName = formatUserName(c.lastModifiedBy) || ownerName || 'Staff';
 
   return {
     ...c,

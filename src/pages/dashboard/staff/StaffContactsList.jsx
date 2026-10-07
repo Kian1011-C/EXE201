@@ -102,7 +102,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   const [whoReferClient, setWhoReferClient] = useState('');
   const [language, setLanguage] = useState('Vietnamese');
   const [teleSaleTeam, setTeleSaleTeam] = useState('');
-  const [contactOwner, setContactOwner] = useState('The Best Rate Insurance');
+  const [contactOwner, setContactOwner] = useState('');
 
   const activeIsAgent = isAgent || user?.role === 'agent';
   const effectiveAgent = getAgentIdentity(user || (isAgent ? { role: 'agent', name: agentName } : null));
@@ -142,7 +142,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
 
   // Unique owners for filter
   const ownerOptions = useMemo(() => {
-    return ['The Best Rate Insurance', ...(agentAccounts || []).map((a) => a.name)];
+    return (agentAccounts || []).map((a) => a.name);
   }, [agentAccounts]);
 
   // Handle Quick Create
@@ -161,7 +161,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         : `+1 ${phone?.trim()}`
       : '—';
 
-    const ownerNameResolved = contactOwner || (activeIsAgent ? effectiveAgent.name : 'The Best Rate Insurance');
+    const defaultAgentName = agentAccounts[0]?.name || 'Khanh Nguyen';
+    const ownerNameResolved = contactOwner || (activeIsAgent ? effectiveAgent.name : defaultAgentName);
 
     const matchedUser = dbUsers.find(
       (u) => u.name === ownerNameResolved || u.fullName === ownerNameResolved || u.id === ownerNameResolved
@@ -311,7 +312,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     setWhoReferClient('');
     setLanguage('Vietnamese');
     setTeleSaleTeam('');
-    setContactOwner(activeIsAgent ? effectiveAgent.name : 'The Best Rate Insurance');
+    setContactOwner(activeIsAgent ? effectiveAgent.name : (agentAccounts[0]?.name || 'Khanh Nguyen'));
     setShowCreateModal(false);
   }
 
@@ -319,7 +320,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     if (activeIsAgent && effectiveAgent.name) {
       setContactOwner(effectiveAgent.name);
     } else {
-      setContactOwner('The Best Rate Insurance');
+      setContactOwner(agentAccounts[0]?.name || 'Khanh Nguyen');
     }
     setShowCreateModal(true);
   }
@@ -590,7 +591,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                             {contact.contactOwner?.avatar || 'TB'}
                           </div>
                           <span className="text-slate-800 truncate max-w-[130px]">
-                            {contact.contactOwner?.name || 'The Best Rate Insurance'}
+                            {(typeof contact.contactOwner === 'object' ? contact.contactOwner?.name : contact.contactOwner) || 'Khanh Nguyen'}
                           </span>
                         </div>
                       </td>
@@ -908,11 +909,10 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                     onChange={(e) => setContactOwner(e.target.value)}
                     className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                   >
-                    <option value="">--</option>
-                    <option value="The Best Rate Insurance">The Best Rate Insurance</option>
+                    <option value="">-- Chọn Contact Owner --</option>
                     {agentAccounts?.map((a) => (
-                      <option key={a.id} value={a.name}>
-                        {a.name}
+                      <option key={a.id || a.name} value={a.name}>
+                        {a.name} {a.npn ? `(#${a.npn})` : ''}
                       </option>
                     ))}
                   </select>

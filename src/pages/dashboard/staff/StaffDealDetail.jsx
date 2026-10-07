@@ -111,11 +111,11 @@ export default function StaffDealDetail({
       setMonthlyPremium(deal?.monthlyPremium || '');
       setSubsidyAmount(deal?.subsidyAmount || '');
       setAgencyCommission(deal?.agencyCommission || '');
-      setBonusTier(deal?.bonusTier || 'Standard Tier');
-      const ownerVal = typeof deal?.dealOwner === 'object'
+      const rawOwnerVal = typeof deal?.dealOwner === 'object'
         ? (deal?.dealOwner?.name || deal?.dealOwner?.fullName || '')
         : (deal?.dealOwner || deal?.adminOnly?.dealOwner || '');
-      if (ownerVal) setDealOwner(ownerVal);
+      const ownerVal = (rawOwnerVal === 'The Best Rate Insurance' || rawOwnerVal === 'Platform Staff') ? '' : rawOwnerVal;
+      setDealOwner(ownerVal);
     }
   }, [deal]);
 
@@ -252,34 +252,14 @@ export default function StaffDealDetail({
       setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
-    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
-  }, []);
-
-  useEffect(() => {
-    getUsers().then((data) => {
-      if (Array.isArray(data) && data.length > 0) {
-        const backendAgents = data?.filter((u) => {
-          const role = (u.role || '')?.toLowerCase();
-          const status = (u.status || '')?.toLowerCase();
-          return (role === 'agent' || role === 'broker') && status !== 'suspended';
-        });
-        if (backendAgents.length > 0) {
-          setAgentAccounts(
-            backendAgents?.map((b) => ({
-              id: String(b.id),
-              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`?.trim(),
-              role: 'agent',
-              avatar: b.avatar,
-              bg: b.bg,
-              email: b.email,
-              phone: b.phone,
-            }))
-          );
-        } else {
+    getUsers()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
           setAgentAccounts(getActiveAgentAccounts());
         }
-      }
-    }).catch(() => {});
+      })
+      .catch(() => {});
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
 
   const allAvailableAgents = useMemo(() => {
@@ -293,9 +273,12 @@ export default function StaffDealDetail({
   }, [agentAccounts]);
 
   // Form states for ADMIN ONLY
-  const initialDealOwner = typeof dealInfo.dealOwner === 'object'
-    ? (dealInfo.dealOwner?.name || dealInfo.dealOwner?.fullName || '')
-    : (dealInfo.dealOwner || dealInfo.adminOnly?.dealOwner || '');
+  const initialDealOwner = (() => {
+    const raw = typeof dealInfo.dealOwner === 'object'
+      ? (dealInfo.dealOwner?.name || dealInfo.dealOwner?.fullName || '')
+      : (dealInfo.dealOwner || dealInfo.adminOnly?.dealOwner || '');
+    return (raw === 'The Best Rate Insurance' || raw === 'Platform Staff') ? '' : raw;
+  })();
   const [dealOwner, setDealOwner] = useState(initialDealOwner);
 
   const [primaryMemberId, setPrimaryMemberId] = useState(
@@ -4069,10 +4052,12 @@ export default function StaffDealDetail({
                       onChange={(e) => setTaskAssignee(e.target.value)}
                       className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
-                      <option value="">--</option>
-                      <option value="Khanh Nguyen (khanhnguyen31@7)"></option>
-                      <option value="Anya Nguyen (anya42@9)">Anya Nguyen (anya42@9)</option>
-                      <option value="The Best Rate Insurance">The Best Rate Insurance</option>
+                      <option value="">-- Chọn Agent phụ trách --</option>
+                      {allAvailableAgents?.map((ag) => (
+                        <option key={ag.name} value={ag.name}>
+                          {ag.name}
+                        </option>
+                      ))}
                     </select>
                     <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
                       expand_more

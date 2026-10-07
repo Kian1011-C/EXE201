@@ -370,40 +370,6 @@ export function isValidNpn(npn) {
   return /^\d{7,8}$/.test(String(npn || '').trim());
 }
 
-export function getAllPlatformMembers() {
-  try {
-    const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_admin_accounts') : null;
-    let all = [];
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        all = parsed;
-      }
-    }
-    if (all.length === 0) {
-      all = DEFAULT_AGENT_ACCOUNTS;
-    }
-    return all.map((a) => {
-      const email = a.email || '';
-      const handle = email.includes('@') ? email.split('@')[0] : (a.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'member');
-      return {
-        id: String(a.id || ''),
-        name: a.name || a.fullName || 'Member',
-        fullName: a.name || a.fullName || 'Member',
-        email,
-        handle,
-        role: (a.role || 'agent').toLowerCase(),
-        avatar: a.avatar || getAccountAvatar(a.name || a.fullName),
-        bg: a.bg || 'bg-slate-700 text-white',
-        npn: a.npn || '',
-        status: a.status || 'Active',
-        department: a.department || 'Operations',
-      };
-    });
-  } catch {}
-  return [];
-}
-
 export const DEFAULT_AGENT_ACCOUNTS = [
   {
     id: 'ACC-003',
@@ -412,7 +378,7 @@ export const DEFAULT_AGENT_ACCOUNTS = [
     email: 'agent@insurmatch.us',
     handle: 'khanhnguyen',
     role: 'agent',
-    agencyRole: 'Licensed Partner Agent',
+    agencyRole: 'Senior Partner Agent',
     department: 'Medicare & ACA Sales Hub',
     avatar: 'KN',
     bg: 'bg-blue-600 text-white',
@@ -423,7 +389,137 @@ export const DEFAULT_AGENT_ACCOUNTS = [
     dealsCount: 42,
     complianceStatus: 'Verified & Cleared',
   },
+  {
+    id: 'ACC-004',
+    name: 'Sean Ngo',
+    fullName: 'Sean Ngo',
+    email: 'sean.ngo@insurmatch.us',
+    handle: 'seanngo',
+    role: 'agent',
+    agencyRole: 'Licensed Partner Agent',
+    department: 'ACA General Enrollment',
+    avatar: 'SN',
+    bg: 'bg-lime-600 text-white',
+    npn: '1994321',
+    statesLicensed: ['TX (TDI)', 'FL (FLOIR)'],
+    status: 'Active',
+    phone: '+1 (832) 555-0144',
+    dealsCount: 38,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-005',
+    name: 'Ivy Le',
+    fullName: 'Ivy Le',
+    email: 'ivy.le@insurmatch.us',
+    handle: 'ivyle',
+    role: 'agent',
+    agencyRole: 'Licensed Partner Agent',
+    department: 'Medicare Specialist Network',
+    avatar: 'IL',
+    bg: 'bg-orange-600 text-white',
+    npn: '1992481',
+    statesLicensed: ['CA (CDI)', 'NV'],
+    status: 'Active',
+    phone: '+1 (714) 555-0182',
+    dealsCount: 29,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-006',
+    name: 'Sarah Thai',
+    fullName: 'Sarah Thai',
+    email: 'sarah.thai@insurmatch.us',
+    handle: 'sarahthai',
+    role: 'agent',
+    agencyRole: 'Licensed Partner Agent',
+    department: 'ACA Individual & Family Plans',
+    avatar: 'ST',
+    bg: 'bg-sky-600 text-white',
+    npn: '2014920',
+    statesLicensed: ['TX (TDI)', 'GA'],
+    status: 'Active',
+    phone: '+1 (281) 555-0193',
+    dealsCount: 22,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-007',
+    name: 'Jay Ly',
+    fullName: 'Jay Ly',
+    email: 'jay.ly@insurmatch.us',
+    handle: 'jayly',
+    role: 'agent',
+    agencyRole: 'Licensed Partner Agent',
+    department: 'Senior Care & Dual Eligible',
+    avatar: 'JL',
+    bg: 'bg-cyan-600 text-white',
+    npn: '1854201',
+    statesLicensed: ['AZ', 'TX (TDI)'],
+    status: 'Active',
+    phone: '+1 (480) 555-0167',
+    dealsCount: 19,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-008',
+    name: 'Tri Tran',
+    fullName: 'Tri Tran',
+    email: 'tri.tran@insurmatch.us',
+    handle: 'tritran',
+    role: 'agent',
+    agencyRole: 'Licensed Partner Agent',
+    department: 'Small Group & Individual Health',
+    avatar: 'TT',
+    bg: 'bg-emerald-600 text-white',
+    npn: '2001186',
+    statesLicensed: ['FL (FLOIR)', 'NC'],
+    status: 'Active',
+    phone: '+1 (407) 555-0128',
+    dealsCount: 15,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-009',
+    name: 'Quyen Le',
+    fullName: 'Quyen Le',
+    email: 'quyen.le@insurmatch.us',
+    handle: 'quyenle',
+    role: 'agent',
+    agencyRole: 'Licensed Partner Agent',
+    department: 'Marketplace Operations',
+    avatar: 'QL',
+    bg: 'bg-purple-600 text-white',
+    npn: '1982341',
+    statesLicensed: ['TX (TDI)', 'OH'],
+    status: 'Active',
+    phone: '+1 (832) 555-0176',
+    dealsCount: 14,
+    complianceStatus: 'Verified & Cleared',
+  },
+  {
+    id: 'ACC-010',
+    name: 'Miranda Pham',
+    fullName: 'Miranda Pham',
+    email: 'miranda.pham@insurmatch.us',
+    handle: 'mirandapham',
+    role: 'agent',
+    agencyRole: 'Licensed Partner Agent',
+    department: 'Client Advocacy & Enrollment',
+    avatar: 'MP',
+    bg: 'bg-pink-600 text-white',
+    npn: '2049182',
+    statesLicensed: ['CA (CDI)', 'WA'],
+    status: 'Active',
+    phone: '+1 (408) 555-0155',
+    dealsCount: 12,
+    complianceStatus: 'Verified & Cleared',
+  },
 ];
+
+export function getAllPlatformMembers() {
+  return getActiveAgentAccounts();
+}
 
 export function getActiveAgentAccounts() {
   try {
@@ -437,23 +533,31 @@ export function getActiveAgentAccounts() {
     }
 
     const isAgent = (a) => {
+      if (!a) return false;
       const role = (a.role || '').toLowerCase();
       const name = (a.name || a.fullName || '').toLowerCase();
       if (role !== 'agent' && role !== 'broker') return false;
-      if (name.includes('admin') || name.includes('staff') || name.includes('platform') || name.includes('insurance')) return false;
+      if (
+        name.includes('admin') ||
+        name.includes('staff') ||
+        name.includes('platform') ||
+        name.includes('insurance') ||
+        name.includes('super admin') ||
+        name.includes('the best rate')
+      ) {
+        return false;
+      }
       const status = (a.status || '').toLowerCase();
       if (status === 'suspended') return false;
       return true;
     };
 
-    let agents = list.filter(isAgent);
-    if (agents.length === 0) {
-      agents = [...DEFAULT_AGENT_ACCOUNTS];
-    }
+    // Candidates: Custom/backend accounts from localStorage + default licensed agent roster
+    const candidateList = [...list.filter(isAgent), ...DEFAULT_AGENT_ACCOUNTS];
 
     const seen = new Set();
     const unique = [];
-    for (const a of agents) {
+    for (const a of candidateList) {
       const aName = (a.name || a.fullName || '').trim();
       if (!aName || seen.has(aName.toLowerCase())) continue;
       seen.add(aName.toLowerCase());

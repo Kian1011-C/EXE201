@@ -155,34 +155,14 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
       setAgentAccounts(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
-    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
-  }, []);
-
-  useEffect(() => {
-    getUsers().then((data) => {
-      if (Array.isArray(data) && data.length > 0) {
-        const backendAgents = data?.filter((u) => {
-          const role = (u.role || '')?.toLowerCase();
-          const status = (u.status || '')?.toLowerCase();
-          return (role === 'agent' || role === 'broker') && status !== 'suspended';
-        });
-        if (backendAgents.length > 0) {
-          setAgentAccounts(
-            backendAgents?.map((b) => ({
-              id: String(b.id),
-              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`?.trim(),
-              role: 'agent',
-              avatar: b.avatar,
-              bg: b.bg,
-              email: b.email,
-              phone: b.phone,
-            }))
-          );
-        } else {
+    getUsers()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
           setAgentAccounts(getActiveAgentAccounts());
         }
-      }
-    }).catch(() => {});
+      })
+      .catch(() => {});
+    return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
 
   // Scoped deals by RBAC

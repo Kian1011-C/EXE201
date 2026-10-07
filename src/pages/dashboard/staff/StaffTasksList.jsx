@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { getTasks, createTask, updateTask } from '../../../services/api';
+import { getTasks, createTask, updateTask, getUsers } from '../../../services/api';
+import { getActiveAgentAccounts } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
 import { filterTasksForAgent, getAgentIdentity } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
@@ -19,31 +20,20 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [assigneeOptionsList, setAssigneeOptionsList] = useState(() => [
-    { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
-    { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
-    ...[]?.map((a) => ({
-      name: a.name,
-      handle: a.handle || a.email?.split('@')[0],
-      avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
-      bg: a.bg || 'bg-blue-600',
-    })),
-  ]);
+  const [assigneeOptionsList, setAssigneeOptionsList] = useState(() => getActiveAgentAccounts());
 
   useEffect(() => {
     function handleAccountsUpdated() {
-      setAssigneeOptionsList([
-        { name: 'Platform Staff', handle: 'platformstaff', avatar: 'PS', bg: 'bg-slate-600' },
-        { name: 'The Best Rate Insurance', handle: 'thebestrate', avatar: 'TB', bg: 'bg-cyan-700' },
-        ...[]?.map((a) => ({
-          name: a.name,
-          handle: a.handle || a.email?.split('@')[0],
-          avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
-          bg: a.bg || 'bg-blue-600',
-        })),
-      ]);
+      setAssigneeOptionsList(getActiveAgentAccounts());
     }
     window.addEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
+    getUsers()
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setAssigneeOptionsList(getActiveAgentAccounts());
+        }
+      })
+      .catch(() => {});
     return () => window.removeEventListener('insurmatch_accounts_updated', handleAccountsUpdated);
   }, []);
 
