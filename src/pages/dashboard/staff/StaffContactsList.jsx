@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 
 
 import { useAuth } from '../../../auth/AuthContext';
+import { getContacts, getUsers, createContact as apiCreateContact } from '../../../services/api';
 import { filterContactsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
 
