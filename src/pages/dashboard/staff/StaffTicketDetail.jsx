@@ -275,8 +275,8 @@ export default function StaffTicketDetail({
         if (Array.isArray(res) && res.length > 0) {
           const agents = res
             .filter((u) => {
-              const role = (u.role || '').toLowerCase();
-              const status = (u.status || '').toLowerCase();
+              const role = String(u.role || '').toLowerCase();
+              const status = String(u.status || '').toLowerCase();
               return (role === 'agent' || role === 'broker') && status !== 'suspended';
             })
             .map((u) => ({

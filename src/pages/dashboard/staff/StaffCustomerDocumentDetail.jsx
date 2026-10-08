@@ -1030,9 +1030,9 @@ export default function StaffCustomerDocumentDetail({
                   ?.filter((c) => {
                     if (!contactSearchQuery) return true;
                     const q = contactSearchQuery.toLowerCase();
-                    const name = (c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.name || '').toLowerCase();
-                    const phone = (c.phone || '').toLowerCase();
-                    const email = (c.email || '').toLowerCase();
+                    const name = String(c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.name || '').toLowerCase();
+                    const phone = String(c.phone || '').toLowerCase();
+                    const email = String(c.email || '').toLowerCase();
                     return name.includes(q) || phone.includes(q) || email.includes(q);
                   })
                   .slice(0, 15)

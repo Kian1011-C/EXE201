@@ -105,3 +105,47 @@ export function restoreSession() {
     return null;
   }
 }
+
+// ─────────────────────────────────────────────
+// ME — Get current user
+// ─────────────────────────────────────────────
+export async function getMe() {
+  const token = localStorage.getItem('tbri_token');
+  if (!token) throw new Error('No token');
+  
+  const res = await fetch(`${API_BASE}/auth/me`, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (res.ok) {
+    const resp = await res.json();
+    return (resp && resp.data) ? resp.data : resp;
+  }
+  throw new Error('Failed to get user');
+}
+
+// ─────────────────────────────────────────────
+// REFRESH TOKEN
+// ─────────────────────────────────────────────
+export async function refreshToken() {
+  const token = localStorage.getItem('tbri_refresh_token');
+  if (!token) throw new Error('No refresh token');
+
+  const res = await fetch(`${API_BASE}/auth/refresh-token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  });
+  if (res.ok) {
+    const resp = await res.json();
+    const data = (resp && resp.data) ? resp.data : resp;
+    if (data.token || data.accessToken) {
+      localStorage.setItem('tbri_token', data.token || data.accessToken);
+      if (data.refreshToken) {
+         localStorage.setItem('tbri_refresh_token', data.refreshToken);
+      }
+      return data;
+    }
+  }
+  throw new Error('Failed to refresh token');
+}

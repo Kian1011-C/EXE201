@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { updateDealAdmin } from '../../../services/api';
+import { updateDeal } from '../../../services/api';
 
 export default function AdminDealsTab({
   deals = [],
@@ -78,7 +78,8 @@ export default function AdminDealsTab({
     if (!selectedDeal) return;
     setIsSaving(true);
     try {
-      await updateDealAdmin(selectedDeal.id, adminForm).catch((err) =>
+      const payload = { ...selectedDeal, ...adminForm };
+      await updateDeal(selectedDeal.id, payload).catch((err) =>
         console.warn('Offline mode: saving deal admin fields in local state', err.message)
       );
 
@@ -109,10 +110,12 @@ export default function AdminDealsTab({
     const newNpn = 'Anh Que Pham 20011862';
     if (!window.confirm(`Reclaim AOR status for deal ${deal.code} under Master Sponsor NPN (${newNpn}) per SOP 19 procedure?`)) return;
     try {
-      await updateDealAdmin(deal.id, {
+      const payload = {
+        ...deal,
         enrolledNpn: newNpn,
         closedLostReason: 'AOR Reclaimed per SOP 19 Procedure',
-      }).catch((err) => console.warn('Offline mode: reclaiming AOR in local state', err.message));
+      };
+      await updateDeal(deal.id, payload).catch((err) => console.warn('Offline mode: reclaiming AOR in local state', err.message));
 
       setLocalDeals((prev) =>
         prev?.map((d) =>

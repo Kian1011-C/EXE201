@@ -421,6 +421,36 @@ export async function getContactDeals(contactId) {
   }
 }
 
+export async function getContactActivities(contactId) {
+  if (!contactId) return [];
+  try {
+    const data = await request(`/contacts/${encodeURIComponent(contactId)}/activities`);
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getContactTickets(contactId) {
+  if (!contactId) return [];
+  try {
+    const data = await request(`/contacts/${encodeURIComponent(contactId)}/tickets`);
+    return Array.isArray(data) ? data.map(normalizeTicket) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getContactDocuments(contactId) {
+  if (!contactId) return [];
+  try {
+    const data = await request(`/contacts/${encodeURIComponent(contactId)}/documents`);
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function getContact(id) {
   if (!id) return null;
   // 1. Ưu tiên endpoint 360° detail (đầy đủ contact + deals + tickets + documents + tasks + notes)
@@ -1329,12 +1359,7 @@ export async function assignAdminQuote(id, data) {
   });
 }
 
-export async function updateDealAdmin(id, adminData) {
-  return await request(`/deals/${encodeURIComponent(id)}/admin`, {
-    method: 'PUT',
-    body: JSON.stringify(adminData),
-  });
-}
+
 
 export async function getAdminAuditLogs() {
   try {
@@ -1354,22 +1379,33 @@ export async function submitQuote(data) {
 
 
 export async function deleteContact(id) { return await request(`/contacts/${id}`, { method: 'DELETE' }); }
-export async function deleteDeal(id) { return await request(`/deals/${id}`, { method: 'DELETE' }); }
 export async function deleteTicket(id) { return await request(`/tickets/${id}`, { method: 'DELETE' }); }
 export async function deleteTask(id) { return await request(`/tasks/${id}`, { method: 'DELETE' }); }
-export async function deleteCommission(id) { return await request(`/commissions/${id}`, { method: 'DELETE' }); }
-export async function deleteAdminAccount(id) {
-  const res = await request(`/admin/accounts/${id}`, { method: 'DELETE' });
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem('insurmatch_admin_accounts');
-      if (raw) {
-        const current = JSON.parse(raw);
-        const updated = current.filter((a) => String(a.id) !== String(id));
-        localStorage.setItem('insurmatch_admin_accounts', JSON.stringify(updated));
-        window.dispatchEvent(new CustomEvent('insurmatch_accounts_updated'));
-      }
-    } catch {}
-  }
-  return res;
+
+export async function getUser(id) {
+  if (!id) return null;
+  return await request(`/users/${encodeURIComponent(id)}`);
 }
+
+// ── Upload ───────────────────────────────────────────────────────────────────
+export async function uploadFile(endpoint, file) {
+  const token = localStorage.getItem('tbri_token');
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const headers = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+  if (!res.ok) throw new Error('Upload failed');
+  const json = await res.json();
+  return json.data || json;
+}
+
+export async function uploadImage(file) { return uploadFile('/upload/image', file); }
+export async function uploadAvatar(file) { return uploadFile('/upload/avatar', file); }
+export async function uploadDocument(file) { return uploadFile('/upload/document', file); }

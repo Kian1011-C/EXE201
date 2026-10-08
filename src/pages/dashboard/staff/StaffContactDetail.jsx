@@ -115,7 +115,7 @@ export default function StaffContactDetail({
     const storeContactTasks = dynamicTasks?.filter(
       (t) =>
         (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId || String(t.contact?.code) === cId)) ||
-        (cName && t.contactName && t.contactName?.trim()?.toLowerCase() === cName)
+        (cName && t.contactName && String(t.contactName).trim().toLowerCase() === cName)
     );
     const existing = Array.isArray(contact?.tasks) ? contact.tasks : [];
     return [
@@ -830,7 +830,7 @@ export default function StaffContactDetail({
       const cId = String(contact.id || contact.code || '')?.trim();
       const cName = String(contact.fullName || '')?.trim()?.toLowerCase();
       const dynamicTickets = getAllDynamicTickets().filter(
-        (t) => (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId)) || (cName && t.contactName && t.contactName.trim().toLowerCase() === cName)
+        (t) => (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId)) || (cName && t.contactName && String(t.contactName).trim().toLowerCase() === cName)
       );
       const combinedTickets = [...rawTickets];
       for (const dt of dynamicTickets) {
@@ -904,7 +904,7 @@ export default function StaffContactDetail({
       const storeContactTasks = dynamicTasks?.filter(
         (t) =>
           (cId && (String(t.contactId) === cId || String(t.contact?.id) === cId || String(t.contact?.code) === cId)) ||
-          (cName && t.contactName && t.contactName?.trim()?.toLowerCase() === cName)
+          (cName && t.contactName && String(t.contactName).trim().toLowerCase() === cName)
       );
       const existingTasks = Array.isArray(contact.tasks) ? contact.tasks : [];
       const mergedTasks = [
@@ -1650,10 +1650,21 @@ export default function StaffContactDetail({
         ssn: primarySsn,
         gender: primaryGender,
         immigrationStatus: primaryImmigration,
+        alienNumber: primaryAlienNumber,
+        certificateNumber: primaryCertificateNumber,
+        dateExpired: primaryDateExpired,
+        household: primaryHousehold,
         language: contactLanguage,
+        theBestRateEmail: theBestRateEmail,
+        acaAccount: acaAccount,
+        acaPass: acaPass,
         acaUsername: acaAccountSpecial || acaAccount,
         acaPassword: acaPassSpecial || acaPass,
-        acaStatus: acaStatusSpecial,
+        acaStatus: acaAccountStatus,
+        acaStatusSpecial: acaStatusSpecial,
+        acaAccountSpecial: acaAccountSpecial,
+        acaPassSpecial: acaPassSpecial,
+        enrollCallRep: enrollCallRep,
         sourceChannel: leadHowDoYouKnowUs,
         sourceDetail: leadWhoRefer,
         whoReferClient: leadWhoRefer,

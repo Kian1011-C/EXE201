@@ -1548,7 +1548,7 @@ export default function StaffCrmDashboard({
                       setChartTooltip(null);
                       const matching = obDeals.filter((d) => {
                         const ag = d.dealOwnerName || getPersonName(d.dealOwner);
-                        return ag === item.agent && (d.stage || '').toLowerCase().includes('active');
+                        return ag === item.agent && String(d.stage || '').toLowerCase().includes('active');
                       });
                       setDrilldownModal({
                         title: 'TOTAL ACTIVE OB 2026 - AGENT REPORT',

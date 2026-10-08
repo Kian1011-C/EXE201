@@ -12,10 +12,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: process.env.BACKEND_URL || 'http://localhost:5000',
+        target: process.env.BACKEND_URL || 'https://insurmatch-api.onrender.com',
         changeOrigin: true,
       },
     },
   },
 })
-
