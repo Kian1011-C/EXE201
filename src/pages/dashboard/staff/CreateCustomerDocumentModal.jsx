@@ -108,9 +108,18 @@ export default function CreateCustomerDocumentModal({
     }
   }, [isOpen]);
 
+  const hasInitialized = useRef(false);
+
   // Initialize from contact
   useEffect(() => {
+    if (!isOpen) {
+      hasInitialized.current = false;
+      return;
+    }
+    if (hasInitialized.current) return;
+
     if (contact) {
+      hasInitialized.current = true;
       setSelectedContact(contact);
       const cName =
         contact.fullName ||
@@ -142,14 +151,15 @@ export default function CreateCustomerDocumentModal({
           bg: 'bg-[#475569]',
         });
       } else {
-        setSelectedOwner(platformMembers[0]);
+        setSelectedOwner(platformMembers[0] || null);
       }
     } else {
+      hasInitialized.current = true;
       setSelectedContact(null);
       setContactName('');
       setDocName('--');
     }
-  }, [contact, isOpen, platformMembers]);
+  }, [contact, isOpen]);
 
   // Close owner & contact dropdowns on click outside
   useEffect(() => {
