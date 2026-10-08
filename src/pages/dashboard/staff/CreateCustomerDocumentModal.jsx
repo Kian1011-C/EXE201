@@ -339,10 +339,10 @@ export default function CreateCustomerDocumentModal({
   const filteredContacts = contactsList?.filter((c) => {
     const q = contactSearchQuery?.toLowerCase()?.trim();
     if (!q) return true;
-    const name = (c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.name || '')?.toLowerCase();
-    const phone = (c.phone || '')?.toLowerCase();
-    const email = (c.email || '')?.toLowerCase();
-    const code = (c.code || c.id || '')?.toLowerCase();
+    const name = String(c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.name || '')?.toLowerCase();
+    const phone = String(c.phone || '')?.toLowerCase();
+    const email = String(c.email || '')?.toLowerCase();
+    const code = String(c.code || c.id || '')?.toLowerCase();
     return name.includes(q) || phone.includes(q) || email.includes(q) || code.includes(q);
   });
 
@@ -350,9 +350,9 @@ export default function CreateCustomerDocumentModal({
   const filteredExistingDocuments = allExistingDocuments?.filter((d) => {
     const q = existingSearchQuery?.toLowerCase()?.trim();
     if (!q) return true;
-    const name = (d.name || '')?.toLowerCase();
-    const contactN = (d.contactName || '')?.toLowerCase();
-    const code = (d.code || d.id || '')?.toLowerCase();
+    const name = String(d.name || '')?.toLowerCase();
+    const contactN = String(d.contactName || '')?.toLowerCase();
+    const code = String(d.code || d.id || '')?.toLowerCase();
     return name.includes(q) || contactN.includes(q) || code.includes(q);
   });
 

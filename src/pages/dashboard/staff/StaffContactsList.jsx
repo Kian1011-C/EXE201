@@ -42,8 +42,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       setDbUsers(usersData);
       if (Array.isArray(usersData) && usersData.length > 0) {
         const backendAgents = usersData?.filter((u) => {
-          const role = (u.role || '')?.toLowerCase();
-          const status = (u.status || '')?.toLowerCase();
+          const role = String(u.role || '')?.toLowerCase();
+          const status = String(u.status || '')?.toLowerCase();
           return (role === 'agent' || role === 'broker') && status !== 'suspended';
         });
         if (backendAgents.length > 0) {
@@ -119,11 +119,11 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
   const filteredContacts = useMemo(() => {
     return scopedContacts?.filter((c) => {
       const q = searchQuery?.toLowerCase()?.trim();
-      const cName = c.fullName || `${c.firstName || ''} ${c.lastName || ''}`?.trim() || '';
-      const cCode = c.code || `CT2600${c.id || ''}`;
-      const cPhone = c.phone || '';
-      const cEmail = c.email || '';
-      const ownerName = (typeof c.contactOwner === 'object' ? (c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`?.trim()) : c.contactOwner) || '';
+      const cName = String(c.fullName || `${c.firstName || ''} ${c.lastName || ''}`?.trim() || '');
+      const cCode = String(c.code || `CT2600${c.id || ''}`);
+      const cPhone = String(c.phone || '');
+      const cEmail = String(c.email || '');
+      const ownerName = String((typeof c.contactOwner === 'object' ? (c.contactOwner?.name || `${c.contactOwner?.firstName || ''} ${c.contactOwner?.lastName || ''}`?.trim()) : c.contactOwner) || '');
 
       const matchesSearch =
         !q ||

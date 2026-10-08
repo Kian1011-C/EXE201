@@ -128,10 +128,10 @@ export default function StaffCustomerDocumentsList({
   const filteredDocuments = useMemo(() => {
     return scopedDocuments?.filter((doc) => {
       const q = searchQuery?.toLowerCase()?.trim();
-      const name = (doc.name || '')?.toLowerCase();
-      const contactName = (doc.contactName || doc.associatedContact?.name || '')?.toLowerCase();
-      const contactCode = (doc.contactId || doc.associatedContact?.id || '')?.toLowerCase();
-      const owner = (doc.contactOwner || '')?.toLowerCase();
+      const name = String(doc.name || '')?.toLowerCase();
+      const contactName = String(doc.contactName || doc.associatedContact?.name || '')?.toLowerCase();
+      const contactCode = String(doc.contactId || doc.associatedContact?.id || '')?.toLowerCase();
+      const owner = String(doc.contactOwner || '')?.toLowerCase();
 
       const matchesSearch =
         !q ||
