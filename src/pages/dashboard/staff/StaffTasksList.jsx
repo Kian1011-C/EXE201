@@ -975,9 +975,9 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
 
       {/* ── CREATE TASK MODAL ──────────────────────────────────────────────── */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
-            <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden">
+            <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[20px] text-blue-600">
                   add_task
@@ -993,7 +993,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
               </button>
             </div>
 
-            <form onSubmit={handleCreateTaskSubmit} className="p-5 space-y-4">
+            <form onSubmit={handleCreateTaskSubmit} className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">Task Title *</label>
                 <input
