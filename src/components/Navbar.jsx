@@ -31,12 +31,12 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
               className="tracking-wider uppercase text-[10px] text-champagne font-bold whitespace-nowrap bg-white/5 hover:bg-champagne/20 hover:text-white px-2.5 py-1 rounded-full border border-champagne/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <span className="material-symbols-outlined text-[13px] text-champagne">travel_explore</span>
-              <span>Cổng Khách Hàng: Chọn Đại Lý</span>
+              <span>Client Portal: Find Agent</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </button>
             <span className="text-white/20 hidden lg:inline">|</span>
             <span className="text-ivory/75 text-[11px] hidden lg:inline whitespace-nowrap">
-              Matchmaking Portal cho Khách hàng &amp; B2B CRM cho Đại lý
+              Matchmaking Portal for Clients &amp; B2B SaaS CRM for Independent Agents
             </span>
           </div>
 
@@ -137,7 +137,7 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
                 className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-navy-deep/20 bg-white/80 hover:bg-navy-deep hover:text-ivory text-navy-deep transition-all duration-200 font-bold text-xs tracking-wide cursor-pointer shadow-2xs whitespace-nowrap group"
               >
                 <span className="material-symbols-outlined text-[16px] text-champagne">travel_explore</span>
-                <span>Kết Nối Đại Lý</span>
+                <span>Find an Agent</span>
               </button>
 
               <button 
@@ -186,9 +186,9 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
                 >
                   <span className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px] text-blue-600">travel_explore</span>
-                    <span>Kết Nối Đại Lý</span>
+                    <span>Find an Agent</span>
                   </span>
-                  <span className="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded-full">Chọn Đại Lý</span>
+                  <span className="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded-full">Match Portal</span>
                 </button>
                 <a href="/#features" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
                   CRM Features
