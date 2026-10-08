@@ -479,7 +479,7 @@ export default function StaffCustomerDocumentDetail({
               <div className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
                 <span className="text-slate-500">Last modified by:</span>
-                <span className="font-semibold text-slate-800">{doc.lastModifiedBy || 'Staff'}</span>
+                <span className="font-semibold text-slate-800">{typeof doc.lastModifiedBy === 'object' ? (doc.lastModifiedBy?.name || 'Staff') : (doc.lastModifiedBy || 'Staff')}</span>
               </div>
             </div>
 
@@ -924,7 +924,7 @@ export default function StaffCustomerDocumentDetail({
                   <span>Cập nhật gần nhất</span>
                   <span className="text-[10px] text-slate-400 font-mono">{lastModifiedTime}</span>
                 </div>
-                <div className="text-slate-600 text-[11px]">Người thực hiện: <strong className="text-slate-800">{doc.lastModifiedBy || 'Staff'}</strong></div>
+                <div className="text-slate-600 text-[11px]">Người thực hiện: <strong className="text-slate-800">{typeof doc.lastModifiedBy === 'object' ? (doc.lastModifiedBy?.name || 'Staff') : (doc.lastModifiedBy || 'Staff')}</strong></div>
               </div>
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
                 <div className="font-semibold text-slate-800 flex items-center justify-between">
@@ -974,7 +974,7 @@ export default function StaffCustomerDocumentDetail({
               <div className="py-2 flex justify-between"><span className="text-slate-500">Email:</span><span className="text-slate-800">{associatedContact.email || '—'}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Tổng số tệp tải lên:</span><span className="font-bold text-blue-700">{doc.totalFiles || Object.values(filesByCategory).reduce((s, a) => s + (Array.isArray(a) ? a.length : 0), 0)} file(s)</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Thời gian cập nhật:</span><span className="text-slate-800">{lastModifiedTime}</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Người cập nhật:</span><span className="text-slate-800">{doc.lastModifiedBy || 'Staff'}</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Người cập nhật:</span><span className="text-slate-800">{typeof doc.lastModifiedBy === 'object' ? (doc.lastModifiedBy?.name || 'Staff') : (doc.lastModifiedBy || 'Staff')}</span></div>
             </div>
             <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
               <button

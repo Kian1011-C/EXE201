@@ -3678,7 +3678,7 @@ export default function StaffContactDetail({
                                   </option>
                                 ))}
                                 {task.assignee && !agentAccounts?.some((a) => a.name === task.assignee) && (
-                                  <option value={task.assignee}>{task.assignee}</option>
+                                  <option value={typeof task.assignee === 'object' ? task.assignee?.name || '' : task.assignee}>{typeof task.assignee === 'object' ? task.assignee?.name || '' : task.assignee}</option>
                                 )}
                               </select>
                               <span className="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-[14px] text-slate-400 pointer-events-none">

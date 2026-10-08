@@ -1143,7 +1143,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
                             >
                               {t.ticketOwnerAvatar || t.ticketOwner?.slice(0, 2).toUpperCase()}
                             </span>
-                            <span className="truncate">{t.ticketOwner}</span>
+                            <span className="truncate">{typeof t.ticketOwner === 'object' ? t.ticketOwner?.name || '' : t.ticketOwner}</span>
                           </div>
                         </td>
 
