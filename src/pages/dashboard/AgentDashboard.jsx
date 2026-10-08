@@ -940,6 +940,9 @@ export default function AgentDashboard() {
         <AgentCommissionLedger
           onSelectContact={handleSelectContact}
           onSelectDeal={handleSelectDeal}
+          isAgent={true}
+          agentName={currentAgent.name}
+          currentUser={user}
         />
       )}
 

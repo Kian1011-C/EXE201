@@ -14,6 +14,7 @@ export default defineConfig({
       '/api': {
         target: process.env.BACKEND_URL || 'https://insurmatch-api.onrender.com',
         changeOrigin: true,
+        secure: false,
       },
     },
   },

@@ -4,7 +4,17 @@ import {
   getCommissionSummary,
   calculateCommissions,
   updateCommission,
+  getDeals,
+  getContacts,
+  getUsers,
 } from '../../../services/api';
+import { useAuth } from '../../../auth/AuthContext';
+import {
+  isOwnerMatch,
+  getAgentIdentity,
+  extractOwnerString,
+  normalizeText,
+} from '../../../utils/rbac';
 import AgentCommissionCalculator from './AgentCommissionCalculator';
 import {
   MEDICARE_DEAL_STAGES,
@@ -12,12 +22,119 @@ import {
   ALL_CARRIERS,
   CARRIER_COMMISSION_RATES,
   calculateCarrierDealCommission,
+  getActiveAgentAccounts,
 } from '../../../utils/constants';
 
 // ── INITIAL REAL COMMISSION DATA: 100% AGENT PAYOUT (NO 7/3 SPLIT) ───────────
 const INITIAL_COMMISSION_DATA = [];
 
-export default function AgentCommissionLedger({ onSelectContact, onSelectDeal }) {
+export default function AgentCommissionLedger({
+  onSelectContact,
+  onSelectDeal,
+  isAgent = true,
+  agentName = '',
+  currentUser = null,
+}) {
+  const { user: authUser } = useAuth();
+  const user = currentUser || authUser;
+  const activeIsAgent =
+    Boolean(isAgent) ||
+    user?.role === 'agent' ||
+    user?.role === 'broker' ||
+    window.location.pathname.includes('/agent');
+  const effectiveAgent = getAgentIdentity(
+    user || (isAgent ? { role: 'agent', name: agentName } : null)
+  );
+
+  // Available agent roster for dynamic scoping & selector
+  const [availableAgents, setAvailableAgents] = useState([]);
+
+  // Selected agent filter state (defaults to Trung Trương as requested)
+  const [selectedAgentFilter, setSelectedAgentFilter] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('insurmatch_selected_commission_agent');
+      if (saved) return saved;
+    } catch {}
+    if (agentName && agentName !== 'Khanh Nguyen' && agentName !== 'Licensed Agent Partner') {
+      return agentName;
+    }
+    if (user?.name && user.name !== 'Licensed Agent Partner' && user.name !== 'Super Admin' && user.name !== 'Platform Staff') {
+      return user.name;
+    }
+    return 'Trung Trương';
+  });
+
+  useEffect(() => {
+    async function fetchAgents() {
+      try {
+        const [dbUsersRes, staticAgents] = await Promise.all([
+          getUsers().catch(() => []),
+          getActiveAgentAccounts(),
+        ]);
+        const combined = [];
+        const seen = new Set();
+
+        // 1. DB users from backend API
+        if (Array.isArray(dbUsersRes)) {
+          dbUsersRes.forEach((u) => {
+            if (!u || !u.name) return;
+            const r = (u.role || '').toLowerCase();
+            const norm = normalizeText(u.name);
+            if ((r === 'agent' || r === 'broker' || norm.includes('trung')) && !seen.has(norm)) {
+              seen.add(norm);
+              combined.push({
+                id: u.id,
+                name: u.name,
+                email: u.email,
+                role: u.role || 'AGENT',
+              });
+            }
+          });
+        }
+
+        // 2. Static agent accounts
+        if (Array.isArray(staticAgents)) {
+          staticAgents.forEach((a) => {
+            if (!a || !a.name) return;
+            const norm = normalizeText(a.name);
+            if (!seen.has(norm)) {
+              seen.add(norm);
+              combined.push({
+                id: a.id,
+                name: a.name,
+                email: a.email,
+                role: a.role || 'AGENT',
+              });
+            }
+          });
+        }
+
+        // Ensure Trung Trương is always at the top of the roster
+        const trungIdx = combined.findIndex((a) => normalizeText(a.name).includes('trung'));
+        if (trungIdx > 0) {
+          const [trungItem] = combined.splice(trungIdx, 1);
+          combined.unshift(trungItem);
+        } else if (trungIdx === -1) {
+          combined.unshift({
+            id: '28',
+            name: 'Trung Trương',
+            email: 'truongchitrung05@gmail.com',
+            role: 'AGENT',
+          });
+        }
+
+        setAvailableAgents(combined);
+      } catch {
+        setAvailableAgents([
+          { id: '28', name: 'Trung Trương', role: 'AGENT' },
+          { id: '15', name: 'Khanh Nguyen', role: 'AGENT' },
+          { id: '14', name: 'Licensed Agent Partner', role: 'AGENT' },
+        ]);
+      }
+    }
+    fetchAgents();
+  }, []);
+
   const [commissionList, setCommissionList] = useState(INITIAL_COMMISSION_DATA);
   const [dbSummary, setDbSummary] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -42,25 +159,92 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
     setTimeout(() => setToastMessage(null), 3500);
   }
 
+  // Scoping helper: checks if an item belongs to the selected agent target
+  function isItemBelongingToCurrentAgent(item, targetUser) {
+    if (!targetUser) return true; // 'All' selected -> show all
+    if (!item) return false;
+
+    // 1. Direct dealOwner match (string or object)
+    if (
+      isOwnerMatch(item.dealOwner, targetUser) ||
+      isOwnerMatch(item.dealOwnerName, targetUser) ||
+      isOwnerMatch(item.deal?.dealOwner, targetUser) ||
+      isOwnerMatch(item.deal?.dealOwnerName, targetUser) ||
+      isOwnerMatch(item.adminOnly?.dealOwner, targetUser)
+    ) {
+      return true;
+    }
+
+    // 2. Direct contactOwner match (string or object)
+    if (
+      isOwnerMatch(item.contactOwner, targetUser) ||
+      isOwnerMatch(item.contactOwnerName, targetUser) ||
+      isOwnerMatch(item.contact?.contactOwner, targetUser) ||
+      isOwnerMatch(item.contact?.contactOwnerName, targetUser) ||
+      isOwnerMatch(item.contact?.leadOwner, targetUser) ||
+      isOwnerMatch(item.adminOnly?.contactOwner, targetUser)
+    ) {
+      return true;
+    }
+
+    // 3. Direct agentName / owner / leadOwner match
+    if (
+      isOwnerMatch(item.agentName, targetUser) ||
+      isOwnerMatch(item.owner, targetUser) ||
+      isOwnerMatch(item.leadOwner, targetUser) ||
+      isOwnerMatch(item.deal?.agentName, targetUser) ||
+      isOwnerMatch(item.deal?.owner, targetUser) ||
+      isOwnerMatch(item.deal?.leadOwner, targetUser)
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   // Load commissions & merge dynamic deals from CRM
-  async function loadCommissionsData() {
+  async function loadCommissionsData(targetAgentName) {
     try {
       setLoading(true);
-      const [comms, summary] = await Promise.all([
+      const agentToFilter = targetAgentName !== undefined ? targetAgentName : selectedAgentFilter;
+      const targetUser = agentToFilter !== 'All' ? { role: 'agent', name: agentToFilter } : null;
+
+      const [comms, summary, dealsRes, contactsRes] = await Promise.all([
         getCommissions().catch(() => []),
         getCommissionSummary().catch(() => null),
+        getDeals().catch(() => []),
+        getContacts().catch(() => []),
       ]);
 
       if (summary) setDbSummary(summary);
 
-      let baseList = INITIAL_COMMISSION_DATA;
+      let baseList = [];
 
+      // Create lookup map for contacts by id and code
+      const contactsMap = new Map();
+      if (Array.isArray(contactsRes)) {
+        contactsRes.forEach((c) => {
+          if (!c) return;
+          if (c.id) contactsMap.set(String(c.id), c);
+          if (c.code) contactsMap.set(String(c.code), c);
+        });
+      }
+
+      // 1. Process commissions from API
       if (Array.isArray(comms) && comms.length > 0) {
-        baseList = comms?.map((c) => {
+        const scopedComms = comms.filter((c) => {
+          if (!targetUser) return true;
+          const linkedContact = c.deal?.contactId ? contactsMap.get(String(c.deal.contactId)) : null;
+          const contactOwner = c.contactOwner || linkedContact?.contactOwner || linkedContact?.contactOwnerName || '';
+          return isItemBelongingToCurrentAgent({ ...c, contactOwner }, targetUser);
+        });
+
+        baseList = scopedComms.map((c) => {
           const dealMembers = c.memberCount || 1;
           const gross = c.grossAmount || 30.0;
           return {
             id: c.id,
+            dealId: c.deal?.id || c.dealId,
             policyNumber: c.policyId || `POL-${String(c.id).slice(-6)}`,
             memberId: c.policyId || 'MID-UNKNOWN',
             clientName: c.deal?.title?.split('–')[0]?.trim() || c.agentName || 'Khách hàng',
@@ -73,7 +257,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
             subsidy: 380,
             commissionRate: `$${(gross / dealMembers).toFixed(2)} PMPM`,
             grossAmount: gross,
-            supportDeduction: 0.0, // 0% deduction
+            supportDeduction: 0.0,
             saleSupportStatus: '100% DIRECT',
             commissionAmount: gross, // 100% payout to agent
             annualProjected: gross * 12,
@@ -81,43 +265,131 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
             cycle: c.period || '2026-09',
             payoutDate: c.status === 'SETTLED' ? '09/15/2026' : 'Pending (Next Cycle)',
             directDepositRef: c.status === 'SETTLED' ? `ACH-${String(c.id).slice(0, 6).toUpperCase()}` : '---',
+            dealOwner: c.dealOwner || c.deal?.dealOwner,
+            contactOwner: c.contactOwner || c.deal?.contactOwner,
           };
         });
       }
 
-      // Check CRM dynamic deals to auto-calculate any missing deals
-      const crmDeals = [...[], ...[]];
-      crmDeals.forEach((deal) => {
-        if (deal && deal.id && !baseList?.some((item) => item.policyNumber === deal.id || item.policyNumber === deal.code)) {
-          const dealCarrier = deal.carrier || deal.dealCarrier || deal.adminOnly?.carrier || 'BCBS';
-          const members = parseInt(deal.numberMember || deal.adminOnly?.numberMember) || 1;
-          const calculated = calculateCarrierDealCommission(dealCarrier, members);
+      // 2. Process CRM Deals (including deals from contacts' associatedDeals)
+      const allDeals = [
+        ...(Array.isArray(dealsRes) ? dealsRes : []),
+        ...(Array.isArray(contactsRes)
+          ? contactsRes.flatMap((c) => [
+              ...(Array.isArray(c.deals) ? c.deals : []),
+              ...(Array.isArray(c.associatedDeals) ? c.associatedDeals : []),
+            ])
+          : []),
+      ];
 
-          baseList.push({
-            id: `COMM-${deal.id}`,
-            policyNumber: deal.id || deal.code || '',
-            memberId: deal.adminOnly?.primaryMemberId || `MID-${deal.id}`,
-            clientName: deal.contactName || deal.title || 'Hồ sơ bảo hiểm CRM',
-            clientCode: deal.contactId || '',
-            carrier: dealCarrier,
-            category: (deal.pipeline || '')?.toLowerCase().includes('medicare') ? 'Medicare' : 'Obamacare / ACA',
-            planName: deal.title || 'ACA Qualified Health Plan',
-            membersCount: members,
-            premium: 400,
-            subsidy: 380,
-            commissionRate: `$${calculated.pmpmRate.toFixed(2)} PMPM (${members} người)`,
-            grossAmount: calculated.monthlyCarrierPayout,
-            supportDeduction: 0.0,
-            saleSupportStatus: '100% DIRECT',
-            commissionAmount: calculated.agentNetMonthly, // 100%
-            annualProjected: calculated.agentAnnualProjected,
-            status: 'Settled',
-            cycle: '2026-09',
-            payoutDate: '09/15/2026',
-            directDepositRef: `ACH-${deal.id}-CLEARING`,
-          });
+      allDeals.forEach((deal) => {
+        if (!deal || !deal.id) return;
+        const linkedContact = deal.contactId ? contactsMap.get(String(deal.contactId)) : (deal.contact || null);
+        const contactOwner = deal.contactOwner || linkedContact?.contactOwner || linkedContact?.contactOwnerName || '';
+        const enrichedDeal = { ...deal, contactOwner };
+
+        if (isItemBelongingToCurrentAgent(enrichedDeal, targetUser)) {
+          const alreadyInList = baseList.some(
+            (item) =>
+              item.policyNumber === deal.id ||
+              item.policyNumber === deal.code ||
+              item.id === `COMM-${deal.id}` ||
+              item.id === deal.id ||
+              item.dealId === deal.id ||
+              (item.policyNumber && deal.code && item.policyNumber === deal.code)
+          );
+          if (!alreadyInList) {
+            const dealCarrier = deal.carrier || deal.dealCarrier || deal.adminOnly?.carrier || 'BCBS';
+            const members = parseInt(deal.numberMember || deal.adminOnly?.numberMember) || 1;
+            const calculated = calculateCarrierDealCommission(dealCarrier, members);
+            const clientName =
+              linkedContact?.fullName ||
+              deal.contactName ||
+              deal.title?.split('–')[0]?.trim() ||
+              deal.title ||
+              'Hồ sơ bảo hiểm';
+
+            baseList.push({
+              id: `COMM-${deal.id}`,
+              dealId: deal.id,
+              policyNumber: deal.code || deal.id || '',
+              memberId: deal.adminOnly?.primaryMemberId || deal.memberId || `MID-${deal.id}`,
+              clientName,
+              clientCode: deal.contactId || linkedContact?.code || linkedContact?.id || '',
+              carrier: dealCarrier,
+              category: (deal.pipeline || '')?.toLowerCase().includes('medicare') ? 'Medicare' : 'Obamacare / ACA',
+              planName: deal.title || deal.dealName || 'ACA Qualified Health Plan',
+              membersCount: members,
+              premium: 400,
+              subsidy: 380,
+              commissionRate: `$${calculated.pmpmRate.toFixed(2)} PMPM (${members} người)`,
+              grossAmount: calculated.monthlyCarrierPayout,
+              supportDeduction: 0.0,
+              saleSupportStatus: '100% DIRECT',
+              commissionAmount: calculated.agentNetMonthly, // 100%
+              annualProjected: calculated.agentAnnualProjected,
+              status:
+                deal.stage?.toLowerCase().includes('active') ||
+                deal.stage?.toLowerCase().includes('settled') ||
+                deal.stage?.toLowerCase().includes('enrolled')
+                  ? 'Settled'
+                  : 'Pending Carrier Review',
+              cycle: '2026-09',
+              payoutDate: '09/15/2026',
+              directDepositRef: `ACH-${deal.id}-CLEARING`,
+              dealOwner: deal.dealOwner,
+              contactOwner,
+            });
+          }
         }
       });
+
+      // 3. Process Contacts directly owned by agent if they don't have a deal entry yet
+      if (Array.isArray(contactsRes)) {
+        contactsRes.forEach((c) => {
+          if (!c || (!c.id && !c.code)) return;
+          if (isItemBelongingToCurrentAgent(c, targetUser)) {
+            const clientFullName = c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.code;
+            const alreadyInList = baseList.some(
+              (item) =>
+                item.clientCode === c.id ||
+                item.clientCode === c.code ||
+                (item.clientName && item.clientName.toLowerCase() === clientFullName.toLowerCase())
+            );
+            if (!alreadyInList) {
+              const carrier = c.carrier || c.adminOnly?.carrier || 'BCBS';
+              const members = parseInt(c.householdSize || c.householdMember) || 1;
+              const calculated = calculateCarrierDealCommission(carrier, members);
+
+              baseList.push({
+                id: `COMM-CT-${c.id || c.code}`,
+                policyNumber: c.code || `POL-${c.id}`,
+                memberId: `MID-${c.code || c.id}`,
+                clientName: clientFullName,
+                clientCode: c.code || c.id,
+                carrier,
+                category: 'Obamacare / ACA',
+                planName: 'ACA Qualified Health Plan',
+                membersCount: members,
+                premium: 400,
+                subsidy: 380,
+                commissionRate: `$${calculated.pmpmRate.toFixed(2)} PMPM (${members} người)`,
+                grossAmount: calculated.monthlyCarrierPayout,
+                supportDeduction: 0.0,
+                saleSupportStatus: '100% DIRECT',
+                commissionAmount: calculated.agentNetMonthly,
+                annualProjected: calculated.agentAnnualProjected,
+                status: 'Pending Carrier Review',
+                cycle: '2026-09',
+                payoutDate: '09/15/2026',
+                directDepositRef: `ACH-${c.code || c.id}-CLEARING`,
+                dealOwner: c.contactOwner,
+                contactOwner: c.contactOwner,
+              });
+            }
+          }
+        });
+      }
 
       setCommissionList(baseList);
     } catch (err) {
@@ -128,21 +400,21 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
   }
 
   useEffect(() => {
-    loadCommissionsData();
-  }, []);
+    loadCommissionsData(selectedAgentFilter);
+  }, [selectedAgentFilter]);
 
   // Trigger Commission Recalculation
   async function handleRunCalculation() {
     try {
       setCalculating(true);
       const res = await calculateCommissions({
-        agentName: '',
+        agentName: selectedAgentFilter !== 'All' ? selectedAgentFilter : '',
         period: selectedCycle === 'YTD' ? '2026-09' : selectedCycle,
       });
       showToast(`Đã tính toán xong hoa hồng 100% cho các deal: ${res.message || 'Cập nhật thành công!'}`);
-      await loadCommissionsData();
+      await loadCommissionsData(selectedAgentFilter);
     } catch (err) {
-      await loadCommissionsData();
+      await loadCommissionsData(selectedAgentFilter);
       showToast('Đã làm mới và tự động tính toán lại mức chi trả của từng hãng cho toàn bộ deals!');
     } finally {
       setCalculating(false);
@@ -179,24 +451,24 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
   const stats = useMemo(() => {
     const settled = commissionList
       ?.filter((c) => c.status === 'Settled')
-      ?.reduce((acc, c) => acc + c.commissionAmount, 0);
+      ?.reduce((acc, c) => acc + c.commissionAmount, 0) || 0;
 
     const pending = commissionList
       ?.filter((c) => c.status === 'Pending Carrier Review' || c.status === 'In Processing')
-      ?.reduce((acc, c) => acc + c.commissionAmount, 0);
+      ?.reduce((acc, c) => acc + c.commissionAmount, 0) || 0;
 
-    const totalProjected = commissionList?.reduce((acc, c) => acc + c.annualProjected, 0);
+    const totalProjected = commissionList?.reduce((acc, c) => acc + c.annualProjected, 0) || 0;
     const totalPolicies = commissionList.length;
 
     return {
-      settledCurrentMonth: dbSummary?.settledThisMonth || settled,
+      settledCurrentMonth: activeIsAgent ? settled : (dbSummary?.settledThisMonth || settled),
       pendingReview: pending,
-      ytdSettled: dbSummary?.ytdPaid || settled * 8.5,
+      ytdSettled: activeIsAgent ? settled * 8.5 : (dbSummary?.ytdPaid || settled * 8.5),
       annualProjected: totalProjected,
-      activeCommissionPolicies: dbSummary?.activePolicies || totalPolicies,
-      avgRatePmpm: totalPolicies > 0 ? settled / totalPolicies : 30.5,
+      activeCommissionPolicies: activeIsAgent ? totalPolicies : (dbSummary?.activePolicies || totalPolicies),
+      avgRatePmpm: totalPolicies > 0 ? settled / totalPolicies : 0,
     };
-  }, [commissionList, dbSummary]);
+  }, [commissionList, dbSummary, activeIsAgent]);
 
   // Unique carrier list for filter
   const carrierOptions = useMemo(() => {
@@ -373,6 +645,43 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
             <span className="material-symbols-outlined text-[16px] text-slate-500">download</span>
             <span>Xuất CSV</span>
           </button>
+        </div>
+      </div>
+
+      {/* ── Agent Scope Indicator Banner ─────────────────────────────────── */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/90 rounded-2xl px-4 py-3 flex items-center justify-between gap-3 text-xs shadow-2xs">
+        <div className="flex items-center gap-2.5 text-blue-900 font-semibold">
+          <span className="material-symbols-outlined text-[20px] text-blue-600">badge</span>
+          <span>
+            {selectedAgentFilter !== 'All' ? (
+              <>
+                Sổ hoa hồng đại lý: Đang hiển thị các hợp đồng do <strong>{selectedAgentFilter}</strong> phụ trách (Deal Owner / Contact Owner)
+              </>
+            ) : (
+              <>
+                Chế độ Tổng quản: Đang hiển thị toàn bộ hoa hồng của tất cả đại lý trên hệ thống
+              </>
+            )}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {selectedAgentFilter !== 'Trung Trương' && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedAgentFilter('Trung Trương');
+                try {
+                  sessionStorage.setItem('insurmatch_selected_commission_agent', 'Trung Trương');
+                } catch {}
+              }}
+              className="px-2.5 py-1 bg-white border border-blue-300 text-blue-700 hover:bg-blue-100 rounded-lg text-[11px] font-bold transition cursor-pointer"
+            >
+              Xem nhanh Agent Trung Trương
+            </button>
+          )}
+          <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">
+            {filteredList.length} hợp đồng phụ trách
+          </span>
         </div>
       </div>
 
@@ -621,7 +930,7 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
       <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5 flex-wrap flex-grow">
           {/* Search Box */}
-          <div className="relative min-w-[240px] max-w-sm flex-grow">
+          <div className="relative min-w-[220px] max-w-xs flex-grow">
             <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">
               search
             </span>
@@ -632,6 +941,32 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-slate-800 text-xs bg-slate-50/50"
             />
+          </div>
+
+          {/* Agent Filter Dropdown */}
+          <div className="flex items-center gap-1.5 bg-blue-50/50 p-1 px-2 rounded-xl border border-blue-200/80">
+            <span className="text-blue-900 font-bold flex items-center gap-1">
+              <span className="material-symbols-outlined text-[16px] text-blue-600">badge</span>
+              Đại lý:
+            </span>
+            <select
+              value={selectedAgentFilter}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedAgentFilter(val);
+                try {
+                  sessionStorage.setItem('insurmatch_selected_commission_agent', val);
+                } catch {}
+              }}
+              className="bg-white border border-blue-300 font-bold px-2.5 py-1 rounded-lg text-blue-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer shadow-2xs hover:bg-white transition"
+            >
+              <option value="All">Tất cả đại lý (Toàn bộ)</option>
+              {availableAgents?.map((ag) => (
+                <option key={ag.name} value={ag.name}>
+                  {ag.name} {ag.name === 'Trung Trương' ? '⭐ (Chính)' : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Carrier Filter */}
@@ -706,6 +1041,21 @@ export default function AgentCommissionLedger({ onSelectContact, onSelectDeal })
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
+              {filteredList.length === 0 && (
+                <tr>
+                  <td colSpan="11" className="py-12 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-[36px] text-slate-300">payments</span>
+                      <p className="font-semibold text-slate-700">Chưa có bản ghi hoa hồng nào</p>
+                      <p className="text-xs text-slate-400 max-w-md">
+                        {activeIsAgent
+                          ? `Chỉ hiển thị các hợp đồng bảo hiểm và hoa hồng thuộc sở hữu của bạn (${effectiveAgent.name}). Khi có hợp đồng mới hoàn tất ghi nhận, hoa hồng sẽ xuất hiện tại đây.`
+                          : 'Không tìm thấy hồ sơ hoa hồng nào khớp với bộ lọc hiện tại.'}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
               {filteredList?.map((row) => (
                 <tr key={row.id} className="hover:bg-blue-50/40 transition">
                   {/* Policy */}
