@@ -99,7 +99,7 @@ export default function InAppFilePreviewModal({ isOpen, onClose, file }) {
                 target="_blank"
                 rel="noreferrer"
                 className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                title="Mở tab mới"
+                title="Open in new tab"
               >
                 <span className="material-symbols-outlined text-[18px]">open_in_new</span>
               </a>
@@ -109,7 +109,7 @@ export default function InAppFilePreviewModal({ isOpen, onClose, file }) {
               type="button"
               onClick={handleDownload}
               className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-              title="Tải về máy"
+              title="Download file"
             >
               <span className="material-symbols-outlined text-[18px]">download</span>
             </button>
@@ -118,7 +118,7 @@ export default function InAppFilePreviewModal({ isOpen, onClose, file }) {
               type="button"
               onClick={onClose}
               className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer ml-1"
-              title="Đóng xem trước"
+              title="Close preview"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
@@ -152,22 +152,22 @@ export default function InAppFilePreviewModal({ isOpen, onClose, file }) {
               </div>
               <div>
                 <h4 className="font-bold text-slate-800 text-sm">{fileName}</h4>
-                <p className="text-xs text-slate-400 mt-1">Định dạng: {fileExt.toUpperCase()} • Kích thước: {file.size || 'Chưa xác định'}</p>
+                <p className="text-xs text-slate-400 mt-1">Format: {fileExt.toUpperCase()} • Size: {file.size || 'Unspecified'}</p>
               </div>
 
               <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-100 text-left text-xs space-y-1.5 text-slate-600 font-mono">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Trạng thái:</span>
+                  <span className="text-slate-400">Status:</span>
                   <span className="text-emerald-600 font-bold flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[13px]">verified</span> Đã xác thực
+                    <span className="material-symbols-outlined text-[13px]">verified</span> Verified
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Bảo mật:</span>
-                  <span>Mã hóa AES-256</span>
+                  <span className="text-slate-400">Security:</span>
+                  <span>AES-256 Encrypted</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Vị trí lưu trữ:</span>
+                  <span className="text-slate-400">Storage:</span>
                   <span>InsurMatch S3 Bucket</span>
                 </div>
               </div>
@@ -179,7 +179,7 @@ export default function InAppFilePreviewModal({ isOpen, onClose, file }) {
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[16px]">download</span>
-                  <span>Tải tệp về máy</span>
+                  <span>Download file</span>
                 </button>
               </div>
             </div>

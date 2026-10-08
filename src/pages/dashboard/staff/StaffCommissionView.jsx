@@ -106,7 +106,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                 </span>
               </h1>
               <p className="text-xs text-slate-500">
-                Theo dõi định kỳ doanh thu thuê bao phần mềm (MRR/ARR) &amp; hoa hồng chi trả cho Sales nội bộ theo Coms.pdf.
+                Track recurring subscription revenues (MRR/ARR) &amp; internal sales rep commissions per Coms.pdf financial model.
               </p>
             </div>
           </div>
@@ -125,7 +125,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Dữ liệu thực ({subscribers.length})</span>
+              <span>Active Subscriptions ({subscribers.length})</span>
             </button>
             <button
               type="button"
@@ -137,7 +137,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
               }`}
             >
               <span className="material-symbols-outlined text-[14px]">tune</span>
-              <span>Mô phỏng đề án</span>
+              <span>Financial Simulation</span>
             </button>
           </div>
 
@@ -145,13 +145,13 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
             type="button"
             onClick={() => {
               setSubscribers(getSubscribers());
-              showToast('Đã làm mới dữ liệu doanh thu & hoa hồng!');
+              showToast('Revenue and commission data refreshed!');
             }}
             className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer"
-            title="Làm mới dữ liệu"
+            title="Refresh data"
           >
             <span className="material-symbols-outlined text-[16px]">refresh</span>
-            <span>Làm mới</span>
+            <span>Refresh</span>
           </button>
         </div>
       </div>
@@ -171,21 +171,21 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
-                Bản đề án Coms.pdf
+                Coms.pdf Financial Model
               </span>
-              <span className="text-xs text-blue-200">Cơ chế tạo ra dòng tiền định kỳ B2B</span>
+              <span className="text-xs text-blue-200">Recurring B2B SaaS Cash Flow Mechanism</span>
             </div>
-            <h2 className="text-base font-bold">Mô hình Doanh thu Thuê bao SaaS &amp; Hoa hồng Sales nội bộ</h2>
+            <h2 className="text-base font-bold">B2B SaaS Subscription Revenue &amp; Sales Commission Structure</h2>
             <p className="text-xs text-slate-300 max-w-3xl leading-relaxed">
-              InsurMatch tạo doanh thu từ việc bán phần mềm CRM cho các đại lý bảo hiểm độc lập với 3 gói cước: 
-              <strong> Starter ($39)</strong>, <strong>Professional ($79)</strong> và <strong>Agency ($199/tháng)</strong>. 
-              Nhân viên kinh doanh (Sales Rep) nhận thưởng hoa hồng trực tiếp trên mỗi hợp đồng thuê bao ký mới 
-              (<strong>$3.90</strong>, <strong>$9.48</strong>, <strong>$29.85/khách hàng</strong>).
+              InsurMatch generates recurring revenue by licensing its CRM platform to independent insurance agencies across 3 tiers: 
+              <strong> Starter ($39)</strong>, <strong>Professional ($79)</strong>, and <strong>Agency ($199/mo)</strong>. 
+              Sales representatives receive commissions directly on each active client subscription 
+              (<strong>$3.90</strong>, <strong>$9.48</strong>, <strong>$29.85/client</strong>).
             </p>
           </div>
           <div className="shrink-0 flex items-center gap-2 bg-white/10 p-3 rounded-xl backdrop-blur-xs border border-white/10">
             <div className="text-right">
-              <div className="text-[10px] uppercase text-slate-300 font-bold">Quy mô Hoạt động</div>
+              <div className="text-[10px] uppercase text-slate-300 font-bold">Operating Scale</div>
               <div className="text-xl font-black text-amber-300 font-mono">
                 {activeFinancials.totalSubscribers} Agencies
               </div>
@@ -200,7 +200,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600" />
             <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
               <span className="font-semibold uppercase tracking-wider text-[10px]">
-                Doanh thu tháng ({viewMode === 'real' ? 'Thực tế' : 'Mô phỏng'})
+                Monthly Revenue ({viewMode === 'real' ? 'Actual' : 'Projected'})
               </span>
               <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[18px]">domain</span>
@@ -210,8 +210,8 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
               ${activeFinancials.totalMRR.toLocaleString()}/mo
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-2">
-              <span className="text-emerald-600 font-bold font-mono">100% Thuê bao CRM</span>
-              <span>({activeFinancials.totalSubscribers} khách hàng)</span>
+              <span className="text-emerald-600 font-bold font-mono">100% SaaS Subscription</span>
+              <span>({activeFinancials.totalSubscribers} clients)</span>
             </div>
           </div>
 
@@ -219,7 +219,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600" />
             <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-              <span className="font-semibold uppercase tracking-wider text-[10px]">Doanh thu năm (ARR)</span>
+              <span className="font-semibold uppercase tracking-wider text-[10px]">Annual Recurring (ARR)</span>
               <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[18px]">trending_up</span>
               </div>
@@ -229,7 +229,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-2">
               <span className="text-emerald-600 font-bold font-mono">Run Rate</span>
-              <span>dự phóng 12 tháng</span>
+              <span>12-month projection</span>
             </div>
           </div>
 
@@ -237,7 +237,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
             <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-              <span className="font-semibold uppercase tracking-wider text-[10px]">Hoa hồng đội ngũ Sales</span>
+              <span className="font-semibold uppercase tracking-wider text-[10px]">Sales Rep Commissions</span>
               <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[18px]">badge</span>
               </div>
@@ -246,7 +246,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
               ${activeFinancials.totalSalesComm.toFixed(2)}/mo
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-amber-600 font-medium mt-2">
-              <span>Thưởng chốt hợp đồng (10% - 15%)</span>
+              <span>Contract Incentive (10% - 15%)</span>
             </div>
           </div>
 
@@ -254,7 +254,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
             <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-              <span className="font-semibold uppercase tracking-wider text-[10px]">Doanh thu thuần InsurMatch</span>
+              <span className="font-semibold uppercase tracking-wider text-[10px]">InsurMatch Net Revenue</span>
               <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
               </div>
@@ -266,7 +266,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
               <span className="text-purple-600 font-bold font-mono">
                 ${activeFinancials.estimatedNetProfit.toFixed(0)}
               </span>
-              <span>lợi nhuận sau phí hạ tầng (~$350)</span>
+              <span>net margin after infra (~$350)</span>
             </div>
           </div>
         </div>
@@ -276,46 +276,46 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-900">Gói Starter ($39)</span>
+                <span className="text-xs font-bold text-slate-900">Starter Tier ($39)</span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
                   {realFinancials.starterCount} active
                 </span>
               </div>
               <div className="mt-3 text-lg font-black text-blue-600 font-mono">
-                ${realFinancials.starterCount * 39}/tháng
+                ${realFinancials.starterCount * 39}/mo
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
-                Chi trả hoa hồng Sales: ${(realFinancials.starterCount * 3.9).toFixed(2)}/mo
+                Sales Commission Paid: ${(realFinancials.starterCount * 3.9).toFixed(2)}/mo
               </p>
             </div>
 
             <div className="bg-white rounded-2xl border-2 border-indigo-400/50 p-5 shadow-2xs">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-900">Gói Professional ($79)</span>
+                <span className="text-xs font-bold text-slate-900">Professional Tier ($79)</span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">
                   {realFinancials.proCount} active
                 </span>
               </div>
               <div className="mt-3 text-lg font-black text-indigo-600 font-mono">
-                ${realFinancials.proCount * 79}/tháng
+                ${realFinancials.proCount * 79}/mo
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
-                Chi trả hoa hồng Sales: ${(realFinancials.proCount * 9.48).toFixed(2)}/mo
+                Sales Commission Paid: ${(realFinancials.proCount * 9.48).toFixed(2)}/mo
               </p>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-900">Gói Agency ($199)</span>
+                <span className="text-xs font-bold text-slate-900">Agency Tier ($199)</span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
                   {realFinancials.agencyCount} active
                 </span>
               </div>
               <div className="mt-3 text-lg font-black text-emerald-600 font-mono">
-                ${realFinancials.agencyCount * 199}/tháng
+                ${realFinancials.agencyCount * 199}/mo
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
-                Chi trả hoa hồng Sales: ${(realFinancials.agencyCount * 29.85).toFixed(2)}/mo
+                Sales Commission Paid: ${(realFinancials.agencyCount * 29.85).toFixed(2)}/mo
               </p>
             </div>
           </div>
@@ -328,14 +328,14 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
               <div>
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                   <span className="material-symbols-outlined text-blue-600 text-[20px]">tune</span>
-                  <span>Bộ Mô phỏng Cơ cấu Gói cước &amp; Dòng tiền Định kỳ (Coms.pdf)</span>
+                  <span>Subscription Tier Simulator &amp; Cash Flow Projection (Coms.pdf)</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Kéo thanh trượt để thử nghiệm quy mô thuê bao của 3 gói: Starter ($39), Professional ($79), Agency ($199).
+                  Adjust sliders to project subscriber volume across Starter ($39), Professional ($79), and Agency ($199) tiers.
                 </p>
               </div>
               <div className="text-xs font-semibold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                Tổng số đại lý: <strong className="text-blue-700 font-mono">{simFinancials.totalSubscribers}</strong>
+                Total Agencies: <strong className="text-blue-700 font-mono">{simFinancials.totalSubscribers}</strong>
               </div>
             </div>
 
@@ -344,12 +344,12 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-bold text-slate-900">Gói Starter</span>
+                    <span className="text-xs font-bold text-slate-900">Starter Plan</span>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
-                      $39 / tháng
+                      $39 / month
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mb-3">1 Seat • 500 Hồ sơ • Pipeline tiêu chuẩn</p>
+                  <p className="text-[11px] text-slate-500 mb-3">1 Seat • 500 Records • Standard Pipeline</p>
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
                     <span>Customer:</span>
                     <span className="font-mono text-blue-600 font-bold">{starterCount} agencies</span>
@@ -370,7 +370,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                     <strong className="text-slate-900 font-mono text-sm">${simFinancials.starterRev.toLocaleString()}</strong>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Hoa hồng Sales ($3.90)</span>
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Sales Rep Fee ($3.90)</span>
                     <strong className="text-amber-600 font-mono text-sm">${simFinancials.starterComm.toFixed(2)}</strong>
                   </div>
                 </div>
@@ -379,16 +379,16 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
               {/* Professional Plan Card */}
               <div className="p-4 rounded-xl border-2 border-blue-500/50 bg-blue-50/20 flex flex-col justify-between relative">
                 <div className="absolute -top-2.5 right-4 bg-blue-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  Mục tiêu Đề án (15 clients)
+                  Target Baseline (15 clients)
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-bold text-slate-900">Gói Professional</span>
+                    <span className="text-xs font-bold text-slate-900">Professional Plan</span>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white">
-                      $79 / tháng
+                      $79 / month
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mb-3">Tối đa 3 Seats • 2,500 Hồ sơ • Tự động hóa tác vụ</p>
+                  <p className="text-[11px] text-slate-500 mb-3">Up to 3 Seats • 2,500 Records • Task Automation</p>
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
                     <span>Customer:</span>
                     <span className="font-mono text-blue-600 font-bold">{proCount} agencies</span>
@@ -409,7 +409,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                     <strong className="text-slate-900 font-mono text-sm">${simFinancials.proRev.toLocaleString()}</strong>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Hoa hồng Sales ($9.48)</span>
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Sales Rep Fee ($9.48)</span>
                     <strong className="text-amber-600 font-mono text-sm">${simFinancials.proComm.toFixed(2)}</strong>
                   </div>
                 </div>
@@ -419,12 +419,12 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-bold text-slate-900">Gói Agency</span>
+                    <span className="text-xs font-bold text-slate-900">Agency Enterprise</span>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">
-                      $199 / tháng
+                      $199 / month
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mb-3">Tối đa 10 Seats • Không giới hạn • Phân quyền &amp; API</p>
+                  <p className="text-[11px] text-slate-500 mb-3">Up to 10 Seats • Unlimited Records • RBAC &amp; API</p>
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
                     <span>Customer:</span>
                     <span className="font-mono text-indigo-600 font-bold">{agencyCount} agencies</span>
@@ -445,7 +445,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                     <strong className="text-slate-900 font-mono text-sm">${simFinancials.agencyRev.toLocaleString()}</strong>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Hoa hồng Sales ($29.85)</span>
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Sales Rep Fee ($29.85)</span>
                     <strong className="text-amber-600 font-mono text-sm">${simFinancials.agencyComm.toFixed(2)}</strong>
                   </div>
                 </div>
@@ -459,10 +459,10 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
           <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                Bảng Kê Hợp Đồng Thuê Bao &amp; Quyết Toán Hoa Hồng Sales Rep
+                Active Agency Subscriptions &amp; Sales Commission Ledger
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Danh sách văn phòng bảo hiểm đang sử dụng dịch vụ và hoa hồng trả cho nhân viên sales mang khách về.
+                Roster of subscribed insurance agencies and commission disbursements to internal sales reps.
               </p>
             </div>
 
@@ -471,7 +471,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm agency, agent, sales..."
+                placeholder="Search agency, agent, sales rep..."
                 className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white"
               />
               <select
@@ -479,7 +479,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                 onChange={(e) => setPlanFilter(e.target.value)}
                 className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-700 cursor-pointer"
               >
-                <option value="all">Tất cả gói</option>
+                <option value="all">All Plans</option>
                 <option value="starter">Starter ($39)</option>
                 <option value="professional">Professional ($79)</option>
                 <option value="agency">Agency ($199)</option>
@@ -491,15 +491,15 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/75 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 <tr>
-                  <th className="py-2.5 px-4">Mã Thuê Bao</th>
-                  <th className="py-2.5 px-4">Văn Phòng / Đại Lý</th>
-                  <th className="py-2.5 px-4">Đại Lý Trưởng</th>
-                  <th className="py-2.5 px-4">Gói CRM</th>
-                  <th className="py-2.5 px-4">Đơn Giá</th>
-                  <th className="py-2.5 px-4">Chu Kỳ</th>
-                  <th className="py-2.5 px-4">Trạng Thái</th>
+                  <th className="py-2.5 px-4">Subscription ID</th>
+                  <th className="py-2.5 px-4">Agency / Firm</th>
+                  <th className="py-2.5 px-4">Principal Agent</th>
+                  <th className="py-2.5 px-4">CRM Tier</th>
+                  <th className="py-2.5 px-4">Rate</th>
+                  <th className="py-2.5 px-4">Cycle</th>
+                  <th className="py-2.5 px-4">Status</th>
                   <th className="py-2.5 px-4">Sales Rep</th>
-                  <th className="py-2.5 px-4 text-right">Hoa Hồng Trả Sales</th>
+                  <th className="py-2.5 px-4 text-right">Sales Rep Commission</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

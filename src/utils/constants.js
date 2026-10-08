@@ -6,7 +6,7 @@ export const ACA_ACCOUNT_STATUS_OPTIONS = [
   'Unverified - Can not Create',
   'DONE',
   'Plan Cancelled',
-  '(Trống / Chưa chọn)',
+  '(None / Unassigned)',
   'Active',
   'Pending',
   'Suspended',
@@ -94,7 +94,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 120.0,
     annualPerDeal1Member: 360.0,
     category: 'Obamacare / ACA',
-    notes: 'Tiêu chuẩn liên bang ACA ($30.00 PMPM)',
+    notes: 'Federal ACA Standard ($30.00 PMPM)',
   },
   'Ambetter': {
     code: 'Ambetter',
@@ -107,7 +107,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 128.0,
     annualPerDeal1Member: 384.0,
     category: 'Obamacare / ACA',
-    notes: 'Mức chi trả cao cạnh tranh ($32.00 PMPM)',
+    notes: 'Competitive High Payout ($32.00 PMPM)',
   },
   'UnitedHealthcare': {
     code: 'UnitedHealthcare',
@@ -120,7 +120,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 120.0,
     annualPerDeal1Member: 360.0,
     category: 'Obamacare / ACA',
-    notes: 'Mạng lưới toàn quốc UHC ($30.00 PMPM)',
+    notes: 'Nationwide UHC Network ($30.00 PMPM)',
   },
   'Oscar': {
     code: 'Oscar',
@@ -133,7 +133,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 120.0,
     annualPerDeal1Member: 360.0,
     category: 'Obamacare / ACA',
-    notes: 'Nền tảng số hiện đại ACA ($30.00 PMPM)',
+    notes: 'Digital-First ACA Platform ($30.00 PMPM)',
   },
   'Molina Healthcare': {
     code: 'Molina Healthcare',
@@ -146,7 +146,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 116.0,
     annualPerDeal1Member: 348.0,
     category: 'Obamacare / ACA',
-    notes: 'Chuyên dòng Silver CSR ($29.00 PMPM)',
+    notes: 'Specialized Silver CSR Tier ($29.00 PMPM)',
   },
   'Aetna': {
     code: 'Aetna',
@@ -159,7 +159,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 124.0,
     annualPerDeal1Member: 372.0,
     category: 'Obamacare / ACA',
-    notes: 'Tích hợp dịch vụ CVS MinuteClinic ($31.00 PMPM)',
+    notes: 'CVS MinuteClinic Integrated ($31.00 PMPM)',
   },
   'Cigna': {
     code: 'Cigna',
@@ -185,7 +185,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 112.0,
     annualPerDeal1Member: 336.0,
     category: 'Obamacare / ACA',
-    notes: 'Hệ sinh thái y tế khép kín HMO ($28.00 PMPM)',
+    notes: 'Integrated HMO Health System ($28.00 PMPM)',
   },
   'Humana': {
     code: 'Humana',
@@ -198,7 +198,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 51.0,
     annualPerDeal1Member: 612.0,
     category: 'Medicare Advantage',
-    notes: 'Định mức CMS Medicare Initial Year ($51.00/tháng/deal)',
+    notes: 'CMS Medicare Initial Year Rate ($51.00/mo/deal)',
   },
   'Premera Blue Cross': {
     code: 'Premera Blue Cross',
@@ -211,7 +211,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 128.0,
     annualPerDeal1Member: 384.0,
     category: 'Obamacare / ACA',
-    notes: 'Thị trường Tây Bắc Washington / Alaska ($32.00 PMPM)',
+    notes: 'Northwest WA / AK Market ($32.00 PMPM)',
   },
   'Blue Shield of California': {
     code: 'Blue Shield of California',
@@ -237,7 +237,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 120.0,
     annualPerDeal1Member: 360.0,
     category: 'Obamacare / ACA',
-    notes: 'Mạng lưới Anthem Blue Cross ($30.00 PMPM)',
+    notes: 'Anthem Blue Cross Network ($30.00 PMPM)',
   },
   'Wellcare': {
     code: 'Wellcare',
@@ -250,7 +250,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 112.0,
     annualPerDeal1Member: 336.0,
     category: 'Obamacare / ACA',
-    notes: 'Sản phẩm bổ trợ ACA & Medicare ($28.00 PMPM)',
+    notes: 'Supplemental ACA & Medicare ($28.00 PMPM)',
   },
   'CareSource': {
     code: 'CareSource',
@@ -263,7 +263,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 108.0,
     annualPerDeal1Member: 324.0,
     category: 'Obamacare / ACA',
-    notes: 'Thị trường Midwest Marketplace ($27.00 PMPM)',
+    notes: 'Midwest Marketplace Tier ($27.00 PMPM)',
   },
   'Health Net': {
     code: 'Health Net',
@@ -289,7 +289,7 @@ export const CARRIER_COMMISSION_RATES = {
     monthlyPer4Members: 112.0,
     annualPerDeal1Member: 336.0,
     category: 'Obamacare / ACA',
-    notes: 'Thị trường Texas & Southeast ($28.00 PMPM)',
+    notes: 'Texas & Southeast Market ($28.00 PMPM)',
   },
 };
 
@@ -337,8 +337,8 @@ export function calculateCarrierDealCommission(carrierName, membersCount = 1) {
     agentNetMonthly,
     agentAnnualProjected,
     formula: isFlatMonthly
-      ? `$${matched.pmpm.toFixed(2)}/tháng (CMS Standard) → Agent nhận 100% = $${agentNetMonthly.toFixed(2)}/tháng`
-      : `$${matched.pmpm.toFixed(2)} PMPM × ${count} người → Agent nhận 100% = $${agentNetMonthly.toFixed(2)}/tháng`,
+      ? `$${matched.pmpm.toFixed(2)}/mo (CMS Standard) → Agent keeps 100% = $${agentNetMonthly.toFixed(2)}/mo`
+      : `$${matched.pmpm.toFixed(2)} PMPM × ${count} members → Agent keeps 100% = $${agentNetMonthly.toFixed(2)}/mo`,
   };
 }
 

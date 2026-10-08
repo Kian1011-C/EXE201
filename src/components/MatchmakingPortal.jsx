@@ -36,7 +36,7 @@ const POPULAR_STATES = [
   { code: 'WA', name: 'Washington', defaultZip: '98118', majorCities: 'Seattle, Tacoma, Renton' },
   { code: 'NC', name: 'North Carolina', defaultZip: '28202', majorCities: 'Charlotte, Raleigh' },
   { code: 'NV', name: 'Nevada', defaultZip: '89101', majorCities: 'Las Vegas' },
-  { code: 'OTHER', name: 'Bang khác...', defaultZip: '77001', majorCities: 'Toàn quốc' },
+  { code: 'OTHER', name: 'Other States...', defaultZip: '77001', majorCities: 'Nationwide' },
 ];
 
 export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = true }) {
@@ -54,7 +54,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [preferredLanguage, setPreferredLanguage] = useState('Tiếng Việt');
+  const [preferredLanguage, setPreferredLanguage] = useState('English');
 
   // Agent Roster
   const [availableAgents, setAvailableAgents] = useState(() => getActiveAgentAccounts());
@@ -132,7 +132,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
         bronzeNetCost: 0,
         goldNetCost: 55,
         qualifiesMedicaidOrFullSubsidy: true,
-        csrLevel: 'Silver 94% CSR (Giảm tối đa chi phí y tế)',
+        csrLevel: 'Silver 94% CSR (Maximum Healthcare Savings)',
       };
     } else if (fplRatio <= 2.0) {
       return {
@@ -142,7 +142,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
         bronzeNetCost: 0,
         goldNetCost: 75,
         qualifiesMedicaidOrFullSubsidy: false,
-        csrLevel: 'Silver 87% CSR (Chi phí khám & thuốc cực thấp)',
+        csrLevel: 'Silver 87% CSR (Low Copays & Rx Costs)',
       };
     } else if (fplRatio <= 2.5) {
       return {
@@ -152,7 +152,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
         bronzeNetCost: 0,
         goldNetCost: 110,
         qualifiesMedicaidOrFullSubsidy: false,
-        csrLevel: 'Silver 73% CSR (Tiêu chuẩn hỗ trợ liên bang)',
+        csrLevel: 'Silver 73% CSR (Standard Federal Assistance)',
       };
     } else {
       const sub = Math.max(150, Math.round(550 - (fplRatio - 2.5) * 120));
@@ -163,7 +163,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
         bronzeNetCost: 15,
         goldNetCost: 160,
         qualifiesMedicaidOrFullSubsidy: false,
-        csrLevel: 'Standard ACA Subsidy (Giảm phí hàng tháng)',
+        csrLevel: 'Standard ACA Subsidy (Monthly Premium Reduction)',
       };
     }
   }, [annualIncome, householdSize]);
@@ -190,7 +190,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
     try {
       const payload = {
         isAnonymous,
-        fullName: isAnonymous ? `Khách Ẩn Danh (${selectedState}-${zipCode})` : fullName,
+        fullName: isAnonymous ? `Anonymous Client (${selectedState}-${zipCode})` : fullName,
         phone,
         email,
         language: preferredLanguage,
@@ -231,16 +231,16 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
         <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-900 text-xs font-extrabold uppercase tracking-wider shadow-2xs">
             <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400" />
-            <span>CỔNG TRA CỨU ẨN DANH &amp; KẾT NỐI ĐẠI LÝ (MATCHMAKING PORTAL)</span>
+            <span>ANONYMOUS INQUIRY &amp; AGENT MATCHMAKING PORTAL</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-navy-deep tracking-tight">
-            Tra cứu Biểu phí ACA/Medicare &amp;{' '}
+            Estimate ACA/Medicare Rates &amp;{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600">
-              Chọn Đại lý Phụ trách
+              Choose Assigned Agent
             </span>
           </h2>
           <p className="text-sm sm:text-base text-charcoal/75 leading-relaxed">
-            Hệ thống phân tích độ tuổi, thu nhập, nơi cư trú để ước tính ngay khoản trợ cấp chính phủ (Tax Subsidy) và kết nối bạn với đại lý độc lập người Việt có chứng chỉ NPN phù hợp nhất.
+            Our system analyzes your age, income, and residence to immediately estimate your federal tax subsidy and connect you with a verified licensed independent insurance agent (NPN).
           </p>
         </div>
 
@@ -260,10 +260,10 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 leading-tight">
-                    Thông tin cơ bản &amp; Nhu cầu bảo hiểm
+                    Basic Info &amp; Coverage Needs
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Tra cứu hoàn toàn ẩn danh, không yêu cầu thẻ tín dụng
+                    100% anonymous inquiry, no credit card required
                   </p>
                 </div>
               </div>
@@ -280,7 +280,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                   }`}
                 >
                   <EyeOff className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Ẩn danh</span>
+                  <span>Anonymous</span>
                 </button>
                 <button
                   type="button"
@@ -292,7 +292,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                   }`}
                 >
                   <User className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Để lại liên hệ</span>
+                  <span>With Contact</span>
                 </button>
               </div>
             </div>
@@ -300,14 +300,14 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
             {/* Coverage Program Options */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Chương trình bảo hiểm quan tâm:
+                Desired Coverage Program:
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {[
-                  { id: 'Obamacare / ACA Health', label: 'ACA Health', sub: 'Trợ cấp y tế', icon: HeartPulse },
-                  { id: 'Medicare Guidance (Part C/D & Medigap)', label: 'Medicare', sub: '65+ tuổi', icon: ShieldCheck },
-                  { id: 'Life & Living Benefits', label: 'Nhân thọ', sub: 'Quyền lợi sống', icon: Award },
-                  { id: 'Dental & Vision Support', label: 'Dental/Vision', sub: 'Răng & Mắt', icon: Sparkles },
+                  { id: 'Obamacare / ACA Health', label: 'ACA Health', sub: 'Medical Subsidy', icon: HeartPulse },
+                  { id: 'Medicare Guidance (Part C/D & Medigap)', label: 'Medicare', sub: 'Age 65+', icon: ShieldCheck },
+                  { id: 'Life & Living Benefits', label: 'Life Ins.', sub: 'Living Benefits', icon: Award },
+                  { id: 'Dental & Vision Support', label: 'Dental/Vision', sub: 'Dental & Vision', icon: Sparkles },
                 ].map((item) => {
                   const Icon = item.icon;
                   const active = coverageType === item.id;
@@ -336,7 +336,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
               <div className="sm:col-span-7">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Bang cư trú (State) *</span>
+                  <span>State of Residence *</span>
                 </label>
                 <select
                   value={selectedState}
@@ -353,14 +353,14 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
 
               <div className="sm:col-span-5">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Mã ZIP Code *
+                  ZIP Code *
                 </label>
                 <input
                   type="text"
                   maxLength={5}
                   value={zipCode}
                   onChange={(e) => setZipCode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="Ví dụ: 77072"
+                  placeholder="e.g. 77072"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white font-mono font-bold text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
                 />
               </div>
@@ -371,10 +371,10 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Độ tuổi người đứng đơn:
+                    Applicant Age:
                   </label>
                   <span className="text-xs font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-lg">
-                    {age} tuổi
+                    {age} yrs old
                   </span>
                 </div>
                 <input
@@ -386,8 +386,8 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                   className="w-full accent-blue-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-medium">
-                  <span>18 tuổi</span>
-                  <span>45 tuổi</span>
+                  <span>18 yrs</span>
+                  <span>45 yrs</span>
                   <span>65+ (Medicare)</span>
                 </div>
               </div>
@@ -395,7 +395,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Số người trong hộ gia đình (Tax Return):</span>
+                  <span>Household Size (Tax Return):</span>
                 </label>
                 <div className="grid grid-cols-5 gap-1.5">
                   {[1, 2, 3, 4, 5].map((n) => (
@@ -422,11 +422,11 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                 <div className="flex items-center gap-1.5">
                   <DollarSign className="w-4 h-4 text-amber-600" />
                   <label className="text-xs font-bold text-amber-950 uppercase tracking-wider">
-                    Ước tính thu nhập gia đình hàng năm (W2 / 1099):
+                    Estimated Annual Household Income (W-2 / 1099):
                   </label>
                 </div>
                 <span className="text-sm font-black text-amber-900 bg-white px-3 py-1 rounded-xl border border-amber-300 shadow-2xs font-mono">
-                  ${annualIncome.toLocaleString()} / năm
+                  ${annualIncome.toLocaleString()} / yr
                 </span>
               </div>
               <input
@@ -441,7 +441,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
               <div className="flex items-center justify-between text-[11px] text-amber-900 font-semibold">
                 <span>100% FPL ($15,650)</span>
                 <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md text-[10px]">
-                  Tương đương ~{estimatedSubsidy.fplPercent}% mức chuẩn nghèo FPL
+                  Equivalent to ~{estimatedSubsidy.fplPercent}% of Federal Poverty Level (FPL)
                 </span>
                 <span>$120,000+</span>
               </div>
@@ -453,21 +453,21 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                 <div>
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                     <UserCheck className="w-4 h-4 text-blue-600" />
-                    <span>Chọn Đại lý có sẵn trong hệ thống làm Người liên hệ *</span>
+                    <span>Select an Agent as Your Primary Contact *</span>
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Chọn đại lý bảo hiểm có chứng chỉ NPN hành nghề tại bang của bạn để trực tiếp theo dõi hồ sơ:
+                    Select a licensed insurance agent certified in your state to manage your application:
                   </p>
                 </div>
                 <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
-                  {availableAgents.length} Đại lý sẵn sàng
+                  {availableAgents.length} Agents Available
                 </span>
               </div>
 
               {/* Agent Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[310px] overflow-y-auto pr-1">
                 {availableAgents.map((agent) => {
-                  const agName = agent.name || agent.fullName || 'Đại lý';
+                  const agName = agent.name || agent.fullName || 'Agent';
                   const isSelected = selectedAgentName === agName;
                   const isMain = agName.includes('Trung') || agName === 'Trung Trương';
                   const statesList = Array.isArray(agent.statesLicensed)
@@ -519,7 +519,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                         </div>
                         <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1 mt-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          <span>Đại lý xác thực (Verified)</span>
+                          <span>Verified Licensed Agent</span>
                         </div>
                       </div>
                     </div>
@@ -537,13 +537,13 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
               >
                 <div className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                   <User className="w-4 h-4 text-emerald-600" />
-                  <span>Thông tin để Đại lý {selectedAgentName} kết nối lại:</span>
+                  <span>Contact Details for Agent {selectedAgentName} to Follow Up:</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="text"
                     required
-                    placeholder="Họ và tên của bạn *"
+                    placeholder="Your Full Name *"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -551,7 +551,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                   <input
                     type="tel"
                     required
-                    placeholder="Số điện thoại (SMS / Zalo / Call) *"
+                    placeholder="Phone Number (SMS / Call) *"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -560,7 +560,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="email"
-                    placeholder="Email nhận bảng so sánh (Tùy chọn)"
+                    placeholder="Email for comparison chart (Optional)"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -570,9 +570,9 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                     onChange={(e) => setPreferredLanguage(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   >
-                    <option value="Tiếng Việt">Tư vấn bằng Tiếng Việt</option>
-                    <option value="English">English</option>
-                    <option value="Both">Cả Tiếng Việt &amp; English</option>
+                    <option value="English">Consultation in English</option>
+                    <option value="Vietnamese">Tiếng Việt (Vietnamese)</option>
+                    <option value="Both">Both English &amp; Vietnamese</option>
                   </select>
                 </div>
               </motion.div>
@@ -587,11 +587,11 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                 className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-navy-deep hover:from-blue-800 hover:to-slate-900 text-white font-extrabold text-sm uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-60"
               >
                 {submitting ? (
-                  <span>Đang kết nối hệ thống CRM...</span>
+                  <span>Connecting to CRM system...</span>
                 ) : (
                   <>
                     <span>
-                      {isAnonymous ? 'Nộp Yêu Cầu Ẩn Danh' : 'Gửi Thông Tin'} &amp; Kết Nối Đại Lý {selectedAgentName}
+                      {isAnonymous ? 'Submit Anonymous Request' : 'Submit Details'} &amp; Connect Agent {selectedAgentName}
                     </span>
                     <ArrowRight className="w-4 h-4 text-amber-300" />
                   </>
@@ -599,7 +599,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
               </button>
               <p className="text-center text-[11px] text-slate-500 mt-2 flex items-center justify-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Bảo mật theo quy chuẩn HIPAA &amp; Sở Bảo Hiểm Bang. 100% Miễn phí dịch vụ.</span>
+                <span>HIPAA compliant and state insurance certified. 100% Free consultation.</span>
               </p>
             </div>
 
@@ -617,41 +617,41 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] font-black uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
                   <Flame className="w-3.5 h-3.5" />
-                  <span>KẾT QUẢ DỰ TÍNH BIỂU PHÍ</span>
+                  <span>PREMIUM ESTIMATION RESULTS</span>
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-bold">
-                  Kỳ 2026
+                  Plan Year 2026
                 </span>
               </div>
 
               {/* Big Subsidy Metric */}
               <div className="space-y-1">
                 <div className="text-xs text-white/70 font-medium">
-                  Ước tính Trợ cấp Chính phủ (Tax Subsidy):
+                  Estimated Government Tax Subsidy:
                 </div>
                 <div className="text-4xl sm:text-5xl font-black text-amber-300 font-mono tracking-tight">
                   ${estimatedSubsidy.monthlySubsidy}
-                  <span className="text-sm font-bold text-white/60"> /tháng</span>
+                  <span className="text-sm font-bold text-white/60"> /mo</span>
                 </div>
                 <div className="text-xs text-emerald-400 font-bold flex items-center gap-1 pt-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Tiết kiệm ${(estimatedSubsidy.monthlySubsidy * 12).toLocaleString()}/năm cho hộ gia đình</span>
+                  <span>Saves ${(estimatedSubsidy.monthlySubsidy * 12).toLocaleString()}/year for your household</span>
                 </div>
               </div>
 
               {/* Three Plans Comparison Grid */}
               <div className="mt-6 pt-5 border-t border-white/10 space-y-2.5">
                 <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-2">
-                  Dự kiến mức phí tự đóng (Sau trợ cấp):
+                  Estimated Out-of-Pocket Net Premium:
                 </div>
 
                 {/* Silver Plan (Hero) */}
                 <div className="p-3.5 rounded-xl bg-white/10 border border-amber-400/50 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-extrabold text-xs text-white">Gói Silver (Ưu Tiên)</span>
+                      <span className="font-extrabold text-xs text-white">Silver Plan (Recommended)</span>
                       <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-[9px] uppercase">
-                        Khuyên dùng
+                        Best Value
                       </span>
                     </div>
                     <div className="text-[10px] text-white/70 mt-0.5">
@@ -661,7 +661,7 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                   <div className="text-right">
                     <div className="text-lg font-black text-amber-300 font-mono">
                       ${estimatedSubsidy.silverNetCost}
-                      <span className="text-[10px] font-normal text-white/70">/tháng</span>
+                      <span className="text-[10px] font-normal text-white/70">/mo</span>
                     </div>
                   </div>
                 </div>
@@ -669,31 +669,31 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                 {/* Bronze Plan */}
                 <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
                   <div>
-                    <span className="font-bold text-white/90">Gói Bronze Tiết Kiệm</span>
-                    <div className="text-[10px] text-white/60">Chi trả tai nạn &amp; viện phí lớn</div>
+                    <span className="font-bold text-white/90">Bronze Savings Plan</span>
+                    <div className="text-[10px] text-white/60">Covers catastrophic events &amp; hospital stays</div>
                   </div>
                   <div className="text-base font-black text-emerald-400 font-mono">
                     ${estimatedSubsidy.bronzeNetCost}
-                    <span className="text-[10px] font-normal text-white/70">/tháng</span>
+                    <span className="text-[10px] font-normal text-white/70">/mo</span>
                   </div>
                 </div>
 
                 {/* Gold Plan */}
                 <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
                   <div>
-                    <span className="font-bold text-white/90">Gói Gold Toàn Diện</span>
-                    <div className="text-[10px] text-white/60">Khám bác sĩ copay thấp</div>
+                    <span className="font-bold text-white/90">Comprehensive Gold Plan</span>
+                    <div className="text-[10px] text-white/60">Low doctor visit copays &amp; prescriptions</div>
                   </div>
                   <div className="text-base font-black text-white font-mono">
                     ${estimatedSubsidy.goldNetCost}
-                    <span className="text-[10px] font-normal text-white/70">/tháng</span>
+                    <span className="text-[10px] font-normal text-white/70">/mo</span>
                   </div>
                 </div>
               </div>
 
               {/* Major Carriers compatibility */}
               <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-white/70">
-                <span>Hãng bảo hiểm liên kết:</span>
+                <span>Participating Carriers:</span>
                 <span className="font-bold text-white">BCBS • Ambetter • UHC • Kaiser</span>
               </div>
             </div>
@@ -703,10 +703,10 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
                   <Award className="w-4 h-4 text-amber-500" />
-                  <span>Đại lý phụ trách được chọn:</span>
+                  <span>Selected Assigned Agent:</span>
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">
-                  Hoạt động
+                  Active
                 </span>
               </div>
 
@@ -724,31 +724,31 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                     )}
                   </div>
                   <div className="text-xs font-bold text-blue-700 mt-0.5">
-                    Mã NPN: {selectedAgent.npn || '2001186'}
+                    NPN ID: {selectedAgent.npn || '2001186'}
                   </div>
                   <div className="text-xs text-slate-600 mt-0.5">
-                    Cấp phép: {Array.isArray(selectedAgent.statesLicensed) ? selectedAgent.statesLicensed.join(', ') : (selectedAgent.statesLicensed || 'TX, CA, FL')}
+                    Licenses: {Array.isArray(selectedAgent.statesLicensed) ? selectedAgent.statesLicensed.join(', ') : (selectedAgent.statesLicensed || 'TX, CA, FL')}
                   </div>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Khu vực ưu tiên:</span>
+                  <span className="text-slate-500">Target Region:</span>
                   <span className="font-bold text-slate-900">{selectedState} — ZIP {zipCode}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Kênh hỗ trợ:</span>
-                  <span className="font-bold text-blue-700">Điện thoại, Zalo, SMS &amp; Email</span>
+                  <span className="text-slate-500">Support Channels:</span>
+                  <span className="font-bold text-blue-700">Phone, SMS, Email &amp; Virtual</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Quy trình:</span>
-                  <span className="font-bold text-emerald-700">Kiểm tra mạng lưới bác sĩ &amp; đơn thuốc</span>
+                  <span className="text-slate-500">Workflow:</span>
+                  <span className="font-bold text-emerald-700">Doctor network &amp; formulary review</span>
                 </div>
               </div>
 
               <div className="text-[11px] text-slate-500 italic">
-                * Sau khi nộp, hồ sơ sẽ được tự động chuyển thẳng vào CRM của Đại lý <strong>{selectedAgentName}</strong> để xử lý tiếp nhận theo đúng quy trình của Slide 8.
+                * Upon submission, inquiry is automatically routed to the CRM of Agent <strong>{selectedAgentName}</strong> for immediate processing per Slide 8 workflow.
               </div>
             </div>
 
@@ -776,38 +776,38 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
 
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                  KẾT NỐI THÀNH CÔNG VỚI ĐẠI LÝ
+                  AGENT CONNECTION SUCCESSFUL
                 </span>
                 <h3 className="text-2xl font-black text-navy-deep mt-2.5 tracking-tight">
-                  Yêu Cầu Đã Được Tiếp Nhận!
+                  Inquiry Received!
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
-                  Hồ sơ tra cứu của bạn đã được kết nối và ghi nhận tự động vào CRM của đại lý <strong>{submittedData.agentName}</strong>.
+                  Your inquiry has been successfully routed and recorded in the CRM of agent <strong>{submittedData.agentName}</strong>.
                 </p>
               </div>
 
               {/* Record Summary Box */}
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs space-y-2 font-medium text-slate-700">
                 <div className="flex justify-between pb-1.5 border-b border-slate-200">
-                  <span className="text-slate-500">Mã theo dõi (Tracking ID):</span>
+                  <span className="text-slate-500">Tracking ID:</span>
                   <span className="font-mono font-bold text-blue-700">{submittedData.trackingCode}</span>
                 </div>
                 <div className="flex justify-between pb-1.5 border-b border-slate-200">
-                  <span className="text-slate-500">Đại lý phụ trách:</span>
+                  <span className="text-slate-500">Assigned Agent:</span>
                   <span className="font-bold text-slate-900">{submittedData.agentName} (NPN: {submittedData.agentNpn})</span>
                 </div>
                 <div className="flex justify-between pb-1.5 border-b border-slate-200">
-                  <span className="text-slate-500">Địa bàn / ZIP:</span>
+                  <span className="text-slate-500">State / ZIP:</span>
                   <span className="font-bold text-slate-900">{submittedData.state} — {submittedData.zipCode}</span>
                 </div>
                 <div className="flex justify-between pb-1.5 border-b border-slate-200">
-                  <span className="text-slate-500">Ước tính trợ cấp thuế:</span>
-                  <span className="font-mono font-bold text-emerald-600">${submittedData.subsidyAmount}/tháng</span>
+                  <span className="text-slate-500">Est. Tax Subsidy:</span>
+                  <span className="font-mono font-bold text-emerald-600">${submittedData.subsidyAmount}/mo</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Chế độ nộp:</span>
+                  <span className="text-slate-500">Submission Mode:</span>
                   <span className="font-bold text-slate-900">
-                    {submittedData.isAnonymous ? 'Ẩn danh 100%' : 'Có thông tin liên hệ'}
+                    {submittedData.isAnonymous ? '100% Anonymous' : 'With Contact Details'}
                   </span>
                 </div>
               </div>
@@ -819,19 +819,19 @@ export default function MatchmakingPortal({ onOpenQuoteModal, embeddedInPage = t
                   onClick={() => setShowSuccessModal(false)}
                   className="flex-1 py-3 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 cursor-pointer transition"
                 >
-                  Đóng &amp; Tiếp Tục Tra Cứu
+                  Close &amp; Continue Browsing
                 </button>
                 <Link
                   to="/login"
                   className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition shadow-xs"
                 >
-                  <span>Đăng Nhập Agent CRM</span>
+                  <span>Agent CRM Login</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
               <div className="text-[11px] text-slate-400">
-                Thử nghiệm chấm thi: Đăng nhập tài khoản <strong>agent@insurmatch.us</strong> hoặc tài khoản của <strong>{submittedData.agentName}</strong> để kiểm tra hợp đồng mới lập tức xuất hiện trong CRM Pipeline.
+                Testing note: Log in with <strong>agent@insurmatch.us</strong> or <strong>{submittedData.agentName}</strong> credentials to inspect the new lead in the CRM Pipeline.
               </div>
             </motion.div>
           </div>

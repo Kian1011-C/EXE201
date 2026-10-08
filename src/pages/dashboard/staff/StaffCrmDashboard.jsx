@@ -22,7 +22,7 @@ import {
 import toast from 'react-hot-toast';
 import { getActiveAgentAccounts } from '../../../utils/constants';
 
-const COMPANY_OVERVIEW = 'Tất cả Owner (All Agents / Tổng Quan)';
+const COMPANY_OVERVIEW = 'All Owners (Company Overview)';
 
 export default function StaffCrmDashboard({
   onSelectTab,
@@ -85,7 +85,7 @@ export default function StaffCrmDashboard({
 
   function handleExportModalCsv() {
     if (!drilldownModal || !modalDeals || modalDeals.length === 0) {
-      toast.error('Không có dữ liệu để xuất file!');
+      toast.error('No data available to export!');
       return;
     }
     const rows = [
@@ -108,7 +108,7 @@ export default function StaffCrmDashboard({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('Đã xuất file CSV successfully!');
+    toast.success('Exported CSV file successfully!');
   }
 
   useEffect(() => {
@@ -909,12 +909,12 @@ export default function StaffCrmDashboard({
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                    {isCompanyOverview ? 'Dashboard Tổng Hợp (Tất Cả Owner)' : `Dashboard Agent: ${activeTargetAgent}`}
+                    {isCompanyOverview ? 'Company Overview Dashboard (All Owners)' : `Agent Dashboard: ${activeTargetAgent}`}
                   </h1>
                   {isCompanyOverview ? (
                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                      Tất cả Owner ({availableAgents.length} Agents)
+                      All Owners ({availableAgents.length} Agents)
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -925,8 +925,8 @@ export default function StaffCrmDashboard({
                 </div>
                 <p className="text-[11px] text-slate-500 font-medium line-clamp-1">
                   {isCompanyOverview
-                    ? `Tổng quan pipeline, active deals, contacts, tickets & commissions của toàn bộ ${availableAgents.length} Agent trong hệ thống ("owner tất cả")`
-                    : `Dashboard cá nhân hóa theo quyền Owner của ${activeTargetAgent} (chỉ hiển thị Deals, Contacts, Tickets, Tasks do Agent này làm Owner)`}
+                    ? `Pipeline overview, active deals, contacts, tickets & commissions across all ${availableAgents.length} platform agents ("All Owners")`
+                    : `Personalized dashboard for ${activeTargetAgent} (showing assigned Deals, Contacts, Tickets, Tasks owned by this Agent)`}
                 </p>
               </div>
 
@@ -946,7 +946,7 @@ export default function StaffCrmDashboard({
                 />
                 <div className="absolute left-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-slate-200/90 py-2 z-30 animate-in fade-in zoom-in-95 max-h-[520px] flex flex-col">
                   <div className="px-3.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                    <span>Chế độ xem tổng hợp</span>
+                    <span>Consolidated View</span>
                     <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                       All Records
                     </span>
@@ -971,13 +971,13 @@ export default function StaffCrmDashboard({
                         </div>
                         <div>
                           <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                            <span>Tất cả Owner (All Agents)</span>
+                            <span>All Owners (All Agents)</span>
                             <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold bg-blue-100 text-blue-800">
                               {availableAgents.length} Agents
                             </span>
                           </div>
                           <div className="text-[11px] text-slate-500 font-normal">
-                            Tổng quan toàn bộ 35 Agent, teams &amp; toàn sàn
+                            Overview across all 35 agents, teams &amp; agency
                           </div>
                         </div>
                       </div>
@@ -997,7 +997,7 @@ export default function StaffCrmDashboard({
                       </span>
                       <input
                         type="text"
-                        placeholder="Tìm kiếm agent theo tên hoặc handle..."
+                        placeholder="Search agent by name or handle..."
                         value={agentSearchQuery}
                         onChange={(e) => setAgentSearchQuery(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
@@ -1019,7 +1019,7 @@ export default function StaffCrmDashboard({
                   </div>
 
                   <div className="px-3.5 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                    <span>Dashboard Từng Agent</span>
+                    <span>Individual Agent Dashboard</span>
                     <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-2 py-0.5 rounded-full">
                       {filteredAgents.length} / {availableAgents.length} Agents
                     </span>
@@ -1100,7 +1100,7 @@ export default function StaffCrmDashboard({
               title="Return to full overview of all owners"
             >
               <span className="material-symbols-outlined text-[16px]">groups</span>
-              <span>Tất cả Owner</span>
+              <span>All Owners</span>
             </button>
           )}
 
@@ -1138,11 +1138,11 @@ export default function StaffCrmDashboard({
               verified
             </span>
             <span>
-              Dashboard đang lọc theo Agent:{' '}
+              Dashboard filtered by Agent:{' '}
               <strong className="text-emerald-950 underline underline-offset-2">
                 {activeTargetAgent}
               </strong>{' '}
-              (chỉ hiển thị Deals, Contacts, Tickets, Tasks &amp; Commissions do Agent này làm Owner phụ trách)
+              (only showing Deals, Contacts, Tickets, Tasks &amp; Commissions owned by this Agent)
             </span>
           </div>
           {!isAgentUser && (
@@ -1151,7 +1151,7 @@ export default function StaffCrmDashboard({
               onClick={() => setSelectedDashboard(COMPANY_OVERVIEW)}
               className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline flex items-center gap-1 cursor-pointer shrink-0"
             >
-              <span>Quay lại Dashboard Tất cả Owner</span>
+              <span>Return to All Owners Dashboard</span>
               <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
             </button>
           )}
@@ -1218,13 +1218,13 @@ export default function StaffCrmDashboard({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-bold text-blue-950">Chế độ phân quyền Agent độc lập</h4>
+                  <h4 className="text-sm font-bold text-blue-950">Independent Agent Access Mode</h4>
                   <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
                     RBAC Active
                   </span>
                 </div>
                 <p className="text-xs text-blue-700/90 mt-0.5">
-                  Đang xem dữ liệu thuộc quyền phụ trách của <strong>{agentName || effectiveUser?.name || ''}</strong> (Contact, Deal, Ticket, Task được giao).
+                  Viewing data assigned to <strong>{agentName || effectiveUser?.name || ''}</strong> (Assigned Contacts, Deals, Tickets, Tasks).
                 </p>
               </div>
             </div>
@@ -1321,7 +1321,7 @@ export default function StaffCrmDashboard({
                       });
                     }}
                     className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
-                    title={`Click để mở danh sách chi tiết deals ${item.stage} (${item.count})`}
+                    title={`Click to view deal list for ${item.stage} (${item.count})`}
                   >
                     <div
                       className="w-56 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition"
@@ -1465,7 +1465,7 @@ export default function StaffCrmDashboard({
                       });
                     }}
                     className="flex items-center gap-2 hover:bg-blue-50/70 p-0.5 -mx-1 rounded cursor-pointer transition group"
-                    title={`Click để mở danh sách chi tiết deals ${item.stage} (${item.count})`}
+                    title={`Click to view deal list for ${item.stage} (${item.count})`}
                   >
                     <div
                       className="w-60 truncate text-right text-slate-600 font-medium shrink-0 group-hover:text-blue-700 transition"
@@ -1525,7 +1525,7 @@ export default function StaffCrmDashboard({
             </div>
             <div className="space-y-3 my-auto py-2">
               {activeObByAgent.length === 0 ? (
-                <div className="py-4 text-center text-xs text-slate-400">Không có deal Obamacare active</div>
+                <div className="py-4 text-center text-xs text-slate-400">No active Obamacare deals</div>
               ) : (
                 activeObByAgent?.map((item, i) => (
                   <div
@@ -1558,7 +1558,7 @@ export default function StaffCrmDashboard({
                       });
                     }}
                     className="flex items-center gap-2 text-xs hover:bg-blue-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click để xem chi tiết deals của ${item.agent}`}
+                    title={`Click to view deals for ${item.agent}`}
                   >
                     <span className="w-20 truncate text-slate-600 text-right group-hover:text-blue-700">
                       {item.agent}
@@ -1604,7 +1604,7 @@ export default function StaffCrmDashboard({
             </div>
             <div className="space-y-3 my-auto py-2">
               {medDealsByAgent.length === 0 ? (
-                <div className="py-4 text-center text-xs text-slate-400">Không có deal Medicare active</div>
+                <div className="py-4 text-center text-xs text-slate-400">No active Medicare deals</div>
               ) : (
                 medDealsByAgent?.map((item, i) => (
                   <div
@@ -1637,7 +1637,7 @@ export default function StaffCrmDashboard({
                       });
                     }}
                     className="flex items-center gap-2 text-xs hover:bg-amber-50/70 p-0.5 rounded cursor-pointer transition group"
-                    title={`Click để xem chi tiết deals Medicare của ${item.agent}`}
+                    title={`Click to view Medicare deals for ${item.agent}`}
                   >
                     <span className="w-20 truncate text-slate-600 text-right group-hover:text-amber-700">
                       {item.agent}
@@ -1695,7 +1695,7 @@ export default function StaffCrmDashboard({
                 </div>
                 <div className="space-y-3 my-auto py-2">
                   {contactsByOwner.length === 0 ? (
-                    <div className="py-4 text-center text-xs text-slate-400">Không có khách hàng được phân công</div>
+                    <div className="py-4 text-center text-xs text-slate-400">No clients assigned</div>
                   ) : (
                     contactsByOwner?.map((item, i) => (
                       <div
@@ -1773,7 +1773,7 @@ export default function StaffCrmDashboard({
           <div className="h-64 flex items-end justify-between gap-4 px-6 pt-4 border-b border-slate-200">
             {dealsByAgentChart.length === 0 ? (
               <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
-                Không có deal nào thuộc quyền phụ trách của agent này
+                No deals assigned to this agent
               </div>
             ) : (
               dealsByAgentChart?.map((d, i) => {
@@ -3152,7 +3152,7 @@ export default function StaffCrmDashboard({
                 type="button"
                 onClick={() => setDrilldownModal(null)}
                 className="text-slate-400 hover:text-white transition p-1 cursor-pointer rounded-lg hover:bg-white/10"
-                title="Đóng"
+                title="Close"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
@@ -3182,7 +3182,7 @@ export default function StaffCrmDashboard({
                   type="button"
                   onClick={() => {
                     fetchStats();
-                    toast.success('Dữ liệu đã được làm mới!');
+                    toast.success('Data refreshed successfully!');
                   }}
                   className="flex items-center gap-1 text-slate-600 hover:text-blue-600 font-medium cursor-pointer transition"
                   title="Refresh data"
@@ -3219,7 +3219,7 @@ export default function StaffCrmDashboard({
                       <td colSpan={4} className="py-16 text-center text-slate-400 text-xs">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <span className="material-symbols-outlined text-[32px] text-slate-300">inbox</span>
-                          <span>Không có deal nào trong giai đoạn này.</span>
+                          <span>No deals in this stage.</span>
                         </div>
                       </td>
                     </tr>
@@ -3238,7 +3238,7 @@ export default function StaffCrmDashboard({
                             }
                           }}
                           className="hover:bg-blue-50/50 transition cursor-pointer group"
-                          title="Click để xem chi tiết Deal"
+                          title="Click to view deal details"
                         >
                           <td className="py-2.5 px-4 text-center text-slate-400 font-mono text-[11px]">
                             {idx + 1}
@@ -3270,7 +3270,7 @@ export default function StaffCrmDashboard({
                 onClick={() => setDrilldownModal(null)}
                 className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-medium cursor-pointer transition"
               >
-                Đóng
+                Close
               </button>
             </div>
           </div>

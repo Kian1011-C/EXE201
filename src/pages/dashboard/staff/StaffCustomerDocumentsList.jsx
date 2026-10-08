@@ -267,7 +267,7 @@ export default function StaffCustomerDocumentsList({
     addCustomerDocumentToStore(newDoc);
     setDocumentsList((prev) => [newDoc, ...prev]);
     setShowCreateModal(false);
-    showToast(`Đã tạo hồ sơ tài liệu cho ${cName}!`);
+    showToast(`Created document folder for ${cName}!`);
   }
 
   return (
@@ -296,7 +296,7 @@ export default function StaffCustomerDocumentsList({
               </span>
             </div>
             <p className="text-xs text-slate-500">
-              Quản lý hồ sơ tài liệu xác thực, hợp đồng và hóa đơn đính kèm của khách hàng
+              Manage verification records, policy contracts, and customer attachments
             </p>
           </div>
         </div>
@@ -340,7 +340,7 @@ export default function StaffCustomerDocumentsList({
             <span className="material-symbols-outlined text-[18px] text-blue-600">folder</span>
           </div>
           <div className="text-xl font-bold text-slate-900">{stats.total}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">Tất cả khách hàng</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">All customer accounts</div>
         </div>
 
         <div
@@ -356,7 +356,7 @@ export default function StaffCustomerDocumentsList({
             <span className="material-symbols-outlined text-[18px] text-emerald-600">task_alt</span>
           </div>
           <div className="text-xl font-bold text-emerald-700">{stats.withFiles}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">Đã tải lên tài liệu xác thực</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">Uploaded verification docs</div>
         </div>
 
         <div
@@ -372,7 +372,7 @@ export default function StaffCustomerDocumentsList({
             <span className="material-symbols-outlined text-[18px] text-amber-600">pending</span>
           </div>
           <div className="text-xl font-bold text-amber-700">{stats.empty}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">Chưa có file (Mới tạo)</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">Pending files (New folder)</div>
         </div>
 
         <div className="p-3 rounded-xl border bg-white border-slate-200">
@@ -381,7 +381,7 @@ export default function StaffCustomerDocumentsList({
             <span className="material-symbols-outlined text-[18px] text-indigo-600">attach_file</span>
           </div>
           <div className="text-xl font-bold text-indigo-700">{stats.totalFilesCount}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">PDF, Hình ảnh & Hóa đơn</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">PDFs, Images & Receipts</div>
         </div>
       </div>
 
@@ -538,7 +538,7 @@ export default function StaffCustomerDocumentsList({
                         </div>
                         <div className="text-sm font-bold text-slate-800">No documents found</div>
                         <p className="text-xs text-slate-400">
-                          Not found tài liệu khách hàng nào phù hợp với bộ lọc hiện tại.
+                          No customer documents found matching current filters.
                         </p>
                       </div>
                     </td>
@@ -711,7 +711,7 @@ export default function StaffCustomerDocumentsList({
         contact={availableContacts[0]}
         onSave={(newDoc) => {
           setDocumentsList((prev) => [newDoc, ...prev]);
-          showToast(`Đã tạo Customer Document: ${newDoc.name}!`);
+          showToast(`Customer Document created: ${newDoc.name}!`);
         }}
       />
     </div>

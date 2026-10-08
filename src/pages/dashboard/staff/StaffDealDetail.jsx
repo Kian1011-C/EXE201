@@ -51,7 +51,7 @@ export default function StaffDealDetail({
 
   // State for deal editing
   const [dealTitle, setDealTitle] = useState(
-    deal?.title || (deal ? 'Deal mới' : dealInfo.title || 'Deal mới')
+    deal?.title || (deal ? 'New Deal' : dealInfo.title || 'New Deal')
   );
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [pipeline, setPipeline] = useState(deal?.pipeline || dealInfo.pipeline || 'Obamacare 2026');
@@ -476,7 +476,7 @@ export default function StaffDealDetail({
         type: 'Ticket Created',
         time: dateStr,
         actor: currentActor,
-        summary: `Tự động xuất ticket: ${uploadTicket.title} (Upload document)`,
+        summary: `Auto-generated ticket: ${uploadTicket.title} (Upload document)`,
         dealId: dealInfo.id,
         dealTitle: dealTitle,
       };
@@ -500,7 +500,7 @@ export default function StaffDealDetail({
           associatedTickets: updated,
         });
       }
-      showToast('Đã chọn Need Upload = Yes: Tự động xuất Ticket Upload document!');
+      showToast('Need Upload = Yes: Generated Upload document ticket!');
     } else {
       const dealId = deal?.id || dealInfo.id || '';
       recordPropertyUpdate('deal', dealId, 'Need Upload', deal?.needUpload || 'Yes', 'No', currentActor);
@@ -519,7 +519,7 @@ export default function StaffDealDetail({
           uploadRequest: false,
         });
       }
-      showToast('Đã chuyển Need Upload = No (Do not generate upload ticket)');
+      showToast('Need Upload = No (Do not generate upload ticket)');
     }
   }
 
@@ -724,7 +724,7 @@ export default function StaffDealDetail({
     }
 
     if (!isAutoSave) {
-      showToast('Đã lưu thông tin Deal successfully!');
+      showToast('Deal details saved successfully!');
     }
   }
 
@@ -1165,7 +1165,7 @@ export default function StaffDealDetail({
     );
     updateAndPersistDealNotes(updatedList);
     logActivity('Attachment Added', `attached ${newAttach.length} file(s) to note`);
-    showToast(`Đã đính kèm ${newAttach.length} tệp vào note`);
+    showToast(`Attached ${newAttach.length} files to note`);
     e.target.value = '';
   }
 
@@ -1230,7 +1230,7 @@ export default function StaffDealDetail({
     setInlineEditingNoteId(null);
     setInlineEditBody('');
     logActivity('Note Edited', `edited note: "${updatedTitle}"`);
-    showToast('Đã lưu chỉnh sửa note successfully!');
+    showToast('Note updated successfully!');
   }
 
   function openEditNote(note) {
@@ -1258,7 +1258,7 @@ export default function StaffDealDetail({
     setEditNoteBody('');
     setEditNoteAttachments([]);
     setIsEditNoteFullscreen(false);
-    showToast('Đã lưu chỉnh sửa note successfully!');
+    showToast('Note updated successfully!');
   }
 
   function handleDeleteNote(noteId) {
@@ -1266,7 +1266,7 @@ export default function StaffDealDetail({
     updateAndPersistDealNotes(updatedList);
     logActivity('Note Deleted', 'deleted a note');
     setNoteActionsOpen(null);
-    showToast('Đã xóa note successfully!');
+    showToast('Note deleted successfully!');
   }
 
   function handleEditFileAttach(e) {
@@ -1366,7 +1366,7 @@ export default function StaffDealDetail({
     });
     updateAndPersistDealTasks(updatedList);
     setTaskCommentInput('');
-    showToast('Đã thêm ghi chú vào task');
+    showToast('Note added to task');
   }
 
   function handleCardTaskFileAttach(taskId, e) {
@@ -1392,7 +1392,7 @@ export default function StaffDealDetail({
       return t;
     });
     updateAndPersistDealTasks(updatedList);
-    showToast(`Đã đính kèm ${newAttach.length} tệp vào task`);
+    showToast(`Attached ${newAttach.length} files to task`);
     e.target.value = '';
   }
 
@@ -1407,7 +1407,7 @@ export default function StaffDealDetail({
       return t;
     });
     updateAndPersistDealTasks(updatedList);
-    showToast('Attachment deleted khỏi task');
+    showToast('Attachment removed from task');
   }
 
   function handleUpdateTaskAssignee(taskId, newAssignee) {
@@ -1415,7 +1415,7 @@ export default function StaffDealDetail({
     updateAndPersistDealTasks(updatedList);
     updateTask(taskId, { assignee: newAssignee }).catch(() => {});
     logActivity('Task Updated', `reassigned task to ${newAssignee}`);
-    showToast(`Đã phân công task cho: ${newAssignee}`);
+    showToast(`Task assigned to: ${newAssignee}`);
   }
 
   function handleSaveTaskNote(taskId, newContent) {
@@ -1424,7 +1424,7 @@ export default function StaffDealDetail({
     updateTask(taskId, { content: newContent, description: newContent }).catch(() => {});
     logActivity('Task Updated', 'updated task note');
     setEditingTaskNoteId(null);
-    showToast('Đã lưu nội dung ghi chú của task!');
+    showToast('Task notes saved!');
   }
 
   function handleAddTaskSubmit(e) {
@@ -1499,7 +1499,7 @@ export default function StaffDealDetail({
     setTaskAttachments([]);
     setIsTaskFullscreen(false);
     setShowCreateTaskModal(false);
-    showToast('Task created successfully and saved to Task tổng');
+    showToast('Task created successfully and saved to Tasks');
   }
 
   return (
@@ -1519,7 +1519,7 @@ export default function StaffDealDetail({
           <button
             onClick={handleBack}
             className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-700 flex items-center justify-center transition cursor-pointer"
-            title="Quay lại"
+            title="Back"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
@@ -1534,14 +1534,14 @@ export default function StaffDealDetail({
           {dealSaveStatus === 'saving' && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 font-semibold shadow-2xs animate-pulse">
               <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
-              <span>Đang tự động lưu...</span>
+              <span>Auto-saving...</span>
             </div>
           )}
 
           {dealSaveStatus === 'saved' && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold shadow-2xs animate-in fade-in duration-200">
               <span className="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
-              <span>Đã tự động lưu</span>
+              <span>Auto-saved</span>
             </div>
           )}
 
@@ -2397,7 +2397,7 @@ export default function StaffDealDetail({
                     <p className="text-[10px] text-slate-500 mt-1">
                       {needUpload === 'Yes'
                         ? '⚡ If Yes is selected, the system auto-generates 1 Upload document Ticket.'
-                        : '✓ Do not generate upload ticket tài liệu.'}
+                        : '✓ Do not generate upload document ticket.'}
                     </p>
                   </div>
                 </div>

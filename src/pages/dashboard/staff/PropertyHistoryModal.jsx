@@ -169,7 +169,7 @@ export default function PropertyHistoryModal({
             <button
               type="button"
               onClick={() => setIsFullscreen(!isFullscreen)}
-              title={isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
+              title={isFullscreen ? 'Restore' : 'Fullscreen'}
               className="text-white/80 hover:text-white p-1 rounded hover:bg-white/10 transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">
@@ -179,7 +179,7 @@ export default function PropertyHistoryModal({
             <button
               type="button"
               onClick={onClose}
-              title="Đóng"
+              title="Close"
               className="text-white/80 hover:text-white p-1 rounded hover:bg-white/10 transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">close</span>
@@ -320,7 +320,7 @@ export default function PropertyHistoryModal({
             <button
               type="button"
               onClick={handleExport}
-              title="Xuất file CSV"
+              title="Export CSV"
               className="h-8 px-2.5 rounded border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
             >
               <span className="material-symbols-outlined text-[15px] text-slate-600">
@@ -334,7 +334,7 @@ export default function PropertyHistoryModal({
                 type="button"
                 onClick={() => setShowMoreMenu(!showMoreMenu)}
                 className="h-8 w-8 rounded border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center transition cursor-pointer shadow-2xs"
-                title="Tùy chọn khác"
+                title="More options"
               >
                 <span className="material-symbols-outlined text-[17px]">more_vert</span>
               </button>
@@ -391,14 +391,14 @@ export default function PropertyHistoryModal({
                       <span className="material-symbols-outlined text-[32px] text-slate-300">
                         history_toggle_drop_down
                       </span>
-                      <p className="text-xs font-medium">Not found lịch sử thay đổi phù hợp.</p>
+                      <p className="text-xs font-medium">No audit history found matching filters.</p>
                       {(selectedField !== 'All' || actorQuery || dateFilter || actionFilter !== 'All') && (
                         <button
                           type="button"
                           onClick={handleResetFilters}
                           className="mt-1 text-blue-600 hover:underline text-xs font-semibold cursor-pointer"
                         >
-                          Delete bộ lọc để xem tất cả
+                          Clear filters to view all
                         </button>
                       )}
                     </div>
@@ -431,7 +431,7 @@ export default function PropertyHistoryModal({
 
                     {/* New value */}
                     <td className="py-2.5 px-3 border-r border-slate-200 text-slate-900 font-medium break-words">
-                      {item.newValue || <span className="text-slate-400 italic">(Trống)</span>}
+                      {item.newValue || <span className="text-slate-400 italic">(Empty)</span>}
                     </td>
 
                     {/* Source actor */}
@@ -530,7 +530,7 @@ export function PropertyLabelWithHistory({
             onOpenHistory(fieldName || label);
           }
         }}
-        title={`Xem lịch sử thay đổi: ${label}`}
+        title={`View change history: ${label}`}
         className={`property-history-btn w-5 h-5 rounded-md bg-[#F1F5F9] hover:bg-blue-100 hover:text-blue-700 text-blue-600 flex items-center justify-center transition-all duration-150 cursor-pointer shrink-0 ml-1.5 shadow-2xs ${
           isHovered
             ? 'opacity-100 scale-100 pointer-events-auto'

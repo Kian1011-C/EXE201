@@ -7,7 +7,7 @@ export const SAAS_PLANS = {
   starter: {
     id: 'starter',
     name: 'Starter',
-    displayName: 'Gói Starter (Khởi động)',
+    displayName: 'Starter Plan',
     monthlyPrice: 39,
     annualPrice: 399, // ~33/mo
     salesCommissionRate: 0.10, // 10%
@@ -15,11 +15,11 @@ export const SAAS_PLANS = {
     maxSeats: 1,
     maxContacts: 500,
     features: [
-      '1 Tài khoản Đại lý (Single Seat)',
-      'Tối đa 500 Hồ sơ khách hàng',
-      'Quản lý Deal & Contact cơ bản',
-      'Theo dõi hạn thanh toán & Cảnh báo',
-      'Hỗ trợ kỹ thuật qua Email',
+      '1 Licensed Agent Seat (Single User)',
+      'Up to 500 Customer Contacts',
+      'Basic Deal & Pipeline Tracking',
+      'Due Date Alerts & Notifications',
+      'Standard Email Support',
     ],
     recommended: false,
     color: 'blue',
@@ -27,7 +27,7 @@ export const SAAS_PLANS = {
   professional: {
     id: 'professional',
     name: 'Professional',
-    displayName: 'Gói Professional (Chuyên nghiệp)',
+    displayName: 'Professional Plan',
     monthlyPrice: 79,
     annualPrice: 805, // ~67/mo (15% off)
     salesCommissionRate: 0.12, // 12%
@@ -35,13 +35,13 @@ export const SAAS_PLANS = {
     maxSeats: 3,
     maxContacts: 2500,
     features: [
-      'Tối đa 3 Tài khoản (Seats) cho Team',
-      'Tối đa 2,500 Hồ sơ khách hàng',
-      'Tự động hóa tác vụ & Nhắc việc thông minh',
-      'Quản lý Ticket dịch vụ sau bán & SLA cảnh báo quá hạn 48h',
-      'Theo dõi bảng phân bổ hoa hồng (SSS Tiers)',
-      'Tích hợp Marketplace & Lưu trữ tài liệu 25GB',
-      'Hỗ trợ ưu tiên qua Hotline & Chat 24/7',
+      'Up to 3 Agent Seats for Team',
+      'Up to 2,500 Customer Contacts',
+      'Automated Tasks & Intelligent Reminders',
+      'Post-sale Service Tickets & 48h SLA Tracking',
+      'SSS Commission Engine & Ledger',
+      'Marketplace Integration & 25GB Document Storage',
+      'Priority Phone & 24/7 Chat Support',
     ],
     recommended: true,
     color: 'indigo',
@@ -49,7 +49,7 @@ export const SAAS_PLANS = {
   agency: {
     id: 'agency',
     name: 'Agency',
-    displayName: 'Gói Agency (Tổng đại lý)',
+    displayName: 'Agency Enterprise Plan',
     monthlyPrice: 199,
     annualPrice: 1999, // ~166/mo (16% off)
     salesCommissionRate: 0.15, // 15%
@@ -57,13 +57,13 @@ export const SAAS_PLANS = {
     maxSeats: 10,
     maxContacts: 999999,
     features: [
-      'Tối đa 10 Seats (Mở rộng thêm seat linh hoạt)',
-      'Không giới hạn số lượng hồ sơ khách hàng',
-      'Phân quyền Master Deals & Giám sát NPN theo AOR',
-      'Điều phối hàng đợi Match Queue Lead tự động',
-      'Tích hợp Webhook & REST API toàn diện',
-      'Báo cáo & Phân tích chuyên sâu cho Quản trị viên',
-      'Quản lý tài khoản riêng biệt & Hỗ trợ kỹ thuật chuyên biệt 24/7',
+      'Up to 10 Seats (Flexible seat add-ons)',
+      'Unlimited Customer Contacts',
+      'Master Deals & AOR Oversight',
+      'Automated Lead Queue & Routing',
+      'Full REST API & Webhook Integration',
+      'Executive Analytics & Custom Reporting',
+      'Dedicated Account Manager & 24/7 Support',
     ],
     recommended: false,
     color: 'emerald',

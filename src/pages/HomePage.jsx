@@ -214,14 +214,14 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
                 Book a Free Demo
               </button>
 
-              {/* 1 Nút mới: Khách Hàng Kết Nối Đại Lý */}
+              {/* Client Matchmaking Portal CTA */}
               <button
                 type="button"
                 onClick={handleMatchClick}
                 className="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs tracking-wider uppercase transition-all duration-200 cursor-pointer shadow-sm flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>Khách Hàng Kết Nối Đại Lý</span>
+                <span>Client Matchmaking Portal</span>
               </button>
             </div>
             

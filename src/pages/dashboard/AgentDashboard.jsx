@@ -837,11 +837,11 @@ export default function AgentDashboard() {
       {currentView === 'contact-detail' && (
         !canAgentAccessItem(selectedContact, user || { role: 'agent', name: currentAgent.name }, 'contact') ? (
           <AccessRestrictedCard
-            title="Quyền truy cập thông tin khách hàng bị giới hạn"
-            message="Theo quy định, bạn chỉ có quyền xem và xử lý các hồ sơ khách hàng mà bạn được phân công làm Owner phụ trách."
+            title="Customer Record Access Restricted"
+            message="Under system policy, you may only access customer profiles assigned to you as the primary Owner."
             ownerName={extractOwnerString(selectedContact?.contactOwner || selectedContact?.sourceOfLead?.contactOwner)}
             onBack={handleBackToContacts}
-            backLabel="Quay lại Danh bạ"
+            backLabel="Back to Contacts"
           />
         ) : (
           <StaffContactDetail
@@ -873,11 +873,11 @@ export default function AgentDashboard() {
       {currentView === 'deal-detail' && (
         !canAgentAccessItem(selectedDeal, user || { role: 'agent', name: currentAgent.name }, 'deal') ? (
           <AccessRestrictedCard
-            title="Quyền truy cập hồ sơ Deal bị giới hạn"
-            message="Theo quy định, bạn chỉ có quyền xem và thao tác trên các Deals bảo hiểm mà bạn là Owner phụ trách."
+            title="Deal Access Restricted"
+            message="Under system policy, you may only view and manage insurance deals assigned to you as the Deal Owner."
             ownerName={extractOwnerString(selectedDeal?.dealOwner || selectedDeal?.leadOwner)}
             onBack={handleBackFromDeal}
-            backLabel="Quay lại Danh sách Deals"
+            backLabel="Back to Deals"
           />
         ) : (
           <StaffDealDetail
@@ -910,11 +910,11 @@ export default function AgentDashboard() {
       {currentView === 'customer-document-detail' && (
         !canAgentAccessItem(selectedDocument, user || { role: 'agent', name: currentAgent.name }, 'document') ? (
           <AccessRestrictedCard
-            title="Quyền truy cập tài liệu khách hàng bị giới hạn"
-            message="Theo quy định, bạn chỉ có quyền xem và tải tài liệu xác thực của khách hàng thuộc quyền quản lý của mình."
+            title="Customer Document Access Restricted"
+            message="Under system policy, you may only view and download verification documents for customers assigned to you."
             ownerName={extractOwnerString(selectedDocument?.contactOwner)}
             onBack={handleBackFromCustomerDocument}
-            backLabel="Quay lại Hồ sơ tài liệu"
+            backLabel="Back to Documents"
           />
         ) : (
           <StaffCustomerDocumentDetail
@@ -961,11 +961,11 @@ export default function AgentDashboard() {
       {currentView === 'ticket-detail' && (
         !canAgentAccessItem(selectedTicket, user || { role: 'agent', name: currentAgent.name }, 'ticket') ? (
           <AccessRestrictedCard
-            title="Quyền truy cập Ticket hỗ trợ bị giới hạn"
-            message="Theo quy định, bạn chỉ có quyền xử lý các Ticket hỗ trợ khách hàng được phân công cho bạn."
+            title="Service Ticket Access Restricted"
+            message="Under system policy, you may only process service tickets specifically assigned to your agency account."
             ownerName={extractOwnerString(selectedTicket?.ticketOwner || selectedTicket?.owner)}
             onBack={handleBackFromTicket}
-            backLabel="Quay lại Danh sách Tickets"
+            backLabel="Back to Tickets"
           />
         ) : (
           <StaffTicketDetail
@@ -1017,11 +1017,11 @@ export default function AgentDashboard() {
       {currentView === 'task-detail' && (
         !canAgentAccessItem(selectedTask, user || { role: 'agent', name: currentAgent.name }, 'task') ? (
           <AccessRestrictedCard
-            title="Quyền truy cập công việc (Task) bị giới hạn"
-            message="Theo quy định, bạn chỉ có quyền xem và xử lý các Task công việc được chỉ định cho bạn."
+            title="Task Access Restricted"
+            message="Under system policy, you may only view and process tasks specifically assigned to you."
             ownerName={extractOwnerString(selectedTask?.assignee || selectedTask?.assignedTo)}
             onBack={handleBackFromTask}
-            backLabel="Quay lại Danh sách Tasks"
+            backLabel="Back to Tasks"
           />
         ) : (
           <StaffTaskDetail

@@ -351,12 +351,12 @@ export default function StaffCustomerDocumentDetail({
         if (fresh.filesByCategory) setFilesByCategory(fresh.filesByCategory);
         if (fresh.lastModifiedTime) setLastModifiedTime(fresh.lastModifiedTime);
         if (onUpdateDocument) onUpdateDocument(fresh);
-        toast.success('Đã làm mới dữ liệu hồ sơ tài liệu!');
+        toast.success('Document records refreshed!');
       } else {
-        toast.success('Dữ liệu hồ sơ đã được làm mới!');
+        toast.success('Document data refreshed!');
       }
     } catch {
-      toast.success('Dữ liệu hồ sơ đã được làm mới!');
+      toast.success('Document data refreshed!');
     } finally {
       setIsRefreshing(false);
     }
@@ -391,7 +391,7 @@ export default function StaffCustomerDocumentDetail({
     }
     if (onUpdateDocument) onUpdateDocument(updatedDoc);
     setShowLinkContactModal(false);
-    toast.success(`Đã liên kết khách hàng: ${fullName}!`);
+    toast.success(`Linked customer: ${fullName}!`);
   }
 
   const associatedContact = doc.associatedContact || {
@@ -420,7 +420,7 @@ export default function StaffCustomerDocumentDetail({
           <button
             onClick={handleBack}
             className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-700 flex items-center justify-center transition cursor-pointer"
-            title="Quay lại"
+            title="Go back"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
@@ -447,7 +447,7 @@ export default function StaffCustomerDocumentDetail({
             className="flex items-center gap-1.5 text-slate-700 hover:text-blue-700 transition cursor-pointer font-medium disabled:opacity-50"
           >
             <span className={`material-symbols-outlined text-[16px] ${isRefreshing ? 'animate-spin' : ''}`}>refresh</span>
-            <span>{isRefreshing ? 'Đang tải...' : 'Refresh'}</span>
+            <span>{isRefreshing ? 'Loading...' : 'Refresh'}</span>
           </button>
         </div>
       </div>
@@ -544,11 +544,11 @@ export default function StaffCustomerDocumentDetail({
                         if (onUpdateDocument) {
                           onUpdateDocument(updatedDoc);
                         }
-                        toast.success(`Updated Contact Owner: ${newOwner || 'Chưa chọn'}`);
+                        toast.success(`Updated Contact Owner: ${newOwner || 'Unassigned'}`);
                       }}
                       className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-8"
                     >
-                      <option value="">-- Chưa chọn Agent --</option>
+                      <option value="">-- Select Agent --</option>
                       {agentAccounts?.map((a) => (
                         <option key={`doc-owner-${a.id || a.name}`} value={a.name}>
                           {a.name} {a.npn ? `(#${a.npn})` : ''}
@@ -587,13 +587,13 @@ export default function StaffCustomerDocumentDetail({
                         if (onUpdateDocument) {
                           onUpdateDocument(updatedDoc);
                         }
-                        toast.success('Updated tên hồ sơ tài liệu!');
+                        toast.success('Document title updated!');
                       }
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') e.target.blur();
                     }}
-                    placeholder="Tên hồ sơ..."
+                    placeholder="Document title..."
                     className="w-full rounded border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 hover:border-slate-300 transition font-medium"
                   />
                 </div>
@@ -749,7 +749,7 @@ export default function StaffCustomerDocumentDetail({
                     className="text-xs font-bold text-[#104882] hover:text-blue-700 hover:underline cursor-pointer text-left truncate"
                     title="View contact detail"
                   >
-                    {associatedContact.name || 'Chưa liên kết khách hàng'}
+                    {associatedContact.name || 'No client linked'}
                   </button>
                 </div>
                 <button
@@ -757,7 +757,7 @@ export default function StaffCustomerDocumentDetail({
                   onClick={() => setShowLinkContactModal(true)}
                   className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer shrink-0"
                 >
-                  Đổi
+                  Change
                 </button>
               </div>
 
@@ -900,7 +900,7 @@ export default function StaffCustomerDocumentDetail({
             <div className="bg-[#104882] px-4 py-3 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">history</span>
-                <span className="font-bold text-xs uppercase tracking-wider">Lịch sử thay đổi hồ sơ</span>
+                <span className="font-bold text-xs uppercase tracking-wider">Document Change History</span>
               </div>
               <button
                 type="button"
@@ -913,17 +913,17 @@ export default function StaffCustomerDocumentDetail({
             <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto text-xs">
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
                 <div className="font-semibold text-slate-800 flex items-center justify-between">
-                  <span>Cập nhật gần nhất</span>
+                  <span>Last Updated</span>
                   <span className="text-[10px] text-slate-400 font-mono">{lastModifiedTime}</span>
                 </div>
-                <div className="text-slate-600 text-[11px]">Người thực hiện: <strong className="text-slate-800">{typeof doc.lastModifiedBy === 'object' ? (doc.lastModifiedBy?.name || 'Staff') : (doc.lastModifiedBy || 'Staff')}</strong></div>
+                <div className="text-slate-600 text-[11px]">Updated by: <strong className="text-slate-800">{typeof doc.lastModifiedBy === 'object' ? (doc.lastModifiedBy?.name || 'Staff') : (doc.lastModifiedBy || 'Staff')}</strong></div>
               </div>
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
                 <div className="font-semibold text-slate-800 flex items-center justify-between">
-                  <span>Hồ sơ khởi tạo</span>
-                  <span className="text-[10px] text-slate-400 font-mono">{doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : 'Ban đầu'}</span>
+                  <span>Record Created</span>
+                  <span className="text-[10px] text-slate-400 font-mono">{doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : 'Initial'}</span>
                 </div>
-                <div className="text-slate-600 text-[11px]">Mã định danh: <strong className="text-slate-800 font-mono">{doc.code || `DOC-${doc.id}`}</strong></div>
+                <div className="text-slate-600 text-[11px]">Identifier: <strong className="text-slate-800 font-mono">{doc.code || `DOC-${doc.id}`}</strong></div>
               </div>
             </div>
             <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
@@ -932,7 +932,7 @@ export default function StaffCustomerDocumentDetail({
                 onClick={() => setShowHistoryModal(false)}
                 className="px-4 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-white text-xs font-medium cursor-pointer"
               >
-                Đóng
+                Close
               </button>
             </div>
           </div>
@@ -946,7 +946,7 @@ export default function StaffCustomerDocumentDetail({
             <div className="bg-[#104882] px-4 py-3 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">list_alt</span>
-                <span className="font-bold text-xs uppercase tracking-wider">Tất cả thuộc tính (Properties)</span>
+                <span className="font-bold text-xs uppercase tracking-wider">All Properties</span>
               </div>
               <button
                 type="button"
@@ -958,15 +958,15 @@ export default function StaffCustomerDocumentDetail({
             </div>
             <div className="p-4 max-h-[65vh] overflow-y-auto text-xs divide-y divide-slate-100">
               <div className="py-2 flex justify-between"><span className="text-slate-500">Document ID:</span><span className="font-mono font-bold text-slate-800">{doc.id}</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Mã Code:</span><span className="font-mono font-bold text-slate-800">{doc.code || `DOC-${doc.id}`}</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Tên hồ sơ:</span><span className="font-bold text-slate-800">{docName}</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Code:</span><span className="font-mono font-bold text-slate-800">{doc.code || `DOC-${doc.id}`}</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Document Title:</span><span className="font-bold text-slate-800">{docName}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Contact Owner:</span><span className="font-semibold text-slate-800">{typeof contactOwner === 'object' ? (contactOwner?.name || '—') : (contactOwner || '—')}</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Customer liên kết:</span><span className="font-bold text-slate-800">{associatedContact.name || '—'}</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Số điện thoại:</span><span className="font-mono text-slate-800">{associatedContact.phone || '—'}</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Linked Client:</span><span className="font-bold text-slate-800">{associatedContact.name || '—'}</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Phone:</span><span className="font-mono text-slate-800">{associatedContact.phone || '—'}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Email:</span><span className="text-slate-800">{associatedContact.email || '—'}</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Tổng số tệp tải lên:</span><span className="font-bold text-blue-700">{doc.totalFiles || Object.values(filesByCategory).reduce((s, a) => s + (Array.isArray(a) ? a.length : 0), 0)} file(s)</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Thời gian cập nhật:</span><span className="text-slate-800">{lastModifiedTime}</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Người cập nhật:</span><span className="text-slate-800">{typeof doc.lastModifiedBy === 'object' ? (doc.lastModifiedBy?.name || 'Staff') : (doc.lastModifiedBy || 'Staff')}</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Total Uploaded Files:</span><span className="font-bold text-blue-700">{doc.totalFiles || Object.values(filesByCategory).reduce((s, a) => s + (Array.isArray(a) ? a.length : 0), 0)} file(s)</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Updated At:</span><span className="text-slate-800">{lastModifiedTime}</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Updated By:</span><span className="text-slate-800">{typeof doc.lastModifiedBy === 'object' ? (doc.lastModifiedBy?.name || 'Staff') : (doc.lastModifiedBy || 'Staff')}</span></div>
             </div>
             <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
               <button
@@ -974,7 +974,7 @@ export default function StaffCustomerDocumentDetail({
                 onClick={() => setShowAllPropertiesModal(false)}
                 className="px-4 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-white text-xs font-medium cursor-pointer"
               >
-                Đóng
+                Close
               </button>
             </div>
           </div>
@@ -1001,14 +1001,14 @@ export default function StaffCustomerDocumentDetail({
             <div className="p-4 space-y-3">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1 text-xs">
-                  Tìm kiếm khách hàng
+                  Search Client
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     value={contactSearchQuery}
                     onChange={(e) => setContactSearchQuery(e.target.value)}
-                    placeholder="Nhập tên, số điện thoại hoặc email..."
+                    placeholder="Enter name, phone or email..."
                     className="w-full px-3 py-2 pl-9 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-blue-500 bg-white"
                   />
                   <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[17px] text-slate-400">
@@ -1046,13 +1046,13 @@ export default function StaffCustomerDocumentDetail({
                           type="button"
                           className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 font-semibold text-[11px] hover:bg-blue-100 cursor-pointer"
                         >
-                          Chọn
+                          Select
                         </button>
                       </div>
                     );
                   })}
                 {contactsList.length === 0 && (
-                  <div className="p-4 text-center text-slate-400">Chưa có danh sách khách hàng</div>
+                  <div className="p-4 text-center text-slate-400">No clients found</div>
                 )}
               </div>
             </div>
@@ -1062,7 +1062,7 @@ export default function StaffCustomerDocumentDetail({
                 onClick={() => setShowLinkContactModal(false)}
                 className="px-4 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-white text-xs font-medium cursor-pointer"
               >
-                Đóng
+                Close
               </button>
             </div>
           </div>

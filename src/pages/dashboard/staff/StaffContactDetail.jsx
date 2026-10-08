@@ -309,11 +309,11 @@ export default function StaffContactDetail({
               return [...updatedPrev, ...newDeals];
             });
           }
-          showToast('Đã làm mới danh sách Deal!');
+          showToast('Deals list refreshed!');
         })
-        .catch(() => showToast('Đã làm mới danh sách Deal!'));
+        .catch(() => showToast('Deals refreshed!'));
     } else {
-      showToast('Đã làm mới danh sách Deal!');
+      showToast('Deals list refreshed!');
     }
   };
 
@@ -438,7 +438,7 @@ export default function StaffContactDetail({
     }
     setShowAddDocModal(false);
     setNewDocFileName('');
-    showToast(`Đã đính kèm tài liệu vào mục ${newDocCategory}!`);
+    showToast(`Document attached to ${newDocCategory}!`);
   }
 
   // Toast feedback
@@ -494,7 +494,7 @@ export default function StaffContactDetail({
   };
 
   function handleAcaAccountStatusChange(newStatus) {
-    const val = newStatus === '(Trống / Chưa chọn)' ? '' : newStatus;
+    const val = newStatus === '(None / Unassigned)' ? '' : newStatus;
     if (val === acaAccountStatus) {
       setIsAcaStatusDropdownOpen(false);
       return;
@@ -543,7 +543,7 @@ export default function StaffContactDetail({
         updateTicketInStore(updatedAcaTicket);
         updatedTickets = [updatedAcaTicket, ...nonAcaTickets];
         setContactTickets(updatedTickets);
-        showToast('Đã chuyển trạng thái ACA và cập nhật Ticket ACA account!');
+        showToast('Updated ACA status and synced ACA ticket!');
       } else {
         // No ACA ticket exists -> create exactly 1 new ticket
         const cName =
@@ -575,7 +575,7 @@ export default function StaffContactDetail({
           carrier: contact?.dealCarrier || '',
           dealTitle: '',
           dealId: '',
-          description: `Tự động tạo Ticket khi chuyển trạng thái Need Create ACA Account cho khách hàng ${cName}`,
+          description: `Auto-generated Ticket when status changed to Need Create ACA Account for client ${cName}`,
           createdAt: new Date().toISOString(),
           activities: [],
           comments: [],
@@ -587,8 +587,8 @@ export default function StaffContactDetail({
         updatedTickets = [acaTicket, ...nonAcaTickets];
         setContactTickets(updatedTickets);
 
-        logActivity('Ticket Created', `Tự động xuất ticket: ${acaTicket.title} (ACA account)`);
-        showToast(`Đã chuyển trạng thái và tự động xuất Ticket: ${acaTicket.title}!`);
+        logActivity('Ticket Created', `Auto-generated ticket: ${acaTicket.title} (ACA account)`);
+        showToast(`Status updated & auto-generated Ticket: ${acaTicket.title}!`);
       }
     } else {
       // Khi chuyển sang trường khác (Pending, Uploaded, VERIFIED, Unverified, DONE, Plan Cancelled, hoặc trống)
@@ -616,11 +616,11 @@ export default function StaffContactDetail({
         updateTicketInStore(updatedAcaTicket);
         updatedTickets = [updatedAcaTicket, ...nonAcaTickets];
         setContactTickets(updatedTickets);
-        showToast(`Updated trạng thái ACA: ${val || 'Trống'} và đồng bộ Ticket ACA!`);
+        showToast(`ACA status updated: ${val || 'None'} and synced ACA Ticket!`);
       } else {
         updatedTickets = nonAcaTickets;
         setContactTickets(updatedTickets);
-        showToast(`Updated trạng thái ACA: ${val || 'Trống'}`);
+        showToast(`ACA status updated: ${val || 'None'}`);
       }
     }
 
@@ -738,7 +738,7 @@ export default function StaffContactDetail({
       onUpdateContact(updatedContact);
     }
     logActivity('Contact Name Updated', `changed name to "${newName}"`);
-    showToast(`Đã đổi tên liên hệ thành: ${newName}`);
+    showToast(`Contact renamed to: ${newName}`);
   }
 
   function handleCancelEditName() {
@@ -1082,7 +1082,7 @@ export default function StaffContactDetail({
         ? ` with ${noteAttachments.length} file(s) attached`
         : '';
     logActivity('Note Added', `added note: "${title}"${attachSuffix}`);
-    showToast('Đã tạo note successfully!');
+    showToast('Note created successfully!');
 
     // If "Create a To Do task to follow up" is checked
     if (createFollowUpTask) {
@@ -1171,7 +1171,7 @@ export default function StaffContactDetail({
     );
     updateAndPersistNotes(updatedList);
     logActivity('Attachment Added', `attached ${newAttach.length} file(s) to note`);
-    showToast(`Đã đính kèm ${newAttach.length} tệp vào note`);
+    showToast(`Attached ${newAttach.length} files to note`);
     e.target.value = '';
   }
 
@@ -1236,7 +1236,7 @@ export default function StaffContactDetail({
     setInlineEditingNoteId(null);
     setInlineEditBody('');
     logActivity('Note Edited', `edited note: "${updatedTitle}"`);
-    showToast('Đã lưu chỉnh sửa note successfully!');
+    showToast('Note updated successfully!');
   }
 
   function openEditNote(note) {
@@ -1264,7 +1264,7 @@ export default function StaffContactDetail({
     setEditNoteBody('');
     setEditNoteAttachments([]);
     setIsEditNoteFullscreen(false);
-    showToast('Đã lưu chỉnh sửa note successfully!');
+    showToast('Note updated successfully!');
   }
 
   function handleDeleteNote(noteId) {
@@ -1272,7 +1272,7 @@ export default function StaffContactDetail({
     updateAndPersistNotes(updatedList);
     logActivity('Note Deleted', 'deleted a note');
     setNoteActionsOpen(null);
-    showToast('Đã xóa note successfully!');
+    showToast('Note deleted successfully!');
   }
 
   function handleEditFileAttach(e) {
@@ -1372,7 +1372,7 @@ export default function StaffContactDetail({
     });
     updateAndPersistTasks(updatedList);
     setTaskCommentInput('');
-    showToast('Đã thêm ghi chú vào task');
+    showToast('Note added to task');
   }
 
   function handleCardTaskFileAttach(taskId, e) {
@@ -1398,7 +1398,7 @@ export default function StaffContactDetail({
       return t;
     });
     updateAndPersistTasks(updatedList);
-    showToast(`Đã đính kèm ${newAttach.length} tệp vào task`);
+    showToast(`Attached ${newAttach.length} files to task`);
     e.target.value = '';
   }
 
@@ -1413,7 +1413,7 @@ export default function StaffContactDetail({
       return t;
     });
     updateAndPersistTasks(updatedList);
-    showToast('Attachment deleted khỏi task');
+    showToast('Attachment removed from task');
   }
 
   function handleUpdateTaskAssignee(taskId, newAssignee) {
@@ -1421,7 +1421,7 @@ export default function StaffContactDetail({
     updateAndPersistTasks(updatedList);
     updateTask(taskId, { assignee: newAssignee }).catch(() => {});
     logActivity('Task Updated', `reassigned task to ${newAssignee}`);
-    showToast(`Đã phân công task cho: ${newAssignee}`);
+    showToast(`Task assigned to: ${newAssignee}`);
   }
 
   function handleSaveTaskNote(taskId, newContent) {
@@ -1430,7 +1430,7 @@ export default function StaffContactDetail({
     updateTask(taskId, { content: newContent, description: newContent }).catch(() => {});
     logActivity('Task Updated', 'updated task note');
     setEditingTaskNoteId(null);
-    showToast('Đã lưu nội dung ghi chú của task!');
+    showToast('Task notes saved!');
   }
 
   function handleAddTaskSubmit(e) {
@@ -1510,7 +1510,7 @@ export default function StaffContactDetail({
     setTaskAttachments([]);
     setIsTaskFullscreen(false);
     setShowCreateTaskModal(false);
-    showToast('Task created successfully and saved to Task tổng');
+    showToast('Task created successfully and saved to Tasks');
   }
 
   // Use passed contact info or fallback to null
@@ -1520,7 +1520,7 @@ export default function StaffContactDetail({
   const currentFullName = [primaryFirstName, primaryMiddleName, primaryLastName]
     ?.map((s) => (s || '')?.trim())
     ?.filter(Boolean)
-    .join(' ') || contactInfo.fullName || (contact ? 'Liên hệ mới' : '');
+    .join(' ') || contactInfo.fullName || (contact ? 'New Contact' : '');
 
   const currentInitials = currentFullName
     ?.split(' ')
@@ -1689,7 +1689,7 @@ export default function StaffContactDetail({
     if (!isAutoSave) {
       logActivity('Contact Updated', `updated contact details for ${currentFullName}`);
       setSaveSuccess(true);
-      showToast('Đã lưu thông tin liên hệ successfully!');
+      showToast('Contact details saved successfully!');
       setTimeout(() => setSaveSuccess(false), 2500);
     }
   }
@@ -1848,14 +1848,14 @@ export default function StaffContactDetail({
           {saveStatus === 'saving' && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 font-semibold shadow-2xs animate-pulse">
               <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
-              <span>Đang tự động lưu...</span>
+              <span>Auto-saving...</span>
             </div>
           )}
 
           {saveStatus === 'saved' && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold shadow-2xs animate-in fade-in duration-200">
               <span className="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
-              <span>Đã tự động lưu</span>
+              <span>Auto-saved</span>
             </div>
           )}
 
@@ -1956,7 +1956,7 @@ export default function StaffContactDetail({
                           value={editMiddleName}
                           onChange={(e) => setEditMiddleName(e.target.value)}
                           className="w-full text-xs font-medium text-slate-900 bg-white border border-slate-300 rounded px-2 py-1 focus:border-blue-500 focus:outline-none"
-                          placeholder="Middle name (tùy chọn)"
+                          placeholder="Middle name (optional)"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSaveName();
                             if (e.key === 'Escape') handleCancelEditName();
@@ -1977,7 +1977,7 @@ export default function StaffContactDetail({
                           className="px-3 py-1 text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded shadow-xs cursor-pointer flex items-center gap-1"
                         >
                           <span className="material-symbols-outlined text-[13px]">check</span>
-                          <span>Lưu tên</span>
+                          <span>Save Name</span>
                         </button>
                       </div>
                     </div>
@@ -1988,7 +1988,7 @@ export default function StaffContactDetail({
                       </h2>
                       <button
                         type="button"
-                        title="Chỉnh sửa họ tên liên hệ"
+                        title="Edit contact name"
                         onClick={handleStartEditName}
                         className="text-slate-400 hover:text-blue-600 transition cursor-pointer p-0.5 rounded hover:bg-slate-100"
                       >
@@ -2081,7 +2081,7 @@ export default function StaffContactDetail({
                             onChange={(e) => setLeadContactOwner(e.target.value)}
                             className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-12"
                           >
-                            <option value="">-- Chưa chọn Agent --</option>
+                            <option value="">-- Select Agent --</option>
                             {agentAccounts?.map((a) => (
                               <option key={`agent-${a.id || a.name}`} value={a.name}>
                                 {a.name} {a.npn ? `(#${a.npn})` : ''}
@@ -2152,7 +2152,7 @@ export default function StaffContactDetail({
                           >
                             <option value="">---</option>
                             <option value="Facebook">Facebook</option>
-                            <option value="Refer">Refer (Giới thiệu)</option>
+                            <option value="Refer">Referral</option>
                             <option value="Google">Google Search</option>
                             <option value="TikTok">TikTok</option>
                             <option value="Walk-in">Walk-in</option>
@@ -2575,7 +2575,7 @@ export default function StaffContactDetail({
                             } bg-white text-xs text-slate-800 hover:border-slate-300 cursor-pointer transition select-none shadow-2xs`}
                           >
                             <span className={`truncate font-medium ${acaAccountStatus ? 'text-slate-800' : 'text-slate-400 italic'}`}>
-                              {acaAccountStatus || '(Trống / Chưa chọn)'}
+                              {acaAccountStatus || '(None / Unassigned)'}
                             </span>
                             <div className="flex items-center gap-1 text-slate-400 shrink-0 ml-1">
                               {acaAccountStatus && (
@@ -2583,7 +2583,7 @@ export default function StaffContactDetail({
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleAcaAccountStatusChange('(Trống / Chưa chọn)');
+                                    handleAcaAccountStatusChange('(None / Unassigned)');
                                   }}
                                   className="text-[12px] hover:text-slate-600 p-0.5 cursor-pointer leading-none"
                                   title="Reset to empty"
@@ -2602,7 +2602,7 @@ export default function StaffContactDetail({
                           {isAcaStatusDropdownOpen && (
                             <div className="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50 text-xs">
                               {ACA_ACCOUNT_STATUS_OPTIONS?.map((opt) => {
-                                const isSelected = opt === acaAccountStatus || (opt === '(Trống / Chưa chọn)' && !acaAccountStatus);
+                                const isSelected = opt === acaAccountStatus || (opt === '(None / Unassigned)' && !acaAccountStatus);
                                 return (
                                   <button
                                     key={opt}
@@ -3721,7 +3721,7 @@ export default function StaffContactDetail({
                                 <div className="flex items-center justify-between">
                                   <span className="text-xs font-bold text-blue-700 flex items-center gap-1.5">
                                     <span className="material-symbols-outlined text-[16px]">edit_note</span>
-                                    Chỉnh sửa Note của Task
+                                    Edit Task Note
                                   </span>
                                   <span className="text-[11px] text-slate-500">Click "Save note" to finish</span>
                                 </div>
@@ -3933,7 +3933,7 @@ export default function StaffContactDetail({
                 <button
                   type="button"
                   onClick={() => setShowCreateDealModal(true)}
-                  title="Tạo Deal mới"
+                  title="Create New Deal"
                   className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[17px]">add</span>
@@ -3955,15 +3955,15 @@ export default function StaffContactDetail({
                 {contactDeals.length === 0 ? (
                   <div className="p-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                     <span className="material-symbols-outlined text-[28px] text-slate-300 block mb-1">handshake</span>
-                    <p className="text-xs font-semibold text-slate-600">Chưa có deal nào</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 mb-2.5">Tạo deal mới cho liên hệ này</p>
+                    <p className="text-xs font-semibold text-slate-600">No deals yet</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 mb-2.5">Create a new deal for this contact</p>
                     <button
                       type="button"
                       onClick={() => setShowCreateDealModal(true)}
                       className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-2xs transition inline-flex items-center gap-1 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[14px]">add</span>
-                      <span>Tạo Deal cho liên hệ này</span>
+                      <span>Create Deal for this contact</span>
                     </button>
                   </div>
                 ) : (
@@ -4050,7 +4050,7 @@ export default function StaffContactDetail({
               <div className="flex items-center gap-2 text-slate-500">
                 <button
                   type="button"
-                  onClick={() => showToast('Để tạo Ticket: đổi trạng thái ACA sang "Need Create ACA Account" hoặc tạo Deal với "Need Upload: Yes"')}
+                  onClick={() => showToast('To generate Ticket: change ACA status to "Need Create ACA Account" or create Deal with "Need Upload: Yes"')}
                   title="Add ticket"
                   className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
                 >
@@ -4075,7 +4075,7 @@ export default function StaffContactDetail({
                     <span className="material-symbols-outlined text-[28px] text-slate-300 block mb-1">confirmation_number</span>
                     <p className="text-xs font-semibold text-slate-600">No tickets yet</p>
                     <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
-                      ⚡ Chọn trạng thái ACA sang <strong>Need Create ACA Account</strong> hoặc tạo Deal có <strong>Need Upload = Yes</strong> để tự động xuất Ticket.
+                      ⚡ Set ACA status to <strong>Need Create ACA Account</strong> or create a Deal with <strong>Need Upload = Yes</strong> to auto-generate tickets.
                     </p>
                   </div>
                 ) : (
@@ -4182,14 +4182,14 @@ export default function StaffContactDetail({
                       description
                     </span>
                     <p className="text-xs font-semibold text-slate-500 mb-1">No customer documents yet</p>
-                    <p className="text-[11px] text-slate-400 mb-3">Tạo tài liệu khách hàng mới cho liên hệ này</p>
+                    <p className="text-[11px] text-slate-400 mb-3">Create a new customer document for this contact</p>
                     <button
                       type="button"
                       onClick={() => setShowCreateDocModal(true)}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#104882] text-white text-xs font-semibold hover:bg-blue-700 transition cursor-pointer shadow-xs"
                     >
                       <span className="material-symbols-outlined text-[15px]">add</span>
-                      <span>Tạo Customer Document</span>
+                      <span>Create Customer Document</span>
                     </button>
                   </div>
                 ) : (
@@ -5288,9 +5288,9 @@ export default function StaffContactDetail({
           if (uploadTicket) {
             updatedTickets = [uploadTicket, ...contactTickets];
             setContactTickets(updatedTickets);
-            logActivity('Ticket Created', `Tự động xuất ticket: ${uploadTicket.title} (Upload document)`);
+            logActivity('Ticket Created', `Auto-generated ticket: ${uploadTicket.title} (Upload document)`);
           }
-          logActivity('Deal Created', `Tạo deal mới: ${newDeal.title}`);
+          logActivity('Deal Created', `Created new deal: ${newDeal.title}`);
           if (onUpdateContact) {
             onUpdateContact({
               ...contact,
@@ -5300,8 +5300,8 @@ export default function StaffContactDetail({
           }
           showToast(
             newDeal.needUpload === 'Yes'
-              ? `Deal created và tự động xuất Ticket Upload document cho ${currentFullName}!`
-              : `Deal created thành công cho ${currentFullName}!`
+              ? `Deal created & auto-generated Upload document Ticket for ${currentFullName}!`
+              : `Deal created successfully for ${currentFullName}!`
           );
         }}
       />
@@ -5316,8 +5316,8 @@ export default function StaffContactDetail({
           );
           const updated = [newDoc, ...filtered];
           setCustomerDocuments(updated);
-          logActivity('Document Created', `Tạo Customer Document mới: ${newDoc.name}`);
-          showToast(`Đã tạo Customer Document: ${newDoc.name}!`);
+          logActivity('Document Created', `Created Customer Document: ${newDoc.name}`);
+          showToast(`Customer Document created: ${newDoc.name}!`);
           if (onUpdateContact) {
             onUpdateContact({
               ...contact,

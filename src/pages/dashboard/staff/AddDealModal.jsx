@@ -418,7 +418,7 @@ export default function AddDealModal({
                   onChange={(e) => setDealOwner(e.target.value)}
                   className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
                 >
-                  <option value="--">-- Chưa chọn Agent --</option>
+                  <option value="--">-- Unassigned Agent --</option>
                   {agentAccounts?.map((a) => (
                     <option key={a.id || a.name} value={a.name}>
                       {a.name}
@@ -458,7 +458,7 @@ export default function AddDealModal({
                         }
                       }
                     }}
-                    placeholder="Tên khách hàng..."
+                    placeholder="Client name..."
                     className="w-full px-3 py-2 pr-9 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 shadow-2xs font-medium"
                   />
                   <span className="material-symbols-outlined absolute right-2.5 text-[15px] text-slate-400 pointer-events-none">
@@ -552,7 +552,7 @@ export default function AddDealModal({
                     <span>Need Upload <span className="text-rose-500 font-bold">*</span></span>
                     {needUpload === 'Yes' && (
                       <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.2 rounded border border-amber-300">
-                        ⚡ Xuất Ticket
+                        ⚡ Auto-Generate Ticket
                       </span>
                     )}
                   </label>
@@ -565,8 +565,8 @@ export default function AddDealModal({
                         : 'border-slate-200 bg-white text-slate-800'
                     }`}
                   >
-                    <option value="No">No (Không xuất ticket)</option>
-                    <option value="Yes">Yes (Tự động xuất ticket Upload doc)</option>
+                    <option value="No">No (Do not generate ticket)</option>
+                    <option value="Yes">Yes (Auto-generate upload ticket)</option>
                   </select>
                 </div>
               </div>
@@ -574,8 +574,8 @@ export default function AddDealModal({
               {/* Feedback explanation for Need Upload */}
               <p className="text-[11px] text-slate-500 mt-1.5">
                 {needUpload === 'Yes'
-                  ? '⚡ Khi chọn Yes: Hệ thống sẽ tự động xuất 1 Ticket "Upload documents" trong pipeline Upload document.'
-                  : '✓ Do not generate upload ticket tài liệu.'}
+                  ? '⚡ When selecting Yes: System will automatically generate an "Upload documents" ticket in the Upload document pipeline.'
+                  : '✓ Do not generate upload document ticket.'}
               </p>
             </div>
 
@@ -597,7 +597,7 @@ export default function AddDealModal({
                 {isSubmitting ? (
                   <>
                     <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-                    <span>Đang lưu...</span>
+                    <span>Saving...</span>
                   </>
                 ) : (
                   <>
@@ -658,7 +658,7 @@ export default function AddDealModal({
                         } catch (_) {}
                       }
                       if (onDealCreated) onDealCreated(linkedDeal, null);
-                      toast.success(`Đã liên kết Deal ${d.code || d.title} successfully!`);
+                      toast.success(`Linked Deal ${d.code || d.title} successfully!`);
                       onClose();
                     }}
                   >
@@ -679,7 +679,7 @@ export default function AddDealModal({
                 ))}
               {availableDeals.length === 0 && (
                 <div className="p-4 text-center text-slate-400 text-xs">
-                  Not found hợp đồng phù hợp
+                  No matching deals found
                 </div>
               )}
             </div>

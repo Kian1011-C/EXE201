@@ -88,8 +88,8 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
 
     // Basic validation
     const newErrors = {};
-    if (!formData.firstName?.trim()) newErrors.firstName = 'Vui lòng nhập tên (First name)';
-    if (!formData.lastName?.trim()) newErrors.lastName = 'Vui lòng nhập họ (Last name)';
+    if (!formData.firstName?.trim()) newErrors.firstName = 'First name is required';
+    if (!formData.lastName?.trim()) newErrors.lastName = 'Last name is required';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -131,11 +131,11 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                   Create Member
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/20 text-white">
-                  Gia đình / Household
+                  Family / Household
                 </span>
               </div>
               <p className="text-[11px] text-blue-100/90 font-normal">
-                Thêm thông tin thành viên (Spouse hoặc Dependent) vào hồ sơ liên hệ
+                Add household member (Spouse or Dependent) to contact profile
               </p>
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
             <button
               type="button"
               onClick={() => setIsFullscreen(!isFullscreen)}
-              title={isFullscreen ? 'Thu nhỏ cửa sổ' : 'Toàn màn hình'}
+              title={isFullscreen ? 'Restore' : 'Fullscreen'}
               className="hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">
@@ -154,7 +154,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
             <button
               type="button"
               onClick={handleClose}
-              title="Đóng"
+              title="Close"
               className="hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
@@ -169,7 +169,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
           <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 text-slate-800 font-bold text-xs uppercase tracking-wide">
               <span className="material-symbols-outlined text-[16px] text-blue-600">badge</span>
-              <span>1. Thông tin cá nhân (Personal Information)</span>
+              <span>1. Personal Information</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
@@ -179,7 +179,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                 </label>
                 <input
                   type="text"
-                  placeholder="Nhập tên..."
+                  placeholder="First name..."
                   value={formData.firstName}
                   onChange={e => handleChange('firstName', e.target.value)}
                   className={`w-full px-3 py-2 rounded-lg border bg-white text-xs text-slate-800 focus:outline-none transition shadow-2xs ${
@@ -193,7 +193,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                 <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Middle Name</label>
                 <input
                   type="text"
-                  placeholder="Tên đệm (nếu có)..."
+                  placeholder="Middle name (optional)..."
                   value={formData.middleName}
                   onChange={e => handleChange('middleName', e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs"
@@ -206,7 +206,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                 </label>
                 <input
                   type="text"
-                  placeholder="Nhập họ..."
+                  placeholder="Last name..."
                   value={formData.lastName}
                   onChange={e => handleChange('lastName', e.target.value)}
                   className={`w-full px-3 py-2 rounded-lg border bg-white text-xs text-slate-800 focus:outline-none transition shadow-2xs ${
@@ -219,17 +219,17 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
               <div>
-                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Gender (Giới tính)</label>
+                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Gender</label>
                 <div className="relative">
                   <select
                     value={formData.gender}
                     onChange={e => handleChange('gender', e.target.value)}
                     className="w-full appearance-none pl-3 pr-8 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs cursor-pointer"
                   >
-                    <option value="">Chọn giới tính...</option>
+                    <option value="">Select gender...</option>
                     <option value="Male">Male (Nam)</option>
-                    <option value="Female">Female (Nữ)</option>
-                    <option value="Other">Other (Khác)</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
                   </select>
                   <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
                     expand_more
@@ -238,7 +238,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Date of Birth (Ngày sinh)</label>
+                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Date of Birth</label>
                 <div className="relative">
                   <input
                     type="date"
@@ -253,7 +253,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">SSN (Số An Sinh Xã Hội)</label>
+                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">SSN (Social Security Number)</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -270,17 +270,17 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
             </div>
           </div>
 
-          {/* Section 2: Mối quan hệ & Cư trú */}
+          {/* Section 2: Relationship & Cư trú */}
           <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 text-slate-800 font-bold text-xs uppercase tracking-wide">
               <span className="material-symbols-outlined text-[16px] text-blue-600">diversity_3</span>
-              <span>2. Mối quan hệ & Tình trạng cư trú (Relationship & Household)</span>
+              <span>2. Relationship & Immigration Status</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                  Family Relationship (Mối quan hệ gia đình)
+                  Family Relationship
                 </label>
                 <div className="relative">
                   <select
@@ -288,14 +288,14 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                     onChange={e => handleChange('familyRelationshipId', e.target.value)}
                     className="w-full appearance-none pl-3 pr-8 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs cursor-pointer"
                   >
-                    <option value="">Chọn mối quan hệ...</option>
-                    <option value="Spouse">Spouse (Vợ / Chồng)</option>
-                    <option value="Husband">Husband (Chồng)</option>
-                    <option value="Wife">Wife (Vợ)</option>
-                    <option value="Child">Child (Con cái)</option>
-                    <option value="Parent">Parent (Bố / Mẹ)</option>
-                    <option value="Brother/Sister">Brother / Sister (Anh chị em)</option>
-                    <option value="Other">Other (Khác)</option>
+                    <option value="">Select relationship...</option>
+                    <option value="Spouse">Spouse</option>
+                    <option value="Husband">Husband</option>
+                    <option value="Wife">Wife</option>
+                    <option value="Child">Child</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Brother/Sister">Brother / Sister</option>
+                    <option value="Other">Other</option>
                   </select>
                   <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
                     expand_more
@@ -317,9 +317,9 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                     className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed"
                   />
                   <div>
-                    <div className="text-xs font-bold">Là vợ/chồng (Is Spouse)</div>
+                    <div className="text-xs font-bold">Is Spouse</div>
                     <div className="text-[10px] text-slate-500 font-normal">
-                      {hasSpouse ? 'Hồ sơ này đã có Spouse 1' : 'Đánh dấu nếu đây là vợ/chồng của chủ hồ sơ'}
+                      {hasSpouse ? 'This record already has Spouse 1' : 'Check if this is the primary client spouse'}
                     </div>
                   </div>
                 </label>
@@ -329,7 +329,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                  Immigration Status (Tình trạng cư trú)
+                  Immigration Status
                 </label>
                 <div className="relative">
                   <select
@@ -337,11 +337,11 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                     onChange={e => handleChange('immigrationStatus', e.target.value)}
                     className="w-full appearance-none pl-3 pr-8 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs cursor-pointer"
                   >
-                    <option value="">Chọn tình trạng cư trú...</option>
-                    <option value="U.S Citizen">U.S Citizen (Công dân Mỹ)</option>
-                    <option value="Permanent Resident">Permanent Resident (Thẻ xanh)</option>
+                    <option value="">Select immigration status...</option>
+                    <option value="U.S Citizen">U.S Citizen</option>
+                    <option value="Permanent Resident">Permanent Resident (Green Card)</option>
                     <option value="Work Authorization">Work Authorization (EAD)</option>
-                    <option value="Other">Other (Khác)</option>
+                    <option value="Other">Other</option>
                   </select>
                   <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
                     expand_more
@@ -364,7 +364,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                 <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Certificate Number</label>
                 <input
                   type="text"
-                  placeholder="Số chứng chỉ / tự nhiên hóa..."
+                  placeholder="Certificate / Alien #..."
                   value={formData.certificateNumber}
                   onChange={e => handleChange('certificateNumber', e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs"
@@ -375,7 +375,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                  Date Expired (Ngày hết hạn giấy tờ)
+                  Document Expiration Date
                 </label>
                 <div className="relative">
                   <input
@@ -391,7 +391,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Phone (Số điện thoại)</label>
+                <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Phone</label>
                 <div className="relative flex items-center">
                   <span className="absolute left-3 text-slate-500 text-xs font-semibold select-none">+1</span>
                   <input
@@ -413,13 +413,13 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
           <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-2xs space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 text-slate-800 font-bold text-xs uppercase tracking-wide">
               <span className="material-symbols-outlined text-[16px] text-blue-600">health_and_safety</span>
-              <span>3. Bảo hiểm & Ghi chú (Insurance & Coverage)</span>
+              <span>3. Insurance & Notes</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
-                  Current Insurance (Bảo hiểm hiện tại)
+                  Current Insurance
                 </label>
                 <div className="relative">
                   <select
@@ -427,7 +427,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                     onChange={e => handleChange('currentInsuranceId', e.target.value)}
                     className="w-full appearance-none pl-3 pr-8 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs cursor-pointer"
                   >
-                    <option value="">Chưa có / Chưa xác định...</option>
+                    <option value="">None / Unspecified...</option>
                     <option value="Ambetter">Ambetter</option>
                     <option value="BCBS">Blue Cross Blue Shield (BCBS)</option>
                     <option value="UnitedHealthcare">UnitedHealthcare (UHC)</option>
@@ -437,7 +437,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                     <option value="Kaiser">Kaiser Permanente</option>
                     <option value="Molina">Molina Healthcare</option>
                     <option value="Humana">Humana</option>
-                    <option value="Other">Hãng khác / Other</option>
+                    <option value="Other">Other Carrier</option>
                   </select>
                   <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">
                     expand_more
@@ -460,7 +460,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                   <div>
                     <div className="text-xs font-bold">Apply Obamacare</div>
                     <div className="text-[10px] text-slate-500 font-normal">
-                      Thành viên này đăng ký tham gia bảo hiểm y tế Obamacare
+                      This member is enrolling in ACA / Obamacare health insurance
                     </div>
                   </div>
                 </label>
@@ -468,9 +468,9 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Note (Ghi chú)</label>
+              <label className="block text-slate-700 font-semibold mb-1 text-[11px]">Notes</label>
               <textarea
-                placeholder="Nhập ghi chú chi tiết về thành viên..."
+                placeholder="Enter detailed notes about member..."
                 rows={2}
                 value={formData.note}
                 onChange={e => handleChange('note', e.target.value)}
@@ -497,7 +497,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
             className="px-6 py-2 rounded-lg bg-[#104882] hover:bg-blue-800 text-white font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm hover:shadow"
           >
             <span className="material-symbols-outlined text-[16px]">save</span>
-            <span>Lưu thành viên / Save Member</span>
+            <span>Save Member</span>
           </button>
         </div>
 

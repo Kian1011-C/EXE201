@@ -162,11 +162,11 @@ export default function MemberSection({ member, onDelete, onUpdate, defaultOpen 
                 className="w-full pl-2.5 pr-8 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 appearance-none bg-white text-xs text-slate-800"
               >
                 <option value="">Select relationship...</option>
-                <option value="Spouse">Spouse (Vợ / Chồng)</option>
+                <option value="Spouse">Spouse</option>
                 <option value="Husband">Husband</option>
                 <option value="Wife">Wife</option>
-                <option value="Child">Child (Con cái)</option>
-                <option value="Parent">Parent (Bố / Mẹ)</option>
+                <option value="Child">Child / Dependent</option>
+                <option value="Parent">Parent</option>
                 <option value="Brother/Sister">Brother / Sister</option>
                 <option value="Other">Other</option>
               </select>
@@ -243,7 +243,7 @@ export default function MemberSection({ member, onDelete, onUpdate, defaultOpen 
                 onChange={(e) => handleChange('currentInsuranceId', e.target.value)}
                 className="w-full pl-2.5 pr-8 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 appearance-none bg-white text-xs text-slate-800"
               >
-                <option value="">Chưa có / Chưa xác định...</option>
+                <option value="">None / Unspecified...</option>
                 <option value="Ambetter">Ambetter</option>
                 <option value="BCBS">Blue Cross Blue Shield (BCBS)</option>
                 <option value="UnitedHealthcare">UnitedHealthcare (UHC)</option>

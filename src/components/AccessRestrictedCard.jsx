@@ -1,11 +1,11 @@
 import React from 'react';
 
 export default function AccessRestrictedCard({
-  title = 'Quyền truy cập bị giới hạn',
-  message = 'Theo quy định bảo mật hệ thống, Agent chỉ được phép xem các hồ sơ (Contacts, Deals, Tickets, Documents) mà mình được phân công phụ trách (Owner / Assignee).',
+  title = 'Access Restricted',
+  message = 'Under system security policy, Agents may only access records (Contacts, Deals, Tickets, Documents) assigned to them (as Owner or Assignee).',
   ownerName = '',
   onBack,
-  backLabel = 'Quay lại danh sách',
+  backLabel = 'Back to List',
 }) {
   return (
     <div className="flex flex-col items-center justify-center p-8 sm:p-12 min-h-[500px] w-full text-center animate-fade-in">
@@ -23,7 +23,7 @@ export default function AccessRestrictedCard({
 
       {ownerName && (
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 mb-6">
-          <span className="text-slate-400">Owner phụ trách hiện tại:</span>
+          <span className="text-slate-400">Current Assigned Owner:</span>
           <span className="font-bold text-slate-900">{ownerName}</span>
         </div>
       )}

@@ -114,7 +114,7 @@ export default function AdminCommissionTab({
   function handleAddSubscriberSubmit(e) {
     e.preventDefault();
     if (!newAgencyName || !newAgentName) {
-      showToast('Vui lòng nhập tên công ty/văn phòng và tên đại lý');
+      showToast('Please enter agency name and principal agent name');
       return;
     }
 
@@ -151,7 +151,7 @@ export default function AdminCommissionTab({
     setNewAgencyName('');
     setNewAgentName('');
     setNewAgentEmail('');
-    showToast(`Đã thêm thành công hợp đồng ${newSub.id} cho ${newAgencyName}! Doanh thu MRR đã cập nhật.`);
+    showToast(`Successfully added subscription ${newSub.id} for ${newAgencyName}! MRR updated.`);
   }
 
   function handleToggleStatus(subId) {
@@ -164,15 +164,15 @@ export default function AdminCommissionTab({
     });
     saveSubscribers(nextList);
     setSubscribers(nextList);
-    showToast(`Đã cập nhật trạng thái hợp đồng ${subId}!`);
+    showToast(`Updated subscription status for ${subId}!`);
   }
 
   function handleDeleteSubscriber(subId) {
-    if (!window.confirm(`Bạn có chắc chắn muốn hủy và xóa hợp đồng ${subId}?`)) return;
+    if (!window.confirm(`Are you sure you want to cancel and delete subscription ${subId}?`)) return;
     const nextList = subscribers?.filter((sub) => sub.id !== subId);
     saveSubscribers(nextList);
     setSubscribers(nextList);
-    showToast(`Đã hủy hợp đồng ${subId}!`);
+    showToast(`Cancelled subscription ${subId}!`);
   }
 
   function handleSavePlanChange() {
@@ -197,14 +197,14 @@ export default function AdminCommissionTab({
     saveSubscribers(nextList);
     setSubscribers(nextList);
     setChangePlanSub(null);
-    showToast(`Đã chuyển đổi hợp đồng ${changePlanSub.id} sang gói ${planMeta.name}!`);
+    showToast(`Upgraded subscription ${changePlanSub.id} to ${planMeta.name}!`);
   }
 
   function handleResetBaseline() {
     setStarterCount(20);
     setProCount(15);
     setAgencyCount(5);
-    showToast('Đã thiết lập lại chỉ tiêu 40 khách hàng chuẩn (Coms.pdf)');
+    showToast('Reset to 40 standard baseline accounts (Coms.pdf)');
   }
 
   return (
@@ -217,7 +217,7 @@ export default function AdminCommissionTab({
             <span>{toastMessage}</span>
           </div>
           <button onClick={() => setToastMessage('')} className="text-emerald-700 hover:underline cursor-pointer">
-            Đóng
+            Close
           </button>
         </div>
       )}
@@ -238,7 +238,7 @@ export default function AdminCommissionTab({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1 max-w-3xl">
-            Doanh thu định kỳ của InsurMatch từ 3 gói thuê bao CRM ($39, $79, $199) và chi trả hoa hồng thực tế cho Sales Rep ($3.90, $9.48, $29.85/khách hàng).
+            InsurMatch recurring revenue across 3 CRM tiers ($39, $79, $199) and commission disbursements to internal sales reps ($3.90, $9.48, $29.85/client).
           </p>
         </div>
 
@@ -256,7 +256,7 @@ export default function AdminCommissionTab({
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Hợp đồng thực tế ({subscribers.length})</span>
+              <span>Active Subscriptions ({subscribers.length})</span>
             </button>
             <button
               type="button"
@@ -268,7 +268,7 @@ export default function AdminCommissionTab({
               }`}
             >
               <span className="material-symbols-outlined text-[14px]">tune</span>
-              <span>Mô phỏng đề án</span>
+              <span>Financial Simulation</span>
             </button>
           </div>
 
@@ -279,7 +279,7 @@ export default function AdminCommissionTab({
               className="px-3.5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs"
             >
               <span className="material-symbols-outlined text-[16px]">add_circle</span>
-              <span>Thêm Hợp Đồng Mới</span>
+              <span>Add New Subscription</span>
             </button>
           ) : (
             <button
@@ -288,7 +288,7 @@ export default function AdminCommissionTab({
               className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition cursor-pointer flex items-center gap-1.5"
             >
               <span className="material-symbols-outlined text-[16px] text-slate-500">restart_alt</span>
-              <span>Chuẩn 40 khách</span>
+              <span>Reset 40 Baseline</span>
             </button>
           )}
 
@@ -298,10 +298,10 @@ export default function AdminCommissionTab({
               onClick={() => {
                 setSubscribers(getSubscribers());
                 onRefresh();
-                showToast('Đã đồng bộ lại toàn bộ dữ liệu hợp đồng & hoa hồng!');
+                showToast('Synced all subscription & commission data!');
               }}
               className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer"
-              title="Đồng bộ dữ liệu"
+              title="Sync data"
             >
               <span className="material-symbols-outlined text-[18px]">sync</span>
             </button>
@@ -316,7 +316,7 @@ export default function AdminCommissionTab({
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
             <span className="font-semibold uppercase tracking-wider text-[10px]">
-              Doanh thu tháng ({viewMode === 'real' ? 'Thực tế' : 'Mô phỏng'})
+              Monthly Revenue ({viewMode === 'real' ? 'Actual' : 'Projected'})
             </span>
             <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">domain</span>
@@ -326,7 +326,7 @@ export default function AdminCommissionTab({
             ${activeFinancials.totalMRR.toLocaleString()}/mo
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-2">
-            <span className="text-emerald-600 font-bold font-mono">100% Thuê bao CRM</span>
+            <span className="text-emerald-600 font-bold font-mono">100% SaaS Subscription</span>
             <span>({activeFinancials.totalSubscribers} agency active)</span>
           </div>
         </div>
@@ -335,7 +335,7 @@ export default function AdminCommissionTab({
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Doanh thu năm (ARR)</span>
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Annual Recurring (ARR)</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">trending_up</span>
             </div>
@@ -345,7 +345,7 @@ export default function AdminCommissionTab({
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-2">
             <span className="text-emerald-600 font-bold font-mono">Run Rate</span>
-            <span>quy mô 12 tháng</span>
+            <span>12-month run rate</span>
           </div>
         </div>
 
@@ -353,7 +353,7 @@ export default function AdminCommissionTab({
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Hoa hồng Sales Rep nội bộ</span>
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Internal Sales Rep Commissions</span>
             <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">badge</span>
             </div>
@@ -362,7 +362,7 @@ export default function AdminCommissionTab({
             ${activeFinancials.totalSalesComm.toFixed(2)}/mo
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-amber-600 font-medium mt-2">
-            <span>Chi trả 10% - 15% hợp đồng</span>
+            <span>Paid 10% - 15% per contract</span>
           </div>
         </div>
 
@@ -370,7 +370,7 @@ export default function AdminCommissionTab({
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Doanh thu thuần InsurMatch</span>
+            <span className="font-semibold uppercase tracking-wider text-[10px]">InsurMatch Net Revenue</span>
             <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
             </div>
@@ -382,7 +382,7 @@ export default function AdminCommissionTab({
             <span className="text-purple-600 font-bold font-mono">
               ${activeFinancials.estimatedNetProfit.toFixed(0)}
             </span>
-            <span>lợi nhuận sau phí Cloud (~$350)</span>
+            <span>net margin after infra (~$350)</span>
           </div>
         </div>
       </div>
@@ -394,14 +394,14 @@ export default function AdminCommissionTab({
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900">Gói Starter</span>
+                <span className="text-xs font-bold text-slate-900">Starter Plan</span>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
-                  $39 / tháng
+                  $39 / month
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">1 Seat • 500 Hồ sơ • Theo dõi gia hạn</p>
+              <p className="text-[11px] text-slate-500 mt-1">1 Seat • 500 Records • Renewal Alerts</p>
               <div className="mt-4 flex items-baseline justify-between">
-                <span className="text-xs text-slate-500 font-medium">Hợp đồng hoạt động:</span>
+                <span className="text-xs text-slate-500 font-medium">Active Subscriptions:</span>
                 <span className="text-lg font-black text-blue-600 font-mono">
                   {realFinancials.starterCount} agency
                 </span>
@@ -409,25 +409,25 @@ export default function AdminCommissionTab({
             </div>
             <div className="mt-4 pt-3 border-t border-slate-100 text-xs flex justify-between items-center text-slate-600">
               <span>Doanh thu MRR: <strong className="text-slate-900 font-mono">${realFinancials.starterCount * 39}</strong></span>
-              <span>Hoa hồng Sales: <strong className="text-amber-600 font-mono">${(realFinancials.starterCount * 3.9).toFixed(2)}</strong></span>
+              <span>Sales Commission: <strong className="text-amber-600 font-mono">${(realFinancials.starterCount * 3.9).toFixed(2)}</strong></span>
             </div>
           </div>
 
           {/* Professional Plan Box */}
           <div className="bg-white rounded-2xl border-2 border-indigo-500/40 p-5 shadow-2xs flex flex-col justify-between relative">
             <div className="absolute -top-2.5 right-4 bg-indigo-600 text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              Phổ biến nhất
+              Most Popular
             </div>
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900">Gói Professional</span>
+                <span className="text-xs font-bold text-slate-900">Professional Plan</span>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">
-                  $79 / tháng
+                  $79 / month
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">Tối đa 3 Seats • 2,500 Hồ sơ • SLA 48h &amp; Tickets</p>
+              <p className="text-[11px] text-slate-500 mt-1">Up to 3 Seats • 2,500 Records • SLA 48h &amp; Tickets</p>
               <div className="mt-4 flex items-baseline justify-between">
-                <span className="text-xs text-slate-500 font-medium">Hợp đồng hoạt động:</span>
+                <span className="text-xs text-slate-500 font-medium">Active Subscriptions:</span>
                 <span className="text-lg font-black text-indigo-600 font-mono">
                   {realFinancials.proCount} agency
                 </span>
@@ -435,7 +435,7 @@ export default function AdminCommissionTab({
             </div>
             <div className="mt-4 pt-3 border-t border-slate-100 text-xs flex justify-between items-center text-slate-600">
               <span>Doanh thu MRR: <strong className="text-slate-900 font-mono">${realFinancials.proCount * 79}</strong></span>
-              <span>Hoa hồng Sales: <strong className="text-amber-600 font-mono">${(realFinancials.proCount * 9.48).toFixed(2)}</strong></span>
+              <span>Sales Commission: <strong className="text-amber-600 font-mono">${(realFinancials.proCount * 9.48).toFixed(2)}</strong></span>
             </div>
           </div>
 
@@ -443,14 +443,14 @@ export default function AdminCommissionTab({
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900">Gói Agency</span>
+                <span className="text-xs font-bold text-slate-900">Agency Enterprise</span>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                  $199 / tháng
+                  $199 / month
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">Tối đa 10 Seats • Không giới hạn hồ sơ • Phân quyền AOR &amp; API</p>
+              <p className="text-[11px] text-slate-500 mt-1">Up to 10 Seats • Unlimited Records • AOR Permissions &amp; API</p>
               <div className="mt-4 flex items-baseline justify-between">
-                <span className="text-xs text-slate-500 font-medium">Hợp đồng hoạt động:</span>
+                <span className="text-xs text-slate-500 font-medium">Active Subscriptions:</span>
                 <span className="text-lg font-black text-emerald-600 font-mono">
                   {realFinancials.agencyCount} agency
                 </span>
@@ -458,7 +458,7 @@ export default function AdminCommissionTab({
             </div>
             <div className="mt-4 pt-3 border-t border-slate-100 text-xs flex justify-between items-center text-slate-600">
               <span>Doanh thu MRR: <strong className="text-slate-900 font-mono">${realFinancials.agencyCount * 199}</strong></span>
-              <span>Hoa hồng Sales: <strong className="text-amber-600 font-mono">${(realFinancials.agencyCount * 29.85).toFixed(2)}</strong></span>
+              <span>Sales Commission: <strong className="text-amber-600 font-mono">${(realFinancials.agencyCount * 29.85).toFixed(2)}</strong></span>
             </div>
           </div>
         </div>
@@ -471,14 +471,14 @@ export default function AdminCommissionTab({
             <div>
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <span className="material-symbols-outlined text-indigo-600 text-[20px]">tune</span>
-                <span>Bộ Mô phỏng Dự phóng Doanh thu &amp; Hoa hồng Sales (Coms.pdf)</span>
+                <span>Revenue &amp; Sales Commission Projection Simulator (Coms.pdf)</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Kéo thanh trượt để thử nghiệm quy mô thuê bao của 3 gói: Starter ($39), Professional ($79), Agency ($199).
+                Adjust sliders to project subscriber volume across Starter ($39), Professional ($79), and Agency ($199) tiers.
               </p>
             </div>
             <div className="text-xs font-semibold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-              Quy mô dự phóng: <strong className="text-indigo-700 font-mono">{simFinancials.totalSubscribers} khách hàng</strong>
+              Projected Volume: <strong className="text-indigo-700 font-mono">{simFinancials.totalSubscribers} clients</strong>
             </div>
           </div>
 
@@ -487,14 +487,14 @@ export default function AdminCommissionTab({
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-900">Gói Starter</span>
+                  <span className="text-xs font-bold text-slate-900">Starter Plan</span>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
-                    $39 / tháng
+                    $39 / month
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 mb-3">1 Seat • 500 Hồ sơ • Pipeline tiêu chuẩn</p>
+                <p className="text-[11px] text-slate-500 mb-3">1 Seat • 500 Records • Standard Pipeline</p>
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                  <span>Khách hàng giả lập:</span>
+                  <span>Simulated Clients:</span>
                   <span className="font-mono text-blue-600 font-bold">{starterCount} agencies</span>
                 </div>
                 <input
@@ -513,7 +513,7 @@ export default function AdminCommissionTab({
                   <strong className="text-slate-900 font-mono text-sm">${simFinancials.starterRev.toLocaleString()}</strong>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Hoa hồng Sales ($3.90)</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Sales Rep Fee ($3.90)</span>
                   <strong className="text-amber-600 font-mono text-sm">${simFinancials.starterComm.toFixed(2)}</strong>
                 </div>
               </div>
@@ -522,18 +522,18 @@ export default function AdminCommissionTab({
             {/* Professional Slider */}
             <div className="p-4 rounded-xl border-2 border-indigo-500/50 bg-indigo-50/20 flex flex-col justify-between relative">
               <div className="absolute -top-2.5 right-4 bg-indigo-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Mục tiêu Đề án (15 clients)
+                Target Baseline (15 clients)
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-900">Gói Professional</span>
+                  <span className="text-xs font-bold text-slate-900">Professional Plan</span>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white">
-                    $79 / tháng
+                    $79 / month
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 mb-3">Tối đa 3 Seats • 2,500 Hồ sơ • Tự động hóa tác vụ</p>
+                <p className="text-[11px] text-slate-500 mb-3">Up to 3 Seats • 2,500 Records • Task Automation</p>
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                  <span>Khách hàng giả lập:</span>
+                  <span>Simulated Clients:</span>
                   <span className="font-mono text-indigo-600 font-bold">{proCount} agencies</span>
                 </div>
                 <input
@@ -552,7 +552,7 @@ export default function AdminCommissionTab({
                   <strong className="text-slate-900 font-mono text-sm">${simFinancials.proRev.toLocaleString()}</strong>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Hoa hồng Sales ($9.48)</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Sales Rep Fee ($9.48)</span>
                   <strong className="text-amber-600 font-mono text-sm">${simFinancials.proComm.toFixed(2)}</strong>
                 </div>
               </div>
@@ -562,14 +562,14 @@ export default function AdminCommissionTab({
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-900">Gói Agency</span>
+                  <span className="text-xs font-bold text-slate-900">Agency Enterprise</span>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                    $199 / tháng
+                    $199 / month
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 mb-3">Tối đa 10 Seats • Không giới hạn • Phân quyền &amp; API</p>
+                <p className="text-[11px] text-slate-500 mb-3">Up to 10 Seats • Unlimited Records • RBAC &amp; API</p>
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                  <span>Khách hàng giả lập:</span>
+                  <span>Simulated Clients:</span>
                   <span className="font-mono text-emerald-600 font-bold">{agencyCount} agencies</span>
                 </div>
                 <input
@@ -588,7 +588,7 @@ export default function AdminCommissionTab({
                   <strong className="text-slate-900 font-mono text-sm">${simFinancials.agencyRev.toLocaleString()}</strong>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Hoa hồng Sales ($29.85)</span>
+                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Sales Rep Fee ($29.85)</span>
                   <strong className="text-amber-600 font-mono text-sm">${simFinancials.agencyComm.toFixed(2)}</strong>
                 </div>
               </div>
@@ -602,13 +602,13 @@ export default function AdminCommissionTab({
         <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <span>Bảng Kê Hợp Đồng Thuê Bao &amp; Quyết Toán Hoa Hồng Sales</span>
+              <span>Active Subscriptions &amp; Sales Commission Ledger</span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                {filteredSubscribers.length} Hợp Đồng
+                {filteredSubscribers.length} Contracts
               </span>
             </h3>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Danh sách các văn phòng bảo hiểm đang sử dụng dịch vụ và hoa hồng trả cho nhân viên sales mang khách về.
+              Roster of active agency subscriptions and commission payouts to internal sales reps.
             </p>
           </div>
 
@@ -617,7 +617,7 @@ export default function AdminCommissionTab({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm agency, agent, sales, ID..."
+              placeholder="Search agency, agent, sales, ID..."
               className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white min-w-[200px]"
             />
             <select
@@ -625,7 +625,7 @@ export default function AdminCommissionTab({
               onChange={(e) => setPlanFilter(e.target.value)}
               className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-700 cursor-pointer"
             >
-              <option value="all">Tất cả gói</option>
+              <option value="all">All Plans</option>
               <option value="starter">Starter ($39)</option>
               <option value="professional">Professional ($79)</option>
               <option value="agency">Agency ($199)</option>
@@ -637,23 +637,23 @@ export default function AdminCommissionTab({
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/75 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
               <tr>
-                <th className="py-2.5 px-4">Mã Hợp Đồng</th>
-                <th className="py-2.5 px-4">Văn Phòng / Đại Lý</th>
-                <th className="py-2.5 px-4">Đại Lý Phụ Trách</th>
-                <th className="py-2.5 px-4">Gói CRM &amp; Hạn Mức</th>
-                <th className="py-2.5 px-4">Đơn Giá</th>
-                <th className="py-2.5 px-4">Chu Kỳ</th>
-                <th className="py-2.5 px-4">Trạng Thái</th>
+                <th className="py-2.5 px-4">Subscription ID</th>
+                <th className="py-2.5 px-4">Agency / Firm</th>
+                <th className="py-2.5 px-4">Principal Agent</th>
+                <th className="py-2.5 px-4">CRM Tier &amp; Limits</th>
+                <th className="py-2.5 px-4">Rate</th>
+                <th className="py-2.5 px-4">Cycle</th>
+                <th className="py-2.5 px-4">Status</th>
                 <th className="py-2.5 px-4">Sales Rep</th>
-                <th className="py-2.5 px-4 text-right">Hoa Hồng Sales</th>
-                <th className="py-2.5 px-4 text-center">Thao Tác</th>
+                <th className="py-2.5 px-4 text-right">Sales Commission</th>
+                <th className="py-2.5 px-4 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredSubscribers.length === 0 ? (
                 <tr>
                   <td colSpan="10" className="py-8 text-center text-slate-400 text-xs">
-                    Không tìm thấy hợp đồng nào phù hợp với bộ lọc tìm kiếm.
+                    No subscriptions matching your search criteria.
                   </td>
                 </tr>
               ) : (
@@ -694,7 +694,7 @@ export default function AdminCommissionTab({
                         <button
                           type="button"
                           onClick={() => handleToggleStatus(sub.id)}
-                          title="Bấm để đổi trạng thái"
+                          title="Click to toggle status"
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold transition cursor-pointer ${
                             (sub.status || '')?.toLowerCase().includes('active')
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
@@ -724,7 +724,7 @@ export default function AdminCommissionTab({
                               setSelectedChangePlan(sub.plan || 'Professional');
                             }}
                             className="p-1 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
-                            title="Đổi gói thuê bao"
+                            title="Change subscription plan"
                           >
                             <span className="material-symbols-outlined text-[16px]">edit_calendar</span>
                           </button>
@@ -732,7 +732,7 @@ export default function AdminCommissionTab({
                             type="button"
                             onClick={() => handleDeleteSubscriber(sub.id)}
                             className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                            title="Hủy hợp đồng"
+                            title="Cancel subscription"
                           >
                             <span className="material-symbols-outlined text-[16px]">delete</span>
                           </button>
@@ -757,8 +757,8 @@ export default function AdminCommissionTab({
                   <span className="material-symbols-outlined text-[20px]">add_circle</span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Thêm Hợp Đồng Thuê Bao Đại Lý</h3>
-                  <p className="text-[11px] text-slate-500">Kích hoạt gói CRM B2B cho agency đối tác</p>
+                  <h3 className="text-sm font-bold text-slate-900">Add Agency Subscription</h3>
+                  <p className="text-[11px] text-slate-500">Activate B2B CRM plan for partner agency</p>
                 </div>
               </div>
               <button
@@ -772,31 +772,31 @@ export default function AdminCommissionTab({
 
             <form onSubmit={handleAddSubscriberSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Tên Văn Phòng / Đại Lý (Agency Name) *</label>
+                <label className="block text-slate-700 font-bold mb-1">Agency / Firm Name *</label>
                 <input
                   type="text"
                   required
                   value={newAgencyName}
                   onChange={(e) => setNewAgencyName(e.target.value)}
-                  placeholder="Ví dụ: Golden State Health Agency"
+                  placeholder="e.g. Golden State Health Agency"
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Đại Lý Trưởng (Agent) *</label>
+                  <label className="block text-slate-700 font-bold mb-1">Principal Agent *</label>
                   <input
                     type="text"
                     required
                     value={newAgentName}
                     onChange={(e) => setNewAgentName(e.target.value)}
-                    placeholder="Nguyễn Văn A"
+                    placeholder="e.g. John Miller"
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Email Đại Lý</label>
+                  <label className="block text-slate-700 font-bold mb-1">Agent Email</label>
                   <input
                     type="email"
                     value={newAgentEmail}
@@ -809,7 +809,7 @@ export default function AdminCommissionTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Gói Cước CRM *</label>
+                  <label className="block text-slate-700 font-bold mb-1">CRM Plan Tier *</label>
                   <select
                     value={newPlan}
                     onChange={(e) => setNewPlan(e.target.value)}
@@ -821,21 +821,21 @@ export default function AdminCommissionTab({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Chu Kỳ Thanh Toán</label>
+                  <label className="block text-slate-700 font-bold mb-1">Billing Cycle</label>
                   <select
                     value={newBillingCycle}
                     onChange={(e) => setNewBillingCycle(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-blue-500 cursor-pointer"
                   >
-                    <option value="Monthly">Hàng tháng (Monthly)</option>
-                    <option value="Annual">Hàng năm (Annual - 15% off)</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Annual">Annual (15% Off)</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Sales Rep Giới Thiệu</label>
+                  <label className="block text-slate-700 font-bold mb-1">Referring Sales Rep</label>
                   <select
                     value={newSalesRep}
                     onChange={(e) => setNewSalesRep(e.target.value)}
@@ -843,12 +843,12 @@ export default function AdminCommissionTab({
                   >
                     <option value="David Pham">David Pham (12% com)</option>
                     <option value="Sarah Tran">Sarah Tran (12% com)</option>
-                    <option value="Direct / Founder">Direct / Khách vãng lai (0% com)</option>
+                    <option value="Direct / Founder">Direct / Inbound (0% com)</option>
                     <option value="Inbound Web">Inbound Web (0% com)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Phương Thức Thanh Toán</label>
+                  <label className="block text-slate-700 font-bold mb-1">Payment Method</label>
                   <input
                     type="text"
                     value={newPaymentMethod}
@@ -861,13 +861,13 @@ export default function AdminCommissionTab({
 
               <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] space-y-1">
                 <div className="flex justify-between font-bold">
-                  <span>Khoản ghi nhận MRR:</span>
+                  <span>Recorded MRR:</span>
                   <span className="font-mono">
-                    ${newPlan === 'Starter' ? '39' : newPlan === 'Professional' ? '79' : '199'}/tháng
+                    ${newPlan === 'Starter' ? '39' : newPlan === 'Professional' ? '79' : '199'}/mo
                   </span>
                 </div>
                 <div className="flex justify-between text-amber-800 font-semibold">
-                  <span>Hoa hồng chi trả Sales Rep:</span>
+                  <span>Sales Rep Commission:</span>
                   <span className="font-mono">
                     ${newPlan === 'Starter' ? '3.90' : newPlan === 'Professional' ? '9.48' : '29.85'}
                   </span>
@@ -880,13 +880,13 @@ export default function AdminCommissionTab({
                   onClick={() => setIsAddModalOpen(false)}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
                 >
-                  Hủy bỏ
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-bold cursor-pointer shadow-xs"
                 >
-                  Kích hoạt hợp đồng
+                  Activate Subscription
                 </button>
               </div>
             </form>
@@ -901,7 +901,7 @@ export default function AdminCommissionTab({
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600 text-[20px]">edit_calendar</span>
-                <span>Thay Đổi Gói Thuê Bao</span>
+                <span>Change Subscription Plan</span>
               </h3>
               <button
                 type="button"
@@ -914,11 +914,11 @@ export default function AdminCommissionTab({
 
             <div className="space-y-3 text-xs">
               <p className="text-slate-600">
-                Chuyển đổi gói dịch vụ cho: <strong>{changePlanSub.agencyName}</strong> ({changePlanSub.agentName})
+                Change subscription tier for: <strong>{changePlanSub.agencyName}</strong> ({changePlanSub.agentName})
               </p>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Chọn gói mới:</label>
+                <label className="block text-slate-700 font-bold mb-1">Select new tier:</label>
                 <select
                   value={selectedChangePlan}
                   onChange={(e) => setSelectedChangePlan(e.target.value)}
@@ -931,9 +931,9 @@ export default function AdminCommissionTab({
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] space-y-1">
-                <div className="text-slate-500">Gói hiện tại: <span className="font-bold text-slate-800">{changePlanSub.plan} (${changePlanSub.price}/mo)</span></div>
+                <div className="text-slate-500">Current plan: <span className="font-bold text-slate-800">{changePlanSub.plan} (${changePlanSub.price}/mo)</span></div>
                 <div className="text-blue-700 font-bold">
-                  Gói mới: {selectedChangePlan} ({selectedChangePlan === 'Starter' ? '$39' : selectedChangePlan === 'Professional' ? '$79' : '$199'}/mo)
+                  New plan: {selectedChangePlan} ({selectedChangePlan === 'Starter' ? '$39' : selectedChangePlan === 'Professional' ? '$79' : '$199'}/mo)
                 </div>
               </div>
 
@@ -943,14 +943,14 @@ export default function AdminCommissionTab({
                   onClick={() => setChangePlanSub(null)}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleSavePlanChange}
                   className="px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-bold cursor-pointer"
                 >
-                  Lưu thay đổi
+                  Save Changes
                 </button>
               </div>
             </div>

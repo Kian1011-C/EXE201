@@ -190,7 +190,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       howDoYouKnowUs: howDoYouKnowUs || '',
       whoReferClient: whoReferClient || '',
       teleSaleTeam: teleSaleTeam || '',
-      acaAccountStatus: '', // Trống ban đầu theo quy trình
+      acaAccountStatus: '', // Empty initially
       status: 'Active',
       isNew: true,
       lastModifiedBy: {
@@ -242,8 +242,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         acaAccountStatus: '',
         status: '',
       },
-      associatedDeals: [], // Trống ban đầu khi mới tạo contact
-      associatedTickets: [], // Trống ban đầu
+      associatedDeals: [], // Empty initially
+      associatedTickets: [], // Empty initially
       associatedDocuments: [],
       customerDocuments: [],
       customerDocument: null,
@@ -260,7 +260,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     getPropertyHistory('contact', newCode, newRecord, currentActor);
 
     setContactsList((prev) => [newRecord, ...prev]);
-    showToast(`Đã tạo liên hệ mới: ${fullName}`);
+    showToast(`Created new contact: ${fullName}`);
 
     // Call API to persist contact (without auto-creating deal)
     try {
@@ -374,10 +374,10 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         <div className="bg-blue-50 border border-blue-200/90 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
           <div className="flex items-center gap-2 text-blue-900 font-semibold">
             <span className="material-symbols-outlined text-[18px] text-blue-600">badge</span>
-            <span>Chế độ Agent: Chỉ hiển thị các Contact được phân công cho <strong>{effectiveAgent.name}</strong></span>
+            <span>Agent Mode: Only displaying contacts assigned to <strong>{effectiveAgent.name}</strong></span>
           </div>
           <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">
-            {filteredContacts.length} hồ sơ phụ trách
+            {filteredContacts.length} assigned contacts
           </span>
         </div>
       )}
@@ -462,7 +462,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
             className="text-xs text-blue-600 hover:underline font-medium flex items-center gap-1 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[15px]">sync</span>
-            <span>Làm mới ({contactsList.length} liên hệ)</span>
+            <span>Refresh ({contactsList.length} contacts)</span>
           </button>
         </div>
       </div>
@@ -520,7 +520,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                       </div>
                       <div className="text-sm font-bold text-slate-800">No data here!</div>
                       <div className="text-xs text-slate-500">
-                        There is no data to show right now. Danh sách hiện đang trống.
+                        There is no data to show right now. The list is currently empty.
                       </div>
                       <div className="flex items-center gap-2.5 mt-2">
                         <button
@@ -677,8 +677,8 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
             <span className="material-symbols-outlined text-[16px] text-blue-500">touch_app</span>
             <span>
               {contactsList.length > 0
-                ? 'Nhấp vào bất kỳ khách hàng nào để xem Contact Detail (Ảnh 2) và Deal Detail (Ảnh 3).'
-                : 'Dữ liệu hiện đang để trống. Nhấp vào "+ Create" hoặc "Tải dữ liệu mẫu" để kiểm tra.'}
+                ? 'Click any contact to view Contact Details and Deal Details.'
+                : 'Data is currently empty. Click "+ Create" or "Load Sample Data" to test.'}
             </span>
           </div>
           <div>{contactsList.length} records</div>
@@ -909,7 +909,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                     onChange={(e) => setContactOwner(e.target.value)}
                     className="w-full appearance-none pl-3 pr-8 py-2 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                   >
-                    <option value="">-- Chọn Contact Owner --</option>
+                    <option value="">-- Select Contact Owner --</option>
                     {agentAccounts?.map((a) => (
                       <option key={a.id || a.name} value={a.name}>
                         {a.name} {a.npn ? `(#${a.npn})` : ''}

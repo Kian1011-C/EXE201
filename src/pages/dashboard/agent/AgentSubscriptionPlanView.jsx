@@ -75,7 +75,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
 
       const targetPlanInfo = SAAS_PLANS[selectedPlanForCheckout] || SAAS_PLANS.professional;
       toast.success(
-        `Chúc mừng! Bạn đã kích hoạt thành công ${targetPlanInfo.displayName} (${billingCycle === 'Annual' ? 'Thanh toán năm' : 'Thanh toán tháng'})!`,
+        `Congratulations! You have successfully activated ${targetPlanInfo.displayName} (${billingCycle === 'Annual' ? 'Annual Billing' : 'Monthly Billing'})!`,
         { duration: 4000 }
       );
     }, 1000);
@@ -92,10 +92,10 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
             </span>
             <div>
               <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-                Gói Thuê Bao CRM &amp; Quản Lý Dịch Vụ
+                CRM Subscription Plans &amp; Resource Management
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Xem thông tin gói cước hiện tại, nâng cấp tài nguyên đại lý và tra cứu lịch sử hóa đơn B2B
+                View active plan details, upgrade agency capacity, and inspect B2B invoicing history
               </p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            Đang hoạt động: {subscription?.plan || 'Professional'} Plan
+            Active Tier: {subscription?.plan || 'Professional'} Plan
           </span>
         </div>
       </div>
@@ -119,11 +119,11 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-400/30">
-                Gói Hiện Tại Của Bạn
+                Your Current Subscription
               </span>
               <span className="flex items-center gap-1 text-xs text-emerald-400 font-semibold">
                 <span className="material-symbols-outlined text-[16px]">verified</span>
-                Kích hoạt hợp lệ
+                Active & Verified
               </span>
             </div>
 
@@ -133,14 +133,14 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                 <span className="text-lg font-normal text-slate-400">({subscription?.plan} Tier)</span>
               </h2>
               <p className="text-slate-300 text-xs sm:text-sm mt-1">
-                Đại lý phụ trách: <strong className="text-white">{subscription?.agentName}</strong> • Chu kỳ: <span className="font-semibold text-blue-300">{subscription?.billingCycle === 'Annual' ? 'Thanh toán theo năm' : 'Thanh toán hàng tháng'}</span>
+                Licensed Agent: <strong className="text-white">{subscription?.agentName}</strong> • Cycle: <span className="font-semibold text-blue-300">{subscription?.billingCycle === 'Annual' ? 'Billed Annually' : 'Billed Monthly'}</span>
               </p>
             </div>
 
             {/* Quick Metrics Bar */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
               <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
-                <span className="text-[11px] text-slate-400 block font-medium">Hạn mức tài khoản (Seats)</span>
+                <span className="text-[11px] text-slate-400 block font-medium">Account Seats</span>
                 <span className="text-lg font-bold text-white mt-0.5 block">
                   {subscription?.seatsUsed || 1} / {subscription?.maxSeats || 3} <span className="text-xs font-normal text-slate-400">seats</span>
                 </span>
@@ -153,7 +153,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
               </div>
 
               <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
-                <span className="text-[11px] text-slate-400 block font-medium">Hồ sơ khách hàng (Contacts)</span>
+                <span className="text-[11px] text-slate-400 block font-medium">Customer Contacts</span>
                 <span className="text-lg font-bold text-white mt-0.5 block">
                   {subscription?.contactsCount || 142} / {subscription?.maxContacts === 999999 ? '∞' : (subscription?.maxContacts || 2500)}
                 </span>
@@ -166,7 +166,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
               </div>
 
               <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs col-span-2 sm:col-span-1">
-                <span className="text-[11px] text-slate-400 block font-medium">Gia hạn kế tiếp</span>
+                <span className="text-[11px] text-slate-400 block font-medium">Next Renewal</span>
                 <span className="text-sm font-bold text-white mt-1 block font-mono">
                   {subscription?.nextRenewalDate || '2026-10-15'}
                 </span>
@@ -179,13 +179,13 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
 
           {/* Pricing & Upgrade CTA */}
           <div className="lg:border-l lg:border-white/10 lg:pl-8 flex flex-col justify-center items-start lg:items-end text-left lg:text-right shrink-0">
-            <span className="text-xs text-slate-400 font-medium">Chi phí thuê bao</span>
+            <span className="text-xs text-slate-400 font-medium">Subscription Fee</span>
             <div className="text-3xl sm:text-4xl font-black text-white mt-1">
               ${subscription?.price || 79}
-              <span className="text-sm font-normal text-slate-400">/tháng</span>
+              <span className="text-sm font-normal text-slate-400">/mo</span>
             </div>
             <p className="text-[11px] text-slate-400 mt-1 max-w-[220px]">
-              Tự động gia hạn theo điều khoản B2B SaaS của InsurMatch.
+              Auto-renews per InsurMatch B2B SaaS Terms of Service.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -197,7 +197,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md transition cursor-pointer flex items-center gap-1.5"
               >
                 <span className="material-symbols-outlined text-[16px]">upgrade</span>
-                <span>{currentPlanKey === 'agency' ? 'Đổi cấu hình gói' : 'Nâng cấp lên Agency'}</span>
+                <span>{currentPlanKey === 'agency' ? 'Modify Tier' : 'Upgrade to Agency'}</span>
               </button>
             </div>
           </div>
@@ -208,10 +208,10 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
       <div className="space-y-6">
         <div className="text-center max-w-xl mx-auto space-y-2">
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Chọn Gói Thuê Bao Phù Hợp Cho Doanh Nghiệp Bạn
+            Select the Right Subscription for Your Agency
           </h2>
           <p className="text-xs text-slate-500">
-            Hạ tầng CRM chuyên biệt cho ngành Bảo hiểm Sức khỏe (ACA/Marketplace) &amp; Medicare tại Hoa Kỳ.
+            Specialized CRM infrastructure for US ACA/Marketplace &amp; Medicare agencies.
           </p>
 
           {/* Monthly / Annual Toggle */}
@@ -225,7 +225,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Thanh toán Hàng tháng
+              Billed Monthly
             </button>
             <button
               type="button"
@@ -236,9 +236,9 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>Thanh toán Hàng năm</span>
+              <span>Billed Annually</span>
               <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-amber-400 text-slate-950">
-                -15% Tiết kiệm
+                Save 15%
               </span>
             </button>
           </div>
@@ -264,12 +264,12 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                 {/* Ribbon Tag */}
                 {plan.recommended && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs">
-                    ★ Gói Phổ Biến Nhất
+                    ★ Most Popular
                   </div>
                 )}
                 {isCurrent && !plan.recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white shadow-2xs">
-                    ✓ Đang sử dụng
+                    ✓ Currently Active
                   </div>
                 )}
 
@@ -283,13 +283,13 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
 
                   <div className="mt-4 flex items-baseline gap-1">
                     <span className="text-4xl font-black text-slate-900">${displayPrice}</span>
-                    <span className="text-xs text-slate-500 font-medium">/tháng</span>
+                    <span className="text-xs text-slate-500 font-medium">/mo</span>
                   </div>
 
                   <p className="text-[11px] text-slate-500 mt-1">
                     {billingCycle === 'Annual'
-                      ? `Thanh toán $${plan.annualPrice}/năm (tiết kiệm ${(plan.monthlyPrice * 12) - plan.annualPrice}$)`
-                      : 'Thanh toán định kỳ hàng tháng, linh hoạt hủy bất kỳ lúc nào.'}
+                      ? `Billed $${plan.annualPrice}/yr (Save $${(plan.monthlyPrice * 12) - plan.annualPrice})`
+                      : 'Billed monthly with flexible cancellation anytime.'}
                   </p>
 
                   <div className="border-t border-slate-100 my-5" />
@@ -315,7 +315,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                       className="w-full py-2.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default flex items-center justify-center gap-1.5"
                     >
                       <span className="material-symbols-outlined text-[16px]">done</span>
-                      <span>Gói Đang Hoạt Động</span>
+                      <span>Active Plan</span>
                     </button>
                   ) : (
                     <button
@@ -330,10 +330,10 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                       <span className="material-symbols-outlined text-[16px]">shopping_cart</span>
                       <span>
                         {key === 'agency'
-                          ? 'Nâng cấp lên Agency'
+                          ? 'Upgrade to Agency'
                           : key === 'professional'
-                          ? 'Chọn gói Professional'
-                          : 'Chọn gói Starter'}
+                          ? 'Select Professional'
+                          : 'Select Starter'}
                       </span>
                     </button>
                   )}
@@ -349,19 +349,19 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
         <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-              Lịch Sử Thanh Toán &amp; Hóa Đơn Thuê Bao
+              Payment History &amp; B2B Invoices
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Hóa đơn dịch vụ B2B SaaS được xuất tự động sau mỗi chu kỳ thanh toán
+              B2B SaaS invoices generated automatically at each billing cycle
             </p>
           </div>
           <button
             type="button"
-            onClick={() => toast.success('Đã gửi toàn bộ bản sao kê hóa đơn vào email của bạn!')}
+            onClick={() => toast.success('All invoice statements sent to your email!')}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px] text-slate-500">mail</span>
-            <span>Gửi hóa đơn qua Email</span>
+            <span>Email Invoices</span>
           </button>
         </div>
 
@@ -369,14 +369,14 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase text-[10px] tracking-wider">
-                <th className="py-3 px-4">Mã hóa đơn</th>
-                <th className="py-3 px-4">Ngày thanh toán</th>
-                <th className="py-3 px-4">Gói dịch vụ</th>
-                <th className="py-3 px-4">Chu kỳ</th>
-                <th className="py-3 px-4 text-right">Số tiền</th>
-                <th className="py-3 px-4">Phương thức</th>
-                <th className="py-3 px-4 text-center">Trạng thái</th>
-                <th className="py-3 px-4 text-center">Biên lai</th>
+                <th className="py-3 px-4">Invoice ID</th>
+                <th className="py-3 px-4">Date</th>
+                <th className="py-3 px-4">Plan Tier</th>
+                <th className="py-3 px-4">Cycle</th>
+                <th className="py-3 px-4 text-right">Amount</th>
+                <th className="py-3 px-4">Method</th>
+                <th className="py-3 px-4 text-center">Status</th>
+                <th className="py-3 px-4 text-center">Receipt</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -396,13 +396,13 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                   <td className="py-3 px-4 text-slate-600 font-mono text-[11px]">{inv.paymentMethod}</td>
                   <td className="py-3 px-4 text-center">
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Đã thanh toán
+                      Paid
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center">
                     <button
                       type="button"
-                      onClick={() => toast(`Đang tải hóa đơn ${inv.invoiceId}...`, { icon: '📄' })}
+                      onClick={() => toast(`Downloading invoice ${inv.invoiceId}...`, { icon: '📄' })}
                       className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[15px]">download</span>
@@ -426,7 +426,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                   <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
                 </span>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Xác Nhận Đăng Ký Gói Cước</h3>
+                  <h3 className="text-base font-bold text-slate-900">Confirm Subscription Upgrade</h3>
                   <p className="text-xs text-slate-500">InsurMatch B2B CRM Platform</p>
                 </div>
               </div>
@@ -444,13 +444,13 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
               <div className="p-4 rounded-xl bg-blue-50/80 border border-blue-200/80 flex items-center justify-between">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-blue-800 block">
-                    Gói dịch vụ lựa chọn
+                    Selected Plan Tier
                   </span>
                   <span className="text-base font-black text-blue-950 mt-0.5 block">
                     {SAAS_PLANS[selectedPlanForCheckout]?.displayName}
                   </span>
                   <span className="text-xs text-blue-700">
-                    Chu kỳ: {billingCycle === 'Annual' ? 'Hàng năm (15% Off)' : 'Hàng tháng'}
+                    Cycle: {billingCycle === 'Annual' ? 'Annual (15% Off)' : 'Monthly'}
                   </span>
                 </div>
                 <div className="text-right">
@@ -461,14 +461,14 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                       : SAAS_PLANS[selectedPlanForCheckout]?.monthlyPrice}
                   </span>
                   <span className="text-[10px] text-blue-700 block">
-                    {billingCycle === 'Annual' ? '/năm' : '/tháng'}
+                    {billingCycle === 'Annual' ? '/yr' : '/mo'}
                   </span>
                 </div>
               </div>
 
               {/* Payment Method Selector */}
               <div>
-                <label className="block font-bold text-slate-800 mb-2">Chọn phương thức thanh toán:</label>
+                <label className="block font-bold text-slate-800 mb-2">Select payment method:</label>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
@@ -480,7 +480,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                     }`}
                   >
                     <span className="material-symbols-outlined text-[20px] block mx-auto mb-1 text-blue-600">credit_card</span>
-                    <span>Thẻ Visa / Master</span>
+                    <span>Credit / Debit Card</span>
                   </button>
 
                   <button
@@ -493,7 +493,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                     }`}
                   >
                     <span className="material-symbols-outlined text-[20px] block mx-auto mb-1 text-emerald-600">qr_code_2</span>
-                    <span>Quét mã VietQR</span>
+                    <span>ACH / Bank Transfer</span>
                   </button>
 
                   <button
@@ -515,7 +515,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
               {paymentMethodType === 'card' && (
                 <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                   <div>
-                    <label className="block text-slate-600 font-medium mb-1">Số thẻ thanh toán</label>
+                    <label className="block text-slate-600 font-medium mb-1">Card Number</label>
                     <input
                       type="text"
                       required
@@ -528,7 +528,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-slate-600 font-medium mb-1">Ngày hết hạn (MM/YY)</label>
+                      <label className="block text-slate-600 font-medium mb-1">Expiration Date (MM/YY)</label>
                       <input
                         type="text"
                         required
@@ -553,7 +553,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                   </div>
 
                   <div>
-                    <label className="block text-slate-600 font-medium mb-1">Tên chủ thẻ</label>
+                    <label className="block text-slate-600 font-medium mb-1">Cardholder Name</label>
                     <input
                       type="text"
                       required
@@ -576,10 +576,10 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                     />
                   </div>
                   <p className="text-[11px] text-slate-600">
-                    Ngân hàng: <strong>Techcombank</strong> • STK: <strong>1903829102919</strong>
+                    Bank: <strong>JPMorgan Chase US</strong> • Routing: <strong>111000614</strong>
                   </p>
                   <p className="text-[10px] text-slate-400">
-                    Nội dung: <code>INSMATCH SUB {selectedPlanForCheckout.toUpperCase()}</code>
+                    Memo / Reference: <code>INSMATCH SUB {selectedPlanForCheckout.toUpperCase()}</code>
                   </p>
                 </div>
               )}
@@ -588,7 +588,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                 <div className="bg-indigo-50/60 p-4 rounded-xl border border-indigo-200 text-slate-700 text-xs flex items-center gap-3">
                   <span className="material-symbols-outlined text-indigo-600 text-[24px]">lock</span>
                   <p>
-                    Bạn sẽ được chuyển hướng an toàn sang cổng thanh toán quốc tế Stripe 3D-Secure để xác thực giao dịch.
+                    Securely processed via Stripe 3D-Secure payment infrastructure for enterprise compliance.
                   </p>
                 </div>
               )}
@@ -600,7 +600,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                   onClick={() => setCheckoutModalOpen(false)}
                   className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold cursor-pointer transition"
                 >
-                  Hủy bỏ
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -610,12 +610,12 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                   {isProcessing ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Đang xử lý kích hoạt...</span>
+                      <span>Processing activation...</span>
                     </>
                   ) : (
                     <>
                       <span className="material-symbols-outlined text-[16px]">verified</span>
-                      <span>Xác Nhận &amp; Kích Hoạt Gói</span>
+                      <span>Confirm &amp; Activate Plan</span>
                     </>
                   )}
                 </button>

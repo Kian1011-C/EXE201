@@ -59,7 +59,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
         agentPayoutRate: 100,
         agentNetMonthly: gross,
         agentAnnualProjected: gross * 12,
-        formula: `15% × $${customPremium} Premium → Agent nhận 100% = $${gross.toFixed(2)}/tháng`,
+        formula: `15% × $${customPremium} Premium → Agent receives 100% = $${gross.toFixed(2)}/mo`,
       };
     } else {
       dealComm = calculateCarrierDealCommission(carrier, membersCount);
@@ -76,7 +76,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
       supportFeeAmount: 0.0,
       deductionPercent: 0.0, // 0% deduction, NO 7/3
       agentSharePercent: 100, // 100%
-      ruleCitation: 'Chính sách mới: Agent nhận 100% hoa hồng trực tiếp từ hãng (0% chiết khấu sàn/support). InsurMatch chỉ thu phí gói phần mềm CRM.',
+      ruleCitation: 'Direct Carrier Payout: Agent receives 100% of carrier commission directly (0% platform split). InsurMatch only charges SaaS CRM subscription.',
     };
   }, [carrier, membersCount, pipeline, customPremium]);
 
@@ -91,14 +91,14 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold tracking-tight">
-                Bộ Tính Hoa Hồng 1 Deal Theo Hãng Bảo Hiểm
+                Carrier Commission Deal Calculator
               </h2>
               <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500 text-slate-950 uppercase">
                 100% Agent Payout
               </span>
             </div>
             <p className="text-xs text-slate-300 mt-0.5">
-              Tự động tính chi trả mỗi tháng của từng hãng • Đại lý nhận trọn 100% (Không áp dụng phân chia 7/3)
+              Calculate monthly carrier payouts • Agent receives 100% direct deposit (No platform revenue split)
             </p>
           </div>
         </div>
@@ -116,7 +116,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
       {/* ── Quick Presets Bar ────────────────────────────────────────────── */}
       <div className="bg-slate-100/90 border-b border-slate-200 px-5 py-2.5 flex items-center gap-2 overflow-x-auto text-xs">
         <span className="font-bold text-slate-500 text-[11px] shrink-0 uppercase tracking-wide">
-          Chọn nhanh mẫu deal:
+          Quick Deal Presets:
         </span>
         <button
           type="button"
@@ -127,7 +127,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
               : 'bg-white hover:bg-blue-50 text-slate-700 border border-slate-200'
           }`}
         >
-          BCBS (1 người - $30/mo)
+          BCBS (Individual - $30/mo)
         </button>
         <button
           type="button"
@@ -138,7 +138,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
               : 'bg-white hover:bg-blue-50 text-slate-700 border border-slate-200'
           }`}
         >
-          Ambetter (Gia đình 4 người - $128/mo)
+          Ambetter (Family of 4 - $128/mo)
         </button>
         <button
           type="button"
@@ -149,7 +149,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
               : 'bg-white hover:bg-blue-50 text-slate-700 border border-slate-200'
           }`}
         >
-          Blue Shield CA (2 người - $70/mo)
+          Blue Shield CA (Couple - $70/mo)
         </button>
         <button
           type="button"
@@ -160,7 +160,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
               : 'bg-white hover:bg-blue-50 text-slate-700 border border-slate-200'
           }`}
         >
-          UHC (2 người - $60/mo)
+          UHC (Couple - $60/mo)
         </button>
         <button
           type="button"
@@ -182,7 +182,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
           {/* 1. Chọn Hãng Bảo Hiểm */}
           <div>
             <label className="block text-xs font-bold text-slate-800 mb-1.5 uppercase tracking-wider">
-              1. Chọn Hãng Bảo Hiểm (Carrier) &amp; Biểu Phí Hãng Trả
+              1. Select Insurance Carrier &amp; Rate Schedule
             </label>
             <select
               value={carrier}
@@ -191,18 +191,18 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
             >
               {ALL_CARRIERS?.map((cName) => {
                 const meta = CARRIER_COMMISSION_RATES[cName] || { pmpm: 30.0, rateType: 'PMPM' };
-                const rateText = meta.rateType === 'CMS Monthly' ? '$51.00/tháng (CMS)' : `$${meta.pmpm.toFixed(2)} PMPM`;
+                const rateText = meta.rateType === 'CMS Monthly' ? '$51.00/mo (CMS)' : `$${meta.pmpm.toFixed(2)} PMPM`;
                 return (
                   <option key={cName} value={cName}>
-                    {cName} • Mức trả: {rateText}
+                    {cName} • Payout: {rateText}
                   </option>
                 );
               })}
             </select>
             <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-500">
-              <span>Hãng đã chọn: <strong className="text-blue-700">{calculation.carrierName}</strong></span>
+              <span>Selected Carrier: <strong className="text-blue-700">{calculation.carrierName}</strong></span>
               <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                Định mức: ${calculation.pmpmRate.toFixed(2)} {calculation.rateType === 'CMS Monthly' ? '/tháng' : 'PMPM'}
+                Schedule: ${calculation.pmpmRate.toFixed(2)} {calculation.rateType === 'CMS Monthly' ? '/mo' : 'PMPM'}
               </span>
             </div>
           </div>
@@ -210,7 +210,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
           {/* 2. Dòng sản phẩm */}
           <div>
             <label className="block text-xs font-bold text-slate-800 mb-1.5 uppercase tracking-wider">
-              2. Dòng Sản Phẩm Bảo Hiểm (Product Line)
+              2. Insurance Product Line
             </label>
             <div className="grid grid-cols-3 gap-2 text-xs">
               <button
@@ -241,7 +241,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
               >
                 Medicare Initial
                 <span className="block text-[10px] text-slate-400 font-normal mt-0.5">
-                  $51/tháng ($612 CMS)
+                  $51/mo ($612 CMS)
                 </span>
               </button>
               <button
@@ -264,10 +264,10 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-                  3. Số Thành Viên Trong Hợp Đồng (Deal Members)
+                  3. Enrolled Members in Deal
                 </label>
                 <span className="font-mono font-bold text-blue-700 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200">
-                  {membersCount} thành viên
+                  {membersCount} members
                 </span>
               </div>
               <input
@@ -279,10 +279,10 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
                 className="w-full accent-blue-600 cursor-pointer h-2"
               />
               <div className="flex justify-between text-[10px] text-slate-400 font-medium">
-                <span>1 người (Cá nhân)</span>
-                <span>2 người (Vợ chồng)</span>
-                <span>4 người (Gia đình chuẩn)</span>
-                <span>6+ người</span>
+                <span>1 (Individual)</span>
+                <span>2 (Couple)</span>
+                <span>4 (Family)</span>
+                <span>6+ Members</span>
               </div>
             </div>
           )}
@@ -290,7 +290,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
           {pipeline === 'Presidio' && (
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
-                Phí bảo hiểm hàng tháng ($ Premium)
+                Monthly Premium Amount ($)
               </label>
               <input
                 type="number"
@@ -305,10 +305,10 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
           <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/80 space-y-1">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-emerald-600 text-[18px]">verified</span>
-              <span className="text-xs font-bold text-emerald-950">Chính Sách 100% Hoa Hồng - Không Cắt Phế</span>
+              <span className="text-xs font-bold text-emerald-950">100% Direct Payout Policy — Zero Platform Deductions</span>
             </div>
             <p className="text-[11px] text-emerald-800 leading-relaxed">
-              Theo quy định mới, đại lý hưởng <strong>100%</strong> toàn bộ số tiền hãng bảo hiểm chi trả cho mỗi deal (<strong>0% phí khấu trừ sàn 7/3</strong>). Tiền hoa hồng được hãng chuyển khoản trực tiếp (Direct Deposit) về tài khoản của bạn.
+              Under our B2B SaaS model, agents keep <strong>100%</strong> of carrier payouts per deal (<strong>0% platform commission split</strong>). Commissions are disbursed directly via ACH Direct Deposit from carriers to your account.
             </p>
           </div>
         </div>
@@ -320,23 +320,23 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
               <div className="flex items-center justify-between text-xs mb-2">
                 <span className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-                  Tỷ Lệ Đại Lý Hưởng
+                  Agent Retention Rate
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-300">
-                  100% TOÀN BỘ
+                  100% FULL PAYOUT
                 </span>
               </div>
 
               {/* Deduction Indicator: 100% Agent, 0% Company */}
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs font-semibold text-slate-700">
-                  <span>Phần đại lý giữ:</span>
-                  <span className="text-emerald-600 font-bold font-mono">100% ($0 khấu trừ)</span>
+                  <span>Agent Retention:</span>
+                  <span className="text-emerald-600 font-bold font-mono">100% ($0 Deductions)</span>
                 </div>
                 <div className="w-full h-2 bg-emerald-500 rounded-full" />
                 <div className="flex justify-between text-[10px] text-slate-400 font-medium">
-                  <span>Đại lý: 100%</span>
-                  <span>Phí sàn / Support: 0%</span>
+                  <span>Agent: 100%</span>
+                  <span>Platform Fee: 0%</span>
                 </div>
               </div>
             </div>
@@ -344,26 +344,26 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
             {/* Payout Numbers Breakdown */}
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
               <div className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-2 flex justify-between">
-                <span>Thu Nhập Cho 1 Deal Này</span>
+                <span>Projected Payout for this Deal</span>
                 <span className="text-[10px] text-blue-600 font-bold">{carrier}</span>
               </div>
 
               <div className="space-y-2.5 text-xs">
                 <div className="flex justify-between text-slate-600">
-                  <span>Hãng ({carrier}) chi trả / tháng:</span>
+                  <span>Carrier ({carrier}) Monthly Payout:</span>
                   <span className="font-mono font-bold text-slate-900">
-                    ${calculation.grossMonthly.toFixed(2)}/tháng
+                    ${calculation.grossMonthly.toFixed(2)}/mo
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-400 font-mono -mt-1">{calculation.formula}</div>
 
                 <div className="flex justify-between text-slate-500">
-                  <span>Khấu trừ phí sàn (0%):</span>
+                  <span>Platform Deductions (0%):</span>
                   <span className="font-mono font-semibold text-emerald-600">$0.00</span>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 flex justify-between items-baseline">
-                  <span className="font-bold text-slate-900 text-sm">Agent Thực Nhận / Tháng:</span>
+                  <span className="font-bold text-slate-900 text-sm">Net Agent Monthly Earnings:</span>
                   <span className="font-mono font-black text-2xl text-blue-700">
                     ${calculation.netMonthly.toFixed(2)}
                     <span className="text-xs text-slate-500 font-normal"> / mo</span>
@@ -371,9 +371,9 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
                 </div>
 
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-xl border border-blue-100 flex items-center justify-between text-xs">
-                  <span className="text-blue-900 font-bold">Thu Nhập 1 Năm (12 tháng):</span>
+                  <span className="text-blue-900 font-bold">Annual Net Earnings (12 mos):</span>
                   <span className="font-mono font-black text-blue-950 text-base">
-                    ${calculation.netAnnual.toLocaleString('en-US', { minimumFractionDigits: 2 })} / năm
+                    ${calculation.netAnnual.toLocaleString('en-US', { minimumFractionDigits: 2 })} / yr
                   </span>
                 </div>
               </div>
@@ -383,10 +383,10 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
             <div className="p-3 bg-slate-100/70 rounded-xl border border-slate-200/80 text-[11px] space-y-1 text-slate-600">
               <div className="flex items-center gap-1.5 font-bold text-slate-800">
                 <span className="material-symbols-outlined text-[15px] text-blue-600">info</span>
-                <span>Quy chuẩn thanh toán:</span>
+                <span>Payment Schedule:</span>
               </div>
               <p className="text-[10px] text-slate-500 leading-relaxed">
-                Hãng chi trả vào ngày 15 hàng tháng qua ACH Direct Deposit trực tiếp vào tài khoản ngân hàng của đại lý theo NPN #1984210.
+                Carriers disburse on the 15th of each month via ACH Direct Deposit directly to the agent's account per NPN credentials.
               </p>
             </div>
           </div>
@@ -405,7 +405,7 @@ if (pipeline === 'Medicare' || carrier?.toLowerCase().includes('humana')) {
               className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">check</span>
-              <span>Áp dụng mức hoa hồng này</span>
+              <span>Apply Commission Rate</span>
             </button>
           </div>
         </div>

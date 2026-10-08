@@ -15,12 +15,12 @@ export default function QuotePage({ onOpenQuote }) {
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-navy-deep transition"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Quay lại Trang Chủ</span>
+            <span>Back to Home</span>
           </Link>
 
           <div className="flex items-center gap-2 text-xs font-bold text-blue-900 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
             <Shield className="w-3.5 h-3.5 text-blue-600" />
-            <span>Cổng Kết Nối Độc Lập — 100% Bảo Mật Thông Tin &amp; Miễn Phí Tư Vấn</span>
+            <span>Independent Matchmaking Portal — 100% Private &amp; Free Guidance</span>
           </div>
         </div>
 

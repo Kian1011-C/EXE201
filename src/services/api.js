@@ -688,7 +688,7 @@ export async function createDocument(docData) {
   const contactId = extractDbId(rawContactId, 'contact') || rawContactId;
   const query = contactId ? `?contactId=${encodeURIComponent(contactId)}` : '';
   const payload = {
-    name: docData.name || 'Hồ sơ tài liệu',
+    name: docData.name || 'Customer Document',
     contactOwner: typeof docData.contactOwner === 'object' ? (docData.contactOwner?.name || '') : (docData.contactOwner || ''),
     lastModifiedBy: typeof docData.lastModifiedBy === 'object' ? (docData.lastModifiedBy?.name || '') : (docData.lastModifiedBy || 'Staff'),
     initials: docData.initials || 'TL',
@@ -1436,20 +1436,20 @@ export async function submitMatchmakingInquiry(inquiry) {
   const isAnon = Boolean(inquiry.isAnonymous);
 
   const contactName = isAnon
-    ? `Khách Ẩn Danh (${state} - ${zipCode})`
-    : (inquiry.fullName || [inquiry.firstName, inquiry.lastName].filter(Boolean).join(' ') || 'Khách Hàng Mới');
+    ? `Anonymous Client (${state} - ${zipCode})`
+    : (inquiry.fullName || [inquiry.firstName, inquiry.lastName].filter(Boolean).join(' ') || 'New Client Lead');
 
   // 1. Submit quote to backend
   try {
     await submitQuote({
-      firstName: isAnon ? 'Khách' : (inquiry.firstName || contactName.split(' ')[0] || 'Khách'),
-      lastName: isAnon ? `Ẩn Danh (${state})` : (inquiry.lastName || contactName.split(' ').slice(1).join(' ') || 'Hàng'),
+      firstName: isAnon ? 'Anonymous' : (inquiry.firstName || contactName.split(' ')[0] || 'Client'),
+      lastName: isAnon ? `Client (${state})` : (inquiry.lastName || contactName.split(' ').slice(1).join(' ') || 'Lead'),
       phone: inquiry.phone || '—',
       email: inquiry.email || '—',
       state,
       zipCode,
-      language: inquiry.language || 'Tiếng Việt & English',
-      howDoYouKnowUs: `Matchmaking Portal - ${inquiry.coverageType || 'ACA'} - Đại lý: ${chosenAgent}`,
+      language: inquiry.language || 'English & Vietnamese',
+      howDoYouKnowUs: `Matchmaking Portal - ${inquiry.coverageType || 'ACA'} - Agent: ${chosenAgent}`,
     });
   } catch (err) {
     console.warn('[CRM API] submitQuote non-blocking warning:', err?.message);
@@ -1467,18 +1467,18 @@ export async function submitMatchmakingInquiry(inquiry) {
     name: contactName,
     phone: inquiry.phone || '—',
     email: inquiry.email || '—',
-    language: inquiry.language || 'Tiếng Việt & English',
+    language: inquiry.language || 'English & Vietnamese',
     state,
     zipCode,
     status: 'Active',
     contactOwner: chosenAgent,
     contactOwnerName: chosenAgent,
-    howDoYouKnowUs: `Cổng Matchmaking Portal (${inquiry.coverageType || 'Obamacare'})`,
+    howDoYouKnowUs: `Matchmaking Portal (${inquiry.coverageType || 'Obamacare'})`,
     createdAt: new Date().toISOString(),
     primary: {
-      firstName: isAnon ? 'Khách' : (inquiry.firstName || 'Khách'),
-      lastName: isAnon ? 'Ẩn Danh' : (inquiry.lastName || 'Hàng'),
-      dob: inquiry.age ? `Độ tuổi: ${inquiry.age}` : '',
+      firstName: isAnon ? 'Anonymous' : (inquiry.firstName || 'Client'),
+      lastName: isAnon ? 'Client' : (inquiry.lastName || 'Lead'),
+      dob: inquiry.age ? `Age: ${inquiry.age}` : '',
       annualIncome: inquiry.annualIncome || 35000,
       subsidyAmount: inquiry.subsidyAmount || 420,
     },

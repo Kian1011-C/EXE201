@@ -402,7 +402,7 @@ export default function CreateCustomerDocumentModal({
             <button
               type="button"
               onClick={() => setIsFullscreen(!isFullscreen)}
-              title={isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
+              title={isFullscreen ? 'Restore' : 'Fullscreen'}
               className="text-white/80 hover:text-white p-1 rounded hover:bg-white/10 transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">
@@ -412,7 +412,7 @@ export default function CreateCustomerDocumentModal({
             <button
               type="button"
               onClick={onClose}
-              title="Đóng"
+              title="Close"
               className="text-white/80 hover:text-white p-1 rounded hover:bg-white/10 transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">close</span>
@@ -601,7 +601,7 @@ export default function CreateCustomerDocumentModal({
                             setContactName('');
                           }}
                           className="p-0.5 rounded text-rose-500 hover:bg-slate-100 transition"
-                          title="Bỏ chọn"
+                          title="Clear selection"
                         >
                           <span className="material-symbols-outlined text-[15px]">close</span>
                         </button>
@@ -617,7 +617,7 @@ export default function CreateCustomerDocumentModal({
                     >
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-[18px] text-slate-400">person_add</span>
-                        <span className="italic">Chọn người liên hệ (Contact)...</span>
+                        <span className="italic">Select Contact...</span>
                       </div>
                       <span className="material-symbols-outlined text-[18px] text-slate-400">
                         expand_more
@@ -636,7 +636,7 @@ export default function CreateCustomerDocumentModal({
                         autoFocus
                         value={contactSearchQuery}
                         onChange={(e) => setContactSearchQuery(e.target.value)}
-                        placeholder="Tìm kiếm theo tên, SĐT, email..."
+                        placeholder="Search by name, phone, email..."
                         className="w-full bg-transparent text-xs text-slate-700 outline-none placeholder:text-slate-400"
                       />
                       {contactSearchQuery && (
@@ -663,12 +663,12 @@ export default function CreateCustomerDocumentModal({
                           className="p-2.5 hover:bg-blue-50 text-blue-600 font-medium cursor-pointer flex items-center gap-2"
                         >
                           <span className="material-symbols-outlined text-[16px]">edit</span>
-                          <span>Dùng tên tùy chỉnh: "{contactSearchQuery.trim()}"</span>
+                          <span>Use custom name: "{contactSearchQuery.trim()}"</span>
                         </div>
                       )}
                       {filteredContacts?.length === 0 ? (
                         <div className="p-3 text-center text-slate-400 italic">
-                          Not found người liên hệ phù hợp
+                          No matching contacts found
                         </div>
                       ) : (
                         filteredContacts?.map((c) => {
@@ -880,7 +880,7 @@ export default function CreateCustomerDocumentModal({
                   Select from Existing Customer Documents
                 </label>
                 <span className="text-[11px] text-slate-400">
-                  {filteredExistingDocuments?.length || 0} hồ sơ
+                  {filteredExistingDocuments?.length || 0} records
                 </span>
               </div>
 
@@ -892,7 +892,7 @@ export default function CreateCustomerDocumentModal({
                   type="text"
                   value={existingSearchQuery}
                   onChange={(e) => setExistingSearchQuery(e.target.value)}
-                  placeholder="Tìm kiếm theo tên tài liệu, mã hồ sơ hoặc khách hàng..."
+                  placeholder="Search by document name, record code or client..."
                   className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-blue-500 bg-white"
                 />
               </div>
@@ -900,7 +900,7 @@ export default function CreateCustomerDocumentModal({
               <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                 {filteredExistingDocuments?.length === 0 ? (
                   <div className="p-6 text-center text-slate-400 italic">
-                    Không có customer document nào phù hợp trong hệ thống
+                    No customer documents found in the system
                   </div>
                 ) : (
                   filteredExistingDocuments?.map((doc) => {

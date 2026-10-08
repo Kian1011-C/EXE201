@@ -250,7 +250,7 @@ export default function AgentCommissionLedger({
             dealId: c.deal?.id || c.dealId,
             policyNumber: c.policyId || `POL-${String(c.id).slice(-6)}`,
             memberId: c.policyId || 'MID-UNKNOWN',
-            clientName: c.deal?.title?.split('–')[0]?.trim() || c.agentName || 'Khách hàng',
+            clientName: c.deal?.title?.split('–')[0]?.trim() || c.agentName || 'Client',
             clientCode: c.deal?.contactId || '',
             carrier: c.carrier,
             category: c.commissionType === 'MEDICARE' ? 'Medicare' : 'Obamacare / ACA',
@@ -310,7 +310,7 @@ export default function AgentCommissionLedger({
               deal.contactName ||
               deal.title?.split('–')[0]?.trim() ||
               deal.title ||
-              'Hồ sơ bảo hiểm';
+              'Insurance Policy';
 
             baseList.push({
               id: `COMM-${deal.id}`,
@@ -325,7 +325,7 @@ export default function AgentCommissionLedger({
               membersCount: members,
               premium: 400,
               subsidy: 380,
-              commissionRate: `$${calculated.pmpmRate.toFixed(2)} PMPM (${members} người)`,
+              commissionRate: `$${calculated.pmpmRate.toFixed(2)} PMPM (${members} member${members > 1 ? 's' : ''})`,
               grossAmount: calculated.monthlyCarrierPayout,
               supportDeduction: 0.0,
               saleSupportStatus: '100% DIRECT',
@@ -376,7 +376,7 @@ export default function AgentCommissionLedger({
                 membersCount: members,
                 premium: 400,
                 subsidy: 380,
-                commissionRate: `$${calculated.pmpmRate.toFixed(2)} PMPM (${members} người)`,
+                commissionRate: `$${calculated.pmpmRate.toFixed(2)} PMPM (${members} member${members > 1 ? 's' : ''})`,
                 grossAmount: calculated.monthlyCarrierPayout,
                 supportDeduction: 0.0,
                 saleSupportStatus: '100% DIRECT',
@@ -415,11 +415,11 @@ export default function AgentCommissionLedger({
         agentName: currentFilter !== 'All' ? currentFilter : '',
         period: selectedCycle === 'YTD' ? '2026-09' : selectedCycle,
       });
-      showToast(`Đã tính toán xong hoa hồng 100% cho các deal: ${res.message || 'Cập nhật thành công!'}`);
+      showToast(`100% commissions calculated for deals: ${res.message || 'Updated successfully!'}`);
       await loadCommissionsData(currentFilter);
     } catch (err) {
       await loadCommissionsData(isAdmin ? selectedAgentFilter : effectiveAgent.name);
-      showToast('Đã làm mới và tự động tính toán lại mức chi trả của từng hãng cho toàn bộ deals!');
+      showToast('Refreshed and recalculated carrier commission rates for all deals!');
     } finally {
       setCalculating(false);
     }
@@ -440,14 +440,14 @@ export default function AgentCommissionLedger({
             : c
         )
       );
-      showToast(`Cập nhật trạng thái chi trả thành: ${newStatus}`);
+      showToast(`Payout status updated to: ${newStatus}`);
     } catch {
       setCommissionList((prev) =>
         prev?.map((c) =>
           c.id === id ? { ...c, status: newStatus === 'SETTLED' ? 'Settled' : newStatus } : c
         )
       );
-      showToast(`Đã cập nhật trạng thái: ${newStatus}`);
+      showToast(`Status updated: ${newStatus}`);
     }
   }
 
@@ -552,7 +552,7 @@ export default function AgentCommissionLedger({
     link.click();
     document.body.removeChild(link);
 
-    showToast('Đã tải xuống bảng kê hoa hồng 100% (CSV)!');
+    showToast('100% commission ledger downloaded (CSV)!');
   }
 
   return (
@@ -574,14 +574,14 @@ export default function AgentCommissionLedger({
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg font-bold text-slate-900 tracking-tight">
-                Sổ Quyết Toán Hoa Hồng Bảo Hiểm (Agent Commission Hub)
+                Agent Commission Ledger & Settlement Hub
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider">
-                100% Agent Payout (Không Trừ 7/3)
+                100% Agent Payout (Zero Split Fee)
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Đại lý nhận trọn 100% hoa hồng trực tiếp từ từng hãng bảo hiểm • NPN #1984210 • Tự động tính theo định mức hãng
+              Agents retain 100% direct carrier commission payouts • NPN #1984210 • Automated carrier schedules
             </p>
           </div>
         </div>
@@ -599,7 +599,7 @@ export default function AgentCommissionLedger({
             }`}
           >
             <span className="material-symbols-outlined text-[16px]">table_chart</span>
-            <span>{showRateMatrix ? 'Ẩn Biểu Phí Hãng' : 'Xem Biểu Phí 16 Hãng'}</span>
+            <span>{showRateMatrix ? 'Hide Carrier Rates' : 'View 16 Carrier Rates'}</span>
           </button>
 
           {/* Calculator Trigger */}
@@ -609,7 +609,7 @@ export default function AgentCommissionLedger({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">calculate</span>
-            <span>Bộ Tính 1 Deal</span>
+            <span>Single Deal Calculator</span>
           </button>
 
           {/* Auto Calculate Button */}
@@ -624,20 +624,20 @@ export default function AgentCommissionLedger({
             <span className={`material-symbols-outlined text-[16px] ${calculating ? 'animate-spin' : ''}`}>
               sync
             </span>
-            <span>{calculating ? 'Đang tính...' : 'Tính lại toàn bộ Deals'}</span>
+            <span>{calculating ? 'Calculating...' : 'Recalculate All Deals'}</span>
           </button>
 
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
-            <span className="px-1.5 py-0.5 text-slate-500 font-medium">Kỳ:</span>
+            <span className="px-1.5 py-0.5 text-slate-500 font-medium">Cycle:</span>
             <select
               value={selectedCycle}
               onChange={(e) => setSelectedCycle(e.target.value)}
               className="bg-white px-2 py-1 rounded-lg text-xs font-semibold text-slate-800 border border-slate-200 focus:outline-none cursor-pointer"
             >
-              <option value="2026-09">Tháng 9/2026 (Hiện tại)</option>
-              <option value="2026-08">Tháng 8/2026</option>
-              <option value="2026-07">Tháng 7/2026</option>
-              <option value="YTD">YTD 2026 (Cả năm)</option>
+              <option value="2026-09">September 2026 (Current)</option>
+              <option value="2026-08">August 2026</option>
+              <option value="2026-07">July 2026</option>
+              <option value="YTD">YTD 2026 (Full Year)</option>
             </select>
           </div>
 
@@ -647,7 +647,7 @@ export default function AgentCommissionLedger({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px] text-slate-500">download</span>
-            <span>Xuất CSV</span>
+            <span>Export CSV</span>
           </button>
         </div>
       </div>
@@ -659,11 +659,11 @@ export default function AgentCommissionLedger({
           <span>
             {selectedAgentFilter !== 'All' ? (
               <>
-                Sổ hoa hồng đại lý: Đang hiển thị các hợp đồng do <strong>{selectedAgentFilter}</strong> phụ trách (Deal Owner / Contact Owner)
+                Agent Commission Ledger: Showing policies assigned to <strong>{selectedAgentFilter}</strong> (Deal Owner / Contact Owner)
               </>
             ) : (
               <>
-                Chế độ Tổng quản: Đang hiển thị toàn bộ hoa hồng của tất cả đại lý trên hệ thống
+                Global Overview Mode: Showing commissions across all agents on the platform
               </>
             )}
           </span>
@@ -680,11 +680,11 @@ export default function AgentCommissionLedger({
               }}
               className="px-2.5 py-1 bg-white border border-blue-300 text-blue-700 hover:bg-blue-100 rounded-lg text-[11px] font-bold transition cursor-pointer"
             >
-              Xem nhanh Agent Trung Trương
+              Quick switch to Trung Trương
             </button>
           )}
           <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">
-            {filteredList.length} hợp đồng phụ trách
+            {filteredList.length} active policies
           </span>
         </div>
       </div>
@@ -697,23 +697,23 @@ export default function AgentCommissionLedger({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-emerald-950 text-xs">Chính Sách Hoa Hồng 100%:</span>
+              <span className="font-bold text-emerald-950 text-xs">100% Commission Payout Policy:</span>
               <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-200 text-emerald-900 uppercase">
                 Zero Split Fee
               </span>
             </div>
             <p className="text-[11px] text-emerald-800 mt-0.5 leading-relaxed">
-              InsurMatch hoạt động theo mô hình phần mềm SaaS B2B thuần túy (thu phí gói CRM $39, $79, $199/tháng). 
-              <strong> 100% tiền hoa hồng bảo hiểm do các hãng chi trả được chuyển trực tiếp về đại lý</strong>, 
-              hoàn toàn không khấu trừ 7/3, không trừ phí sàn, không giữ hoa hồng của đại lý.
+              InsurMatch operates strictly as a B2B SaaS CRM platform (subscription fee $39, $79, $199/mo). 
+              <strong> 100% of insurance commissions paid by carriers go directly to the agent</strong>, 
+              with zero split deductions, zero platform transaction fees, and zero withheld payouts.
             </p>
           </div>
         </div>
         <div className="shrink-0 flex items-center gap-2 bg-white/80 px-3 py-2 rounded-xl border border-emerald-200 shadow-2xs">
-          <span className="text-[11px] text-slate-500 font-medium">Khấu trừ sàn:</span>
+          <span className="text-[11px] text-slate-500 font-medium">Platform fee:</span>
           <span className="font-mono font-bold text-emerald-700">$0.00 (0%)</span>
           <span className="text-slate-300">|</span>
-          <span className="text-[11px] text-slate-500 font-medium">Đại lý nhận:</span>
+          <span className="text-[11px] text-slate-500 font-medium">Agent payout:</span>
           <span className="font-mono font-bold text-blue-700">100%</span>
         </div>
       </div>
@@ -725,15 +725,15 @@ export default function AgentCommissionLedger({
             <span className="material-symbols-outlined text-[20px]">calculate</span>
           </div>
           <div>
-            <span className="text-xs font-bold text-slate-900 block">Tự Tính 1 Deal Cho Từng Hãng Bảo Hiểm:</span>
-            <span className="text-[11px] text-slate-500">Chọn hãng và số người để xem ngay số tiền hãng trả mỗi tháng &amp; cả năm</span>
+            <span className="text-xs font-bold text-slate-900 block">Quick Deal Commission Calculator by Carrier:</span>
+            <span className="text-[11px] text-slate-500">Select carrier and member count to preview monthly and annual direct carrier payouts</span>
           </div>
         </div>
 
         {/* Input Controls */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-bold text-slate-600">Hãng:</label>
+            <label className="text-[11px] font-bold text-slate-600">Carrier:</label>
             <select
               value={calcCarrier}
               onChange={(e) => setCalcCarrier(e.target.value)}
@@ -746,29 +746,29 @@ export default function AgentCommissionLedger({
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-bold text-slate-600">Số người:</label>
+            <label className="text-[11px] font-bold text-slate-600">Members:</label>
             <select
               value={calcMembers}
               onChange={(e) => setCalcMembers(parseInt(e.target.value) || 1)}
               className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
             >
-              <option value="1">1 người (Cá nhân)</option>
-              <option value="2">2 người (Vợ chồng)</option>
-              <option value="3">3 người</option>
-              <option value="4">4 người (Gia đình)</option>
-              <option value="5">5 người</option>
-              <option value="6">6 người</option>
+              <option value="1">1 Member (Individual)</option>
+              <option value="2">2 Members (Couple)</option>
+              <option value="3">3 Members</option>
+              <option value="4">4 Members (Family)</option>
+              <option value="5">5 Members</option>
+              <option value="6">6 Members</option>
             </select>
           </div>
 
           {/* Quick Result Badge */}
           <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl text-xs">
-            <span className="text-blue-900 font-medium">Hãng trả:</span>
-            <strong className="font-mono font-black text-blue-700">${quickCalc.monthlyCarrierPayout.toFixed(2)}/tháng</strong>
+            <span className="text-blue-900 font-medium">Carrier Gross:</span>
+            <strong className="font-mono font-black text-blue-700">${quickCalc.monthlyCarrierPayout.toFixed(2)}/mo</strong>
             <span className="text-slate-300">→</span>
-            <span className="text-emerald-800 font-medium">Agent nhận (100%):</span>
-            <strong className="font-mono font-black text-emerald-700">${quickCalc.agentNetMonthly.toFixed(2)}/tháng</strong>
-            <span className="text-slate-400">(${quickCalc.agentAnnualProjected.toLocaleString()}/năm)</span>
+            <span className="text-emerald-800 font-medium">Agent Net (100%):</span>
+            <strong className="font-mono font-black text-emerald-700">${quickCalc.agentNetMonthly.toFixed(2)}/mo</strong>
+            <span className="text-slate-400">(${quickCalc.agentAnnualProjected.toLocaleString()}/yr)</span>
           </div>
         </div>
       </div>
@@ -780,10 +780,10 @@ export default function AgentCommissionLedger({
             <div>
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600 text-[20px]">table_chart</span>
-                <span>Bảng Biểu Phí Hoa Hồng Chi Trả Của 16 Hãng Bảo Hiểm (Carrier Rate Sheet)</span>
+                <span>16 Carrier Commission Rate Schedule (Direct Payout Sheet)</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Mức chi trả tiêu chuẩn của từng hãng cho mỗi deal theo tháng và theo năm. Đại lý hưởng 100% không cắt giảm.
+                Standard carrier compensation schedule per deal monthly and annually. Agents receive 100% direct payout.
               </p>
             </div>
             <button
@@ -791,7 +791,7 @@ export default function AgentCommissionLedger({
               onClick={() => setShowRateMatrix(false)}
               className="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
             >
-              Đóng bảng
+              Close Sheet
             </button>
           </div>
 
@@ -799,14 +799,14 @@ export default function AgentCommissionLedger({
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px]">
                 <tr>
-                  <th className="py-2.5 px-3">Hãng Bảo Hiểm</th>
-                  <th className="py-2.5 px-3">Dòng Sản Phẩm</th>
-                  <th className="py-2.5 px-3 text-right">Đơn Giá PMPM</th>
-                  <th className="py-2.5 px-3 text-right">1 Deal (1 Người / Tháng)</th>
-                  <th className="py-2.5 px-3 text-right">1 Deal (2 Người / Tháng)</th>
-                  <th className="py-2.5 px-3 text-right">1 Deal (Gia Đình 4 Người)</th>
-                  <th className="py-2.5 px-3 text-right">Dự Phóng 1 Năm (1 Người)</th>
-                  <th className="py-2.5 px-3 text-center">Tỷ Lệ Agent Nhận</th>
+                  <th className="py-2.5 px-3">Insurance Carrier</th>
+                  <th className="py-2.5 px-3">Product Line</th>
+                  <th className="py-2.5 px-3 text-right">Rate (PMPM)</th>
+                  <th className="py-2.5 px-3 text-right">1 Deal (1 Member / Mo)</th>
+                  <th className="py-2.5 px-3 text-right">1 Deal (2 Members / Mo)</th>
+                  <th className="py-2.5 px-3 text-right">1 Deal (Family 4 Members)</th>
+                  <th className="py-2.5 px-3 text-right">Annual Est. (1 Member)</th>
+                  <th className="py-2.5 px-3 text-center">Agent Payout Rate</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -823,7 +823,7 @@ export default function AgentCommissionLedger({
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-700">
-                      ${cr.pmpm.toFixed(2)} {cr.rateType === 'CMS Monthly' ? '/tháng' : 'PMPM'}
+                      ${cr.pmpm.toFixed(2)} {cr.rateType === 'CMS Monthly' ? '/mo' : 'PMPM'}
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono font-bold text-blue-700">
                       ${cr.monthlyPer1Member.toFixed(2)}/mo
@@ -835,7 +835,7 @@ export default function AgentCommissionLedger({
                       ${cr.monthlyPer4Members.toFixed(2)}/mo
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-700">
-                      ${cr.annualPerDeal1Member.toFixed(2)}/năm
+                      ${cr.annualPerDeal1Member.toFixed(2)}/yr
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -857,7 +857,7 @@ export default function AgentCommissionLedger({
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
             <span className="font-semibold text-slate-600 uppercase tracking-wider text-[10px]">
-              Thực Nhận Tháng Này (100%)
+              Net Payout This Month (100%)
             </span>
             <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center material-symbols-outlined text-[18px]">
               account_balance_wallet
@@ -868,7 +868,7 @@ export default function AgentCommissionLedger({
           </div>
           <div className="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-700 font-bold">
             <span className="material-symbols-outlined text-[14px]">check_circle</span>
-            <span>Chuyển khoản trực tiếp (ACH Deposit)</span>
+            <span>Direct Deposit (ACH Transfer)</span>
           </div>
         </div>
 
@@ -877,7 +877,7 @@ export default function AgentCommissionLedger({
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
             <span className="font-semibold text-slate-600 uppercase tracking-wider text-[10px]">
-              Chờ Hãng Đối Soát
+              Pending Carrier Audit
             </span>
             <span className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center material-symbols-outlined text-[18px]">
               hourglass_top
@@ -887,7 +887,7 @@ export default function AgentCommissionLedger({
             ${stats.pendingReview.toFixed(2)}
           </div>
           <div className="flex items-center gap-1.5 mt-2 text-[11px] text-slate-500 font-medium">
-            <span>Hãng đang duyệt kỳ tiếp theo</span>
+            <span>Carrier reviewing next cycle</span>
           </div>
         </div>
 
@@ -896,7 +896,7 @@ export default function AgentCommissionLedger({
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
             <span className="font-semibold text-slate-600 uppercase tracking-wider text-[10px]">
-              Tổng Đã Nhận YTD (Cả Năm)
+              Total Settled YTD (Full Year)
             </span>
             <span className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center material-symbols-outlined text-[18px]">
               trending_up
@@ -906,7 +906,7 @@ export default function AgentCommissionLedger({
             ${stats.ytdSettled.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="flex items-center gap-1.5 mt-2 text-[11px] text-slate-500">
-            <span>Dự phóng 12 tháng: <strong className="text-slate-800">${stats.annualProjected.toLocaleString('en-US', { minimumFractionDigits: 0 })}</strong></span>
+            <span>12-Month Projected: <strong className="text-slate-800">${stats.annualProjected.toLocaleString('en-US', { minimumFractionDigits: 0 })}</strong></span>
           </div>
         </div>
 
@@ -915,17 +915,17 @@ export default function AgentCommissionLedger({
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-violet-600" />
           <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
             <span className="font-semibold text-slate-600 uppercase tracking-wider text-[10px]">
-              Hợp Đồng Đang Sinh Lời
+              Active Revenue Policies
             </span>
             <span className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center material-symbols-outlined text-[18px]">
               policy
             </span>
           </div>
           <div className="text-2xl font-black text-purple-900 font-mono tracking-tight">
-            {stats.activeCommissionPolicies} <span className="text-sm font-normal text-slate-500">hợp đồng</span>
+            {stats.activeCommissionPolicies} <span className="text-sm font-normal text-slate-500">policies</span>
           </div>
           <div className="flex items-center gap-1.5 mt-2 text-[11px] text-purple-700 font-bold">
-            <span>Đơn giá PMPM trung bình: ${stats.avgRatePmpm.toFixed(2)}/mo</span>
+            <span>Average PMPM rate: ${stats.avgRatePmpm.toFixed(2)}/mo</span>
           </div>
         </div>
       </div>
@@ -940,7 +940,7 @@ export default function AgentCommissionLedger({
             </span>
             <input
               type="text"
-              placeholder="Tìm số hợp đồng, tên khách hàng, mã MID..."
+              placeholder="Search policy #, client name, MID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-slate-800 text-xs bg-slate-50/50"
@@ -951,7 +951,7 @@ export default function AgentCommissionLedger({
           <div className="flex items-center gap-1.5 bg-blue-50/50 p-1 px-2.5 rounded-xl border border-blue-200/80">
             <span className="text-blue-900 font-bold flex items-center gap-1">
               <span className="material-symbols-outlined text-[16px] text-blue-600">badge</span>
-              Đại lý:
+              Agent:
             </span>
             {isAdmin ? (
               <select
@@ -965,10 +965,10 @@ export default function AgentCommissionLedger({
                 }}
                 className="bg-white border border-blue-300 font-bold px-2.5 py-1 rounded-lg text-blue-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer shadow-2xs hover:bg-white transition"
               >
-                <option value="All">Tất cả đại lý (Toàn bộ)</option>
+                <option value="All">All Agents (System-wide)</option>
                 {availableAgents?.map((ag) => (
                   <option key={ag.name} value={ag.name}>
-                    {ag.name} {ag.name === 'Trung Trương' ? '⭐ (Chính)' : ''}
+                    {ag.name} {ag.name === 'Trung Trương' ? '⭐ (Primary)' : ''}
                   </option>
                 ))}
               </select>
@@ -981,7 +981,7 @@ export default function AgentCommissionLedger({
 
           {/* Carrier Filter */}
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-medium">Hãng:</span>
+            <span className="text-slate-500 font-medium">Carrier:</span>
             <select
               value={carrierFilter}
               onChange={(e) => setCarrierFilter(e.target.value)}
@@ -997,28 +997,28 @@ export default function AgentCommissionLedger({
 
           {/* Status Filter */}
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-medium">Trạng thái:</span>
+            <span className="text-slate-500 font-medium">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl text-slate-700 text-xs focus:outline-none cursor-pointer"
             >
-              <option value="All">Tất cả trạng thái</option>
-              <option value="Settled">Đã quyết toán (Settled)</option>
-              <option value="Pending Carrier Review">Chờ hãng duyệt</option>
-              <option value="In Processing">Đang xử lý</option>
+              <option value="All">All Statuses</option>
+              <option value="Settled">Settled</option>
+              <option value="Pending Carrier Review">Pending Carrier Review</option>
+              <option value="In Processing">In Processing</option>
             </select>
           </div>
 
           {/* Line Filter */}
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-medium">Phân loại:</span>
+            <span className="text-slate-500 font-medium">Category:</span>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl text-slate-700 text-xs focus:outline-none cursor-pointer"
             >
-              <option value="All">Tất cả sản phẩm</option>
+              <option value="All">All Products</option>
               <option value="Obamacare / ACA">Obamacare / ACA</option>
               <option value="Medicare">Medicare</option>
             </select>
@@ -1026,8 +1026,8 @@ export default function AgentCommissionLedger({
         </div>
 
         <div className="text-slate-500 font-medium text-xs">
-          Hiển thị <strong className="text-slate-800 font-mono">{filteredList.length}</strong> hợp đồng
-          {loading && <span className="ml-2 text-blue-600 animate-pulse">(Đang đồng bộ...)</span>}
+          Showing <strong className="text-slate-800 font-mono">{filteredList.length}</strong> policies
+          {loading && <span className="ml-2 text-blue-600 animate-pulse">(Syncing...)</span>}
         </div>
       </div>
 
@@ -1037,17 +1037,17 @@ export default function AgentCommissionLedger({
           <table className="w-full text-left border-collapse text-xs min-w-[900px]">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
-                <th className="py-3 px-3.5">Hợp Đồng / Member ID</th>
-                <th className="py-3 px-3.5">Khách Hàng</th>
-                <th className="py-3 px-3.5">Hãng &amp; Gói Bảo Hiểm</th>
-                <th className="py-3 px-3.5 text-center">Tỷ Lệ Nhận</th>
-                <th className="py-3 px-3.5 text-right">Mức Hãng Trả</th>
-                <th className="py-3 px-3.5 text-right">Khấu Trừ Sàn</th>
-                <th className="py-3 px-3.5 text-right font-black text-slate-900">Agent Thực Nhận (100%)</th>
-                <th className="py-3 px-3.5 text-right">Dự Phóng Năm</th>
-                <th className="py-3 px-3.5">Trạng Thái</th>
-                <th className="py-3 px-3.5">Ngày Thanh Toán</th>
-                <th className="py-3 px-3.5 text-center">Thao Tác</th>
+                <th className="py-3 px-3.5">Policy / Member ID</th>
+                <th className="py-3 px-3.5">Client</th>
+                <th className="py-3 px-3.5">Carrier &amp; Plan</th>
+                <th className="py-3 px-3.5 text-center">Payout Rate</th>
+                <th className="py-3 px-3.5 text-right">Carrier Gross</th>
+                <th className="py-3 px-3.5 text-right">Platform Fee</th>
+                <th className="py-3 px-3.5 text-right font-black text-slate-900">Agent Net (100%)</th>
+                <th className="py-3 px-3.5 text-right">Annual Projected</th>
+                <th className="py-3 px-3.5">Status</th>
+                <th className="py-3 px-3.5">Payment Date</th>
+                <th className="py-3 px-3.5 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -1056,11 +1056,11 @@ export default function AgentCommissionLedger({
                   <td colSpan="11" className="py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <span className="material-symbols-outlined text-[36px] text-slate-300">payments</span>
-                      <p className="font-semibold text-slate-700">Chưa có bản ghi hoa hồng nào</p>
+                      <p className="font-semibold text-slate-700">No commission records found</p>
                       <p className="text-xs text-slate-400 max-w-md">
                         {activeIsAgent
-                          ? `Chỉ hiển thị các hợp đồng bảo hiểm và hoa hồng thuộc sở hữu của bạn (${effectiveAgent.name}). Khi có hợp đồng mới hoàn tất ghi nhận, hoa hồng sẽ xuất hiện tại đây.`
-                          : 'Không tìm thấy hồ sơ hoa hồng nào khớp với bộ lọc hiện tại.'}
+                          ? `Only displaying insurance policies and commissions assigned to you (${effectiveAgent.name}). Once new policies are finalized, commissions will appear here.`
+                          : 'No commission records matching current filters.'}
                       </p>
                     </div>
                   </td>
@@ -1089,7 +1089,7 @@ export default function AgentCommissionLedger({
                   {/* Carrier & Plan */}
                   <td className="py-3 px-3.5 max-w-[220px]">
                     <div className="font-bold text-slate-900 truncate">{row.carrier}</div>
-                    <div className="text-[11px] text-slate-500 truncate">{row.planName} ({row.membersCount || 1} người)</div>
+                    <div className="text-[11px] text-slate-500 truncate">{row.planName} ({row.membersCount || 1} member{(row.membersCount || 1) > 1 ? 's' : ''})</div>
                   </td>
 
                   {/* Payout Rate Badge: 100% Direct */}
@@ -1116,7 +1116,7 @@ export default function AgentCommissionLedger({
 
                   {/* Annual Projected */}
                   <td className="py-3 px-3.5 text-right font-mono font-bold text-slate-800 text-[11px]">
-                    ${(row.annualProjected || row.commissionAmount * 12).toFixed(2)}/năm
+                    ${(row.annualProjected || row.commissionAmount * 12).toFixed(2)}/yr
                   </td>
 
                   {/* Status */}
@@ -1124,17 +1124,17 @@ export default function AgentCommissionLedger({
                     {row.status === 'Settled' ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        Đã quyết toán
+                        Settled
                       </span>
                     ) : row.status === 'In Processing' ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-spin" />
-                        Đang xử lý
+                        In Processing
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                        Chờ đối soát
+                        Pending Audit
                       </span>
                     )}
                   </td>
@@ -1159,18 +1159,18 @@ export default function AgentCommissionLedger({
                           setShowDisputeModal(true);
                         }}
                         className="px-2 py-1 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-blue-600 text-xs font-semibold transition cursor-pointer"
-                        title="Xem chi tiết tính toán"
+                        title="View calculation details"
                       >
-                        Chi tiết
+                        Details
                       </button>
                       {row.status !== 'Settled' && (
                         <button
                           type="button"
                           onClick={() => handleUpdateStatus(row.id, 'SETTLED')}
                           className="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-bold transition cursor-pointer"
-                          title="Đánh dấu đã nhận"
+                          title="Mark as settled"
                         >
-                          Xác nhận
+                          Confirm
                         </button>
                       )}
                     </div>
@@ -1185,10 +1185,10 @@ export default function AgentCommissionLedger({
         <div className="p-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
-            <span>Quy chế: Agent hưởng 100% hoa hồng trực tiếp từ các hãng bảo hiểm, không trừ phí 7/3.</span>
+            <span>Policy: Agents retain 100% commission directly from insurance carriers with zero split deductions.</span>
           </div>
           <div className="font-semibold text-slate-800">
-            Tổng thu nhập hàng tháng: <span className="text-blue-700 font-bold font-mono text-sm">${filteredList?.reduce((s, r) => s + r.commissionAmount, 0).toFixed(2)}</span> / tháng
+            Total Monthly Revenue: <span className="text-blue-700 font-bold font-mono text-sm">${filteredList?.reduce((s, r) => s + r.commissionAmount, 0).toFixed(2)}</span> / month
           </div>
         </div>
       </div>
@@ -1200,7 +1200,7 @@ export default function AgentCommissionLedger({
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600">fact_check</span>
-                <span>Chi Tiết Hoa Hồng Deal &amp; Công Thức Hãng Chi Trả</span>
+                <span>Deal Commission Breakdown &amp; Carrier Formula</span>
               </h3>
               <button
                 onClick={() => setShowDisputeModal(false)}
@@ -1212,35 +1212,35 @@ export default function AgentCommissionLedger({
 
             <div className="text-xs space-y-3 text-slate-600">
               <p>
-                Hợp đồng: <strong className="text-slate-800 font-mono">{disputeRecord.policyNumber}</strong> ({disputeRecord.clientName})
+                Policy: <strong className="text-slate-800 font-mono">{disputeRecord.policyNumber}</strong> ({disputeRecord.clientName})
               </p>
 
               {/* Formula Breakdown */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
                 <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">
-                  Công Thức Tính Chi Trả Của Hãng:
+                  Carrier Payout Calculation Formula:
                 </div>
                 <div className="font-mono text-slate-800 bg-white p-3 rounded-xl border border-slate-200 text-xs leading-relaxed">
-                  Hãng ({disputeRecord.carrier}) chi trả: <strong>${disputeRecord.grossAmount.toFixed(2)}/tháng</strong>
+                  Carrier ({disputeRecord.carrier}) Gross: <strong>${disputeRecord.grossAmount.toFixed(2)}/mo</strong>
                   <br />
-                  Khấu trừ sàn / support (0%): <strong>$0.00</strong>
+                  Platform fee / support split (0%): <strong>$0.00</strong>
                   <br />
-                  Agent thực nhận: <strong>${disputeRecord.commissionAmount.toFixed(2)}/tháng (100%)</strong>
+                  Agent Net Payout: <strong>${disputeRecord.commissionAmount.toFixed(2)}/mo (100%)</strong>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-                  <div>Tỷ lệ Agent nhận: <strong className="text-emerald-700">100% Direct Payout</strong></div>
-                  <div>Số thành viên trong deal: <strong>{disputeRecord.membersCount || 1} người</strong></div>
-                  <div>Hãng bảo hiểm: <strong>{disputeRecord.carrier}</strong></div>
-                  <div>Trạng thái: <strong>{disputeRecord.status}</strong></div>
+                  <div>Agent Payout Rate: <strong className="text-emerald-700">100% Direct Payout</strong></div>
+                  <div>Members in deal: <strong>{disputeRecord.membersCount || 1} member{(disputeRecord.membersCount || 1) > 1 ? 's' : ''}</strong></div>
+                  <div>Insurance Carrier: <strong>{disputeRecord.carrier}</strong></div>
+                  <div>Status: <strong>{disputeRecord.status}</strong></div>
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Ghi chú đối soát hoặc yêu cầu khiếu nại nếu sai lệch:</label>
+                <label className="block font-semibold text-slate-700 mb-1">Reconciliation audit notes or inquiry:</label>
                 <textarea
                   rows={3}
-                  placeholder="Nhập ghi chú đối soát với Clearinghouse..."
+                  placeholder="Enter notes for Clearinghouse reconciliation audit..."
                   className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-xs"
                 />
               </div>
@@ -1255,7 +1255,7 @@ export default function AgentCommissionLedger({
                 }}
                 className="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold cursor-pointer"
               >
-                Xác nhận đã thanh toán
+                Confirm Settled
               </button>
 
               <div className="flex items-center gap-2">
@@ -1264,18 +1264,18 @@ export default function AgentCommissionLedger({
                   onClick={() => setShowDisputeModal(false)}
                   className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
                 >
-                  Đóng
+                  Close
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     handleUpdateStatus(disputeRecord.id, 'DISPUTED');
                     setShowDisputeModal(false);
-                    showToast('Đã gửi yêu cầu đối soát tới Clearinghouse!');
+                    showToast('Reconciliation audit inquiry sent to Clearinghouse!');
                   }}
                   className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-xs cursor-pointer"
                 >
-                  Gửi yêu cầu đối soát
+                  Submit Audit Inquiry
                 </button>
               </div>
             </div>
@@ -1290,7 +1290,7 @@ export default function AgentCommissionLedger({
             onClose={() => setShowCalculatorModal(false)}
             onApplyToDeal={(calc) => {
               setShowCalculatorModal(false);
-              showToast(`Đã áp dụng định mức của hãng ${calc.carrierName} ($${calc.netMonthly.toFixed(2)}/mo)!`);
+              showToast(`Applied rate schedule for ${calc.carrierName} ($${calc.netMonthly.toFixed(2)}/mo)!`);
             }}
           />
         </div>

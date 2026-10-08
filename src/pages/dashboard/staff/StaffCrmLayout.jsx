@@ -10,7 +10,7 @@ export default function StaffCrmLayout({
   onSelectTab,
   isAgent = false,
   isAdmin = false,
-  agentName = 'Khánh Nguyen',
+  agentName = 'Khanh Nguyen',
   agentNpn = '#1984210',
   showCommission = false,
   quotesBadge,
@@ -119,63 +119,63 @@ export default function StaffCrmLayout({
       id: 'dashboard',
       label: 'Dashboard',
       icon: 'dashboard',
-      desc: 'Báo cáo & Tổng quan điều hành',
+      desc: 'Executive Reporting & CRM Analytics',
     },
     {
       id: 'contacts',
       label: 'Contacts',
       icon: 'person_search',
-      desc: 'Danh bạ khách hàng tiềm năng & Hợp đồng',
+      desc: 'Lead Directory & Policy Contacts',
     },
     {
       id: 'deals',
       label: 'Deals',
       icon: 'handshake',
-      desc: 'Hồ sơ bảo hiểm đang xử lý & Master Deals AOR',
+      desc: 'Insurance Pipeline & Master Deals AOR',
     },
     {
       id: 'tickets',
       label: 'Tickets',
       icon: 'confirmation_number',
-      desc: 'Hỗ trợ dịch vụ sau bán & SLA',
+      desc: 'Post-Sale Service & 48h SLA Tickets',
     },
     {
       id: 'tasks',
       label: 'Tasks',
       icon: 'checklist',
-      desc: 'Quản lý công việc & Kanban',
+      desc: 'Action Items & Kanban Tasks',
     },
     {
       id: 'documents',
       label: 'Documents',
       icon: 'folder_shared',
-      desc: 'Hồ sơ tài liệu khách hàng & Xác thực',
+      desc: 'Customer Documents & Verification',
     },
     {
       id: 'quotes',
       label: 'Match Queue',
       icon: 'contact_support',
       badge: quotesBadge !== undefined ? quotesBadge : '14',
-      desc: 'Hàng đợi phân bổ & Điều phối Lead',
+      desc: 'Lead Routing & Distribution Queue',
     },
     {
       id: 'accounts',
       label: 'Accounts',
       icon: 'manage_accounts',
       badge: accountsBadge !== undefined ? accountsBadge : '1',
-      desc: 'Tài khoản & Thẩm định NPN',
+      desc: 'Accounts & NPN Verification',
     },
     {
       id: 'commissions',
       label: 'Commission',
       icon: 'payments',
-      desc: 'Doanh thu thuê bao SaaS & Hoa hồng Sales nội bộ (Coms.pdf)',
+      desc: 'SaaS Subscription Revenue & Internal Sales Commissions',
     },
     {
       id: 'system',
       label: 'System & Audit',
       icon: 'dns',
-      desc: 'Hạ tầng máy chủ & Nhật ký Audit',
+      desc: 'Server Infrastructure & Audit Logs',
     },
   ];
 
@@ -185,37 +185,37 @@ export default function StaffCrmLayout({
       label: 'Dashboard',
       icon: 'dashboard',
       badge: '27',
-      desc: 'Báo cáo & Tổng quan điều hành',
+      desc: 'Executive Reporting & CRM Analytics',
     },
     {
       id: 'contacts',
       label: 'Contacts',
       icon: 'person_search',
-      desc: 'Danh bạ khách hàng tiềm năng',
+      desc: 'Prospects & Client Directory',
     },
     {
       id: 'deals',
       label: 'Deals',
       icon: 'handshake',
-      desc: 'Hồ sơ bảo hiểm đang xử lý',
+      desc: 'Active Insurance Deals Pipeline',
     },
     {
       id: 'tickets',
       label: 'Tickets',
       icon: 'confirmation_number',
-      desc: 'Hỗ trợ dịch vụ sau bán & SLA',
+      desc: 'Post-Sale Service & 48h SLA Tickets',
     },
     {
       id: 'tasks',
       label: 'Tasks',
       icon: 'checklist',
-      desc: 'Quản lý công việc & Kanban',
+      desc: 'Action Items & Kanban Tasks',
     },
     {
       id: 'documents',
       label: 'Documents',
       icon: 'folder_shared',
-      desc: 'Hồ sơ tài liệu khách hàng & Xác thực',
+      desc: 'Customer Documents & Verification',
     },
   ];
 
@@ -224,49 +224,49 @@ export default function StaffCrmLayout({
       id: 'dashboard',
       label: 'Dashboard',
       icon: 'dashboard',
-      desc: 'Báo cáo & Tổng quan đại lý',
+      desc: 'Agency Reports & Performance Overview',
     },
     {
       id: 'contacts',
       label: 'Contacts',
       icon: 'person_search',
-      desc: 'Customer phụ trách của tôi',
+      desc: 'My Assigned Clients',
     },
     {
       id: 'deals',
       label: 'Deals',
       icon: 'handshake',
-      desc: 'Hồ sơ bảo hiểm của tôi',
+      desc: 'My Insurance Deals',
     },
     {
       id: 'tickets',
       label: 'Tickets',
       icon: 'confirmation_number',
-      desc: 'Hỗ trợ dịch vụ & SLA phụ trách',
+      desc: 'My Service Requests & Tickets',
     },
     {
       id: 'tasks',
       label: 'Tasks',
       icon: 'checklist',
-      desc: 'Công việc & Lịch nhắc việc',
+      desc: 'My Tasks & Reminders',
     },
     {
       id: 'documents',
       label: 'Documents',
       icon: 'folder_shared',
-      desc: 'Tài liệu khách hàng của tôi',
+      desc: 'My Customer Documents',
     },
     {
       id: 'subscription',
-      label: 'Gói cước CRM',
+      label: 'CRM Subscription',
       icon: 'card_membership',
-      desc: 'Xem gói hiện tại & Mua/Nâng cấp gói',
+      desc: 'View Current Plan & Upgrade',
     },
     {
       id: 'commission',
-      label: 'Hoa hồng',
+      label: 'Commissions',
       icon: 'payments',
-      desc: 'Sổ hoa hồng bảo hiểm PMPM & Quyết toán',
+      desc: 'PMPM Insurance Commission Ledger & Settlements',
     },
   ];
 
@@ -278,7 +278,7 @@ export default function StaffCrmLayout({
             id: 'commission',
             label: 'Commission',
             icon: 'payments',
-            desc: 'Doanh thu thuê bao SaaS & Hoa hồng Sales',
+            desc: 'SaaS Revenue & Sales Commissions',
           },
         ]
       : []),
@@ -376,7 +376,7 @@ export default function StaffCrmLayout({
               type="button"
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
-              title="Trung tâm Thông báo"
+              title="Notification Center"
             >
               <span className="material-symbols-outlined text-[20px]">notifications</span>
               {unreadNotifications > 0 && (
@@ -434,14 +434,14 @@ export default function StaffCrmLayout({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-xs font-bold text-blue-950 truncate">
-                            {notif.title || `Khách hàng mới: ${notif.customerName}`}
+                            {notif.title || `New Client: ${notif.customerName}`}
                           </p>
                           <span className="text-[10px] font-bold text-white bg-blue-600 px-1.5 py-0.2 rounded">
-                            Mới
+                            New
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-800 font-semibold mt-0.5">
-                          SĐT: <span className="text-blue-700 underline">{notif.phone}</span>
+                          Phone: <span className="text-blue-700 underline">{notif.phone}</span>
                           {notif.dob ? ` • DOB: ${notif.dob}` : ''}
                         </p>
                         {notif.email && (
@@ -449,9 +449,9 @@ export default function StaffCrmLayout({
                         )}
                         <p className="text-[10px] text-emerald-700 font-semibold mt-0.5 flex items-center gap-1">
                           <span className="material-symbols-outlined text-[13px]">phone_in_talk</span>
-                          <span>Đại lý cần liên hệ hỗ trợ khách hàng này</span>
+                          <span>Agent action required for this client</span>
                         </p>
-                        <span className="text-[9px] text-slate-400 font-medium">{notif.timeAgo || 'Vừa xong'}</span>
+                        <span className="text-[9px] text-slate-400 font-medium">{notif.timeAgo || 'Just now'}</span>
                       </div>
                     </div>
                   ))}
@@ -662,7 +662,7 @@ export default function StaffCrmLayout({
                       className="w-full flex items-center gap-2 px-3.5 py-2 text-xs text-blue-600 hover:bg-blue-50 text-left transition cursor-pointer font-medium"
                     >
                       <span className="material-symbols-outlined text-[16px]">card_membership</span>
-                      <span>Gói thuê bao CRM của tôi</span>
+                      <span>My CRM Subscription</span>
                     </button>
                   )}
                   {isAgent && (
@@ -675,7 +675,7 @@ export default function StaffCrmLayout({
                       className="w-full flex items-center gap-2 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left transition cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">payments</span>
-                      <span>Sổ hoa hồng bảo hiểm</span>
+                      <span>Insurance Commission Ledger</span>
                     </button>
                   )}
                   <Link

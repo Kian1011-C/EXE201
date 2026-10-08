@@ -25,14 +25,14 @@ export function addCustomerNotification({ customerName, dob, email, phone, agent
     const newNotif = {
       id: `NOTIF-${Date.now()}`,
       agentName: agentName || 'Trung Trương',
-      customerName: customerName || 'Khách Hàng',
+      customerName: customerName || 'Client',
       dob: dob || '',
       email: email || '',
       phone: phone || '',
-      title: `Khách hàng mới cần liên hệ: ${customerName}`,
-      message: `Khách hàng ${customerName} (DOB: ${dob || 'Chưa cung cấp'}) vừa gửi yêu cầu tư vấn. SĐT: ${phone || '—'} • Email: ${email || '—'}. Vui lòng liên hệ hỗ trợ!`,
+      title: `New client inquiry: ${customerName}`,
+      message: `Client ${customerName} (DOB: ${dob || 'Not provided'}) submitted an insurance request. Phone: ${phone || '—'} • Email: ${email || '—'}. Please follow up promptly!`,
       createdAt: new Date().toISOString(),
-      timeAgo: 'Vừa xong',
+      timeAgo: 'Just now',
       unread: true,
     };
     list.unshift(newNotif);
@@ -102,8 +102,8 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
 
       // 2. Submit to CRM / backend API
       const parts = cleanName.split(' ');
-      const firstName = parts[0] || 'Khách';
-      const lastName = parts.slice(1).join(' ') || 'Hàng';
+      const firstName = parts[0] || 'Client';
+      const lastName = parts.slice(1).join(' ') || 'User';
 
       await submitMatchmakingInquiry({
         isAnonymous: false,
@@ -116,7 +116,7 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
         agentName: chosenAgent,
         state: 'TX',
         zipCode: '77072',
-        coverageType: 'Yêu cầu tư vấn bảo hiểm',
+        coverageType: 'Insurance Consultation Request',
         annualIncome: 38000,
       });
 
@@ -176,13 +176,13 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
 
               <div className="flex items-center gap-2 text-amber-300 text-[11px] font-extrabold uppercase tracking-widest mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>KẾT NỐI ĐẠI LÝ BẢO HIỂM ĐƯỢC CẤP PHÉP (NPN)</span>
+                <span>CONNECT LICENSED INSURANCE AGENT (NPN)</span>
               </div>
               <h3 className="text-xl font-black tracking-tight text-white">
-                Gửi Thông Tin &amp; Chọn Đại Lý Phụ Trách
+                Submit Information &amp; Choose Assigned Agent
               </h3>
               <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Điền thông tin cơ bản bên dưới để gửi yêu cầu trực tiếp đến Đại lý bảo hiểm. Sau khi gửi, Đại lý sẽ nhận được thông báo để liên hệ lại hỗ trợ bạn.
+                Provide your basic contact details below to send your request directly to a licensed insurance agent.
               </p>
             </div>
 
@@ -197,10 +197,10 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
 
                   <div>
                     <h4 className="text-xl font-black text-navy-deep">
-                      Yêu Cầu Đã Gửi Thành Công!
+                      Inquiry Submitted Successfully!
                     </h4>
                     <p className="text-xs text-slate-600 mt-1.5 max-w-sm mx-auto leading-relaxed">
-                      Hệ thống đã gửi thông báo liên hệ trực tiếp đến tài khoản của Đại lý{' '}
+                      The system has dispatched a priority alert directly to licensed agent{' '}
                       <strong className="text-blue-700">{submittedResult.agent}</strong>.
                     </p>
                   </div>
@@ -208,19 +208,19 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                   {/* Summary Box */}
                   <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs space-y-2 text-slate-700 font-medium">
                     <div className="flex justify-between pb-1.5 border-b border-slate-200">
-                      <span className="text-slate-500">Đại lý phụ trách:</span>
+                      <span className="text-slate-500">Assigned Agent:</span>
                       <span className="font-extrabold text-blue-900">{submittedResult.agent}</span>
                     </div>
                     <div className="flex justify-between pb-1.5 border-b border-slate-200">
-                      <span className="text-slate-500">Khách hàng:</span>
+                      <span className="text-slate-500">Client Name:</span>
                       <span className="font-bold text-slate-900">{submittedResult.name}</span>
                     </div>
                     <div className="flex justify-between pb-1.5 border-b border-slate-200">
-                      <span className="text-slate-500">Ngày sinh (DOB):</span>
+                      <span className="text-slate-500">Date of Birth (DOB):</span>
                       <span className="font-bold text-slate-900">{submittedResult.dob || '—'}</span>
                     </div>
                     <div className="flex justify-between pb-1.5 border-b border-slate-200">
-                      <span className="text-slate-500">Số điện thoại:</span>
+                      <span className="text-slate-500">Phone Number:</span>
                       <span className="font-bold text-slate-900">{submittedResult.phone}</span>
                     </div>
                     <div className="flex justify-between">
@@ -234,7 +234,7 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                       notifications_active
                     </span>
                     <span>
-                      Đại lý <strong>{submittedResult.agent}</strong> sẽ nhận thông báo trên thanh chuông Notification của CRM để gọi/nhắn tin hỗ trợ bạn sớm nhất.
+                      Agent <strong>{submittedResult.agent}</strong> will receive an instant notification in their CRM to follow up with you shortly.
                     </span>
                   </div>
 
@@ -244,14 +244,14 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                       onClick={handleReset}
                       className="flex-1 py-3 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 cursor-pointer transition"
                     >
-                      Đóng
+                      Close
                     </button>
                     <Link
                       to="/login"
                       onClick={onClose}
                       className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition"
                     >
-                      <span>Đăng nhập CRM Agent</span>
+                      <span>Agent CRM Portal</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
@@ -263,12 +263,12 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Họ và Tên *</span>
+                      <span>Full Name *</span>
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Ví dụ: Nguyễn Văn An"
+                      placeholder="e.g. John Doe"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
@@ -279,7 +279,7 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Ngày sinh (DOB) *</span>
+                      <span>Date of Birth (DOB) *</span>
                     </label>
                     <input
                       type="date"
@@ -289,7 +289,7 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
                     />
                     <p className="text-[10px] text-slate-400 mt-0.5">
-                      Ngày sinh dùng để tính đúng nhóm tuổi biểu phí ACA / Medicare của bang.
+                      Date of birth is required to calculate accurate ACA / Medicare state subsidy tiers.
                     </p>
                   </div>
 
@@ -297,12 +297,12 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Số điện thoại (Phone) *</span>
+                      <span>Phone Number *</span>
                     </label>
                     <input
                       type="tel"
                       required
-                      placeholder="Ví dụ: (832) 555-0199 hoặc 0912..."
+                      placeholder="e.g. (832) 555-0199"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
@@ -318,7 +318,7 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                     <input
                       type="email"
                       required
-                      placeholder="Ví dụ: an.nguyen@example.com"
+                      placeholder="e.g. john.doe@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
@@ -329,7 +329,7 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                   <div className="pt-1">
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                       <UserCheck className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Chọn Agent làm người liên hệ *</span>
+                      <span>Select Assigned Agent *</span>
                     </label>
                     <select
                       value={selectedAgentName}
@@ -340,14 +340,14 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                         const name = ag.name || ag.fullName;
                         return (
                           <option key={ag.id || name} value={name}>
-                            {name} {name === 'Trung Trương' ? '⭐ (Chuyên gia chính)' : ''} — NPN: {ag.npn || '2001186'}
+                            {name} {name === 'Trung Trương' ? '⭐ (Lead Specialist)' : ''} — NPN: {ag.npn || '2001186'}
                           </option>
                         );
                       })}
                     </select>
                     <p className="text-[10px] text-blue-700 font-semibold mt-1 flex items-center gap-1">
                       <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                      <span>Đại lý được chọn sẽ nhận thông báo trên CRM để liên hệ bạn ngay.</span>
+                      <span>The selected agent will receive an instant CRM notification to connect with you.</span>
                     </p>
                   </div>
 
@@ -359,17 +359,17 @@ export default function CustomerMatchModal({ isOpen, onClose }) {
                       className="w-full py-3.5 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider transition-all duration-150 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                     >
                       {loading ? (
-                        <span>Đang gửi thông báo tới Đại lý...</span>
+                        <span>Dispatching alert to agent...</span>
                       ) : (
                         <>
-                          <span>Gửi Yêu Cầu &amp; Báo Đại Lý {selectedAgentName}</span>
+                          <span>Submit Request &amp; Alert Agent {selectedAgentName}</span>
                           <ArrowRight className="w-4 h-4 text-amber-300" />
                         </>
                       )}
                     </button>
                     <p className="text-center text-[10px] text-slate-400 mt-2 flex items-center justify-center gap-1">
                       <Lock className="w-3 h-3 text-slate-400" />
-                      <span>Thông tin được bảo mật 100% theo tiêu chuẩn HIPAA</span>
+                      <span>100% Private &amp; HIPAA Compliant</span>
                     </p>
                   </div>
                 </form>

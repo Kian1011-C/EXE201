@@ -41,9 +41,9 @@ export default class ErrorBoundary extends React.Component {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-slate-800">Đã xảy ra sự cố khi tải trang</h2>
+              <h2 className="text-xl font-bold text-slate-800">Something went wrong</h2>
               <p className="text-sm text-slate-500 leading-relaxed">
-                Hệ thống gặp lỗi kết xuất giao diện tạm thời. Dữ liệu của bạn vẫn an toàn và không bị mất.
+                The application encountered an unexpected error. Your data is safe.
               </p>
             </div>
 
@@ -59,14 +59,14 @@ export default class ErrorBoundary extends React.Component {
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl cursor-pointer transition"
               >
-                Tải lại trang
+                Reload Page
               </button>
               <button
                 type="button"
                 onClick={this.handleReset}
                 className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-xs cursor-pointer transition"
               >
-                Quay lại Dashboard
+                Return to Dashboard
               </button>
             </div>
           </div>
