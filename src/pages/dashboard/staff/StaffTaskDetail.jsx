@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../../../auth/AuthContext';
-import { getUsers } from '../../../services/api';
+import { getUsers, updateTask } from '../../../services/api';
 import { getActiveAgentAccounts } from '../../../utils/constants';
 import toast from 'react-hot-toast';
 
@@ -270,6 +270,18 @@ export default function StaffTaskDetail({
     return null;
   }, [currentTask]);
 
+  const saveTask = async (updated) => {
+    setCurrentTask(updated);
+    if (onUpdateTask) onUpdateTask(updated);
+    if (updated.id && String(updated.id).trim() !== '') {
+      try {
+        await updateTask(updated.id, updated);
+      } catch (err) {
+        console.warn('Failed to update task to API', err);
+      }
+    }
+  };
+
   // ── Actions ───────────────────────────────────────────────────────────────
   const handleToggleCompleted = () => {
     const nextCompleted = !currentTask.completed;
@@ -280,8 +292,7 @@ export default function StaffTaskDetail({
       status: nextStatus,
       lastModifiedTime: new Date().toLocaleString(),
     };
-    setCurrentTask(updated);
-    if (onUpdateTask) onUpdateTask(updated);
+    saveTask(updated);
     toast.success(
       nextCompleted ? 'Đã đánh dấu hoàn thành công việc!' : 'Đã mở lại công việc (OPEN)'
     );
@@ -294,9 +305,8 @@ export default function StaffTaskDetail({
       title: editedTitle?.trim(),
       lastModifiedTime: new Date().toLocaleString(),
     };
-    setCurrentTask(updated);
+    saveTask(updated);
     setIsEditingTitle(false);
-    if (onUpdateTask) onUpdateTask(updated);
     toast.success('Đã cập nhật tiêu đề!');
   };
 
@@ -307,9 +317,8 @@ export default function StaffTaskDetail({
       description: editedContent,
       lastModifiedTime: new Date().toLocaleString(),
     };
-    setCurrentTask(updated);
+    saveTask(updated);
     setIsEditingContent(false);
-    if (onUpdateTask) onUpdateTask(updated);
     toast.success('Đã lưu nội dung công việc!');
   };
 
@@ -319,8 +328,7 @@ export default function StaffTaskDetail({
       [field]: value,
       lastModifiedTime: new Date().toLocaleString(),
     };
-    setCurrentTask(updated);
-    if (onUpdateTask) onUpdateTask(updated);
+    saveTask(updated);
     toast.success(`Đã cập nhật ${field}`);
   };
 
@@ -338,9 +346,8 @@ export default function StaffTaskDetail({
       comments: updatedComments,
       lastModifiedTime: new Date().toLocaleString(),
     };
-    setCurrentTask(updated);
+    saveTask(updated);
     setNewCommentText('');
-    if (onUpdateTask) onUpdateTask(updated);
     toast.success('Đã thêm bình luận mới!');
   };
 
@@ -359,8 +366,7 @@ export default function StaffTaskDetail({
       attachments: [...(currentTask.attachments || []), newAtt],
       lastModifiedTime: new Date().toLocaleString(),
     };
-    setCurrentTask(updated);
-    if (onUpdateTask) onUpdateTask(updated);
+    saveTask(updated);
     toast.success(`Đã đính kèm tệp: ${file?.name}`);
   };
 
@@ -370,8 +376,7 @@ export default function StaffTaskDetail({
       attachments: (currentTask.attachments || [])?.filter((a) => a.id !== attId),
       lastModifiedTime: new Date().toLocaleString(),
     };
-    setCurrentTask(updated);
-    if (onUpdateTask) onUpdateTask(updated);
+    saveTask(updated);
     toast.success('Đã xóa tệp đính kèm');
   };
 
