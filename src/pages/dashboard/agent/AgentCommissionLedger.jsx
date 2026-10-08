@@ -37,20 +37,21 @@ export default function AgentCommissionLedger({
 }) {
   const { user: authUser } = useAuth();
   const user = currentUser || authUser;
-  const activeIsAgent =
-    Boolean(isAgent) ||
-    user?.role === 'agent' ||
-    user?.role === 'broker' ||
-    window.location.pathname.includes('/agent');
+  const userRole = (user?.role || '').toLowerCase();
+  const isAdmin = userRole === 'admin' || userRole === 'super admin';
+  const activeIsAgent = !isAdmin;
   const effectiveAgent = getAgentIdentity(
     user || (isAgent ? { role: 'agent', name: agentName } : null)
   );
 
-  // Available agent roster for dynamic scoping & selector
+  // Available agent roster for dynamic scoping & selector (Admin only)
   const [availableAgents, setAvailableAgents] = useState([]);
 
-  // Selected agent filter state (defaults to Trung Trương as requested)
+  // Selected agent filter state (Admin can change; Agent is strictly locked to effectiveAgent.name)
   const [selectedAgentFilter, setSelectedAgentFilter] = useState(() => {
+    if (!isAdmin) {
+      return effectiveAgent.name || 'Trung Trương';
+    }
     try {
       const saved = sessionStorage.getItem('insurmatch_selected_commission_agent');
       if (saved) return saved;
@@ -206,7 +207,9 @@ export default function AgentCommissionLedger({
   async function loadCommissionsData(targetAgentName) {
     try {
       setLoading(true);
-      const agentToFilter = targetAgentName !== undefined ? targetAgentName : selectedAgentFilter;
+      const agentToFilter = !isAdmin
+        ? effectiveAgent.name
+        : (targetAgentName !== undefined ? targetAgentName : selectedAgentFilter);
       const targetUser = agentToFilter !== 'All' ? { role: 'agent', name: agentToFilter } : null;
 
       const [comms, summary, dealsRes, contactsRes] = await Promise.all([
@@ -400,21 +403,22 @@ export default function AgentCommissionLedger({
   }
 
   useEffect(() => {
-    loadCommissionsData(selectedAgentFilter);
-  }, [selectedAgentFilter]);
+    loadCommissionsData(isAdmin ? selectedAgentFilter : effectiveAgent.name);
+  }, [selectedAgentFilter, effectiveAgent.name, isAdmin]);
 
   // Trigger Commission Recalculation
   async function handleRunCalculation() {
     try {
       setCalculating(true);
+      const currentFilter = isAdmin ? selectedAgentFilter : effectiveAgent.name;
       const res = await calculateCommissions({
-        agentName: selectedAgentFilter !== 'All' ? selectedAgentFilter : '',
+        agentName: currentFilter !== 'All' ? currentFilter : '',
         period: selectedCycle === 'YTD' ? '2026-09' : selectedCycle,
       });
       showToast(`Đã tính toán xong hoa hồng 100% cho các deal: ${res.message || 'Cập nhật thành công!'}`);
-      await loadCommissionsData(selectedAgentFilter);
+      await loadCommissionsData(currentFilter);
     } catch (err) {
-      await loadCommissionsData(selectedAgentFilter);
+      await loadCommissionsData(isAdmin ? selectedAgentFilter : effectiveAgent.name);
       showToast('Đã làm mới và tự động tính toán lại mức chi trả của từng hãng cho toàn bộ deals!');
     } finally {
       setCalculating(false);
@@ -665,7 +669,7 @@ export default function AgentCommissionLedger({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          {selectedAgentFilter !== 'Trung Trương' && (
+          {isAdmin && selectedAgentFilter !== 'Trung Trương' && (
             <button
               type="button"
               onClick={() => {
@@ -943,30 +947,36 @@ export default function AgentCommissionLedger({
             />
           </div>
 
-          {/* Agent Filter Dropdown */}
-          <div className="flex items-center gap-1.5 bg-blue-50/50 p-1 px-2 rounded-xl border border-blue-200/80">
+          {/* Agent Filter: Select for Admin, Read-only badge for Agent */}
+          <div className="flex items-center gap-1.5 bg-blue-50/50 p-1 px-2.5 rounded-xl border border-blue-200/80">
             <span className="text-blue-900 font-bold flex items-center gap-1">
               <span className="material-symbols-outlined text-[16px] text-blue-600">badge</span>
               Đại lý:
             </span>
-            <select
-              value={selectedAgentFilter}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedAgentFilter(val);
-                try {
-                  sessionStorage.setItem('insurmatch_selected_commission_agent', val);
-                } catch {}
-              }}
-              className="bg-white border border-blue-300 font-bold px-2.5 py-1 rounded-lg text-blue-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer shadow-2xs hover:bg-white transition"
-            >
-              <option value="All">Tất cả đại lý (Toàn bộ)</option>
-              {availableAgents?.map((ag) => (
-                <option key={ag.name} value={ag.name}>
-                  {ag.name} {ag.name === 'Trung Trương' ? '⭐ (Chính)' : ''}
-                </option>
-              ))}
-            </select>
+            {isAdmin ? (
+              <select
+                value={selectedAgentFilter}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedAgentFilter(val);
+                  try {
+                    sessionStorage.setItem('insurmatch_selected_commission_agent', val);
+                  } catch {}
+                }}
+                className="bg-white border border-blue-300 font-bold px-2.5 py-1 rounded-lg text-blue-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer shadow-2xs hover:bg-white transition"
+              >
+                <option value="All">Tất cả đại lý (Toàn bộ)</option>
+                {availableAgents?.map((ag) => (
+                  <option key={ag.name} value={ag.name}>
+                    {ag.name} {ag.name === 'Trung Trương' ? '⭐ (Chính)' : ''}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="bg-white/90 border border-blue-200/90 font-bold px-2.5 py-1 rounded-lg text-slate-800 text-xs shadow-2xs cursor-default">
+                {effectiveAgent.name || 'Trung Trương'}
+              </span>
+            )}
           </div>
 
           {/* Carrier Filter */}
