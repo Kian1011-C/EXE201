@@ -82,7 +82,15 @@ export default function Navbar({ onOpenQuote }) {
           </Link>
 
           {/* CENTER: Clean Editorial Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-7 text-[13px] font-medium tracking-wide text-charcoal/80">
+          <nav className="hidden lg:flex items-center space-x-6 text-[13px] font-medium tracking-wide text-charcoal/80">
+            <a 
+              className="text-blue-700 font-extrabold hover:text-blue-900 transition-colors flex items-center gap-1.5 bg-blue-50/80 hover:bg-blue-100/80 px-3 py-1 rounded-xl border border-blue-200/80 shadow-2xs" 
+              href="/#matchmaking-portal"
+            >
+              <span className="material-symbols-outlined text-[17px] text-blue-600">travel_explore</span>
+              <span>Matchmaking Portal</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </a>
             <a 
               className="hover:text-navy-deep transition-colors" 
               href="/#features"
@@ -125,19 +133,19 @@ export default function Navbar({ onOpenQuote }) {
                 Sign In
               </Link>
 
-              <button 
-                onClick={onOpenQuote}
-                className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-navy-deep text-navy-deep hover:bg-sand/60 transition-all font-semibold text-xs tracking-wide cursor-pointer"
+              <a 
+                href="/#matchmaking-portal"
+                className="inline-flex items-center justify-center px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all font-bold text-xs tracking-wide cursor-pointer shadow-2xs"
               >
-                <span>Book Demo</span>
-              </button>
+                <span>Tra cứu &amp; Báo giá</span>
+              </a>
 
               <button 
                 onClick={onOpenQuote}
-                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight shadow-xs hover:shadow-sm transition-all duration-200 font-bold text-xs tracking-wide group cursor-pointer border border-navy-deep"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight shadow-2xs hover:shadow-xs transition-all duration-200 font-bold text-xs tracking-wide group cursor-pointer border border-navy-deep"
               >
-                <span>14-Day Free Trial</span>
-                <span className="material-symbols-outlined ml-1.5 text-[16px] text-champagne group-hover:translate-x-1 transition-transform">
+                <span>14-Day Trial</span>
+                <span className="material-symbols-outlined ml-1 text-[16px] text-champagne group-hover:translate-x-0.5 transition-transform">
                   arrow_forward
                 </span>
               </button>
@@ -168,6 +176,17 @@ export default function Navbar({ onOpenQuote }) {
               className="lg:hidden bg-ivory border-t border-stroke-subtle px-6 py-6 space-y-4 shadow-xl overflow-hidden"
             >
               <nav className="flex flex-col space-y-3 font-medium text-sm text-charcoal">
+                <a 
+                  href="/#matchmaking-portal" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="py-2.5 px-3 rounded-xl bg-blue-50 text-blue-900 font-extrabold flex items-center justify-between border border-blue-200"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-blue-600">travel_explore</span>
+                    <span>Matchmaking Portal</span>
+                  </span>
+                  <span className="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded-full">Tra cứu &amp; Báo giá</span>
+                </a>
                 <a href="/#features" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
                   CRM Features
                 </a>

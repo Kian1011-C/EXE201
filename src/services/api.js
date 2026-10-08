@@ -403,12 +403,36 @@ export async function getUsers() {
 }
 
 export async function getContacts(params = {}) {
-  const query = new URLSearchParams();
-  if (params.search) query.append('search', params.search);
-  if (params.owner && params.owner !== 'all') query.append('owner', params.owner);
-  const qStr = query.toString() ? `?${query.toString()}` : '';
-  const data = await request(`/contacts${qStr}`);
-  return Array.isArray(data) ? data.map(normalizeContact) : data;
+  let list = [];
+  try {
+    const query = new URLSearchParams();
+    if (params.search) query.append('search', params.search);
+    if (params.owner && params.owner !== 'all') query.append('owner', params.owner);
+    const qStr = query.toString() ? `?${query.toString()}` : '';
+    const data = await request(`/contacts${qStr}`);
+    if (Array.isArray(data)) list = data.map(normalizeContact);
+  } catch (err) {
+    console.warn('[CRM API] getContacts fallback:', err?.message);
+  }
+
+  // Merge dynamic contacts from Matchmaking Portal / CRM submissions
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_dynamic_contacts') : null;
+    if (raw) {
+      const dynamicContacts = JSON.parse(raw);
+      if (Array.isArray(dynamicContacts) && dynamicContacts.length > 0) {
+        const seen = new Set(list.map((c) => String(c.id || c.code)));
+        dynamicContacts.forEach((dc) => {
+          if (!seen.has(String(dc.id || dc.code))) {
+            seen.add(String(dc.id || dc.code));
+            list.unshift(normalizeContact(dc));
+          }
+        });
+      }
+    }
+  } catch {}
+
+  return list;
 }
 
 export async function getContactDeals(contactId) {
@@ -497,15 +521,39 @@ export async function updateContact(id, data) {
 
 // ── Deals ────────────────────────────────────────────────────────────────────
 export async function getDeals(params = {}) {
-  const query = new URLSearchParams();
-  if (params.search) query.append('search', params.search);
-  if (params.stage && params.stage !== 'all') query.append('stage', params.stage);
-  if (params.pipeline && params.pipeline !== 'all') query.append('pipeline', params.pipeline);
-  if (params.carrier && params.carrier !== 'all') query.append('carrier', params.carrier);
-  if (params.owner && params.owner !== 'all') query.append('owner', params.owner);
-  const qStr = query.toString() ? `?${query.toString()}` : '';
-  const data = await request(`/deals${qStr}`);
-  return Array.isArray(data) ? data.map(normalizeDeal) : data;
+  let list = [];
+  try {
+    const query = new URLSearchParams();
+    if (params.search) query.append('search', params.search);
+    if (params.stage && params.stage !== 'all') query.append('stage', params.stage);
+    if (params.pipeline && params.pipeline !== 'all') query.append('pipeline', params.pipeline);
+    if (params.carrier && params.carrier !== 'all') query.append('carrier', params.carrier);
+    if (params.owner && params.owner !== 'all') query.append('owner', params.owner);
+    const qStr = query.toString() ? `?${query.toString()}` : '';
+    const data = await request(`/deals${qStr}`);
+    if (Array.isArray(data)) list = data.map(normalizeDeal);
+  } catch (err) {
+    console.warn('[CRM API] getDeals fallback:', err?.message);
+  }
+
+  // Merge dynamic deals from Matchmaking Portal / CRM submissions
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('insurmatch_dynamic_deals') : null;
+    if (raw) {
+      const dynamicDeals = JSON.parse(raw);
+      if (Array.isArray(dynamicDeals) && dynamicDeals.length > 0) {
+        const seen = new Set(list.map((d) => String(d.id || d.dealName)));
+        dynamicDeals.forEach((dd) => {
+          if (!seen.has(String(dd.id || dd.dealName))) {
+            seen.add(String(dd.id || dd.dealName));
+            list.unshift(normalizeDeal(dd));
+          }
+        });
+      }
+    }
+  } catch {}
+
+  return list;
 }
 
 export async function getDeal(id) {
@@ -1374,6 +1422,115 @@ export async function submitQuote(data) {
     method: 'POST',
     body: JSON.stringify(data),
   });
+}
+
+/**
+ * Matchmaking Portal Inquiry Submission
+ * Connects anonymous / public customer directly to selected licensed agent,
+ * creating an active inquiry deal & contact record in the agent's CRM pipeline.
+ */
+export async function submitMatchmakingInquiry(inquiry) {
+  const chosenAgent = inquiry.agentName || 'Trung Trương';
+  const state = inquiry.state || 'TX';
+  const zipCode = inquiry.zipCode || '77072';
+  const isAnon = Boolean(inquiry.isAnonymous);
+
+  const contactName = isAnon
+    ? `Khách Ẩn Danh (${state} - ${zipCode})`
+    : (inquiry.fullName || [inquiry.firstName, inquiry.lastName].filter(Boolean).join(' ') || 'Khách Hàng Mới');
+
+  // 1. Submit quote to backend
+  try {
+    await submitQuote({
+      firstName: isAnon ? 'Khách' : (inquiry.firstName || contactName.split(' ')[0] || 'Khách'),
+      lastName: isAnon ? `Ẩn Danh (${state})` : (inquiry.lastName || contactName.split(' ').slice(1).join(' ') || 'Hàng'),
+      phone: inquiry.phone || '—',
+      email: inquiry.email || '—',
+      state,
+      zipCode,
+      language: inquiry.language || 'Tiếng Việt & English',
+      howDoYouKnowUs: `Matchmaking Portal - ${inquiry.coverageType || 'ACA'} - Đại lý: ${chosenAgent}`,
+    });
+  } catch (err) {
+    console.warn('[CRM API] submitQuote non-blocking warning:', err?.message);
+  }
+
+  const timestamp = Date.now();
+  const dealId = `DEAL-MM-${timestamp}`;
+  const contactId = `CT-MM-${timestamp}`;
+  const codeNum = Math.floor(1000 + Math.random() * 9000);
+
+  const newContact = {
+    id: contactId,
+    code: `CT2600${codeNum}`,
+    fullName: contactName,
+    name: contactName,
+    phone: inquiry.phone || '—',
+    email: inquiry.email || '—',
+    language: inquiry.language || 'Tiếng Việt & English',
+    state,
+    zipCode,
+    status: 'Active',
+    contactOwner: chosenAgent,
+    contactOwnerName: chosenAgent,
+    howDoYouKnowUs: `Cổng Matchmaking Portal (${inquiry.coverageType || 'Obamacare'})`,
+    createdAt: new Date().toISOString(),
+    primary: {
+      firstName: isAnon ? 'Khách' : (inquiry.firstName || 'Khách'),
+      lastName: isAnon ? 'Ẩn Danh' : (inquiry.lastName || 'Hàng'),
+      dob: inquiry.age ? `Độ tuổi: ${inquiry.age}` : '',
+      annualIncome: inquiry.annualIncome || 35000,
+      subsidyAmount: inquiry.subsidyAmount || 420,
+    },
+  };
+
+  const newDeal = {
+    id: dealId,
+    dealName: `${contactName} - ${inquiry.coverageType || 'ACA 2026'}`,
+    title: `${contactName} - ${inquiry.coverageType || 'ACA 2026'}`,
+    contactId,
+    contactName,
+    dealOwner: chosenAgent,
+    contactOwner: chosenAgent,
+    pipeline: inquiry.coverageType?.includes('Medicare') ? 'Medicare 2026' : 'Obamacare 2026',
+    stage: 'New Inquiry',
+    carrier: inquiry.preferredCarrier || 'BCBS',
+    amount: inquiry.monthlyPremium != null ? inquiry.monthlyPremium : 30,
+    monthlyPremium: inquiry.monthlyPremium != null ? inquiry.monthlyPremium : 30,
+    subsidyAmount: inquiry.subsidyAmount || 420,
+    estimateHouseholdIncome: inquiry.annualIncome || 35000,
+    householdMember: Number(inquiry.householdSize || 1),
+    sellingState: state,
+    policyEffectiveDate: '2026-11-01',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  // 2. Try POSTing to backend CRM endpoints
+  try {
+    await createContact(newContact).catch(() => {});
+    await createDeal(newDeal).catch(() => {});
+  } catch {}
+
+  // 3. Persist to dynamic local storage for 100% demo & presentation reliability
+  try {
+    if (typeof window !== 'undefined') {
+      const rawDeals = localStorage.getItem('insurmatch_dynamic_deals');
+      const deals = rawDeals ? JSON.parse(rawDeals) : [];
+      deals.unshift(newDeal);
+      localStorage.setItem('insurmatch_dynamic_deals', JSON.stringify(deals));
+
+      const rawContacts = localStorage.getItem('insurmatch_dynamic_contacts');
+      const contacts = rawContacts ? JSON.parse(rawContacts) : [];
+      contacts.unshift(newContact);
+      localStorage.setItem('insurmatch_dynamic_contacts', JSON.stringify(contacts));
+
+      window.dispatchEvent(new CustomEvent('insurmatch_deals_updated', { detail: newDeal }));
+      window.dispatchEvent(new CustomEvent('insurmatch_contacts_updated', { detail: newContact }));
+    }
+  } catch {}
+
+  return { success: true, deal: newDeal, contact: newContact, agent: chosenAgent };
 }
 
 

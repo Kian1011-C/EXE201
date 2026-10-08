@@ -21,6 +21,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import CarrierLogosStrip from '../components/CarrierLogos';
+import MatchmakingPortal from '../components/MatchmakingPortal';
 
 export default function HomePage({ onOpenQuote }) {
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annual'
@@ -194,21 +195,21 @@ export default function HomePage({ onOpenQuote }) {
 
             {/* CTAs */}
             <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-              <button
-                type="button"
-                onClick={onOpenQuote}
-                className="px-7 py-3.5 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight transition-colors duration-200 font-bold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-xs group"
+              <a
+                href="#matchmaking-portal"
+                className="px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 font-extrabold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-md group"
               >
-                <span>Start 14-Day Free Trial</span>
-                <ArrowRight className="w-4 h-4 text-champagne group-hover:translate-x-1 transition-transform" />
-              </button>
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>Tra cứu &amp; Chọn Đại Lý Phụ Trách</span>
+                <ArrowRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
+              </a>
 
               <button
                 type="button"
                 onClick={onOpenQuote}
                 className="px-6 py-3.5 rounded-xl border border-navy-deep bg-white hover:bg-sand/60 text-navy-deep font-semibold text-xs tracking-wider uppercase transition-colors duration-200 cursor-pointer"
               >
-                Book a Free Demo
+                14-Day Free Trial
               </button>
             </div>
             
@@ -258,6 +259,19 @@ export default function HomePage({ onOpenQuote }) {
           </p>
           <CarrierLogosStrip />
         </div>
+      </motion.section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          MATCHMAKING PORTAL: ANONYMOUS QUOTE & AGENT ACCOUNT SELECTION
+         ───────────────────────────────────────────────────────────── */}
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.6 }}
+        className="py-6 bg-gradient-to-b from-sand/30 via-white to-sand/20 border-b border-stroke-subtle"
+      >
+        <MatchmakingPortal onOpenQuoteModal={onOpenQuote} />
       </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
