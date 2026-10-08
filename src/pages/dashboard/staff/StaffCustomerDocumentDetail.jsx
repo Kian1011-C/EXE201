@@ -721,7 +721,7 @@ export default function StaffCustomerDocumentDetail({
               </div>
             </div>
 
-            {/* Right tab actions: + Add Contact | Refresh */}
+            {/* Right tab actions: + Add Contact */}
             <div className="flex items-center gap-4 text-xs">
               <button
                 type="button"
@@ -730,14 +730,6 @@ export default function StaffCustomerDocumentDetail({
               >
                 <span className="material-symbols-outlined text-[16px]">add</span>
                 <span>Add Contact</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleRefresh}
-                className="flex items-center gap-1 text-slate-600 hover:text-slate-900 transition cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[15px]">refresh</span>
-                <span>Refresh</span>
               </button>
             </div>
           </div>
