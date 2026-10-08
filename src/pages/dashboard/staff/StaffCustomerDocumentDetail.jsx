@@ -522,7 +522,7 @@ export default function StaffCustomerDocumentDetail({
                   </label>
                   <div className="relative flex items-center rounded border border-slate-200 bg-white px-2.5 py-1.5 hover:border-slate-300 transition">
                     <div className="w-5 h-5 rounded-full bg-[#2563EB] text-white flex items-center justify-center text-[9px] font-bold shrink-0 mr-2">
-                      {contactOwner ? contactOwner.slice(0, 2).toUpperCase() : '--'}
+                      {contactOwner ? (typeof contactOwner === 'object' ? (contactOwner?.name || '--').slice(0, 2) : contactOwner.slice(0, 2)).toUpperCase() : '--'}
                     </div>
                     <select
                       value={cleanOwnerName(contactOwner)}
