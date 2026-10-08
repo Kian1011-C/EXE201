@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import QuoteModal from './components/QuoteModal';
+import CustomerMatchModal from './components/CustomerMatchModal';
 import MobileBottomBar from './components/MobileBottomBar';
 import CookieBanner from './components/CookieBanner';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -44,10 +45,10 @@ function ScrollToTop() {
 }
 
 // Layout wrapper for public pages (with Navbar/Footer)
-function PublicLayout({ onOpenQuote, children }) {
+function PublicLayout({ onOpenQuote, onOpenMatch, children }) {
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-800 font-sans selection:bg-amber-500 selection:text-slate-950">
-      <Navbar onOpenQuote={onOpenQuote} />
+      <Navbar onOpenQuote={onOpenQuote} onOpenMatch={onOpenMatch} />
       <main className="flex-grow pb-16 sm:pb-0">
         {children}
       </main>
@@ -60,14 +61,17 @@ function PublicLayout({ onOpenQuote, children }) {
 
 function PublicRoutes() {
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
+  const [isMatchOpen, setIsMatchOpen] = useState(false);
   const handleOpenQuote = () => setIsQuoteOpen(true);
   const handleCloseQuote = () => setIsQuoteOpen(false);
+  const handleOpenMatch = () => setIsMatchOpen(true);
+  const handleCloseMatch = () => setIsMatchOpen(false);
 
   return (
     <>
-      <PublicLayout onOpenQuote={handleOpenQuote}>
+      <PublicLayout onOpenQuote={handleOpenQuote} onOpenMatch={handleOpenMatch}>
         <Routes>
-          <Route path="/" element={<HomePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/" element={<HomePage onOpenQuote={handleOpenQuote} onOpenMatch={handleOpenMatch} />} />
           <Route path="/about" element={<AboutPage onOpenQuote={handleOpenQuote} />} />
           <Route path="/about-us" element={<AboutPage onOpenQuote={handleOpenQuote} />} />
           <Route path="/insurance-services" element={<ServicesPage onOpenQuote={handleOpenQuote} />} />
@@ -85,12 +89,13 @@ function PublicRoutes() {
           <Route path="/get-quote" element={<QuotePage onOpenQuote={handleOpenQuote} />} />
           <Route path="/matchmaking" element={<QuotePage onOpenQuote={handleOpenQuote} />} />
           <Route path="/secure-quote-request" element={<QuotePage onOpenQuote={handleOpenQuote} />} />
-          <Route path="/privacy" element={<HomePage onOpenQuote={handleOpenQuote} />} />
-          <Route path="/terms" element={<HomePage onOpenQuote={handleOpenQuote} />} />
-          <Route path="*" element={<HomePage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/privacy" element={<HomePage onOpenQuote={handleOpenQuote} onOpenMatch={handleOpenMatch} />} />
+          <Route path="/terms" element={<HomePage onOpenQuote={handleOpenQuote} onOpenMatch={handleOpenMatch} />} />
+          <Route path="*" element={<HomePage onOpenQuote={handleOpenQuote} onOpenMatch={handleOpenMatch} />} />
         </Routes>
       </PublicLayout>
       <QuoteModal isOpen={isQuoteOpen} onClose={handleCloseQuote} />
+      <CustomerMatchModal isOpen={isMatchOpen} onClose={handleCloseMatch} />
     </>
   );
 }

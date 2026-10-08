@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 
-export default function Navbar({ onOpenQuote }) {
+export default function Navbar({ onOpenQuote, onOpenMatch }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -25,13 +25,14 @@ export default function Navbar({ onOpenQuote }) {
       <div className="bg-navy-deep text-ivory/85 text-xs py-2 px-4 lg:px-8 border-b border-white/5 hidden md:block">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center space-x-3 lg:space-x-4 min-w-0">
-            <a 
-              href="/#matchmaking-portal"
-              className="tracking-wider uppercase text-[10px] text-amber-300 font-extrabold whitespace-nowrap bg-blue-900/80 hover:bg-blue-800 px-2.5 py-0.5 rounded-md border border-amber-300/40 transition flex items-center gap-1"
+            <button 
+              type="button"
+              onClick={onOpenMatch}
+              className="tracking-wider uppercase text-[10px] text-amber-300 font-extrabold whitespace-nowrap bg-blue-900/80 hover:bg-blue-800 px-2.5 py-0.5 rounded-md border border-amber-300/40 transition flex items-center gap-1 cursor-pointer"
             >
               <span className="material-symbols-outlined text-[14px]">travel_explore</span>
               <span>Cổng Khách Hàng: Tra Cứu Biểu Phí &amp; Chọn Đại Lý</span>
-            </a>
+            </button>
             <span className="text-white/20 hidden lg:inline">|</span>
             <span className="text-ivory/80 text-[11px] hidden lg:inline whitespace-nowrap">
               Matchmaking Portal cho Khách hàng &amp; B2B CRM cho Đại lý
@@ -87,14 +88,15 @@ export default function Navbar({ onOpenQuote }) {
 
           {/* CENTER: Clean Editorial Navigation Links */}
           <nav className="hidden lg:flex items-center space-x-6 text-[13px] font-medium tracking-wide text-charcoal/80">
-            <a 
-              className="text-blue-700 font-extrabold hover:text-blue-900 transition-colors flex items-center gap-1.5 bg-blue-50/80 hover:bg-blue-100/80 px-3 py-1 rounded-xl border border-blue-200/80 shadow-2xs" 
-              href="/#matchmaking-portal"
+            <button 
+              type="button"
+              onClick={onOpenMatch}
+              className="text-blue-700 font-extrabold hover:text-blue-900 transition-colors flex items-center gap-1.5 bg-blue-50/80 hover:bg-blue-100/80 px-3 py-1 rounded-xl border border-blue-200/80 shadow-2xs cursor-pointer" 
             >
               <span className="material-symbols-outlined text-[17px] text-blue-600">travel_explore</span>
-              <span>Matchmaking Portal</span>
+              <span>Kết Nối Đại Lý</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            </a>
+            </button>
             <a 
               className="hover:text-navy-deep transition-colors" 
               href="/#features"
@@ -137,12 +139,13 @@ export default function Navbar({ onOpenQuote }) {
                 Sign In
               </Link>
 
-              <a 
-                href="/#matchmaking-portal"
+              <button 
+                type="button"
+                onClick={onOpenMatch}
                 className="inline-flex items-center justify-center px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all font-bold text-xs tracking-wide cursor-pointer shadow-2xs"
               >
-                <span>Tra cứu &amp; Báo giá</span>
-              </a>
+                <span>Kết Nối Đại Lý</span>
+              </button>
 
               <button 
                 onClick={onOpenQuote}
@@ -180,17 +183,20 @@ export default function Navbar({ onOpenQuote }) {
               className="lg:hidden bg-ivory border-t border-stroke-subtle px-6 py-6 space-y-4 shadow-xl overflow-hidden"
             >
               <nav className="flex flex-col space-y-3 font-medium text-sm text-charcoal">
-                <a 
-                  href="/#matchmaking-portal" 
-                  onClick={() => setMobileMenuOpen(false)} 
-                  className="py-2.5 px-3 rounded-xl bg-blue-50 text-blue-900 font-extrabold flex items-center justify-between border border-blue-200"
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenMatch && onOpenMatch();
+                  }} 
+                  className="w-full py-2.5 px-3 rounded-xl bg-blue-50 text-blue-900 font-extrabold flex items-center justify-between border border-blue-200 cursor-pointer text-left"
                 >
                   <span className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px] text-blue-600">travel_explore</span>
-                    <span>Matchmaking Portal</span>
+                    <span>Kết Nối Đại Lý</span>
                   </span>
-                  <span className="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded-full">Tra cứu &amp; Báo giá</span>
-                </a>
+                  <span className="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded-full">Chọn Đại Lý</span>
+                </button>
                 <a href="/#features" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-sand hover:text-navy-deep">
                   CRM Features
                 </a>

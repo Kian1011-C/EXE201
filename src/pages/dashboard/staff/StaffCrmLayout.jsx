@@ -24,9 +24,38 @@ export default function StaffCrmLayout({
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(3);
+  const [customerNotifications, setCustomerNotifications] = useState([]);
   const [dbStatus, setDbStatus] = useState('checking'); // 'connected' | 'offline' | 'checking'
   const userMenuRef = useRef(null);
   const notificationsRef = useRef(null);
+
+  // Sync customer matchmaking notifications for the current agent
+  useEffect(() => {
+    function loadNotifications() {
+      try {
+        const raw = localStorage.getItem('insurmatch_agent_notifications');
+        if (raw) {
+          const list = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            const currentName = (agentName || user?.name || '').toLowerCase();
+            const relevant = list.filter((n) => {
+              if (isAdmin) return true;
+              const aName = (n.agentName || '').toLowerCase();
+              return aName === currentName || aName.includes(currentName) || currentName.includes(aName);
+            });
+            setCustomerNotifications(relevant);
+            const unread = relevant.filter((n) => n.unread !== false).length;
+            if (unread > 0) {
+              setUnreadNotifications((prev) => Math.max(prev, unread + 2));
+            }
+          }
+        }
+      } catch {}
+    }
+    loadNotifications();
+    window.addEventListener('insurmatch_customer_notification_added', loadNotifications);
+    return () => window.removeEventListener('insurmatch_customer_notification_added', loadNotifications);
+  }, [agentName, user?.name, isAdmin]);
 
   // Global Ctrl+K / Cmd+K listener for Command Palette
   useEffect(() => {
@@ -371,7 +400,17 @@ export default function StaffCrmLayout({
                   </div>
                   <button
                     type="button"
-                    onClick={() => setUnreadNotifications(0)}
+                    onClick={() => {
+                      setUnreadNotifications(0);
+                      try {
+                        const raw = localStorage.getItem('insurmatch_agent_notifications');
+                        if (raw) {
+                          const list = JSON.parse(raw).map((n) => ({ ...n, unread: false }));
+                          localStorage.setItem('insurmatch_agent_notifications', JSON.stringify(list));
+                          setCustomerNotifications(list);
+                        }
+                      } catch {}
+                    }}
                     className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
                   >
                     Mark all read
@@ -379,6 +418,44 @@ export default function StaffCrmLayout({
                 </div>
 
                 <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                  {/* Customer Direct Inquiries Targeted for this Agent */}
+                  {customerNotifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => {
+                        setShowNotifications(false);
+                        onSelectTab && onSelectTab('contacts');
+                      }}
+                      className="p-3 bg-blue-50/90 hover:bg-blue-100/90 transition cursor-pointer flex gap-3 items-start border-l-4 border-blue-600"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                        <span className="material-symbols-outlined text-[18px]">person_alert</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="text-xs font-bold text-blue-950 truncate">
+                            {notif.title || `Khách hàng mới: ${notif.customerName}`}
+                          </p>
+                          <span className="text-[10px] font-bold text-white bg-blue-600 px-1.5 py-0.2 rounded">
+                            Mới
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-800 font-semibold mt-0.5">
+                          SĐT: <span className="text-blue-700 underline">{notif.phone}</span>
+                          {notif.dob ? ` • DOB: ${notif.dob}` : ''}
+                        </p>
+                        {notif.email && (
+                          <p className="text-[10px] text-slate-500 truncate">Email: {notif.email}</p>
+                        )}
+                        <p className="text-[10px] text-emerald-700 font-semibold mt-0.5 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[13px]">phone_in_talk</span>
+                          <span>Đại lý cần liên hệ hỗ trợ khách hàng này</span>
+                        </p>
+                        <span className="text-[9px] text-slate-400 font-medium">{notif.timeAgo || 'Vừa xong'}</span>
+                      </div>
+                    </div>
+                  ))}
+
                   {isAdmin ? (
                     <>
                       <div
