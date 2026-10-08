@@ -95,7 +95,7 @@ function normalizeContact(c) {
     contactOwnerName: ownerName,
     phone: c.phone || '—',
     email: c.email || '—',
-    language: c.language || 'Vietnamese',
+    language: c.language || '',
     status: c.status || 'Active',
     howDoYouKnowUs: c.howDoYouKnowUs || c.sourceDetail || c.sourceChannel || '—',
     acaAccountStatus: c.acaAccountStatus || c.acaStatus || null,
@@ -133,7 +133,7 @@ function normalizeContact(c) {
       enrolledAddress: c.address || '',
       mailingAddress: c.mailingAddress || c.address || '',
       county: c.county || '',
-      language: c.language || 'Vietnamese',
+      language: c.language || '',
     },
     acaAccount: c.acaAccount || {
       theBestRateEmail: '',

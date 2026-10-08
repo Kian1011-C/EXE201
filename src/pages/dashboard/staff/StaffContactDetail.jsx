@@ -758,7 +758,8 @@ export default function StaffContactDetail({
   const [contactPhone, setContactPhone] = useState(
     contact?.rawPhone || contact?.phone || ''
   );
-  const [contactLanguage, setContactLanguage] = useState(contact?.language || 'Vietnamese');
+  const [contactLanguage, setContactLanguage] = useState(contact?.language || '');
+  const [contactCareer, setContactCareer] = useState(contact?.career || '');
   const [contactEmail, setContactEmail] = useState(contact?.email || '');
 
   // Source of Lead fields
@@ -791,7 +792,8 @@ export default function StaffContactDetail({
       setPrimaryHousehold(p.household || '');
 
       setContactPhone(contact.rawPhone || contact.phone || '');
-      setContactLanguage(contact.language || 'Vietnamese');
+      setContactLanguage(contact.language || '');
+      setContactCareer(contact.career || '');
       setContactEmail(contact.email || '');
 
       const cf = contact.contactFields || {};
@@ -1548,6 +1550,7 @@ export default function StaffContactDetail({
       phone: contactPhone,
       email: contactEmail,
       language: contactLanguage,
+      career: contactCareer,
       contactOwner: leadContactOwner,
       leadOwner: leadContactOwner,
       howDoYouKnowUs: leadHowDoYouKnowUs,
@@ -1614,7 +1617,7 @@ export default function StaffContactDetail({
       { fieldName: 'City', oldValue: oldCF.city || contact?.city || '', newValue: city },
       { fieldName: 'Postal Code', oldValue: oldCF.postalCode || contact?.zipCode || '', newValue: postalCode },
       { fieldName: 'County', oldValue: oldCF.county || '', newValue: county },
-      { fieldName: 'Language', oldValue: contact?.language || 'Vietnamese', newValue: contactLanguage },
+      { fieldName: 'Language', oldValue: contact?.language || '', newValue: contactLanguage },
       { fieldName: 'First Name', oldValue: contact?.firstName || oldPrimary.firstName || '', newValue: primaryFirstName },
       { fieldName: 'Middle Name', oldValue: contact?.middleName || oldPrimary.middleName || '', newValue: primaryMiddleName },
       { fieldName: 'Last Name', oldValue: contact?.lastName || oldPrimary.lastName || '', newValue: primaryLastName },
@@ -1661,6 +1664,7 @@ export default function StaffContactDetail({
         dateExpired: primaryDateExpired,
         household: primaryHousehold,
         language: contactLanguage,
+        career: contactCareer,
         theBestRateEmail: theBestRateEmail,
         acaAccount: acaAccount,
         acaPass: acaPass,
@@ -1707,6 +1711,7 @@ export default function StaffContactDetail({
       primaryHousehold: String(primaryHousehold || '')?.trim(),
       contactPhone: String(contactPhone || '')?.trim(),
       contactLanguage: String(contactLanguage || '')?.trim(),
+      contactCareer: String(contactCareer || '')?.trim(),
       contactEmail: String(contactEmail || '')?.trim(),
       enrolledAddress: String(enrolledAddress || '')?.trim(),
       mailingAddress: String(mailingAddress || '')?.trim(),
@@ -1742,6 +1747,7 @@ export default function StaffContactDetail({
     primaryHousehold,
     contactPhone,
     contactLanguage,
+    contactCareer,
     contactEmail,
     enrolledAddress,
     mailingAddress,
@@ -2496,6 +2502,8 @@ export default function StaffContactDetail({
                         />
                         <input
                           type="text"
+                          value={contactCareer}
+                          onChange={(e) => setContactCareer(e.target.value)}
                           placeholder=""
                           className="w-full px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
