@@ -794,7 +794,7 @@ export default function StaffCustomerDocumentDetail({
                   <span className="material-symbols-outlined text-[15px] text-slate-400">person</span>
                   <span className="text-slate-500 font-medium">Lead Owner:</span>
                   <span className="font-semibold text-slate-800">
-                    {associatedContact.leadOwner || contactOwner || '—'}
+                    {typeof associatedContact?.leadOwner === 'object' ? associatedContact.leadOwner?.name : (associatedContact?.leadOwner || (typeof contactOwner === 'object' ? contactOwner?.name : contactOwner) || '—')}
                   </span>
                 </div>
 
@@ -968,7 +968,7 @@ export default function StaffCustomerDocumentDetail({
               <div className="py-2 flex justify-between"><span className="text-slate-500">Document ID:</span><span className="font-mono font-bold text-slate-800">{doc.id}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Mã Code:</span><span className="font-mono font-bold text-slate-800">{doc.code || `DOC-${doc.id}`}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Tên hồ sơ:</span><span className="font-bold text-slate-800">{docName}</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Contact Owner:</span><span className="font-semibold text-slate-800">{contactOwner || '—'}</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Contact Owner:</span><span className="font-semibold text-slate-800">{typeof contactOwner === 'object' ? (contactOwner?.name || '—') : (contactOwner || '—')}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Customer liên kết:</span><span className="font-bold text-slate-800">{associatedContact.name || '—'}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Số điện thoại:</span><span className="font-mono text-slate-800">{associatedContact.phone || '—'}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Email:</span><span className="text-slate-800">{associatedContact.email || '—'}</span></div>
