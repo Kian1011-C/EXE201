@@ -48,6 +48,7 @@ export default function CreateCustomerDocumentModal({
   const [contactSearchQuery, setContactSearchQuery] = useState('');
   const [allExistingDocuments, setAllExistingDocuments] = useState([]);
   const [existingSearchQuery, setExistingSearchQuery] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [platformMembers, setPlatformMembers] = useState(() => getActiveAgentAccounts());
 
@@ -236,6 +237,8 @@ export default function CreateCustomerDocumentModal({
   }
 
   async function handleSave() {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     const finalDocName =
       docName && docName?.trim() !== '' && docName !== '--'
         ? docName?.trim()
@@ -337,6 +340,7 @@ export default function CreateCustomerDocumentModal({
     if (onSave) {
       onSave(newDoc);
     }
+    setIsSubmitting(false);
     onClose();
   }
 
@@ -945,6 +949,7 @@ export default function CreateCustomerDocumentModal({
         <div className="px-6 py-3.5 border-t border-slate-200 bg-white flex items-center justify-center gap-3 shrink-0">
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={activeTab === 'create' ? handleSave : () => {
               const found = allExistingDocuments.find((d) => d.id === selectedExistingId);
               if (found) {
@@ -952,10 +957,10 @@ export default function CreateCustomerDocumentModal({
                 onClose();
               }
             }}
-            className="px-5 py-2 rounded-lg bg-[#6F8BB7] hover:bg-[#5B7EB0] text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+            className={`px-5 py-2 rounded-lg text-white text-xs font-bold flex items-center gap-1.5 transition shadow-xs ${isSubmitting ? 'bg-[#9fb2cc] cursor-not-allowed' : 'bg-[#6F8BB7] hover:bg-[#5B7EB0] cursor-pointer'}`}
           >
             <span className="material-symbols-outlined text-[16px]">save</span>
-            <span>Save</span>
+            <span>{isSubmitting ? 'Saving...' : 'Save'}</span>
           </button>
 
           <button
