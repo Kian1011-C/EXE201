@@ -28,13 +28,14 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
             <button 
               type="button"
               onClick={onOpenMatch}
-              className="tracking-wider uppercase text-[10px] text-amber-300 font-extrabold whitespace-nowrap bg-blue-900/80 hover:bg-blue-800 px-2.5 py-0.5 rounded-md border border-amber-300/40 transition flex items-center gap-1 cursor-pointer"
+              className="tracking-wider uppercase text-[10px] text-champagne font-bold whitespace-nowrap bg-white/5 hover:bg-champagne/20 hover:text-white px-2.5 py-1 rounded-full border border-champagne/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
-              <span className="material-symbols-outlined text-[14px]">travel_explore</span>
-              <span>Cổng Khách Hàng: Tra Cứu Biểu Phí &amp; Chọn Đại Lý</span>
+              <span className="material-symbols-outlined text-[13px] text-champagne">travel_explore</span>
+              <span>Cổng Khách Hàng: Chọn Đại Lý</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </button>
             <span className="text-white/20 hidden lg:inline">|</span>
-            <span className="text-ivory/80 text-[11px] hidden lg:inline whitespace-nowrap">
+            <span className="text-ivory/75 text-[11px] hidden lg:inline whitespace-nowrap">
               Matchmaking Portal cho Khách hàng &amp; B2B CRM cho Đại lý
             </span>
           </div>
@@ -70,7 +71,7 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
         <div className="max-w-7xl mx-auto px-4 lg:px-8 flex justify-between items-center">
           
           {/* LEFT: INSURMATCH Brand */}
-          <Link className="flex items-center gap-3 group" to="/">
+          <Link className="flex items-center gap-3 group shrink-0" to="/">
             <img 
               alt="InsurMatch" 
               className="h-9 w-9 object-contain rounded-lg transition-transform duration-200 group-hover:scale-105" 
@@ -80,49 +81,40 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
               <span className="text-xl lg:text-2xl font-black tracking-tight text-navy-deep leading-none">
                 INSUR<span className="text-slate-muted font-normal">MATCH</span>
               </span>
-              <span className="text-[10px] tracking-widest text-slate-muted uppercase mt-0.5 font-medium">
+              <span className="text-[10px] tracking-widest text-slate-muted uppercase mt-0.5 font-medium whitespace-nowrap">
                 B2B SaaS CRM for Insurance Agents
               </span>
             </div>
           </Link>
 
           {/* CENTER: Clean Editorial Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-6 text-[13px] font-medium tracking-wide text-charcoal/80">
-            <button 
-              type="button"
-              onClick={onOpenMatch}
-              className="text-blue-700 font-extrabold hover:text-blue-900 transition-colors flex items-center gap-1.5 bg-blue-50/80 hover:bg-blue-100/80 px-3 py-1 rounded-xl border border-blue-200/80 shadow-2xs cursor-pointer" 
-            >
-              <span className="material-symbols-outlined text-[17px] text-blue-600">travel_explore</span>
-              <span>Kết Nối Đại Lý</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            </button>
+          <nav className="hidden lg:flex items-center space-x-7 text-[13px] font-medium tracking-wide text-charcoal/80">
             <a 
-              className="hover:text-navy-deep transition-colors" 
+              className="hover:text-navy-deep transition-colors whitespace-nowrap" 
               href="/#features"
             >
               CRM Features
             </a>
             <a 
-              className="hover:text-navy-deep transition-colors" 
+              className="hover:text-navy-deep transition-colors whitespace-nowrap" 
               href="/#how-it-works"
             >
               How It Works
             </a>
             <Link 
-              className={`hover:text-navy-deep transition-colors ${location.pathname === '/pricing' ? 'text-navy-deep font-bold border-b-2 border-navy-deep pb-1' : ''}`} 
+              className={`hover:text-navy-deep transition-colors whitespace-nowrap ${location.pathname === '/pricing' ? 'text-navy-deep font-bold border-b-2 border-navy-deep pb-1' : ''}`} 
               to="/pricing"
             >
               Pricing Plans
             </Link>
             <Link 
-              className={`hover:text-navy-deep transition-colors ${location.pathname === '/about' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
+              className={`hover:text-navy-deep transition-colors whitespace-nowrap ${location.pathname === '/about' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
               to="/about"
             >
               About
             </Link>
             <Link 
-              className={`hover:text-navy-deep transition-colors ${location.pathname === '/contact' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
+              className={`hover:text-navy-deep transition-colors whitespace-nowrap ${location.pathname === '/contact' ? 'text-navy-deep font-semibold border-b-2 border-navy-deep pb-1' : ''}`} 
               to="/contact"
             >
               Contact
@@ -130,11 +122,11 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
           </nav>
 
           {/* RIGHT: Actions (Sign In, Primary CTA & Mobile Toggle) */}
-          <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="flex items-center space-x-3 sm:space-x-4 shrink-0">
             <div className="hidden sm:flex items-center space-x-3 sm:space-x-4">
               <Link 
                 to="/login"
-                className="text-xs font-semibold text-charcoal/80 hover:text-navy-deep transition-colors px-2 py-1"
+                className="text-xs font-semibold text-charcoal/80 hover:text-navy-deep transition-colors px-2 py-1 whitespace-nowrap"
               >
                 Sign In
               </Link>
@@ -142,17 +134,18 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
               <button 
                 type="button"
                 onClick={onOpenMatch}
-                className="inline-flex items-center justify-center px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all font-bold text-xs tracking-wide cursor-pointer shadow-2xs"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-navy-deep/20 bg-white/80 hover:bg-navy-deep hover:text-ivory text-navy-deep transition-all duration-200 font-bold text-xs tracking-wide cursor-pointer shadow-2xs whitespace-nowrap group"
               >
+                <span className="material-symbols-outlined text-[16px] text-champagne">travel_explore</span>
                 <span>Kết Nối Đại Lý</span>
               </button>
 
               <button 
                 onClick={onOpenQuote}
-                className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight shadow-2xs hover:shadow-xs transition-all duration-200 font-bold text-xs tracking-wide group cursor-pointer border border-navy-deep"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight shadow-2xs hover:shadow-xs transition-all duration-200 font-bold text-xs tracking-wide group cursor-pointer border border-navy-deep whitespace-nowrap"
               >
                 <span>14-Day Trial</span>
-                <span className="material-symbols-outlined ml-1 text-[16px] text-champagne group-hover:translate-x-0.5 transition-transform">
+                <span className="material-symbols-outlined ml-1.5 text-[16px] text-champagne group-hover:translate-x-0.5 transition-transform">
                   arrow_forward
                 </span>
               </button>
