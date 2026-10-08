@@ -24,6 +24,7 @@ import CarrierLogosStrip from '../components/CarrierLogos';
 import MatchmakingPortal from '../components/MatchmakingPortal';
 
 export default function HomePage({ onOpenQuote }) {
+  const [activePortalTab, setActivePortalTab] = useState('matchmaking'); // 'matchmaking' | 'b2b'
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annual'
 
   const dailyQuestions = [
@@ -163,86 +164,138 @@ export default function HomePage({ onOpenQuote }) {
     <div className="w-full bg-ivory text-charcoal selection:bg-champagne selection:text-navy-deep">
       
       {/* ─────────────────────────────────────────────────────────────
-          1. HERO — B2B SaaS CRM Value Proposition
+          PERSISTENT HERO VIEW SWITCHER (CUSTOMER PORTAL vs AGENT CRM)
          ───────────────────────────────────────────────────────────── */}
-      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-stroke-subtle overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="space-y-7 flex flex-col items-center"
-          >
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sand/80 border border-stroke-subtle text-[11px] font-bold tracking-widest uppercase text-navy-deep">
-              <Sparkles className="w-3.5 h-3.5 text-champagne" />
-              <span>B2B SaaS CRM for Independent Insurance Agents</span>
-            </div>
+      <div className="bg-gradient-to-r from-blue-950 via-navy-deep to-indigo-950 text-white py-3.5 px-4 border-b border-blue-800 shadow-md sticky top-[68px] sm:top-[74px] z-30">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-amber-300">
+            <span className="material-symbols-outlined text-[20px] text-amber-400">verified</span>
+            <span>HỆ THỐNG INSURMATCH ĐÃ TÍCH HỢP 2 CỔNG CHỨC NĂNG THEO SLIDE 4 &amp; 6:</span>
+          </div>
 
-            {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-navy-deep tracking-tight leading-[1.08] max-w-3xl">
-              Replace Spreadsheets.{' '}
-              <span className="block font-serif italic font-normal text-navy-midnight mt-2">
-                Never Miss a Policy Renewal.
-              </span>
-            </h1>
+          <div className="flex items-center gap-2 bg-white/10 p-1.5 rounded-2xl border border-white/20">
+            <button
+              type="button"
+              onClick={() => setActivePortalTab('matchmaking')}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                activePortalTab === 'matchmaking'
+                  ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-white/50 scale-102'
+                  : 'text-white/80 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">travel_explore</span>
+              <span>1. Cổng Khách Hàng (Tra Cứu &amp; Chọn Đại Lý) ⭐</span>
+            </button>
 
-            {/* Subhead */}
-            <p className="text-base sm:text-lg lg:text-xl text-charcoal/75 max-w-2xl leading-relaxed mx-auto">
-              InsurMatch is the web-based CRM purpose-built for licensed independent insurance agents and small agencies in the United States. Centralize customer data, manage ACA &amp; Medicare pipelines, automate follow-ups, and keep 100% of your carrier commissions.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-              <a
-                href="#matchmaking-portal"
-                className="px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 font-extrabold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-md group"
-              >
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>Tra cứu &amp; Chọn Đại Lý Phụ Trách</span>
-                <ArrowRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
-              </a>
-
-              <button
-                type="button"
-                onClick={onOpenQuote}
-                className="px-6 py-3.5 rounded-xl border border-navy-deep bg-white hover:bg-sand/60 text-navy-deep font-semibold text-xs tracking-wider uppercase transition-colors duration-200 cursor-pointer"
-              >
-                14-Day Free Trial
-              </button>
-            </div>
-            
-            <div className="pt-2">
-              <Link
-                to="/pricing"
-                className="text-xs font-bold text-charcoal/70 hover:text-navy-deep underline underline-offset-4"
-              >
-                View Plans ($39 – $199/mo)
-              </Link>
-            </div>
-
-            {/* Fine Signature Subline */}
-            <div className="pt-6 flex flex-wrap justify-center items-center gap-5 text-xs text-charcoal/70 max-w-xl">
-              <span className="flex items-center gap-1.5 font-medium">
-                <Check className="w-4 h-4 text-emerald-600" />
-                No Credit Card Required
-              </span>
-              <span className="text-slate-300 hidden sm:inline">•</span>
-              <span className="flex items-center gap-1.5 font-medium">
-                <Check className="w-4 h-4 text-emerald-600" />
-                Keep 100% Carrier Commissions
-              </span>
-              <span className="text-slate-300 hidden sm:inline">•</span>
-              <span className="flex items-center gap-1.5 font-medium">
-                <Check className="w-4 h-4 text-emerald-600" />
-                Cancel Anytime
-              </span>
-            </div>
-          </motion.div>
-
+            <button
+              type="button"
+              onClick={() => setActivePortalTab('b2b')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                activePortalTab === 'b2b'
+                  ? 'bg-white text-navy-deep shadow-md'
+                  : 'text-white/80 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">business_center</span>
+              <span>2. Cổng B2B Đại Lý (CRM SaaS)</span>
+            </button>
+          </div>
         </div>
-      </section>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION A: MATCHMAKING PORTAL (SHOWN FIRST BY DEFAULT)
+         ───────────────────────────────────────────────────────────── */}
+      {activePortalTab === 'matchmaking' && (
+        <section className="py-8 sm:py-12 bg-gradient-to-b from-blue-50/50 via-white to-sand/20 border-b border-stroke-subtle">
+          <MatchmakingPortal onOpenQuoteModal={onOpenQuote} />
+        </section>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION B: B2B SAAS CRM HERO (SHOWN IN B2B MODE)
+         ───────────────────────────────────────────────────────────── */}
+      {activePortalTab === 'b2b' && (
+        <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-stroke-subtle overflow-hidden">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-7 flex flex-col items-center"
+            >
+              {/* Eyebrow */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sand/80 border border-stroke-subtle text-[11px] font-bold tracking-widest uppercase text-navy-deep">
+                <Sparkles className="w-3.5 h-3.5 text-champagne" />
+                <span>B2B SaaS CRM for Independent Insurance Agents</span>
+              </div>
+
+              {/* Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-navy-deep tracking-tight leading-[1.08] max-w-3xl">
+                Replace Spreadsheets.{' '}
+                <span className="block font-serif italic font-normal text-navy-midnight mt-2">
+                  Never Miss a Policy Renewal.
+                </span>
+              </h1>
+
+              {/* Subhead */}
+              <p className="text-base sm:text-lg lg:text-xl text-charcoal/75 max-w-2xl leading-relaxed mx-auto">
+                InsurMatch is the web-based CRM purpose-built for licensed independent insurance agents and small agencies in the United States. Centralize customer data, manage ACA &amp; Medicare pipelines, automate follow-ups, and keep 100% of your carrier commissions.
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setActivePortalTab('matchmaking')}
+                  className="px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 font-extrabold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-md group"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Chuyển Sang Cổng Tra Cứu Khách Hàng</span>
+                  <ArrowRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onOpenQuote}
+                  className="px-6 py-3.5 rounded-xl border border-navy-deep bg-white hover:bg-sand/60 text-navy-deep font-semibold text-xs tracking-wider uppercase transition-colors duration-200 cursor-pointer"
+                >
+                  14-Day Free Trial
+                </button>
+              </div>
+              
+              <div className="pt-2">
+                <Link
+                  to="/pricing"
+                  className="text-xs font-bold text-charcoal/70 hover:text-navy-deep underline underline-offset-4"
+                >
+                  View Plans ($39 – $199/mo)
+                </Link>
+              </div>
+
+              {/* Fine Signature Subline */}
+              <div className="pt-6 flex flex-wrap justify-center items-center gap-5 text-xs text-charcoal/70 max-w-xl">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  No Credit Card Required
+                </span>
+                <span className="text-slate-300 hidden sm:inline">•</span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  Keep 100% Carrier Commissions
+                </span>
+                <span className="text-slate-300 hidden sm:inline">•</span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  Cancel Anytime
+                </span>
+              </div>
+            </motion.div>
+
+          </div>
+        </section>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
           CARRIER COMPATIBILITY STRIP
@@ -259,19 +312,6 @@ export default function HomePage({ onOpenQuote }) {
           </p>
           <CarrierLogosStrip />
         </div>
-      </motion.section>
-
-      {/* ─────────────────────────────────────────────────────────────
-          MATCHMAKING PORTAL: ANONYMOUS QUOTE & AGENT ACCOUNT SELECTION
-         ───────────────────────────────────────────────────────────── */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.6 }}
-        className="py-6 bg-gradient-to-b from-sand/30 via-white to-sand/20 border-b border-stroke-subtle"
-      >
-        <MatchmakingPortal onOpenQuoteModal={onOpenQuote} />
       </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────

@@ -25,12 +25,16 @@ export default function Navbar({ onOpenQuote }) {
       <div className="bg-navy-deep text-ivory/85 text-xs py-2 px-4 lg:px-8 border-b border-white/5 hidden md:block">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center space-x-3 lg:space-x-4 min-w-0">
-            <span className="tracking-widest uppercase text-[10px] text-champagne font-semibold whitespace-nowrap">
-              B2B SaaS CRM Platform
-            </span>
+            <a 
+              href="/#matchmaking-portal"
+              className="tracking-wider uppercase text-[10px] text-amber-300 font-extrabold whitespace-nowrap bg-blue-900/80 hover:bg-blue-800 px-2.5 py-0.5 rounded-md border border-amber-300/40 transition flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-[14px]">travel_explore</span>
+              <span>Cổng Khách Hàng: Tra Cứu Biểu Phí &amp; Chọn Đại Lý</span>
+            </a>
             <span className="text-white/20 hidden lg:inline">|</span>
             <span className="text-ivory/80 text-[11px] hidden lg:inline whitespace-nowrap">
-              Built for Independent Insurance Agents &amp; Agencies in the United States
+              Matchmaking Portal cho Khách hàng &amp; B2B CRM cho Đại lý
             </span>
           </div>
 
