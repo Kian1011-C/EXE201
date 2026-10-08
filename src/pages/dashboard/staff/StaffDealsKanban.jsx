@@ -246,7 +246,7 @@ export default function StaffDealsKanban({
       {/* ── Sub-toolbar for Kanban stage display preferences ─────────────── */}
       <div className="flex items-center justify-between pb-2 pt-0.5 px-1 text-xs">
         <div className="flex items-center gap-2">
-          <span className="text-slate-500 font-medium">Hiển thị các cột Kanban:</span>
+          <span className="text-slate-500 font-medium">Showing Kanban columns:</span>
           <div className="inline-flex p-0.5 bg-slate-100 rounded-lg border border-slate-200">
             <button
               type="button"
@@ -257,7 +257,7 @@ export default function StaffDealsKanban({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Tất cả các Stage ({columns.length})
+              All Stages ({columns.length})
             </button>
             <button
               type="button"
@@ -268,13 +268,13 @@ export default function StaffDealsKanban({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Chỉ các Stage có Deal ({activeColumnsCount})
+              Only Stages with Deals ({activeColumnsCount})
             </button>
           </div>
         </div>
 
         <div className="text-[11px] text-slate-400">
-          Nhấn vào thẻ deal để xem thông tin (tự mở tab mới)
+          Click deal card to view details (opens in new tab)
         </div>
       </div>
 
@@ -289,7 +289,7 @@ export default function StaffDealsKanban({
                 key={col.id}
                 onClick={() => onToggleCollapse && onToggleCollapse(col.id)}
                 className="w-11 bg-slate-100/90 hover:bg-slate-200/80 rounded-xl border border-slate-200/80 p-2 flex flex-col items-center justify-between cursor-pointer transition-all duration-150 shrink-0 shadow-2xs group"
-                title={`Nhấn để mở rộng cột ${col.label}`}
+                title={`Click to expand column ${col.label}`}
               >
                 <div className="flex flex-col items-center gap-1.5 pt-1">
                   <span className="material-symbols-outlined text-[16px] text-slate-500 group-hover:text-blue-600 transition">
@@ -344,7 +344,7 @@ export default function StaffDealsKanban({
                   type="button"
                   onClick={() => onToggleCollapse && onToggleCollapse(col.id)}
                   className="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition cursor-pointer shrink-0"
-                  title="Thu gọn cột"
+                  title="Collapse column"
                 >
                   <span className="material-symbols-outlined text-[16px]">chevron_left</span>
                 </button>
@@ -370,7 +370,7 @@ export default function StaffDealsKanban({
                     <span className="material-symbols-outlined text-[24px] mb-1 opacity-60">
                       inbox
                     </span>
-                    <span className="font-medium text-[11px]">Không có deal nào (Kéo thả vào đây)</span>
+                    <span className="font-medium text-[11px]">No deals (Drag and drop here)</span>
                   </div>
                 ) : (
                   col.deals?.map((deal) => {
@@ -446,12 +446,12 @@ export default function StaffDealsKanban({
                                   const fullUrl = `${window.location.origin}${dealUrl}`;
                                   if (navigator.clipboard) {
                                     navigator.clipboard.writeText(fullUrl).then(() => {
-                                      showToast('Đã sao chép liên kết deal!');
+                                      showToast('Deal link copied!');
                                     }).catch(() => {
-                                      showToast('Đã sao chép liên kết deal!');
+                                      showToast('Deal link copied!');
                                     });
                                   } else {
-                                    showToast('Đã sao chép liên kết deal!');
+                                    showToast('Deal link copied!');
                                   }
                                 }}
                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-slate-50 hover:text-blue-600 transition font-medium text-slate-700 cursor-pointer"
@@ -486,7 +486,7 @@ export default function StaffDealsKanban({
                           </span>
                           <button
                             type="button"
-                            title="Mở trong tab mới"
+                            title="Open in new tab"
                             onClick={(e) => {
                               e.stopPropagation();
                               window.open(dealUrl, '_blank');

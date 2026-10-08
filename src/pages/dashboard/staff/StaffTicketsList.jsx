@@ -469,10 +469,10 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
         <div className="bg-blue-50 border-b border-blue-200/90 px-6 py-2 flex items-center justify-between gap-3 text-xs shrink-0">
           <div className="flex items-center gap-2 text-blue-900 font-semibold">
             <span className="material-symbols-outlined text-[18px] text-blue-600">confirmation_number</span>
-            <span>Chế độ Agent: Chỉ hiển thị các Tickets được phân công cho <strong>{effectiveAgent.name}</strong></span>
+            <span>Agent Mode: Only showing Tickets assigned to <strong>{effectiveAgent.name}</strong></span>
           </div>
           <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">
-            {filteredTickets.length} tickets phụ trách
+            {filteredTickets.length} assigned tickets
           </span>
         </div>
       )}
@@ -489,7 +489,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
 
         <button
           type="button"
-          onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+          onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
           className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-500 hover:text-blue-600 hover:bg-slate-100 transition cursor-pointer"
         >
           <span className="material-symbols-outlined text-[15px]">add</span>

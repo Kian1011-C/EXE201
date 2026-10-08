@@ -201,7 +201,7 @@ export default function StaffCrmLayout({
       id: 'contacts',
       label: 'Contacts',
       icon: 'person_search',
-      desc: 'Khách hàng phụ trách của tôi',
+      desc: 'Customer phụ trách của tôi',
     },
     {
       id: 'deals',

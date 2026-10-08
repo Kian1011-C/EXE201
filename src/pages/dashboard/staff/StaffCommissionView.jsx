@@ -351,7 +351,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                   </div>
                   <p className="text-[11px] text-slate-500 mb-3">1 Seat • 500 Hồ sơ • Pipeline tiêu chuẩn</p>
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                    <span>Khách hàng:</span>
+                    <span>Customer:</span>
                     <span className="font-mono text-blue-600 font-bold">{starterCount} agencies</span>
                   </div>
                   <input
@@ -390,7 +390,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                   </div>
                   <p className="text-[11px] text-slate-500 mb-3">Tối đa 3 Seats • 2,500 Hồ sơ • Tự động hóa tác vụ</p>
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                    <span>Khách hàng:</span>
+                    <span>Customer:</span>
                     <span className="font-mono text-blue-600 font-bold">{proCount} agencies</span>
                   </div>
                   <input
@@ -426,7 +426,7 @@ export default function StaffCommissionView({ onSelectDeal, onSelectContact }) {
                   </div>
                   <p className="text-[11px] text-slate-500 mb-3">Tối đa 10 Seats • Không giới hạn • Phân quyền &amp; API</p>
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                    <span>Khách hàng:</span>
+                    <span>Customer:</span>
                     <span className="font-mono text-indigo-600 font-bold">{agencyCount} agencies</span>
                   </div>
                   <input

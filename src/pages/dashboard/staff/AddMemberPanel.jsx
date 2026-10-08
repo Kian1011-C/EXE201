@@ -489,7 +489,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
             className="px-5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition cursor-pointer flex items-center gap-1.5"
           >
             <span className="material-symbols-outlined text-[16px] text-slate-500">close</span>
-            <span>Hủy / Cancel</span>
+            <span>Cancel / Cancel</span>
           </button>
           <button
             type="button"

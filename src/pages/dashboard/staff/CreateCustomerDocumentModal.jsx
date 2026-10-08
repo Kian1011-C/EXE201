@@ -668,7 +668,7 @@ export default function CreateCustomerDocumentModal({
                       )}
                       {filteredContacts?.length === 0 ? (
                         <div className="p-3 text-center text-slate-400 italic">
-                          Không tìm thấy người liên hệ phù hợp
+                          Not found người liên hệ phù hợp
                         </div>
                       ) : (
                         filteredContacts?.map((c) => {
@@ -676,7 +676,7 @@ export default function CreateCustomerDocumentModal({
                             c.fullName ||
                             [c.firstName, c.middleName, c.lastName].filter(Boolean).join(' ') ||
                             c.name ||
-                            'Khách hàng';
+                            'Customer';
                           return (
                             <div
                               key={c.id || c.code}

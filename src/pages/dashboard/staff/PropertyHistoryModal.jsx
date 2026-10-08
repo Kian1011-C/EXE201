@@ -391,14 +391,14 @@ export default function PropertyHistoryModal({
                       <span className="material-symbols-outlined text-[32px] text-slate-300">
                         history_toggle_drop_down
                       </span>
-                      <p className="text-xs font-medium">Không tìm thấy lịch sử thay đổi phù hợp.</p>
+                      <p className="text-xs font-medium">Not found lịch sử thay đổi phù hợp.</p>
                       {(selectedField !== 'All' || actorQuery || dateFilter || actionFilter !== 'All') && (
                         <button
                           type="button"
                           onClick={handleResetFilters}
                           className="mt-1 text-blue-600 hover:underline text-xs font-semibold cursor-pointer"
                         >
-                          Xóa bộ lọc để xem tất cả
+                          Delete bộ lọc để xem tất cả
                         </button>
                       )}
                     </div>

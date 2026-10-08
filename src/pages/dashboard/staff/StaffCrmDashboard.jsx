@@ -108,7 +108,7 @@ export default function StaffCrmDashboard({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('Đã xuất file CSV thành công!');
+    toast.success('Đã xuất file CSV successfully!');
   }
 
   useEffect(() => {
@@ -1028,7 +1028,7 @@ export default function StaffCrmDashboard({
                   <div className="space-y-0.5 px-2 overflow-y-auto max-h-[280px]">
                     {filteredAgents.length === 0 ? (
                       <div className="py-4 text-center text-xs text-slate-400">
-                        Không tìm thấy agent "{agentSearchQuery}"
+                        Not found agent "{agentSearchQuery}"
                       </div>
                     ) : (
                       filteredAgents?.map((ag) => {
@@ -1120,7 +1120,7 @@ export default function StaffCrmDashboard({
           </button>
 
           <button
-            onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+            onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
             type="button"
             className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition cursor-pointer shadow-2xs"
             title="Fullscreen"
@@ -1274,7 +1274,7 @@ export default function StaffCrmDashboard({
                     >
                       <span className="material-symbols-outlined text-[16px]">crop_free</span>
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
                       <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                     </button>
                   </div>
@@ -1390,7 +1390,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
+                <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -1678,7 +1678,7 @@ export default function StaffCrmDashboard({
                     >
                       <span className="material-symbols-outlined text-[15px]">crop_free</span>
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
                       <span className="material-symbols-outlined text-[15px]">more_horiz</span>
                     </button>
                   </div>
@@ -2328,7 +2328,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
+                <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -2538,7 +2538,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5" title="Options">
+                <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5" title="Options">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -2623,7 +2623,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
+                <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -2712,7 +2712,7 @@ export default function StaffCrmDashboard({
                 >
                   <span className="material-symbols-outlined text-[16px]">crop_free</span>
                 </button>
-                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
+                <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
                   <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                 </button>
               </div>
@@ -2803,7 +2803,7 @@ export default function StaffCrmDashboard({
                   >
                     <span className="material-symbols-outlined text-[16px]">crop_free</span>
                   </button>
-                  <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
+                  <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
                     <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                   </button>
                 </div>
@@ -2898,7 +2898,7 @@ export default function StaffCrmDashboard({
                   >
                     <span className="material-symbols-outlined text-[16px]">crop_free</span>
                   </button>
-                  <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
+                  <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" className="hover:text-slate-600 p-0.5">
                     <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                   </button>
                 </div>
@@ -3263,7 +3263,7 @@ export default function StaffCrmDashboard({
             {/* Footer */}
             <div className="bg-[#F8FAFC] border-t border-slate-200 px-5 py-2.5 flex items-center justify-between text-xs text-slate-500">
               <span>
-                Hiển thị <strong>{modalDeals.length}</strong> deals
+                Showing <strong>{modalDeals.length}</strong> deals
               </span>
               <button
                 type="button"

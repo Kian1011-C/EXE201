@@ -538,7 +538,7 @@ export default function StaffCustomerDocumentsList({
                         </div>
                         <div className="text-sm font-bold text-slate-800">No documents found</div>
                         <p className="text-xs text-slate-400">
-                          Không tìm thấy tài liệu khách hàng nào phù hợp với bộ lọc hiện tại.
+                          Not found tài liệu khách hàng nào phù hợp với bộ lọc hiện tại.
                         </p>
                       </div>
                     </td>

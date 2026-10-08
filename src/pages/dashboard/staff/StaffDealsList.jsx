@@ -70,7 +70,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
       .catch(() => {});
   }, []);
 
-  // Custom Carrier Dropdown state (Tất cả hãng hiện tại)
+  // Custom Carrier Dropdown state (All current carriers)
   const [showCarrierDropdown, setShowCarrierDropdown] = useState(false);
   const [carrierSearchText, setCarrierSearchText] = useState('');
   const carrierDropdownRef = useRef(null);
@@ -173,7 +173,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     return dealsList;
   }, [dealsList, activeIsAgent, user, effectiveAgent.name]);
 
-  // Combined agent directory for Deal Owner dropdown (Tất cả agent hiện tại)
+  // Combined agent directory for Deal Owner dropdown (All current agents)
   const allAvailableAgents = useMemo(() => {
     const list = agentAccounts?.map((a) => ({
       name: a.name,
@@ -310,7 +310,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     }
     setShowOwnerDropdown(false);
     setOwnerSearchText('');
-    showToast(`Đã chọn Deal Owner: ${agent.name}`);
+    showToast(`Selected Deal Owner: ${agent.name}`);
   }
 
   // Handle creating custom view
@@ -318,13 +318,13 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     if (e) e.preventDefault();
     const trimmed = newViewName?.trim();
     if (!trimmed) {
-      showToast('Vui lòng nhập tên view!');
+      showToast('Please enter a view name!');
       return;
     }
     const newView = {
       id: 'view_' + Date.now(),
       name: trimmed,
-      owner: '', // Bắt đầu trống như ảnh 3!
+      owner: '', // Starts empty like image 3!
     };
     const updated = [...customViews, newView];
     setCustomViews(updated);
@@ -335,7 +335,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     setOwnerFilter('__none__'); // Empty initial state
     setShowAddViewModal(false);
     setNewViewName('');
-    showToast(`Đã thêm view "${trimmed}". Chọn Deal Owner để xem danh sách deals.`);
+    showToast(`Added view "${trimmed}". Select Deal Owner to view deals list.`);
   }
 
   // Handle deleting custom view
@@ -349,10 +349,10 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
       setActiveViewTab('all');
       setOwnerFilter('all');
     }
-    showToast('Đã xóa view tùy chỉnh');
+    showToast('Custom view deleted');
   }
 
-  // Unique carriers (Tất cả hãng bảo hiểm hiện tại trong hệ thống)
+  // Unique carriers (All current insurance carriers in the system)
   const carrierOptions = useMemo(() => {
     const list = [...ALL_CARRIERS];
     const existing = new Set(list?.map((c) => c?.toLowerCase()));
@@ -377,7 +377,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
       setCarrierFilter('all');
     } else {
       setCarrierFilter(carrierName);
-      showToast(`Đã chọn Hãng: ${carrierName}`);
+      showToast(`Selected Carrier: ${carrierName}`);
     }
     setShowCarrierDropdown(false);
     setCarrierSearchText('');
@@ -418,7 +418,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
     );
     try {
       await updateDeal(dealId, { stage: newStage });
-      showToast(`Đã chuyển trạng thái deal sang: ${newStage}`);
+      showToast(`Deal status changed to: ${newStage}`);
     } catch (err) {
       console.warn('[StaffDealsList] Error updating deal stage:', err);
       loadDealsData();
@@ -482,7 +482,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+          <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
             type="button"
             className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
           >
@@ -491,7 +491,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             <span className="material-symbols-outlined text-[14px] text-slate-400">expand_more</span>
           </button>
 
-          <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+          <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
             type="button"
             className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
           >
@@ -499,7 +499,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             <span>Import</span>
           </button>
 
-          <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+          <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
             type="button"
             className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
           >
@@ -534,10 +534,10 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
         <div className="bg-purple-50 border border-purple-200/90 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
           <div className="flex items-center gap-2 text-purple-900 font-semibold">
             <span className="material-symbols-outlined text-[18px] text-purple-600">handshake</span>
-            <span>Chế độ Agent: Chỉ hiển thị các Deals được phân công cho <strong>{effectiveAgent.name}</strong></span>
+            <span>Agent Mode: Only showing Deals assigned to <strong>{effectiveAgent.name}</strong></span>
           </div>
           <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold">
-            {filteredDeals.length} deals phụ trách
+            {filteredDeals.length} assigned deals
           </span>
         </div>
       )}
@@ -620,7 +620,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                       handleDeleteCustomView(cv.id);
                     }}
                     className="opacity-0 group-hover:opacity-100 hover:text-rose-600 text-slate-400 p-0.5 rounded transition cursor-pointer"
-                    title="Xóa view này"
+                    title="Delete this view"
                   >
                     <span className="material-symbols-outlined text-[13px]">close</span>
                   </button>
@@ -720,7 +720,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                       handleSelectOwner(null);
                     }}
                     className="text-slate-400 hover:text-rose-600 font-bold ml-0.5 text-[11px] px-0.5"
-                    title="Xóa bộ lọc Deal Owner"
+                    title="Clear Deal Owner filter"
                   >
                     ✕
                   </span>
@@ -763,7 +763,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                     <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center">
                       --
                     </span>
-                    <span className="font-medium text-slate-700">Tất cả Deal Owner</span>
+                    <span className="font-medium text-slate-700">All Deal Owners</span>
                   </button>
 
                   {filteredAgentList?.map((ag) => {
@@ -797,7 +797,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                   })}
                   {filteredAgentList.length === 0 && (
                     <div className="p-3 text-center text-xs text-slate-400">
-                      Không tìm thấy agent phù hợp
+                      No matching agent found
                     </div>
                   )}
                 </div>
@@ -806,7 +806,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             </div>
           )}
 
-          {/* Custom Carrier Dropdown (Tất cả hãng bảo hiểm hiện tại) */}
+          {/* Custom Carrier Dropdown (All current insurance carriers) */}
           <div className="relative" ref={carrierDropdownRef}>
             <button
               type="button"
@@ -830,7 +830,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                       handleSelectCarrier(null);
                     }}
                     className="text-slate-400 hover:text-rose-600 font-bold ml-0.5 text-[11px] px-0.5"
-                    title="Xóa bộ lọc Carrier"
+                    title="Clear Carrier filter"
                   >
                     ✕
                   </span>
@@ -853,7 +853,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                       type="text"
                       value={carrierSearchText}
                       onChange={(e) => setCarrierSearchText(e.target.value)}
-                      placeholder="Tìm hãng bảo hiểm..."
+                      placeholder="Search carriers..."
                       autoFocus
                       className="w-full pl-7 pr-2.5 py-1 text-xs rounded border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 font-medium"
                     />
@@ -873,7 +873,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                     <span className="w-5 h-5 rounded bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center">
                       --
                     </span>
-                    <span className="font-medium text-slate-700">Tất cả Carrier</span>
+                    <span className="font-medium text-slate-700">All Carriers</span>
                   </button>
 
                   {filteredCarrierList?.map((c) => {
@@ -899,7 +899,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                   })}
                   {filteredCarrierList.length === 0 && (
                     <div className="p-3 text-center text-xs text-slate-400">
-                      Không tìm thấy hãng phù hợp
+                      No matching carrier found
                     </div>
                   )}
                 </div>
@@ -915,7 +915,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
             type="button"
             onClick={loadDealsData}
             className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 cursor-pointer transition"
-            title="Tải lại dữ liệu"
+            title="Reload data"
           >
             <span className={`material-symbols-outlined text-[16px] text-slate-500 ${loading ? 'animate-spin' : ''}`}>
               refresh
@@ -929,7 +929,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                 type="button"
                 onClick={handleCollapseAll}
                 className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 cursor-pointer transition"
-                title="Thu gọn tất cả các cột"
+                title="Collapse all columns"
               >
                 <span className="material-symbols-outlined text-[16px] text-slate-500">unfold_less</span>
                 <span>Collapse all</span>
@@ -939,7 +939,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                 type="button"
                 onClick={handleExpandAll}
                 className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 cursor-pointer transition"
-                title="Mở rộng tất cả các cột"
+                title="Expand all columns"
               >
                 <span className="material-symbols-outlined text-[16px] text-slate-500">unfold_more</span>
                 <span>Expand all</span>
@@ -965,7 +965,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
           />
         </div>
         <div className="text-[11px] text-slate-500 font-medium ml-auto">
-          Hiển thị <span className="font-bold text-slate-800">{filteredDeals.length}</span> / {dealsList.length} deals
+          Showing <span className="font-bold text-slate-800">{filteredDeals.length}</span> / {dealsList.length} deals
         </div>
       </div>
 
@@ -1045,7 +1045,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                           onClick={loadDealsData}
                           className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium cursor-pointer"
                         >
-                          Tải lại từ Database
+                          Reload from Database
                         </button>
                       </div>
                     </div>
@@ -1075,7 +1075,7 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                           <span className="truncate" title={deal.title}>{deal.title}</span>
                           <button
                             type="button"
-                            title="Mở trong tab mới"
+                            title="Open in new tab"
                             onClick={(e) => {
                               e.stopPropagation();
                               const isStaff = window.location.pathname.includes('/staff');
@@ -1221,14 +1221,14 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
               <option>100</option>
             </select>
             <div className="flex items-center gap-1 ml-2">
-              <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+              <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                 type="button"
                 className="w-7 h-7 rounded border border-slate-200 flex items-center justify-center hover:bg-slate-100 text-slate-400 cursor-not-allowed"
                 disabled
               >
                 <span className="material-symbols-outlined text-[15px]">chevron_left</span>
               </button>
-              <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+              <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                 type="button"
                 className="w-7 h-7 rounded border border-slate-200 flex items-center justify-center hover:bg-slate-100 text-slate-400 cursor-not-allowed"
                 disabled
@@ -1249,8 +1249,8 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
           setDealsList((prev) => [newDeal, ...prev]);
           showToast(
             newDeal.needUpload === 'Yes'
-              ? `Đã tạo Deal ${newDeal.code} và tự động xuất Ticket Upload document!`
-              : `Đã tạo Deal ${newDeal.code} thành công!`
+              ? `Deal created ${newDeal.code} and auto-generated Upload Document ticket!`
+              : `Deal created ${newDeal.code} successfully!`
           );
         }}
       />
@@ -1287,12 +1287,12 @@ export default function StaffDealsList({ onSelectDeal, onSelectContact, isAgent 
                     type="text"
                     value={newViewName}
                     onChange={(e) => setNewViewName(e.target.value)}
-                    placeholder="Nhập tên view (vd: Quyen Le, Tri Tran - Deal)"
+                    placeholder="Enter view name (e.g., Quyen Le, Tri Tran - Deal)"
                     autoFocus
                     className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-500 focus:outline-none text-xs text-slate-800 font-medium placeholder:text-slate-400"
                   />
                   <p className="text-[11px] text-slate-400 mt-1.5">
-                    View mới tạo sẽ bắt đầu trống. Bạn có thể chọn Deal Owner ở thanh công cụ để lọc danh sách deal cho agent đó.
+                    Newly created view will be empty. You can select a Deal Owner in the toolbar to filter deals for that agent.
                   </p>
                 </div>
               </div>

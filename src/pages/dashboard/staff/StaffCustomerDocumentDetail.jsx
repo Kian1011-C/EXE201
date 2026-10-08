@@ -364,7 +364,7 @@ export default function StaffCustomerDocumentDetail({
 
   async function handleLinkContact(selectedC) {
     if (!selectedC) return;
-    const fullName = selectedC.fullName || `${selectedC.firstName || ''} ${selectedC.lastName || ''}`.trim() || selectedC.name || 'Khách hàng';
+    const fullName = selectedC.fullName || `${selectedC.firstName || ''} ${selectedC.lastName || ''}`.trim() || selectedC.name || 'Customer';
     const updatedDoc = {
       ...doc,
       contactId: selectedC.id || selectedC.code || '',
@@ -544,7 +544,7 @@ export default function StaffCustomerDocumentDetail({
                         if (onUpdateDocument) {
                           onUpdateDocument(updatedDoc);
                         }
-                        toast.success(`Đã cập nhật Contact Owner: ${newOwner || 'Chưa chọn'}`);
+                        toast.success(`Updated Contact Owner: ${newOwner || 'Chưa chọn'}`);
                       }}
                       className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-8"
                     >
@@ -587,7 +587,7 @@ export default function StaffCustomerDocumentDetail({
                         if (onUpdateDocument) {
                           onUpdateDocument(updatedDoc);
                         }
-                        toast.success('Đã cập nhật tên hồ sơ tài liệu!');
+                        toast.success('Updated tên hồ sơ tài liệu!');
                       }
                     }}
                     onKeyDown={(e) => {
@@ -969,7 +969,7 @@ export default function StaffCustomerDocumentDetail({
               <div className="py-2 flex justify-between"><span className="text-slate-500">Mã Code:</span><span className="font-mono font-bold text-slate-800">{doc.code || `DOC-${doc.id}`}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Tên hồ sơ:</span><span className="font-bold text-slate-800">{docName}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Contact Owner:</span><span className="font-semibold text-slate-800">{contactOwner || '—'}</span></div>
-              <div className="py-2 flex justify-between"><span className="text-slate-500">Khách hàng liên kết:</span><span className="font-bold text-slate-800">{associatedContact.name || '—'}</span></div>
+              <div className="py-2 flex justify-between"><span className="text-slate-500">Customer liên kết:</span><span className="font-bold text-slate-800">{associatedContact.name || '—'}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Số điện thoại:</span><span className="font-mono text-slate-800">{associatedContact.phone || '—'}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Email:</span><span className="text-slate-800">{associatedContact.email || '—'}</span></div>
               <div className="py-2 flex justify-between"><span className="text-slate-500">Tổng số tệp tải lên:</span><span className="font-bold text-blue-700">{doc.totalFiles || Object.values(filesByCategory).reduce((s, a) => s + (Array.isArray(a) ? a.length : 0), 0)} file(s)</span></div>
@@ -996,7 +996,7 @@ export default function StaffCustomerDocumentDetail({
             <div className="bg-[#104882] px-4 py-3 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">person_add</span>
-                <span className="font-bold text-xs uppercase tracking-wider">Liên kết Khách hàng</span>
+                <span className="font-bold text-xs uppercase tracking-wider">Linked Customer</span>
               </div>
               <button
                 type="button"

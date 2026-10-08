@@ -294,7 +294,7 @@ export default function StaffTaskDetail({
     };
     saveTask(updated);
     toast.success(
-      nextCompleted ? 'Đã đánh dấu hoàn thành công việc!' : 'Đã mở lại công việc (OPEN)'
+      nextCompleted ? 'Task marked as completed!' : 'Task reopened (OPEN)'
     );
   };
 
@@ -307,7 +307,7 @@ export default function StaffTaskDetail({
     };
     saveTask(updated);
     setIsEditingTitle(false);
-    toast.success('Đã cập nhật tiêu đề!');
+    toast.success('Title updated!');
   };
 
   const handleSaveContent = () => {
@@ -319,7 +319,7 @@ export default function StaffTaskDetail({
     };
     saveTask(updated);
     setIsEditingContent(false);
-    toast.success('Đã lưu nội dung công việc!');
+    toast.success('Task content saved!');
   };
 
   const handleFieldChange = (field, value) => {
@@ -329,7 +329,7 @@ export default function StaffTaskDetail({
       lastModifiedTime: new Date().toLocaleString(),
     };
     saveTask(updated);
-    toast.success(`Đã cập nhật ${field}`);
+    toast.success(`Updated ${field}`);
   };
 
   const handleSendComment = () => {
@@ -348,7 +348,7 @@ export default function StaffTaskDetail({
     };
     saveTask(updated);
     setNewCommentText('');
-    toast.success('Đã thêm bình luận mới!');
+    toast.success('New comment added!');
   };
 
   const handleAddAttachment = (e) => {
@@ -367,7 +367,7 @@ export default function StaffTaskDetail({
       lastModifiedTime: new Date().toLocaleString(),
     };
     saveTask(updated);
-    toast.success(`Đã đính kèm tệp: ${file?.name}`);
+    toast.success(`File attached: ${file?.name}`);
   };
 
   const handleDeleteAttachment = (attId) => {
@@ -377,7 +377,7 @@ export default function StaffTaskDetail({
       lastModifiedTime: new Date().toLocaleString(),
     };
     saveTask(updated);
-    toast.success('Đã xóa tệp đính kèm');
+    toast.success('Attachment deleted');
   };
 
   // Click on Deal to open Deal detail (BUG FIX)
@@ -418,7 +418,7 @@ export default function StaffTaskDetail({
             type="button"
             onClick={onBack}
             className="flex items-center gap-1.5 text-slate-600 hover:text-blue-600 font-semibold text-sm transition cursor-pointer"
-            title="Quay lại danh sách Task"
+            title="Back to Task list"
           >
             <span className="material-symbols-outlined text-[20px] text-slate-500">
               arrow_back
@@ -431,7 +431,7 @@ export default function StaffTaskDetail({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => toast.success('Đã làm mới dữ liệu task!')}
+            onClick={() => toast.success('Task data refreshed!')}
             className="flex items-center gap-1 text-xs text-slate-600 hover:text-blue-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition cursor-pointer font-medium"
             title="Refresh"
           >
@@ -516,7 +516,7 @@ export default function StaffTaskDetail({
                     type="button"
                     onClick={() => setIsEditingTitle(true)}
                     className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-600 p-1 transition cursor-pointer"
-                    title="Chỉnh sửa tiêu đề"
+                    title="Edit title"
                   >
                     <span className="material-symbols-outlined text-[16px]">edit</span>
                   </button>
@@ -592,7 +592,7 @@ export default function StaffTaskDetail({
                     onChange={(e) => handleFieldChange('assignee', e.target.value)}
                     className="bg-transparent border border-slate-200 hover:border-slate-300 rounded px-2 py-1 text-xs text-slate-800 font-medium cursor-pointer focus:outline-none focus:border-blue-500"
                   >
-                    <option value="">-- Chọn Agent phụ trách --</option>
+                    <option value="">-- Select assigned Agent --</option>
                     {availableAgents?.map((ag) => (
                       <option key={ag.id || ag.name} value={ag.name}>
                         {ag.name}
@@ -644,7 +644,7 @@ export default function StaffTaskDetail({
                             type="button"
                             onClick={() => handleDeleteAttachment(att.id)}
                             className="text-slate-400 hover:text-rose-600 font-bold ml-1 cursor-pointer"
-                            title="Xóa tệp"
+                            title="Delete file"
                           >
                             ✕
                           </button>
@@ -742,7 +742,7 @@ export default function StaffTaskDetail({
                   onChange={(e) => setEditedContent(e.target.value)}
                   rows={4}
                   className="w-full p-3 border border-blue-400 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 font-normal leading-relaxed"
-                  placeholder="Nhập nội dung công việc..."
+                  placeholder="Enter task content..."
                 />
                 <div className="flex justify-end gap-2">
                   <button
@@ -766,7 +766,7 @@ export default function StaffTaskDetail({
               </div>
             ) : (
               <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
-                {currentTask.content || 'Chưa có nội dung chi tiết cho công việc này.'}
+                {currentTask.content || 'No detailed content for this task.'}
               </div>
             )}
           </div>
@@ -833,7 +833,7 @@ export default function StaffTaskDetail({
                 type="button"
                 onClick={handleSendComment}
                 className="text-blue-600 hover:text-blue-700 text-xs font-bold flex items-center gap-1 cursor-pointer p-1"
-                title="Gửi bình luận"
+                title="Post comment"
               >
                 <span className="material-symbols-outlined text-[16px]">send</span>
               </button>
@@ -860,10 +860,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast('Thêm Company mới');
+                    toast('Add new Company');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Thêm"
+                  title="Add"
                 >
                   <span className="material-symbols-outlined text-[15px]">add</span>
                 </button>
@@ -871,10 +871,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast.success('Đã tải lại');
+                    toast.success('Reloaded');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Tải lại"
+                  title="Reload"
                 >
                   <span className="material-symbols-outlined text-[15px]">refresh</span>
                 </button>
@@ -910,10 +910,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast('Thêm liên hệ liên kết');
+                    toast('Add linked contact');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Thêm"
+                  title="Add"
                 >
                   <span className="material-symbols-outlined text-[15px]">add</span>
                 </button>
@@ -921,10 +921,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast.success('Đã tải lại');
+                    toast.success('Reloaded');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Tải lại"
+                  title="Reload"
                 >
                   <span className="material-symbols-outlined text-[15px]">refresh</span>
                 </button>
@@ -946,8 +946,8 @@ export default function StaffTaskDetail({
                       </span>
                     </div>
                     <div className="text-[11px] text-slate-500 space-y-0.5">
-                      <div>Mã: {resolvedContact.code || resolvedContact.id}</div>
-                      {resolvedContact.phone && <div>ĐT: {resolvedContact.phone}</div>}
+                      <div>Code: {resolvedContact.code || resolvedContact.id}</div>
+                      {resolvedContact.phone && <div>Tel: {resolvedContact.phone}</div>}
                     </div>
                   </div>
                 ) : (
@@ -984,10 +984,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast('Gán agent mới');
+                    toast('Assign new agent');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Thêm"
+                  title="Add"
                 >
                   <span className="material-symbols-outlined text-[15px]">add</span>
                 </button>
@@ -995,10 +995,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast.success('Đã tải lại');
+                    toast.success('Reloaded');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Tải lại"
+                  title="Reload"
                 >
                   <span className="material-symbols-outlined text-[15px]">refresh</span>
                 </button>
@@ -1052,10 +1052,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast('Liên kết Deal mới');
+                    toast('Link new Deal');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Thêm"
+                  title="Add"
                 >
                   <span className="material-symbols-outlined text-[15px]">add</span>
                 </button>
@@ -1063,10 +1063,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast.success('Đã tải lại');
+                    toast.success('Reloaded');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Tải lại"
+                  title="Reload"
                 >
                   <span className="material-symbols-outlined text-[15px]">refresh</span>
                 </button>
@@ -1078,7 +1078,7 @@ export default function StaffTaskDetail({
                   <div
                     onClick={handleDealClick}
                     className="p-3 rounded-lg border border-slate-200 bg-slate-50/60 hover:bg-blue-50/70 hover:border-blue-300 transition cursor-pointer group shadow-2xs"
-                    title="Nhấn để mở chi tiết Deal này"
+                    title="Click to view Deal details"
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs font-bold text-blue-600 group-hover:underline line-clamp-1">
@@ -1090,7 +1090,7 @@ export default function StaffTaskDetail({
                     </div>
                     <div className="text-[11px] text-slate-500 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span>Mã: {resolvedDeal.code || resolvedDeal.id}</span>
+                        <span>Code: {resolvedDeal.code || resolvedDeal.id}</span>
                         {resolvedDeal.carrier && (
                           <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold">
                             {resolvedDeal.carrier}
@@ -1104,7 +1104,7 @@ export default function StaffTaskDetail({
                       )}
                       {resolvedDeal.stage && (
                         <div className="text-[10px] text-slate-500 truncate">
-                          Giai đoạn: {resolvedDeal.stage}
+                          Stage: {resolvedDeal.stage}
                         </div>
                       )}
                     </div>
@@ -1143,10 +1143,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast('Liên kết Ticket mới');
+                    toast('Link new Ticket');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Thêm"
+                  title="Add"
                 >
                   <span className="material-symbols-outlined text-[15px]">add</span>
                 </button>
@@ -1154,10 +1154,10 @@ export default function StaffTaskDetail({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast.success('Đã tải lại');
+                    toast.success('Reloaded');
                   }}
                   className="hover:text-blue-600 p-0.5"
-                  title="Tải lại"
+                  title="Reload"
                 >
                   <span className="material-symbols-outlined text-[15px]">refresh</span>
                 </button>
@@ -1179,7 +1179,7 @@ export default function StaffTaskDetail({
                       </span>
                     </div>
                     <div className="text-[11px] text-slate-500">
-                      Mã: {resolvedTicket.code || resolvedTicket.id}
+                      Code: {resolvedTicket.code || resolvedTicket.id}
                     </div>
                   </div>
                 ) : (

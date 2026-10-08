@@ -575,7 +575,7 @@ export default function AddDealModal({
               <p className="text-[11px] text-slate-500 mt-1.5">
                 {needUpload === 'Yes'
                   ? '⚡ Khi chọn Yes: Hệ thống sẽ tự động xuất 1 Ticket "Upload documents" trong pipeline Upload document.'
-                  : '✓ Không xuất ticket upload tài liệu.'}
+                  : '✓ Do not generate upload ticket tài liệu.'}
               </p>
             </div>
 
@@ -658,7 +658,7 @@ export default function AddDealModal({
                         } catch (_) {}
                       }
                       if (onDealCreated) onDealCreated(linkedDeal, null);
-                      toast.success(`Đã liên kết Deal ${d.code || d.title} thành công!`);
+                      toast.success(`Đã liên kết Deal ${d.code || d.title} successfully!`);
                       onClose();
                     }}
                   >
@@ -679,7 +679,7 @@ export default function AddDealModal({
                 ))}
               {availableDeals.length === 0 && (
                 <div className="p-4 text-center text-slate-400 text-xs">
-                  Không tìm thấy hợp đồng phù hợp
+                  Not found hợp đồng phù hợp
                 </div>
               )}
             </div>

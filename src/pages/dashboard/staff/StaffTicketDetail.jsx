@@ -178,7 +178,7 @@ const PRIORITY_OPTIONS = ['High', 'Medium', 'Low', 'None'];
 export const UPLOAD_CATEGORIES = [
   {
     id: 'income',
-    title: 'Proof of Income (Thu nhập)',
+    title: 'Proof of Income',
     desc: 'W-2, Pay stubs, Tax return...',
     req: true,
     backendCat: 'tax',
@@ -223,7 +223,7 @@ export const UPLOAD_CATEGORIES = [
   },
   {
     id: 'other',
-    title: 'Other (Tài liệu khác)',
+    title: 'Other (Other documents)',
     desc: 'Any other required documents',
     req: false,
     backendCat: 'otherDocument',
@@ -671,7 +671,7 @@ export default function StaffTicketDetail({
       }
 
       // Add activity to timeline
-      const actContent = `Tải lên file "${file?.name}" cho danh mục "${catConfig?.title || catId}"`;
+      const actContent = `Upload file "${file?.name}" for category "${catConfig?.title || catId}"`;
       const newAct = {
         id: `act-doc-${Date.now()}`,
         month: 'Aug 2026',
@@ -704,14 +704,14 @@ export default function StaffTicketDetail({
         updateTicket(ticketTargetId, {
           ticketStatus: 'Uploaded - Waiting for Verification',
         }).catch((err) => console.warn('[StaffTicketDetail] updateTicket status fallback:', err));
-        showToast('Đã tải lên đủ 4/4 tài liệu bắt buộc! Trạng thái ticket đã chuyển sang "Uploaded - Waiting for Verification"');
+        showToast('Uploaded 4/4 required documents! Ticket status changed to "Uploaded - Waiting for Verification"');
       } else {
         const countUploaded = requiredCats?.filter((c) => updated[c]).length;
-        showToast(`Đã tải lên: ${file?.name} (${countUploaded}/4 tài liệu bắt buộc)`);
+        showToast(`Uploaded: ${file?.name} (${countUploaded}/4 required documents)`);
       }
     } catch (err) {
       console.error('Upload error:', err);
-      showToast('Lỗi khi tải file: ' + err.message);
+      showToast('Error uploading file: ' + err.message);
     } finally {
       setUploadingCatId(null);
     }
@@ -720,7 +720,7 @@ export default function StaffTicketDetail({
   const handleDocDelete = async (catId) => {
     const docItem = uploadedDocs[catId];
     if (!docItem) return;
-    if (!window.confirm(`Bạn có chắc muốn xóa file "${docItem.name}"?`)) return;
+    if (!window.confirm(`Are you sure you want to delete file "${docItem.name}"?`)) return;
 
     if (contactDocId && docItem.dbFileId) {
       try {
@@ -736,7 +736,7 @@ export default function StaffTicketDetail({
       return copy;
     });
 
-    const actContent = `Đã xóa tài liệu của danh mục "${catId}": ${docItem.name}`;
+    const actContent = `Deleted document in category "${catId}": ${docItem.name}`;
     const newAct = {
       id: `act-del-${Date.now()}`,
       month: 'Aug 2026',
@@ -754,7 +754,7 @@ export default function StaffTicketDetail({
       content: actContent,
     }).catch(() => {});
 
-    showToast(`Đã xóa file: ${docItem.name}`);
+    showToast(`File deleted: ${docItem.name}`);
   };
 
   const handleDocDownload = (docItem) => {
@@ -765,7 +765,7 @@ export default function StaffTicketDetail({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast(`Đang tải xuống: ${docItem.name}`);
+    showToast(`Downloading: ${docItem.name}`);
   };
 
   // Close dropdowns on outside click
@@ -2167,7 +2167,7 @@ export default function StaffTicketDetail({
                               <div className="flex items-center gap-1 shrink-0 ml-2">
                                 <button
                                   type="button"
-                                  title="Xem trước"
+                                  title="Preview"
                                   onClick={() => setPreviewDoc(uploadedItem)}
                                   className="p-1 hover:bg-slate-200 rounded text-slate-600 hover:text-blue-600 transition cursor-pointer"
                                 >
@@ -2175,7 +2175,7 @@ export default function StaffTicketDetail({
                                 </button>
                                 <button
                                   type="button"
-                                  title="Tải xuống"
+                                  title="Download"
                                   onClick={() => handleDocDownload(uploadedItem)}
                                   className="p-1 hover:bg-slate-200 rounded text-slate-600 hover:text-blue-600 transition cursor-pointer"
                                 >
@@ -2183,7 +2183,7 @@ export default function StaffTicketDetail({
                                 </button>
                                 <button
                                   type="button"
-                                  title="Xóa tài liệu"
+                                  title="Delete document"
                                   onClick={() => handleDocDelete(doc.id)}
                                   className="p-1 hover:bg-rose-50 rounded text-slate-400 hover:text-rose-600 transition cursor-pointer"
                                 >
@@ -2196,7 +2196,7 @@ export default function StaffTicketDetail({
                               onClick={() => fileInputRefs.current[doc.id]?.click()}
                               className="w-full text-center text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer py-0.5"
                             >
-                              Tải lên bản thay thế (Replace file)
+                              Upload replacement (Replace file)
                             </button>
                           </div>
                         ) : (
@@ -2209,7 +2209,7 @@ export default function StaffTicketDetail({
                             {isUploading ? (
                               <>
                                 <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                <span>Đang tải lên...</span>
+                                <span>Uploading...</span>
                               </>
                             ) : (
                               <>
@@ -2519,10 +2519,10 @@ export default function StaffTicketDetail({
                 <span>Companies (0)</span>
               </button>
               <div className="flex items-center gap-2 text-slate-400">
-                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Add company" className="hover:text-blue-600">
+                <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Add company" className="hover:text-blue-600">
                   <span className="material-symbols-outlined text-[16px]">add</span>
                 </button>
-                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Refresh" className="hover:text-blue-600">
+                <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Refresh" className="hover:text-blue-600">
                   <span className="material-symbols-outlined text-[15px]">refresh</span>
                 </button>
               </div>
@@ -2559,10 +2559,10 @@ export default function StaffTicketDetail({
                 <span>Contacts ({contactName && contactName !== 'Unknown' ? 1 : 0})</span>
               </button>
               <div className="flex items-center gap-2 text-slate-400">
-                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Add contact" className="hover:text-blue-600">
+                <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Add contact" className="hover:text-blue-600">
                   <span className="material-symbols-outlined text-[16px]">add</span>
                 </button>
-                <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Refresh" className="hover:text-blue-600">
+                <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Refresh" className="hover:text-blue-600">
                   <span className="material-symbols-outlined text-[15px]">refresh</span>
                 </button>
               </div>
@@ -2675,7 +2675,7 @@ export default function StaffTicketDetail({
                     <span>Deals ({hasAssociatedDeal ? 1 : 0})</span>
                   </button>
                   <div className="flex items-center gap-2 text-slate-400">
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Add deal" className="hover:text-blue-600">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Add deal" className="hover:text-blue-600">
                       <span className="material-symbols-outlined text-[16px]">add</span>
                     </button>
                     <button
@@ -3061,14 +3061,14 @@ export default function StaffTicketDetail({
                 <div className="text-center p-8 space-y-3">
                   <span className="material-symbols-outlined text-6xl text-slate-400">description</span>
                   <p className="text-xs font-medium text-slate-700">{previewDoc.name}</p>
-                  <p className="text-[11px] text-slate-500">Tài liệu đã được tải lên máy chủ. Bạn có thể tải file về để xem chi tiết.</p>
+                  <p className="text-[11px] text-slate-500">Document uploaded to server. You can download the file to view details.</p>
                   <button
                     type="button"
                     onClick={() => handleDocDownload(previewDoc)}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                   >
                     <span className="material-symbols-outlined text-[16px]">download</span>
-                    Tải xuống file
+                    Download file
                   </button>
                 </div>
               )}

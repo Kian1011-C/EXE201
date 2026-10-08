@@ -467,7 +467,7 @@ export default function StaffContactDetail({
     const cName =
       [primaryFirstName, primaryMiddleName, primaryLastName]?.filter(Boolean).join(' ') ||
       contact?.fullName ||
-      'Khách hàng';
+      'Customer';
     const enriched = {
       ...ticketItem,
       id: ticketItem.id || ticketItem.code,
@@ -549,7 +549,7 @@ export default function StaffContactDetail({
         const cName =
           [primaryFirstName, primaryMiddleName, primaryLastName]?.filter(Boolean).join(' ') ||
           contact?.fullName ||
-          'Khách hàng';
+          'Customer';
         const newTicketId = `TC2600${Math.floor(1000 + Math.random() * 9000)}`;
         const acaTicket = {
           id: newTicketId,
@@ -616,11 +616,11 @@ export default function StaffContactDetail({
         updateTicketInStore(updatedAcaTicket);
         updatedTickets = [updatedAcaTicket, ...nonAcaTickets];
         setContactTickets(updatedTickets);
-        showToast(`Đã cập nhật trạng thái ACA: ${val || 'Trống'} và đồng bộ Ticket ACA!`);
+        showToast(`Updated trạng thái ACA: ${val || 'Trống'} và đồng bộ Ticket ACA!`);
       } else {
         updatedTickets = nonAcaTickets;
         setContactTickets(updatedTickets);
-        showToast(`Đã cập nhật trạng thái ACA: ${val || 'Trống'}`);
+        showToast(`Updated trạng thái ACA: ${val || 'Trống'}`);
       }
     }
 
@@ -709,7 +709,7 @@ export default function StaffContactDetail({
     setPrimaryMiddleName(m);
     setPrimaryLastName(l);
     setIsEditingName(false);
-    const newName = [f, m, l]?.filter(Boolean).join(' ') || 'Khách hàng';
+    const newName = [f, m, l]?.filter(Boolean).join(' ') || 'Customer';
 
     const updatedContact = {
       ...(contact || {}),
@@ -1080,7 +1080,7 @@ export default function StaffContactDetail({
         ? ` with ${noteAttachments.length} file(s) attached`
         : '';
     logActivity('Note Added', `added note: "${title}"${attachSuffix}`);
-    showToast('Đã tạo note thành công!');
+    showToast('Đã tạo note successfully!');
 
     // If "Create a To Do task to follow up" is checked
     if (createFollowUpTask) {
@@ -1180,7 +1180,7 @@ export default function StaffContactDetail({
         : n
     );
     updateAndPersistNotes(updatedList);
-    showToast('Đã xóa tệp đính kèm');
+    showToast('Attachment deleted');
   }
 
   function handleAddComment(noteId) {
@@ -1234,7 +1234,7 @@ export default function StaffContactDetail({
     setInlineEditingNoteId(null);
     setInlineEditBody('');
     logActivity('Note Edited', `edited note: "${updatedTitle}"`);
-    showToast('Đã lưu chỉnh sửa note thành công!');
+    showToast('Đã lưu chỉnh sửa note successfully!');
   }
 
   function openEditNote(note) {
@@ -1262,7 +1262,7 @@ export default function StaffContactDetail({
     setEditNoteBody('');
     setEditNoteAttachments([]);
     setIsEditNoteFullscreen(false);
-    showToast('Đã lưu chỉnh sửa note thành công!');
+    showToast('Đã lưu chỉnh sửa note successfully!');
   }
 
   function handleDeleteNote(noteId) {
@@ -1270,7 +1270,7 @@ export default function StaffContactDetail({
     updateAndPersistNotes(updatedList);
     logActivity('Note Deleted', 'deleted a note');
     setNoteActionsOpen(null);
-    showToast('Đã xóa note thành công!');
+    showToast('Đã xóa note successfully!');
   }
 
   function handleEditFileAttach(e) {
@@ -1411,7 +1411,7 @@ export default function StaffContactDetail({
       return t;
     });
     updateAndPersistTasks(updatedList);
-    showToast('Đã xóa tệp đính kèm khỏi task');
+    showToast('Attachment deleted khỏi task');
   }
 
   function handleUpdateTaskAssignee(taskId, newAssignee) {
@@ -1679,7 +1679,7 @@ export default function StaffContactDetail({
     if (!isAutoSave) {
       logActivity('Contact Updated', `updated contact details for ${currentFullName}`);
       setSaveSuccess(true);
-      showToast('Đã lưu thông tin liên hệ thành công!');
+      showToast('Đã lưu thông tin liên hệ successfully!');
       setTimeout(() => setSaveSuccess(false), 2500);
     }
   }
@@ -1852,10 +1852,10 @@ export default function StaffContactDetail({
               type="button"
               onClick={() => handleSaveContactChanges({ isAutoSave: false })}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium transition cursor-pointer shadow-2xs"
-              title="Hệ thống tự động lưu mọi thông tin khi bạn điền. Bấm vào đây để lưu thủ công ngay."
+              title="The system automatically saves all information as you type. Click here to save manually now."
             >
               <span className="material-symbols-outlined text-[15px] text-emerald-600">cloud_done</span>
-              <span>Tự động lưu: Bật</span>
+              <span>Auto-save: ON</span>
             </button>
           )}
           <button
@@ -1957,7 +1957,7 @@ export default function StaffContactDetail({
                           onClick={handleCancelEditName}
                           className="px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-200/70 rounded border border-slate-200 cursor-pointer"
                         >
-                          Hủy
+                          Cancel
                         </button>
                         <button
                           type="button"
@@ -2086,7 +2086,7 @@ export default function StaffContactDetail({
                                   setLeadContactOwner('');
                                 }}
                                 className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                                title="Xóa Contact Owner"
+                                title="Delete Contact Owner"
                               >
                                 ✕
                               </button>
@@ -2108,7 +2108,7 @@ export default function StaffContactDetail({
                             {leadContactOwner ? String(getPersonName(leadContactOwner, 'TB')).slice(0, 2).toUpperCase() : '--'}
                           </div>
                           <span className="flex-grow text-xs text-slate-800 truncate font-medium">
-                            {leadContactOwner || '-- Chưa chọn --'}
+                            {leadContactOwner || '-- Not selected --'}
                           </span>
                           {leadContactOwner && (
                             <button
@@ -2118,7 +2118,7 @@ export default function StaffContactDetail({
                                 setLeadContactOwner('');
                               }}
                               className="text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa Lead Owner"
+                              title="Delete Lead Owner"
                             >
                               ✕
                             </button>
@@ -2156,7 +2156,7 @@ export default function StaffContactDetail({
                                   setLeadHowDoYouKnowUs('');
                                 }}
                                 className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                                title="Xóa"
+                                title="Delete"
                               >
                                 ✕
                               </button>
@@ -2188,7 +2188,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setLeadWhoRefer('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2262,7 +2262,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setEnrolledAddress('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2289,7 +2289,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setMailingAddress('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2325,7 +2325,7 @@ export default function StaffContactDetail({
                                   setContactState('');
                                 }}
                                 className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                                title="Xóa"
+                                title="Delete"
                               >
                                 ✕
                               </button>
@@ -2355,7 +2355,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setStreetAddress('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2382,7 +2382,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setCity('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2409,7 +2409,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setPostalCode('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2436,7 +2436,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setCounty('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2471,7 +2471,7 @@ export default function StaffContactDetail({
                                   setContactLanguage('');
                                 }}
                                 className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                                title="Xóa"
+                                title="Delete"
                               >
                                 ✕
                               </button>
@@ -2535,7 +2535,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setTheBestRateEmail('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2636,7 +2636,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setAcaAccount('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2666,7 +2666,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setAcaPass('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2700,7 +2700,7 @@ export default function StaffContactDetail({
                                   setAcaStatusSpecial('');
                                 }}
                                 className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                                title="Xóa"
+                                title="Delete"
                               >
                                 ✕
                               </button>
@@ -2733,7 +2733,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setAcaAccountSpecial('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2763,7 +2763,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => setAcaPassSpecial('')}
                               className="absolute right-2 text-[12px] text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                              title="Xóa"
+                              title="Delete"
                             >
                               ✕
                             </button>
@@ -2796,7 +2796,7 @@ export default function StaffContactDetail({
                                   setEnrollCallRep('');
                                 }}
                                 className="text-[12px] hover:text-rose-600 cursor-pointer p-0.5 leading-none transition"
-                                title="Xóa"
+                                title="Delete"
                               >
                                 ✕
                               </button>
@@ -3402,7 +3402,7 @@ export default function StaffContactDetail({
                                         type="button"
                                         onClick={() => setPreviewModalFile(att)}
                                         className="inline-flex items-center gap-1.5 text-left cursor-pointer"
-                                        title="Bấm để xem và mở tệp trực tiếp"
+                                        title="Click to view and open file directly"
                                       >
                                         <span className="material-symbols-outlined text-[14px] text-blue-600 group-hover:scale-110 transition-transform">
                                           {att.type?.includes('image') || /\.(jpg|jpeg|png|webp|gif)$/i.test(att.name)
@@ -3452,7 +3452,7 @@ export default function StaffContactDetail({
                                 </span>
                               )}
                             </button>
-                            <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                            <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                               type="button"
                               className="inline-flex items-center gap-1 text-[11px] text-slate-600 hover:text-blue-600 transition cursor-pointer font-medium"
                             >
@@ -3614,7 +3614,7 @@ export default function StaffContactDetail({
                               type="button"
                               onClick={() => handleToggleTaskStatus(task.id)}
                               className="text-slate-400 hover:text-blue-600 transition cursor-pointer shrink-0"
-                              title={task.status === 'Completed' ? 'Đã hoàn thành - Bấm để mở lại' : 'Chưa xong - Bấm để đánh dấu hoàn thành'}
+                              title={task.status === 'Completed' ? 'Completed - Click to reopen' : 'Incomplete - Click to mark complete'}
                             >
                               <span
                                 className={`material-symbols-outlined text-[22px] transition ${
@@ -3671,7 +3671,7 @@ export default function StaffContactDetail({
                                 onChange={(e) => handleUpdateTaskAssignee(task.id, e.target.value)}
                                 className="appearance-none bg-white border border-slate-200 hover:border-slate-300 rounded px-2.5 py-1 pr-7 text-xs font-semibold text-slate-800 cursor-pointer focus:outline-none focus:border-blue-500 shadow-2xs"
                               >
-                                <option value="">-- Chọn Agent phụ trách --</option>
+                                <option value="">-- Select assigned Agent --</option>
                                 {agentAccounts?.map((a) => (
                                   <option key={`task-card-agent-${a.id || a.name}`} value={a.name}>
                                     {a.name} {a.npn ? `(#${a.npn})` : ''}
@@ -3700,7 +3700,7 @@ export default function StaffContactDetail({
                                 ? 'bg-white border-2 border-blue-500'
                                 : 'bg-[#F0F8FA] border border-[#D0E7ED] hover:border-blue-400 hover:bg-[#EAF6F9] cursor-pointer'
                             }`}
-                            title={editingTaskNoteId === task.id ? '' : 'Bấm vào để chỉnh sửa note'}
+                            title={editingTaskNoteId === task.id ? '' : 'Click to edit note'}
                           >
                             {editingTaskNoteId === task.id ? (
                               <div className="space-y-2.5" onClick={(e) => e.stopPropagation()}>
@@ -3709,14 +3709,14 @@ export default function StaffContactDetail({
                                     <span className="material-symbols-outlined text-[16px]">edit_note</span>
                                     Chỉnh sửa Note của Task
                                   </span>
-                                  <span className="text-[11px] text-slate-500">Bấm "Lưu note" để hoàn tất</span>
+                                  <span className="text-[11px] text-slate-500">Click "Save note" to finish</span>
                                 </div>
                                 <textarea
                                   rows={6}
                                   value={editingTaskNoteText}
                                   onChange={(e) => setEditingTaskNoteText(e.target.value)}
                                   className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-800 leading-relaxed focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-y"
-                                  placeholder="Nhập nội dung note cho task..."
+                                  placeholder="Enter note content for task..."
                                   autoFocus
                                 />
                                 <div className="flex items-center justify-end gap-2 pt-1">
@@ -3725,7 +3725,7 @@ export default function StaffContactDetail({
                                     onClick={() => setEditingTaskNoteId(null)}
                                     className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer transition shadow-2xs"
                                   >
-                                    Hủy
+                                    Cancel
                                   </button>
                                   <button
                                     type="button"
@@ -3733,7 +3733,7 @@ export default function StaffContactDetail({
                                     className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition"
                                   >
                                     <span className="material-symbols-outlined text-[15px]">check</span>
-                                    <span>Lưu note</span>
+                                    <span>Save note</span>
                                   </button>
                                 </div>
                               </div>
@@ -3746,7 +3746,7 @@ export default function StaffContactDetail({
                                   </span>
                                   <span className="text-[11px] text-blue-600 font-semibold opacity-70 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                                     <span className="material-symbols-outlined text-[13px]">edit</span>
-                                    Bấm vào để sửa note
+                                    Click to edit note
                                   </span>
                                 </div>
                                 {(task.content || DEFAULT_TASK_NOTE)?.split('\n')?.map((line, idx) => (
@@ -3786,7 +3786,7 @@ export default function StaffContactDetail({
                                       type="button"
                                       onClick={() => setPreviewModalFile(att)}
                                       className="flex items-center gap-1.5 cursor-pointer text-left"
-                                      title="Bấm để xem và mở tệp trực tiếp trong ứng dụng"
+                                      title="Click to view and open file directly in app"
                                     >
                                       <span className="material-symbols-outlined text-[13px] text-blue-600 group-hover:scale-110 transition-transform">
                                         {att.type?.includes('image') || /\.(jpg|jpeg|png|webp|gif)$/i.test(att.name)
@@ -3842,7 +3842,7 @@ export default function StaffContactDetail({
                             </div>
                           </div>
 
-                          {/* In-Task Notes / Comments Drawer ("có chỗ để note trong task") */}
+                          {/* In-Task Notes / Comments Drawer ("has space for notes in task") */}
                           {activeCommentTaskId === task.id && (
                             <div className="mt-3 p-3 bg-slate-50/90 rounded-xl border border-slate-200 text-xs space-y-3 animate-fade-in">
                               <div className="font-bold text-slate-700 flex items-center justify-between">
@@ -3850,7 +3850,7 @@ export default function StaffContactDetail({
                                   <span className="material-symbols-outlined text-[15px] text-blue-600">note_alt</span>
                                   <span>Task Notes & Comments ({ (task.comments || []).length })</span>
                                 </span>
-                                <span className="text-[10px] text-slate-400 font-normal">Ghi chú và trao đổi trực tiếp trong task</span>
+                                <span className="text-[10px] text-slate-400 font-normal">Notes and direct discussion in task</span>
                               </div>
 
                               {(task.comments || []).length > 0 && (
@@ -3870,7 +3870,7 @@ export default function StaffContactDetail({
                               <div className="flex items-center gap-2 pt-1">
                                 <input
                                   type="text"
-                                  placeholder="Nhập ghi chú hoặc comment vào task này..."
+                                  placeholder="Enter notes or comments for this task..."
                                   value={taskCommentInput}
                                   onChange={(e) => setTaskCommentInput(e.target.value)}
                                   onKeyDown={(e) => {
@@ -3884,7 +3884,7 @@ export default function StaffContactDetail({
                                   className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-xs transition cursor-pointer flex items-center gap-1 shadow-xs"
                                 >
                                   <span className="material-symbols-outlined text-[14px]">save</span>
-                                  <span>Lưu note</span>
+                                  <span>Save note</span>
                                 </button>
                               </div>
                             </div>
@@ -4037,14 +4037,14 @@ export default function StaffContactDetail({
                 <button
                   type="button"
                   onClick={() => showToast('Để tạo Ticket: đổi trạng thái ACA sang "Need Create ACA Account" hoặc tạo Deal với "Need Upload: Yes"')}
-                  title="Thêm ticket"
+                  title="Add ticket"
                   className="text-blue-600 hover:text-blue-800 p-0.5 rounded cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[17px]">add</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => showToast('Đang làm mới danh sách Ticket...')}
+                  onClick={() => showToast('Refreshing Ticket list...')}
                   title="Refresh"
                   className="hover:text-blue-600 p-0.5 rounded cursor-pointer text-slate-500"
                 >
@@ -4059,7 +4059,7 @@ export default function StaffContactDetail({
                 {contactTickets.length === 0 ? (
                   <div className="p-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                     <span className="material-symbols-outlined text-[28px] text-slate-300 block mb-1">confirmation_number</span>
-                    <p className="text-xs font-semibold text-slate-600">Chưa có ticket nào</p>
+                    <p className="text-xs font-semibold text-slate-600">No tickets yet</p>
                     <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
                       ⚡ Chọn trạng thái ACA sang <strong>Need Create ACA Account</strong> hoặc tạo Deal có <strong>Need Upload = Yes</strong> để tự động xuất Ticket.
                     </p>
@@ -4167,7 +4167,7 @@ export default function StaffContactDetail({
                     <span className="material-symbols-outlined text-[24px] text-slate-300 mb-1">
                       description
                     </span>
-                    <p className="text-xs font-semibold text-slate-500 mb-1">Chưa có customer document nào</p>
+                    <p className="text-xs font-semibold text-slate-500 mb-1">No customer documents yet</p>
                     <p className="text-[11px] text-slate-400 mb-3">Tạo tài liệu khách hàng mới cho liên hệ này</p>
                     <button
                       type="button"
@@ -4376,14 +4376,14 @@ export default function StaffContactDetail({
                   {/* Toolbar Row */}
                   <div className="bg-[#F8FAFC] border-b border-slate-200 px-2 py-1.5 flex flex-wrap items-center gap-1 text-slate-700 text-xs select-none">
                     {/* Undo / Redo */}
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Undo"
                       className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">undo</span>
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Redo"
                       className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer"
@@ -4435,21 +4435,21 @@ export default function StaffContactDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* Bold, Italic, Underline */}
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Bold"
                       className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer"
                     >
                       B
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Italic"
                       className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer"
                     >
                       I
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Underline"
                       className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer"
@@ -4460,14 +4460,14 @@ export default function StaffContactDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* Lists */}
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Bullet List"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">format_list_bulleted</span>
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Numbered List"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
@@ -4478,28 +4478,28 @@ export default function StaffContactDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* Alignments */}
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Align Left"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">format_align_left</span>
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Align Center"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">format_align_center</span>
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Align Right"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">format_align_right</span>
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="Justify"
                       className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer"
@@ -4522,7 +4522,7 @@ export default function StaffContactDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* More */}
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })}
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })}
                       type="button"
                       title="More options"
                       className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer"
@@ -4602,7 +4602,7 @@ export default function StaffContactDetail({
                           type="button"
                           onClick={() => setPreviewModalFile(file)}
                           className="flex items-center gap-1.5 cursor-pointer text-left"
-                          title="Bấm để xem và mở tệp trực tiếp"
+                          title="Click to view and open file directly"
                         >
                           <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
                           <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file?.name}</span>
@@ -4700,14 +4700,14 @@ export default function StaffContactDetail({
                 <div className="border border-slate-300 rounded-lg overflow-hidden bg-white shadow-2xs focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-400/30 transition">
                   {/* Toolbar */}
                   <div className="bg-[#F8FAFC] border-b border-slate-200 px-2 py-1.5 flex flex-wrap items-center gap-1 text-slate-700 text-xs select-none">
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Bold" className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer">B</button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Italic" className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer">I</button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Underline" className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer">U</button>
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Bold" className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer">B</button>
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Italic" className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer">I</button>
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Underline" className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer">U</button>
                     <div className="h-4 w-px bg-slate-300 mx-1" />
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Bullet List" className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Bullet List" className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">format_list_bulleted</span>
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Numbered List" className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Numbered List" className="p-1 rounded hover:bg-slate-200 text-slate-700 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">format_list_numbered</span>
                     </button>
                   </div>
@@ -4753,7 +4753,7 @@ export default function StaffContactDetail({
                           type="button"
                           onClick={() => setPreviewModalFile(file)}
                           className="flex items-center gap-1.5 cursor-pointer text-left"
-                          title="Bấm để xem và mở tệp trực tiếp"
+                          title="Click to view and open file directly"
                         >
                           <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
                           <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file?.name}</span>
@@ -4933,7 +4933,7 @@ export default function StaffContactDetail({
                       onChange={(e) => setTaskAssignee(e.target.value)}
                       className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
-                      <option value="">-- Chọn Agent phụ trách --</option>
+                      <option value="">-- Select assigned Agent --</option>
                       {agentAccounts?.map((a) => (
                         <option key={`task-agent-${a.id || a.name}`} value={a.name}>
                           {a.name} {a.npn ? `(#${a.npn})` : ''}
@@ -5053,7 +5053,7 @@ export default function StaffContactDetail({
                           type="button"
                           onClick={() => setPreviewModalFile(file)}
                           className="flex items-center gap-1.5 cursor-pointer text-left"
-                          title="Bấm để xem và mở tệp trực tiếp"
+                          title="Click to view and open file directly"
                         >
                           <span className="material-symbols-outlined text-[14px] text-blue-600">attach_file</span>
                           <span className="font-semibold max-w-[200px] truncate group-hover:underline">{file?.name}</span>
@@ -5085,10 +5085,10 @@ export default function StaffContactDetail({
                   {/* Toolbar Row */}
                   <div className="bg-[#F8FAFC] border-b border-slate-200 px-2 py-1.5 flex flex-wrap items-center gap-1 text-slate-700 text-xs select-none">
                     {/* Undo / Redo */}
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Undo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Undo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">undo</span>
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Redo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Redo" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">redo</span>
                     </button>
 
@@ -5136,20 +5136,20 @@ export default function StaffContactDetail({
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* Bold, Italic, Underline */}
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Bold" className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Bold" className="px-1.5 py-0.5 rounded font-bold hover:bg-slate-200 text-slate-800 cursor-pointer">
                       B
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Italic" className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Italic" className="px-1.5 py-0.5 rounded italic font-serif hover:bg-slate-200 text-slate-800 cursor-pointer">
                       I
                     </button>
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="Underline" className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="Underline" className="px-1.5 py-0.5 rounded underline hover:bg-slate-200 text-slate-800 cursor-pointer">
                       U
                     </button>
 
                     <div className="h-4 w-px bg-slate-300 mx-1" />
 
                     {/* More */}
-                    <button onClick={() => toast('Tính năng đang được phát triển!', { icon: '🚧' })} type="button" title="More options" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
+                    <button onClick={() => toast('Feature coming soon!', { icon: '🚧' })} type="button" title="More options" className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer">
                       <span className="material-symbols-outlined text-[16px]">more_horiz</span>
                     </button>
                   </div>
@@ -5286,8 +5286,8 @@ export default function StaffContactDetail({
           }
           showToast(
             newDeal.needUpload === 'Yes'
-              ? `Đã tạo Deal và tự động xuất Ticket Upload document cho ${currentFullName}!`
-              : `Đã tạo Deal thành công cho ${currentFullName}!`
+              ? `Deal created và tự động xuất Ticket Upload document cho ${currentFullName}!`
+              : `Deal created thành công cho ${currentFullName}!`
           );
         }}
       />
