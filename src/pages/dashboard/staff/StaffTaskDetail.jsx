@@ -15,6 +15,48 @@ function getAssigneeInitials(assignee, fallback = 'JN') {
   return String(name).slice(0, 2).toUpperCase();
 }
 
+const getSafeAttachments = (item) => {
+  if (!item) return [];
+  const att = item.attachments;
+  if (!att) return [];
+  if (Array.isArray(att)) return att;
+  if (typeof att === 'string') {
+    const trimmed = att.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return [parsed];
+      return [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof att === 'object') return [att];
+  return [];
+};
+
+const getSafeComments = (item) => {
+  if (!item) return [];
+  const comm = item.comments;
+  if (!comm) return [];
+  if (Array.isArray(comm)) return comm;
+  if (typeof comm === 'string') {
+    const trimmed = comm.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return [parsed];
+      return [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof comm === 'object') return [comm];
+  return [];
+};
+
 export default function StaffTaskDetail({
   task,
   onBack,
@@ -71,8 +113,8 @@ export default function StaffTaskDetail({
         typeof base.assignee === 'object'
           ? base.assignee?.name || 'Jena Le (jena78@9)'
           : base.assignee || 'Jena Le (jena78@9)',
-      attachments: Array.isArray(base.attachments) ? base.attachments : [],
-      comments: Array.isArray(base.comments) ? base.comments : [],
+      attachments: getSafeAttachments(base),
+      comments: getSafeComments(base),
     };
   });
 
@@ -94,8 +136,8 @@ export default function StaffTaskDetail({
         priority: task.priority || prev.priority || 'High',
         sendRemind: task.sendRemind || task.reminders || prev.sendRemind || 'No remind',
         content: task.content || task.description || prev.content || '',
-        attachments: Array.isArray(task.attachments) ? task.attachments : prev.attachments || [],
-        comments: Array.isArray(task.comments) ? task.comments : prev.comments || [],
+        attachments: getSafeAttachments(task),
+        comments: getSafeComments(task),
         lastModifiedTime: task.lastModifiedTime || prev.lastModifiedTime || '10/03/2026, 17:07',
       }));
       setEditedTitle(task.title || '');
@@ -340,7 +382,7 @@ export default function StaffTaskDetail({
       time: new Date().toLocaleString(),
       text: newCommentText?.trim(),
     };
-    const updatedComments = [newComment, ...(currentTask.comments || [])];
+    const updatedComments = [newComment, ...getSafeComments(currentTask)];
     const updated = {
       ...currentTask,
       comments: updatedComments,
@@ -363,7 +405,7 @@ export default function StaffTaskDetail({
     };
     const updated = {
       ...currentTask,
-      attachments: [...(currentTask.attachments || []), newAtt],
+      attachments: [...getSafeAttachments(currentTask), newAtt],
       lastModifiedTime: new Date().toLocaleString(),
     };
     saveTask(updated);
@@ -373,7 +415,7 @@ export default function StaffTaskDetail({
   const handleDeleteAttachment = (attId) => {
     const updated = {
       ...currentTask,
-      attachments: (currentTask.attachments || [])?.filter((a) => a.id !== attId),
+      attachments: getSafeAttachments(currentTask).filter((a) => a.id !== attId),
       lastModifiedTime: new Date().toLocaleString(),
     };
     saveTask(updated);
@@ -624,9 +666,9 @@ export default function StaffTaskDetail({
                     onChange={handleAddAttachment}
                     className="hidden"
                   />
-                  {currentTask.attachments && currentTask.attachments.length > 0 && (
+                  {getSafeAttachments(currentTask).length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
-                      {currentTask.attachments?.map((att) => (
+                      {getSafeAttachments(currentTask).map((att) => (
                         <div
                           key={att.id}
                           className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded text-xs text-slate-700"
@@ -779,12 +821,12 @@ export default function StaffTaskDetail({
               </span>
               <span>Comments</span>
               <span className="text-xs font-semibold text-slate-400">
-                ({currentTask.comments?.length || 0})
+                ({getSafeComments(currentTask).length})
               </span>
             </div>
 
             {/* If no comments, show exact empty state from Image 2 */}
-            {(!currentTask.comments || currentTask.comments.length === 0) ? (
+            {(getSafeComments(currentTask).length === 0) ? (
               <div className="flex-1 flex flex-col items-center justify-center py-12 text-center my-auto">
                 <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-500 mb-3 shadow-2xs">
                   <span className="material-symbols-outlined text-[32px]">
@@ -798,7 +840,7 @@ export default function StaffTaskDetail({
               </div>
             ) : (
               <div className="space-y-3 divide-y divide-slate-100">
-                {currentTask.comments?.map((cm) => (
+                {getSafeComments(currentTask).map((cm) => (
                   <div key={cm.id} className="pt-3 first:pt-0">
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold flex items-center justify-center">

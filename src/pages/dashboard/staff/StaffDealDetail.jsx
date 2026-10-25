@@ -36,6 +36,48 @@ const DEFAULT_TASK_NOTE = `• Woodbridge Dental
 • Pick up: 25401716
 • Return: 25401719`;
 
+const getSafeAttachments = (item) => {
+  if (!item) return [];
+  const att = item.attachments;
+  if (!att) return [];
+  if (Array.isArray(att)) return att;
+  if (typeof att === 'string') {
+    const trimmed = att.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return [parsed];
+      return [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof att === 'object') return [att];
+  return [];
+};
+
+const getSafeComments = (item) => {
+  if (!item) return [];
+  const comm = item.comments;
+  if (!comm) return [];
+  if (Array.isArray(comm)) return comm;
+  if (typeof comm === 'string') {
+    const trimmed = comm.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return [parsed];
+      return [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof comm === 'object') return [comm];
+  return [];
+};
+
 export default function StaffDealDetail({
   deal,
   onBack,
@@ -90,7 +132,7 @@ export default function StaffDealDetail({
       if (deal?.amount) setAmount(deal.amount);
       if (deal?.closeDate) setCloseDate(deal.closeDate);
       if (deal?.activities) setActivitiesList(deal.activities);
-      if (deal?.notes) setNotesList(deal.notes);
+      if (deal?.notes) setNotesList((deal.notes || []).map((n) => ({ ...n, attachments: getSafeAttachments(n) })));
 
       // Merge dynamic tasks store with deal.tasks to prevent task loss when navigating
       const dId = String(nextId || deal?.code || dealInfo.code || '');
@@ -869,7 +911,7 @@ export default function StaffDealDetail({
 
   // Middle tab state
   const [activeTab, setActiveTab] = useState('activity');
-  const [notesList, setNotesList] = useState(dealInfo.notes || []);
+  const [notesList, setNotesList] = useState(() => (dealInfo.notes || []).map((n) => ({ ...n, attachments: getSafeAttachments(n) })));
   const [tasksList, setTasksList] = useState(() => {
     const dId = String(deal?.id || dealInfo.id || deal?.code || dealInfo.code || '');
     const dTitle = String(deal?.title || dealInfo.title || '')?.trim()?.toLowerCase();
@@ -1160,7 +1202,7 @@ export default function StaffDealDetail({
     }));
     const updatedList = notesList?.map((n) =>
       n.id === noteId
-        ? { ...n, attachments: [...(n.attachments || []), ...newAttach] }
+        ? { ...n, attachments: [...getSafeAttachments(n), ...newAttach] }
         : n
     );
     updateAndPersistDealNotes(updatedList);
@@ -1172,7 +1214,7 @@ export default function StaffDealDetail({
   function handleRemoveAttachmentFromNote(noteId, attId) {
     const updatedList = notesList?.map((n) =>
       n.id === noteId
-        ? { ...n, attachments: (n.attachments || [])?.filter((a) => a.id !== attId) }
+        ? { ...n, attachments: getSafeAttachments(n).filter((a) => a.id !== attId) }
         : n
     );
     updateAndPersistDealNotes(updatedList);
@@ -1236,7 +1278,7 @@ export default function StaffDealDetail({
   function openEditNote(note) {
     setEditingNote(note);
     setEditNoteBody(note.body);
-    setEditNoteAttachments(note.attachments ? [...note.attachments] : []);
+    setEditNoteAttachments(getSafeAttachments(note));
     setShowEditNoteModal(true);
     setNoteActionsOpen(null);
   }
@@ -1357,7 +1399,7 @@ export default function StaffDealDetail({
 
     const updatedList = tasksList?.map((t) => {
       if (t.id === taskId) {
-        const comments = [...(t.comments || []), newComment];
+        const comments = [...getSafeComments(t), newComment];
         const updatedT = { ...t, comments };
         null;
         return updatedT;
@@ -1384,7 +1426,7 @@ export default function StaffDealDetail({
     }));
     const updatedList = tasksList?.map((t) => {
       if (t.id === taskId) {
-        const attachments = [...(t.attachments || []), ...newAttach];
+        const attachments = [...getSafeAttachments(t), ...newAttach];
         const updatedT = { ...t, attachments };
         null;
         return updatedT;
@@ -1399,7 +1441,7 @@ export default function StaffDealDetail({
   function handleRemoveAttachmentFromTask(taskId, attId) {
     const updatedList = tasksList?.map((t) => {
       if (t.id === taskId) {
-        const attachments = (t.attachments || [])?.filter((a) => a.id !== attId);
+        const attachments = getSafeAttachments(t).filter((a) => a.id !== attId);
         const updatedT = { ...t, attachments };
         null;
         return updatedT;
@@ -2847,9 +2889,9 @@ export default function StaffDealDetail({
                               </div>
 
                               {/* Attached files list if any */}
-                              {note.attachments && note.attachments.length > 0 && (
+                              {getSafeAttachments(note).length > 0 && (
                                 <div className="flex flex-wrap gap-2 pt-1">
-                                  {note.attachments?.map((att) => (
+                                  {getSafeAttachments(note).map((att) => (
                                     <div
                                       key={att.id}
                                       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-slate-700 hover:text-blue-700 text-[11px] transition shadow-2xs group"
@@ -2902,7 +2944,7 @@ export default function StaffDealDetail({
                             >
                               <span className="material-symbols-outlined text-[14px]">chat_bubble_outline</span>
                               <span className="font-medium">Comment</span>
-                              {noteComments[note.id] && noteComments[note.id].length > 0 && (
+                              {Array.isArray(noteComments[note.id]) && noteComments[note.id].length > 0 && (
                                 <span className="ml-1 px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
                                   {noteComments[note.id].length}
                                 </span>
@@ -2920,7 +2962,7 @@ export default function StaffDealDetail({
                           {/* Inline comment section */}
                           {activeCommentNoteId === note.id && (
                             <div className="p-3 bg-slate-50 border-t border-slate-100 text-xs">
-                              {noteComments[note.id] && noteComments[note.id].length > 0 && (
+                              {Array.isArray(noteComments[note.id]) && noteComments[note.id].length > 0 && (
                                 <div className="space-y-2 mb-2">
                                   {noteComments[note.id]?.map((c) => (
                                     <div key={c.id} className="p-2 rounded bg-white border border-slate-200">
@@ -3231,9 +3273,9 @@ export default function StaffDealDetail({
                               </label>
                             </div>
 
-                            {task.attachments && task.attachments.length > 0 && (
+                            {getSafeAttachments(task).length > 0 && (
                               <div className="flex flex-wrap gap-2 pt-1">
-                                {task.attachments?.map((att) => (
+                                {getSafeAttachments(task).map((att) => (
                                   <div
                                     key={att.id}
                                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-slate-700 hover:text-blue-700 text-[11px] transition shadow-2xs group"
@@ -3285,9 +3327,9 @@ export default function StaffDealDetail({
                             >
                               <span className="material-symbols-outlined text-[15px]">chat_bubble_outline</span>
                               <span>Comment</span>
-                              {(task.comments || []).length > 0 && (
+                              {getSafeComments(task).length > 0 && (
                                 <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
-                                  {(task.comments || []).length}
+                                  {getSafeComments(task).length}
                                 </span>
                               )}
                             </button>
@@ -3304,14 +3346,14 @@ export default function StaffDealDetail({
                               <div className="font-bold text-slate-700 flex items-center justify-between">
                                 <span className="flex items-center gap-1.5">
                                   <span className="material-symbols-outlined text-[15px] text-blue-600">note_alt</span>
-                                  <span>Task Notes & Comments ({ (task.comments || []).length })</span>
+                                  <span>Task Notes & Comments ({ getSafeComments(task).length })</span>
                                 </span>
                                 <span className="text-[10px] text-slate-400 font-normal">Notes and direct discussion in task</span>
                               </div>
 
-                              {(task.comments || []).length > 0 && (
+                              {getSafeComments(task).length > 0 && (
                                 <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                                  {(task.comments || [])?.map((c) => (
+                                  {getSafeComments(task).map((c) => (
                                     <div key={c.id} className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
                                       <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
                                         <span className="font-bold text-slate-800">{c.author}</span>

@@ -58,9 +58,9 @@ Phục vụ Hội đồng giám khảo kiểm tra trực tiếp 3 cấp độ ph
 
 | Vai trò (Role) | Email đăng nhập | Mật khẩu mặc định | Đại diện tài khoản | Mục đích kiểm tra phân quyền |
 |---|---|---|---|---|
-| **Super Admin** | `admin@insurmatch.us` | `Admin123!` | Super Admin | Kiểm tra quyền tối cao: Quản lý Accounts và Hoa hồng toàn sàn |
-| **Platform Staff** | `staff@insurmatch.us` | `Staff123!` | Anya Nguyen | Xác nhận: Menu **ẩn hoàn toàn Commission & Accounts**, thấy Contacts/Deals để hỗ trợ |
-| **Licensed Agent** | `agent@insurmatch.us` | `Agent123!` | Khanh Nguyen | Xác nhận: **Chỉ thấy data của Khánh Nguyễn** và **Bảng hoa hồng cá nhân** |
+| **Super Admin** | `admin@insurmatch.us` | `Admin@123` | Super Admin | Kiểm tra quyền tối cao: Quản lý Accounts và Hoa hồng toàn sàn |
+| **Platform Staff** | `staff@insurmatch.us` | `Staff@123` | Anya Nguyen | Xác nhận: Menu **ẩn hoàn toàn Commission & Accounts**, thấy Contacts/Deals để hỗ trợ |
+| **Licensed Agent** | `agent@insurmatch.us` | `Agent@123` | Khanh Nguyen | Xác nhận: **Chỉ thấy data của Khánh Nguyễn** và **Bảng hoa hồng cá nhân** |
 
 ---
 
@@ -70,7 +70,7 @@ Phục vụ Hội đồng giám khảo kiểm tra trực tiếp 3 cấp độ ph
 
 ### 4.1. Đăng nhập & Tổng quan Admin Hub
 1. Truy cập trang đăng nhập `/login`.
-2. Đăng nhập với tài khoản: `admin@insurmatch.us` | Mật khẩu: `Admin123!`.
+2. Đăng nhập với tài khoản: `admin@insurmatch.us` | Mật khẩu: `Admin@123`.
 3. Giao diện Sidebar hiển thị đầy đủ tất cả các phân hệ quản trị:
    * **Overview:** Báo cáo tổng thể doanh thu, số lượng đại lý, hợp đồng phát hành.
    * **Accounts:** Quản lý và phê duyệt tài khoản Agent mua phần mềm.
@@ -102,7 +102,7 @@ Phục vụ Hội đồng giám khảo kiểm tra trực tiếp 3 cấp độ ph
 > **NGHIÊM NGẶT:** Staff **TUYỆT ĐỐI KHÔNG THẤY** mục `Commission` (doanh thu hoa hồng nhạy cảm) và mục `Accounts` (quản trị tài khoản của Admin). **CÒN LẠI THẤY HẾT** để đắc lực hỗ trợ Agent xử lý hồ sơ.
 
 ### 5.1. Đăng nhập & Kiểm tra giao diện Staff
-1. Đăng nhập: `staff@insurmatch.us` | Mật khẩu: `Staff123!`.
+1. Đăng nhập: `staff@insurmatch.us` | Mật khẩu: `Staff@123`.
 2. Quan sát thanh Menu bên trái (Sidebar):
    * Menu **CHỈ CÓ:** *Dashboard, Contacts, Deals, Tickets, Tasks, Documents, Match Queue*.
    * Menu **HOÀN TOÀN KHÔNG CÓ:** Tab *Commission* và Tab *Accounts*.
@@ -138,7 +138,7 @@ Staff hỗ trợ đại lý giải quyết 5 quy trình nghiệp vụ phức t�
 > **Tôn chỉ của Agent:** Agent là khách hàng sử dụng phần mềm. Agent **CHỈ THẤY DỮ LIỆU CỦA CHÍNH MÌNH** (bảo mật dữ liệu tuyệt đối giữa các Agent) và **THẤY BẢNG HOA HỒNG (COMS) CỦA RIÊNG MÌNH**.
 
 ### 6.1. Đăng nhập & Xác thực Phân quyền Bảo mật (Data Scoping)
-1. Đăng nhập: `agent@insurmatch.us` | Mật khẩu: `Agent123!`.
+1. Đăng nhập: `agent@insurmatch.us` | Mật khẩu: `Agent@123`.
 2. Hệ thống hiển thị Banner bảo mật:
    > *"Chế độ Agent: Chỉ hiển thị các Contact được phân công cho Khanh Nguyen"*
 3. Agent Khánh Nguyễn **chỉ nhìn thấy danh sách khách hàng và hợp đồng được giao cho mình**, không thể nhìn thấy dữ liệu khách hàng của các đại lý khác trên sàn.

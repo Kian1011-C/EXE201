@@ -14,6 +14,48 @@ const PRIORITY_OPTIONS = [
   { label: 'Urgent', dotColor: 'bg-red-700' },
 ];
 
+const getSafeAttachments = (item) => {
+  if (!item) return [];
+  const att = item.attachments;
+  if (!att) return [];
+  if (Array.isArray(att)) return att;
+  if (typeof att === 'string') {
+    const trimmed = att.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return [parsed];
+      return [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof att === 'object') return [att];
+  return [];
+};
+
+const getSafeComments = (item) => {
+  if (!item) return [];
+  const comm = item.comments;
+  if (!comm) return [];
+  if (Array.isArray(comm)) return comm;
+  if (typeof comm === 'string') {
+    const trimmed = comm.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return [parsed];
+      return [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof comm === 'object') return [comm];
+  return [];
+};
+
 export default function StaffTasksList({ onSelectTask, onSelectContact, onSelectDeal, isAgent = false, agentName = '' }) {
   const [tasksList, setTasksList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -142,8 +184,8 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
             dealTitle: t.dealTitle || t.deal?.dealName || t.deal?.title || '',
             ticket: t.ticket || null,
             ticketId: t.ticketId || t.ticket?.id || null,
-            attachments: Array.isArray(t.attachments) ? t.attachments : [],
-            comments: Array.isArray(t.comments) ? t.comments : [],
+            attachments: getSafeAttachments(t),
+            comments: getSafeComments(t),
             rawTask: t,
           };
         });
@@ -289,8 +331,8 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
         dealTitle: task.dealTitle || task.rawTask?.dealTitle || task.deal?.title || task.deal?.dealName || '',
         ticket: task.ticket || task.rawTask?.ticket || null,
         ticketId: task.ticketId || task.rawTask?.ticketId || task.ticket?.id || null,
-        attachments: task.attachments || task.rawTask?.attachments || [],
-        comments: task.comments || task.rawTask?.comments || [],
+        attachments: getSafeAttachments(task.attachments ? task : task.rawTask),
+        comments: getSafeComments(task.comments ? task : task.rawTask),
         lastModifiedTime: task.lastModifiedTime || '10/03/2026, 17:07',
         rawTask: task,
       });

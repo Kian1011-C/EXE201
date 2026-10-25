@@ -78,6 +78,38 @@ function getUserAvatar(name) {
   return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'TB';
 }
 
+export function parseSafeArray(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return [parsed];
+      return [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof val === 'object') return [val];
+  return [];
+}
+
+export function normalizeNote(n) {
+  if (!n) return n;
+  return {
+    ...n,
+    id: n.id,
+    title: n.title || '',
+    text: n.text || n.body || '',
+    body: n.body || n.text || '',
+    author: n.author || 'System',
+    attachments: parseSafeArray(n.attachments),
+  };
+}
+
 function normalizeContact(c) {
   if (!c) return c;
   const fullName = c.fullName || [c.firstName, c.middleName, c.lastName].filter(Boolean).join(' ') || 'Unknown Contact';
@@ -148,6 +180,7 @@ function normalizeContact(c) {
     deals: Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : (Array.isArray(c.associatedDeals) ? c.associatedDeals.map(normalizeDeal) : []),
     associatedDeals: Array.isArray(c.associatedDeals) ? c.associatedDeals.map(normalizeDeal) : (Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : []),
     tasks: Array.isArray(c.tasks) ? c.tasks.map(normalizeTask) : [],
+    notes: Array.isArray(c.notes) ? c.notes.map(normalizeNote) : [],
     tickets: (() => {
       const base = Array.isArray(c.tickets) ? c.tickets.map(normalizeTicket) : (Array.isArray(c.associatedTickets) ? c.associatedTickets.map(normalizeTicket) : []);
       const cId = String(c.id || c.code || '')?.trim();
@@ -259,6 +292,8 @@ function normalizeDeal(d) {
     associatedTickets: dealTickets,
     tickets: dealTickets,
     needUpload: hasUpload ? 'Yes' : (d.needUpload || (d.uploadRequest ? 'Yes' : 'No')),
+    notes: Array.isArray(d.notes) ? d.notes.map(normalizeNote) : [],
+    tasks: Array.isArray(d.tasks) ? d.tasks.map(normalizeTask) : [],
   };
 }
 
@@ -302,7 +337,7 @@ function normalizeTicket(t) {
   };
 }
 
-function normalizeTask(t) {
+export function normalizeTask(t) {
   if (!t) return t;
   const title = t.title || `Task #${t.id}`;
   const assignedName = formatUserName(t.assignedTo) || 'Staff User';
@@ -323,6 +358,8 @@ function normalizeTask(t) {
     },
     contactName,
     dealTitle,
+    attachments: parseSafeArray(t.attachments),
+    comments: parseSafeArray(t.comments),
   };
 }
 
@@ -488,8 +525,8 @@ export async function getContact(id) {
         tickets: (detail.tickets || []).map(normalizeTicket),
         associatedTickets: (detail.tickets || []).map(normalizeTicket),
         customerDocuments: detail.documents || [],
-        tasks: detail.tasks || [],
-        notes: detail.notes || [],
+        tasks: (detail.tasks || []).map(normalizeTask),
+        notes: (detail.notes || []).map(normalizeNote),
         activities: detail.activities || [],
       };
       return normalizeContact(fullContact);
@@ -842,17 +879,19 @@ export function getDynamicCustomerDocuments() {
 
 // ── Interaction: Notes, Tasks, Activities ────────────────────────────────────
 export async function addContactNote(contactId, data) {
-  return await request(`/contacts/${encodeURIComponent(contactId)}/notes`, {
+  const res = await request(`/contacts/${encodeURIComponent(contactId)}/notes`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
+  return res ? normalizeNote(res) : res;
 }
 
 export async function updateContactNote(contactId, noteId, data) {
-  return await request(`/contacts/${encodeURIComponent(contactId)}/notes/${encodeURIComponent(noteId)}`, {
+  const res = await request(`/contacts/${encodeURIComponent(contactId)}/notes/${encodeURIComponent(noteId)}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   }).catch(() => null);
+  return res ? normalizeNote(res) : res;
 }
 
 export async function deleteContactNote(contactId, noteId) {
@@ -880,10 +919,11 @@ export async function addContactActivity(contactId, data) {
 }
 
 export async function addDealNote(dealId, data) {
-  return await request(`/deals/${encodeURIComponent(dealId)}/notes`, {
+  const res = await request(`/deals/${encodeURIComponent(dealId)}/notes`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
+  return res ? normalizeNote(res) : res;
 }
 
 export async function addDealTask(dealId, data) {
