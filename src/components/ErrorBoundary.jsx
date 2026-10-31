@@ -20,7 +20,17 @@ export default class ErrorBoundary extends React.Component {
     if (this.props.onReset) {
       this.props.onReset();
     } else {
-      window.location.href = '/dashboard/staff/contacts';
+      try {
+        const user = JSON.parse(localStorage.getItem('tbri_user') || '{}');
+        const role = user?.role === 'admin' || user?.role === 'manager'
+          ? 'admin'
+          : user?.role === 'agent'
+          ? 'agent'
+          : 'staff';
+        window.location.href = `/dashboard/${role}`;
+      } catch {
+        window.location.href = '/dashboard/staff';
+      }
     }
   };
 

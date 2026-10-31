@@ -7,7 +7,7 @@ import {
   getUsers,
   getAdminAccounts,
   createTask,
-  updateTask,
+  updateTask, deleteTask,
   addDealNote,
   getAllDynamicTickets,
   addTicketToStore,

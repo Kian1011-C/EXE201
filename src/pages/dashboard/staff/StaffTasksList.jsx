@@ -101,7 +101,7 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createTitle, setCreateTitle] = useState('');
   const [createAssignee, setCreateAssignee] = useState('');
-  const [createDueDate, setCreateDueDate] = useState('09/25/2026');
+  const [createDueDate, setCreateDueDate] = useState('2026-09-25');
   const [createTaskType, setCreateTaskType] = useState('Call');
   const [createPriority, setCreatePriority] = useState('High');
   const [createDescription, setCreateDescription] = useState('');
@@ -349,9 +349,9 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
       title: createTitle || 'New CRM Task',
       completed: false,
       assignee: {
-        name: createAssignee,
-        handle: createAssignee?.toLowerCase()?.replace(/\s+/g, ''),
-        avatar: createAssignee.slice(0, 2).toUpperCase(),
+        name: createAssignee || assigneeOptionsList?.[0]?.name || 'Platform Staff',
+        handle: (createAssignee || assigneeOptionsList?.[0]?.name || 'staff')?.toLowerCase()?.replace(/\s+/g, ''),
+        avatar: (createAssignee || assigneeOptionsList?.[0]?.name || 'PS').slice(0, 2).toUpperCase(),
         bg: 'bg-blue-600',
       },
       dueDate: createDueDate,
@@ -364,8 +364,8 @@ export default function StaffTasksList({ onSelectTask, onSelectContact, onSelect
           : '',
       priority: createPriority,
       lastModifiedBy: {
-        name: createAssignee,
-        avatar: createAssignee.slice(0, 2).toUpperCase(),
+        name: createAssignee || assigneeOptionsList?.[0]?.name || 'Platform Staff',
+        avatar: (createAssignee || assigneeOptionsList?.[0]?.name || 'PS').slice(0, 2).toUpperCase(),
         bg: 'bg-blue-600',
       },
       lastModifiedTime: new Date().toLocaleString('en-US', {

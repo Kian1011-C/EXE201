@@ -396,37 +396,50 @@ export default function AdminDashboard() {
     try {
       sessionStorage.removeItem('insurmatch_nav_history_admin');
     } catch {}
-    setActiveTab(tabId === 'overview' ? 'dashboard' : tabId);
     if (tabId === 'dashboard' || tabId === 'overview') {
+      setActiveTab('dashboard');
       setCurrentView('dashboard');
       navigate('/dashboard/admin');
-    } else if (tabId === 'contacts') {
+    } else if (tabId === 'contacts' || tabId === 'create-contact') {
+      setActiveTab('contacts');
       setCurrentView('contacts-list');
       navigate('/dashboard/admin/contacts');
-    } else if (tabId === 'deals') {
+    } else if (tabId === 'deals' || tabId === 'create-deal') {
+      setActiveTab('deals');
       setCurrentView('deals-list');
       navigate('/dashboard/admin/deals');
-    } else if (tabId === 'tickets') {
+    } else if (tabId === 'tickets' || tabId === 'create-ticket') {
+      setActiveTab('tickets');
       setCurrentView('tickets-list');
       navigate('/dashboard/admin/tickets');
-    } else if (tabId === 'tasks') {
+    } else if (tabId === 'tasks' || tabId === 'create-task') {
+      setActiveTab('tasks');
       setCurrentView('tasks-list');
       navigate('/dashboard/admin/tasks');
     } else if (tabId === 'documents') {
+      setActiveTab('documents');
       setCurrentView('customer-documents-list');
       navigate('/dashboard/admin/documents');
     } else if (tabId === 'quotes') {
+      setActiveTab('quotes');
       setCurrentView('quotes');
       navigate('/dashboard/admin/quotes');
-    } else if (tabId === 'accounts') {
+    } else if (tabId === 'accounts' || tabId === 'create-staff') {
+      setActiveTab('accounts');
       setCurrentView('accounts');
       navigate('/dashboard/admin/accounts');
-    } else if (tabId === 'commissions') {
+    } else if (tabId === 'commissions' || tabId === 'commission') {
+      setActiveTab('commissions');
       setCurrentView('commissions');
       navigate('/dashboard/admin/commissions');
-    } else if (tabId === 'system') {
+    } else if (tabId === 'system' || tabId === 'settings') {
+      setActiveTab('system');
       setCurrentView('system');
       navigate('/dashboard/admin/system');
+    } else {
+      setActiveTab('dashboard');
+      setCurrentView('dashboard');
+      navigate('/dashboard/admin');
     }
   }
 
@@ -691,7 +704,7 @@ export default function AdminDashboard() {
       });
     }
     setSelectedDocument(targetDoc);
-    setActiveTab('contacts');
+    setActiveTab('documents');
     setCurrentView('customer-document-detail');
     navigate(`/dashboard/admin/documents/${targetDoc?.id || 'DOC-01'}`, { replace: false });
   }
@@ -856,8 +869,8 @@ export default function AdminDashboard() {
       isAdmin={true}
       currentTab={activeTab}
       onSelectTab={handleSelectTab}
-      quotesBadge={quotes?.filter((q) => q.status === 'New Inquiry').length || '14'}
-      accountsBadge={accounts?.filter((a) => a.role === 'agent' && a.status.includes('Pending')).length || '1'}
+      quotesBadge={String(quotes?.filter((q) => q.status === 'New Inquiry' || q.status === 'NEW').length ?? 0)}
+      accountsBadge={String(accounts?.filter((a) => a.role === 'agent' && a.status?.includes('Pending')).length ?? 0)}
       onManualRefresh={handleManualRefresh}
       isRefreshing={refreshing}
     >
@@ -906,7 +919,7 @@ export default function AdminDashboard() {
           documentData={selectedDocument}
           onBack={handleBackFromCustomerDocument}
           onSelectContact={(contact) => handleSelectContact(contact || selectedContact)}
-          onSelectDeal={() => handleSelectDeal(selectedDeal)}
+          onSelectDeal={(deal) => handleSelectDeal(deal || selectedDeal)}
           onUpdateDocument={handleUpdateDocument}
         />
       )}

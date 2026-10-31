@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 
 // Auth
-import { AuthProvider } from './auth/AuthContext';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Components
@@ -102,6 +102,19 @@ function PublicRoutes() {
 
 import { Toaster } from 'react-hot-toast';
 
+function DashboardRedirect() {
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const role =
+    user?.role === 'admin' || user?.role === 'manager'
+      ? 'admin'
+      : user?.role === 'agent'
+      ? 'agent'
+      : 'staff';
+  return <Navigate to={`/dashboard/${role}`} replace />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -139,7 +152,8 @@ export default function App() {
               }
             />
             {/* Generic /dashboard → redirect to role-specific */}
-            <Route path="/dashboard" element={<Navigate to="/login" replace />} />
+            <Route path="/dashboard" element={<DashboardRedirect />} />
+            <Route path="/dashboard/*" element={<DashboardRedirect />} />
 
             {/* ── Public Pages ─────────────────────────────── */}
             <Route path="/*" element={<PublicRoutes />} />

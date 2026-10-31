@@ -178,18 +178,6 @@ export default function AgentDashboard() {
     if (path.includes('/dashboard/agent/commission')) {
       setCurrentTab('commission');
       setCurrentView('commission');
-    } else if (path.includes('/dashboard/agent/documents/')) {
-      const parts = path?.split('/dashboard/agent/documents/');
-      const docId = parts[1];
-      if (docId) {
-        getDocument(docId)
-          .then((res) => {
-            if (res) setSelectedDocument((prev) => ({ ...prev, ...res }));
-          })
-          .catch(() => {});
-      }
-      setCurrentTab('contacts');
-      setCurrentView('customer-document-detail');
     } else if (path.includes('/dashboard/agent/deals/')) {
       const parts = path?.split('/dashboard/agent/deals/');
       const dealId = parts[1]?.replace(/\/$/, '')?.trim();
@@ -310,23 +298,23 @@ export default function AgentDashboard() {
       setCurrentView('tasks');
     } else if (path.includes('/dashboard/agent/documents/')) {
       const parts = path?.split('/dashboard/agent/documents/');
-      const docId = parts[1];
+      const docId = parts[1]?.replace(/\/$/, '')?.trim();
       if (docId) {
         getDocument(docId)
           .then((res) => { if (res) setSelectedDocument((prev) => ({ ...prev, ...res })); })
           .catch(() => {});
+        setCurrentTab('documents');
+        setCurrentView('customer-document-detail');
+      } else {
+        setCurrentTab('documents');
+        setCurrentView('customer-documents-list');
       }
-      setCurrentTab('documents');
-      setCurrentView('customer-document-detail');
     } else if (path.includes('/dashboard/agent/documents')) {
       setCurrentTab('documents');
       setCurrentView('customer-documents-list');
     } else if (path.includes('/dashboard/agent/subscription')) {
       setCurrentTab('subscription');
       setCurrentView('subscription');
-    } else if (path.includes('/dashboard/agent/commission')) {
-      setCurrentTab('commission');
-      setCurrentView('commission');
     } else {
       setCurrentTab('dashboard');
       setCurrentView('dashboard');
@@ -613,6 +601,7 @@ export default function AgentDashboard() {
       });
     }
     setSelectedDocument(targetDoc);
+    setCurrentTab('documents');
     setCurrentView('customer-document-detail');
     navigate(`/dashboard/agent/documents/${targetDoc?.id || 'DOC-01'}`, { replace: false });
   }
@@ -647,31 +636,42 @@ export default function AgentDashboard() {
     try {
       sessionStorage.removeItem('insurmatch_nav_history_agent');
     } catch {}
-    setCurrentTab(tab);
-    if (tab === 'dashboard') {
+    if (tab === 'dashboard' || tab === 'overview') {
+      setCurrentTab('dashboard');
       setCurrentView('dashboard');
       navigate('/dashboard/agent', { replace: false });
-    } else if (tab === 'deals') {
+    } else if (tab === 'deals' || tab === 'create-deal') {
+      setCurrentTab('deals');
       setCurrentView('deals');
       navigate('/dashboard/agent/deals', { replace: false });
-    } else if (tab === 'contacts') {
+    } else if (tab === 'contacts' || tab === 'create-contact') {
+      setCurrentTab('contacts');
       setCurrentView('contacts');
       navigate('/dashboard/agent/contacts', { replace: false });
     } else if (tab === 'subscription') {
+      setCurrentTab('subscription');
       setCurrentView('subscription');
       navigate('/dashboard/agent/subscription', { replace: false });
-    } else if (tab === 'commission') {
+    } else if (tab === 'commission' || tab === 'commissions') {
+      setCurrentTab('commission');
       setCurrentView('commission');
       navigate('/dashboard/agent/commission', { replace: false });
-    } else if (tab === 'tickets') {
+    } else if (tab === 'tickets' || tab === 'create-ticket') {
+      setCurrentTab('tickets');
       setCurrentView('tickets');
       navigate('/dashboard/agent/tickets', { replace: false });
-    } else if (tab === 'tasks') {
+    } else if (tab === 'tasks' || tab === 'create-task') {
+      setCurrentTab('tasks');
       setCurrentView('tasks');
       navigate('/dashboard/agent/tasks', { replace: false });
     } else if (tab === 'documents') {
+      setCurrentTab('documents');
       setCurrentView('customer-documents-list');
       navigate('/dashboard/agent/documents', { replace: false });
+    } else {
+      setCurrentTab('dashboard');
+      setCurrentView('dashboard');
+      navigate('/dashboard/agent', { replace: false });
     }
   }
 
@@ -808,7 +808,7 @@ export default function AgentDashboard() {
       onSelectTab={handleSelectTab}
       isAgent={true}
       agentName={currentAgent.name}
-      agentNpn="#1984210"
+      agentNpn={user?.npn ? `#${String(user.npn).replace(/^#/, '')}` : '#20011862'}
       showCommission={true}
     >
       {/* ── 1. DASHBOARD VIEW ───────────────────────────────────────────── */}
@@ -921,7 +921,7 @@ export default function AgentDashboard() {
             documentData={selectedDocument}
             onBack={handleBackFromCustomerDocument}
             onSelectContact={(contact) => handleSelectContact(contact || selectedContact)}
-            onSelectDeal={() => handleSelectDeal(selectedDeal)}
+            onSelectDeal={(deal) => handleSelectDeal(deal || selectedDeal)}
             onUpdateDocument={handleUpdateDocument}
           />
         )

@@ -88,7 +88,7 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
   const [createStage, setCreateStage] = useState('Need Create ACA Account (ACA account)');
   const [createOwner, setCreateOwner] = useState('');
   const [createPriority, setCreatePriority] = useState('High');
-  const [createDueDate, setCreateDueDate] = useState('09/25/2026');
+  const [createDueDate, setCreateDueDate] = useState('2026-09-25');
   const [createDescription, setCreateDescription] = useState('');
 
   // Advanced filters state
@@ -324,13 +324,13 @@ export default function StaffTicketsList({ onSelectTicket, onSelectContact, onSe
       title: createTitle || 'New Support Ticket',
       pipeline: createPipeline,
       stage: createStage,
-      ticketOwner: createOwner,
-      ticketOwnerAvatar: createOwner.slice(0, 2).toUpperCase(),
+      ticketOwner: createOwner || ownerOptionsList?.[0]?.name || 'Platform Staff',
+      ticketOwnerAvatar: (createOwner || ownerOptionsList?.[0]?.name || 'PS').slice(0, 2).toUpperCase(),
       ticketOwnerBg: 'bg-blue-600',
       closeDate: '',
       dueDate: createDueDate,
       priority: createPriority,
-      lastModifiedBy: createOwner,
+      lastModifiedBy: createOwner || ownerOptionsList?.[0]?.name || 'Platform Staff',
       lastModifiedTime: new Date().toLocaleString('en-US', {
         month: '2-digit',
         day: '2-digit',

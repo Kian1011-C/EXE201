@@ -428,7 +428,7 @@ export default function StaffTaskDetail({
       onSelectDeal(resolvedDeal);
     } else if (onSelectDeal) {
       const fallback = [...[], ...[]][0] || {};
-      onSelectDeal(fallback);
+      void fallback;
     }
   };
 

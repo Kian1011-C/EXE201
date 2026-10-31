@@ -34,7 +34,10 @@ export default function LoginPage() {
     try {
       const session = await login(email, password);
       loginSuccess(session);
-      const dest = from || ROLE_REDIRECT[session.user.role] || '/';
+      const roleBase = ROLE_REDIRECT[session.user.role] || '/';
+      const isAllowedFrom =
+        from && roleBase !== '/' && (from === roleBase || from.startsWith(`${roleBase}/`));
+      const dest = isAllowedFrom ? from : roleBase;
       navigate(dest, { replace: true });
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials and try again.');

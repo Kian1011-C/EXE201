@@ -6,6 +6,8 @@ export default function CommandPaletteModal({
   onNavigate,
   onQuickAction,
   isAdmin = false,
+  isAgent = false,
+  showCommission = false,
 }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -64,6 +66,15 @@ export default function CommandPaletteModal({
       icon: 'checklist',
       iconColor: 'text-purple-500 bg-purple-50',
       action: () => onNavigate('tasks'),
+    },
+    {
+      id: 'admin-nav-documents',
+      category: 'Admin Navigation',
+      title: 'Customer Documents & Verification',
+      subtitle: 'Inspect uploaded client identity, tax, and CMS consent records',
+      icon: 'folder_shared',
+      iconColor: 'text-sky-500 bg-sky-50',
+      action: () => onNavigate('documents'),
     },
     {
       id: 'admin-nav-quotes',
@@ -198,14 +209,40 @@ export default function CommandPaletteModal({
       action: () => onNavigate('tasks'),
     },
     {
-      id: 'nav-commission',
+      id: 'nav-documents',
       category: 'Navigation',
-      title: 'Go to Commission & Audit Ledger',
-      subtitle: 'PMPM carrier statements, support fee splits & payouts',
-      icon: 'payments',
-      iconColor: 'text-teal-500 bg-teal-50',
-      action: () => onNavigate('commission'),
+      title: 'Go to Customer Documents',
+      subtitle: 'Review client identity, tax, and CMS consent documents',
+      icon: 'folder_shared',
+      iconColor: 'text-sky-500 bg-sky-50',
+      action: () => onNavigate('documents'),
     },
+    ...(isAgent
+      ? [
+          {
+            id: 'nav-subscription',
+            category: 'Navigation',
+            title: 'Go to My CRM Subscription Plan',
+            subtitle: 'View current subscription tier, usage limits & billing',
+            icon: 'card_membership',
+            iconColor: 'text-blue-500 bg-blue-50',
+            action: () => onNavigate('subscription'),
+          },
+        ]
+      : []),
+    ...(isAgent || showCommission
+      ? [
+          {
+            id: 'nav-commission',
+            category: 'Navigation',
+            title: 'Go to Commission & Audit Ledger',
+            subtitle: 'PMPM carrier statements, support fee splits & payouts',
+            icon: 'payments',
+            iconColor: 'text-teal-500 bg-teal-50',
+            action: () => onNavigate('commission'),
+          },
+        ]
+      : []),
     {
       id: 'action-new-ticket',
       category: 'Quick Actions',

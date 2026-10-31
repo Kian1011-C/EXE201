@@ -184,7 +184,7 @@ export default function StaffCrmLayout({
       id: 'dashboard',
       label: 'Dashboard',
       icon: 'dashboard',
-      badge: '27',
+      badge: isAgent ? '27' : '26',
       desc: 'Executive Reporting & CRM Analytics',
     },
     {
@@ -545,22 +545,41 @@ export default function StaffCrmLayout({
                         </div>
                       </div>
 
-                      <div
-                        onClick={() => {
-                          setShowNotifications(false);
-                          onSelectTab && onSelectTab('commission');
-                        }}
-                        className="p-3 hover:bg-slate-50 transition cursor-pointer flex gap-3 items-start"
-                      >
-                        <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-                          <span className="material-symbols-outlined text-[16px]">payments</span>
+                      {(isAgent || showCommission) ? (
+                        <div
+                          onClick={() => {
+                            setShowNotifications(false);
+                            onSelectTab && onSelectTab('commission');
+                          }}
+                          className="p-3 hover:bg-slate-50 transition cursor-pointer flex gap-3 items-start"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="material-symbols-outlined text-[16px]">payments</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-slate-800">Commission Cycle Reconciled</p>
+                            <p className="text-[11px] text-slate-500 truncate mt-0.5">September 2026 ledger updated with 10 records</p>
+                            <span className="text-[10px] text-slate-400 font-medium">2 hours ago</span>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-800">Commission Cycle Reconciled</p>
-                          <p className="text-[11px] text-slate-500 truncate mt-0.5">September 2026 ledger updated with 10 records</p>
-                          <span className="text-[10px] text-slate-400 font-medium">2 hours ago</span>
+                      ) : (
+                        <div
+                          onClick={() => {
+                            setShowNotifications(false);
+                            onSelectTab && onSelectTab('documents');
+                          }}
+                          className="p-3 hover:bg-slate-50 transition cursor-pointer flex gap-3 items-start"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="material-symbols-outlined text-[16px]">folder_shared</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-slate-800">Client Documents Pending Review</p>
+                            <p className="text-[11px] text-slate-500 truncate mt-0.5">2 customer document folders awaiting verification</p>
+                            <span className="text-[10px] text-slate-400 font-medium">2 hours ago</span>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -610,10 +629,14 @@ export default function StaffCrmLayout({
                     : 'bg-gradient-to-tr from-cyan-600 to-blue-600'
                 }`}
               >
-                {isAdmin ? 'SA' : isAgent ? 'KN' : user?.avatar || 'TB'}
+                {user?.avatar || (isAdmin ? 'SA' : isAgent ? 'KN' : 'PS')}
               </div>
               <span className="hidden md:inline text-xs font-semibold text-slate-700 max-w-[130px] truncate">
-                {isAdmin ? 'System Admin 👑' : isAgent ? agentName : user?.email || 'tiger.truongBG@...'}
+                {isAdmin
+                  ? `${user?.name || 'System Admin'} 👑`
+                  : isAgent
+                  ? user?.name || agentName
+                  : user?.name || user?.email || 'Platform Staff'}
               </span>
               <span className="material-symbols-outlined text-[14px] text-slate-400">
                 expand_more
@@ -626,17 +649,17 @@ export default function StaffCrmLayout({
                 <div className="px-3.5 py-2.5 border-b border-slate-100">
                   <div className="text-xs font-bold text-slate-900">
                     {isAdmin
-                      ? 'System Administrator 👑'
+                      ? `${user?.name || 'System Administrator'} 👑`
                       : isAgent
-                      ? `${agentName}, Licensed Agent`
-                      : user?.name || 'Staff User'}
+                      ? `${user?.name || agentName}, Licensed Agent`
+                      : user?.name || 'Platform Staff'}
                   </div>
                   <div className="text-[11px] text-slate-500 truncate mt-0.5">
                     {isAdmin
-                      ? 'admin@insurmatch.us'
+                      ? user?.email || 'admin@insurmatch.us'
                       : isAgent
-                      ? `NPN: ${agentNpn}`
-                      : user?.email || 'tiger.truongBG@...'}
+                      ? `${user?.email ? `${user.email} • ` : ''}NPN: ${user?.npn || agentNpn}`
+                      : user?.email || 'staff@insurmatch.us'}
                   </div>
                   <span
                     className={`inline-block mt-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
@@ -647,7 +670,7 @@ export default function StaffCrmLayout({
                         : 'bg-blue-100 text-blue-800'
                     }`}
                   >
-                    {isAdmin ? 'PLATFORM ADMINISTRATOR' : isAgent ? 'INDEPENDENT AGENT' : user?.role || 'STAFF OPERATIONS'}
+                    {isAdmin ? 'PLATFORM ADMINISTRATOR' : isAgent ? 'INDEPENDENT AGENT' : 'STAFF OPERATIONS'}
                   </span>
                 </div>
 
@@ -829,6 +852,8 @@ export default function StaffCrmLayout({
         isOpen={showCommandPalette}
         onClose={() => setShowCommandPalette(false)}
         isAdmin={isAdmin}
+        isAgent={isAgent}
+        showCommission={showCommission}
         onNavigate={(target) => {
           if (onSelectTab) onSelectTab(target);
         }}

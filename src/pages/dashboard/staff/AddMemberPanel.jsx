@@ -227,7 +227,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
                     className="w-full appearance-none pl-3 pr-8 py-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs cursor-pointer"
                   >
                     <option value="">Select gender...</option>
-                    <option value="Male">Male (Nam)</option>
+                    <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
                   </select>
@@ -489,7 +489,7 @@ export default function AddMemberPanel({ isOpen, onClose, onSave, hasSpouse }) {
             className="px-5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition cursor-pointer flex items-center gap-1.5"
           >
             <span className="material-symbols-outlined text-[16px] text-slate-500">close</span>
-            <span>Cancel / Cancel</span>
+            <span>Cancel</span>
           </button>
           <button
             type="button"

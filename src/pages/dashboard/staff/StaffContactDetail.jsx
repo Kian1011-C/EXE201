@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
 import { ACA_ACCOUNT_STATUS_OPTIONS, getActiveAgentAccounts } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
-import { getCurrentActor, recordPropertyUpdate, getPersonName } from '../../../services/propertyHistoryService';
+import { getCurrentActor, recordPropertyUpdate, recordPropertyUpdatesBatch, getPersonName } from '../../../services/propertyHistoryService';
 import {
   getUsers,
   getContactDeals,
@@ -1680,7 +1680,7 @@ export default function StaffContactDetail({
       { fieldName: 'The Best Rate Email', oldValue: oldAca.theBestRateEmail || '', newValue: theBestRateEmail },
     ];
 
-    recordPropertyUpdate('contact', contactId, updates, currentActor);
+    recordPropertyUpdatesBatch('contact', contactId, updates, currentActor);
 
     if (contact?.id) {
       const matchingUser = dbUsers.find(u => (u.fullName || u.name) === leadContactOwner);

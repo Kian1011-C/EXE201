@@ -38,8 +38,8 @@ export default function StaffDashboard() {
   const navigate = useNavigate();
 
   // Current view: 'dashboard' | 'list' | 'contact-detail' | 'deals-list' | 'deal-detail' | 'customer-document-detail' | 'tickets-list' | 'ticket-detail' | 'tasks-list' | 'task-detail'
-  const [currentTab, setCurrentTab] = useState('contacts');
-  const [currentView, setCurrentView] = useState('list');
+  const [currentTab, setCurrentTab] = useState('dashboard');
+  const [currentView, setCurrentView] = useState('dashboard');
   const [selectedContact, setSelectedContact] = useState(null);
   const [selectedDeal, setSelectedDeal] = useState({});
   const [selectedDocument, setSelectedDocument] = useState(({ filesByCategory: {} }));
@@ -292,9 +292,12 @@ export default function StaffDashboard() {
       }
       setCurrentTab('contacts');
       setCurrentView('contact-detail');
-    } else {
+    } else if (path.endsWith('/dashboard/staff/contacts') || path.endsWith('/dashboard/staff/contacts/')) {
       setCurrentTab('contacts');
       setCurrentView('list');
+    } else {
+      setCurrentTab('dashboard');
+      setCurrentView('dashboard');
     }
   }, [location.pathname]);
 
@@ -573,6 +576,7 @@ export default function StaffDashboard() {
       });
     }
     setSelectedDocument(targetDoc);
+    setCurrentTab('documents');
     setCurrentView('customer-document-detail');
     navigate(`/dashboard/staff/documents/${targetDoc?.id || 'DOC-01'}`, { replace: false });
   }
@@ -643,28 +647,34 @@ export default function StaffDashboard() {
     try {
       sessionStorage.removeItem('insurmatch_nav_history_staff');
     } catch {}
-    setCurrentTab(tab);
-    if (tab === 'dashboard') {
+    if (tab === 'dashboard' || tab === 'overview') {
+      setCurrentTab('dashboard');
       setCurrentView('dashboard');
-      navigate('/dashboard/staff/dashboard', { replace: false });
-    } else if (tab === 'deals') {
+      navigate('/dashboard/staff', { replace: false });
+    } else if (tab === 'deals' || tab === 'create-deal') {
+      setCurrentTab('deals');
       setCurrentView('deals-list');
       navigate('/dashboard/staff/deals', { replace: false });
-    } else if (tab === 'contacts') {
+    } else if (tab === 'contacts' || tab === 'create-contact') {
+      setCurrentTab('contacts');
       setCurrentView('list');
-      navigate('/dashboard/staff', { replace: false });
-    } else if (tab === 'tickets') {
+      navigate('/dashboard/staff/contacts', { replace: false });
+    } else if (tab === 'tickets' || tab === 'create-ticket') {
+      setCurrentTab('tickets');
       setCurrentView('tickets-list');
       navigate('/dashboard/staff/tickets', { replace: false });
-    } else if (tab === 'tasks') {
+    } else if (tab === 'tasks' || tab === 'create-task') {
+      setCurrentTab('tasks');
       setCurrentView('tasks-list');
       navigate('/dashboard/staff/tasks', { replace: false });
     } else if (tab === 'documents') {
+      setCurrentTab('documents');
       setCurrentView('customer-documents-list');
       navigate('/dashboard/staff/documents', { replace: false });
-    } else if (tab === 'commission') {
-      setCurrentView('commission-ledger');
-      navigate('/dashboard/staff/commission', { replace: false });
+    } else {
+      setCurrentTab('dashboard');
+      setCurrentView('dashboard');
+      navigate('/dashboard/staff', { replace: false });
     }
   }
 
@@ -673,7 +683,7 @@ export default function StaffDashboard() {
     handleGoBack(() => {
       setCurrentTab('contacts');
       setCurrentView('list');
-      navigate('/dashboard/staff', { replace: false });
+      navigate('/dashboard/staff/contacts', { replace: false });
     });
   }
 
@@ -830,7 +840,7 @@ export default function StaffDashboard() {
           documentData={selectedDocument}
           onBack={handleBackFromCustomerDocument}
           onSelectContact={(contact) => handleSelectContact(contact || selectedContact)}
-          onSelectDeal={() => handleSelectDeal(selectedDeal)}
+          onSelectDeal={(deal) => handleSelectDeal(deal || selectedDeal)}
           onUpdateDocument={handleUpdateDocument}
         />
       )}
@@ -901,11 +911,13 @@ export default function StaffDashboard() {
         />
       )}
 
-      {/* ── Commission / Package View ─────────────────────────────────── */}
+      {/* ── Commission / Package View (Restricted for Staff) ─────────────── */}
       {currentView === 'commission-ledger' && (
-        <StaffCommissionView
-          onSelectDeal={handleSelectDeal}
-          onSelectContact={handleSelectContact}
+        <AccessRestrictedCard
+          title="SaaS Revenue & Commission Ledger Restricted"
+          message="Under system governance, only Platform Administrators can access the B2B SaaS subscription revenue and agency commission ledger."
+          onBack={() => handleSelectTab('dashboard')}
+          backLabel="Back to Dashboard"
         />
       )}
     </StaffCrmLayout>

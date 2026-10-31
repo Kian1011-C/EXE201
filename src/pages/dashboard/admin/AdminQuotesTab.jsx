@@ -19,7 +19,7 @@ export default function AdminQuotesTab({
   const [localQuotes, setLocalQuotes] = useState(quotes);
 
   React.useEffect(() => {
-    if (quotes && quotes.length > 0) setLocalQuotes(quotes);
+    if (Array.isArray(quotes)) setLocalQuotes(quotes);
   }, [quotes]);
 
   const verifiedAgents = useMemo(() => {
@@ -177,7 +177,7 @@ export default function AdminQuotesTab({
                   <tr key={q.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="px-5 py-4">
                       <div className="font-mono font-bold text-slate-800">{q.id}</div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">{q.date}</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">{q.date || q.dateSubmitted || 'Just now'}</div>
                     </td>
                     <td className="px-5 py-4">
                       <div className="font-bold text-slate-900">{q.name}</div>
@@ -277,7 +277,7 @@ export default function AdminQuotesTab({
                 >
                   {verifiedAgents?.map((ag) => (
                     <option key={ag.id} value={ag.name}>
-                      {ag.name} (NPN #{ag.npn}) — {ag.statesLicensed.join(', ')}
+                      {ag.name} (NPN #{ag.npn}) — {Array.isArray(ag.statesLicensed) ? ag.statesLicensed.join(', ') : (ag.statesLicensed || 'All States')}
                     </option>
                   ))}
                 </select>

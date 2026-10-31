@@ -800,11 +800,11 @@ export default function StaffCustomerDocumentDetail({
                 </div>
 
                 {/* Associated Deal Link */}
-                {onSelectDeal && (
+                {onSelectDeal && (doc.associatedDeal || doc.deal || doc.dealId) && (
                   <div className="pt-2 border-t border-slate-100">
                     <button
                       type="button"
-                      onClick={() => onSelectDeal()}
+                      onClick={() => onSelectDeal(doc.associatedDeal || doc.deal || { id: doc.dealId, title: doc.dealTitle || docName })}
                       className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[15px]">handshake</span>

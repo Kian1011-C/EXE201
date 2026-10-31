@@ -5,6 +5,53 @@
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
+const CANONICAL_ACCOUNT_ROLES = {
+  'admin@insurmatch.us': 'admin',
+  'staff@insurmatch.us': 'staff',
+  'agent@insurmatch.us': 'agent',
+};
+
+export function normalizeUser(rawUser, fallbackEmail = '') {
+  if (!rawUser || typeof rawUser !== 'object') return null;
+  const email = (rawUser.email || fallbackEmail || '').trim().toLowerCase();
+  let role = (rawUser.role || rawUser.roleName || 'staff').toString().toLowerCase();
+  if (role.startsWith('role_')) {
+    role = role.replace('role_', '');
+  }
+  if (role === 'support' || role === 'telesales') {
+    role = 'staff';
+  } else if (role === 'manager') {
+    role = 'admin';
+  }
+  if (CANONICAL_ACCOUNT_ROLES[email]) {
+    role = CANONICAL_ACCOUNT_ROLES[email];
+  }
+
+  const name =
+    rawUser.name ||
+    [rawUser.firstName, rawUser.lastName].filter(Boolean).join(' ') ||
+    (email ? email.split('@')[0] : 'User');
+
+  const avatar =
+    rawUser.avatar ||
+    name
+      .split(' ')
+      .filter(Boolean)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() ||
+    'U';
+
+  return {
+    ...rawUser,
+    email: rawUser.email || email,
+    name,
+    role,
+    avatar,
+  };
+}
+
 // ─────────────────────────────────────────────
 // LOGIN — Call real Spring Boot API
 // ─────────────────────────────────────────────
@@ -22,7 +69,7 @@ export async function login(email, password) {
     // Handle Spring Boot ApiResponse wrapper: { success: true, data: { token, user } }
     const data = (resp && resp.data) ? resp.data : resp;
     const token = data.token || data.accessToken;
-    const user = data.user || {
+    const rawUser = data.user || {
       id: data.userId || data.id,
       name: data.name || normalizedEmail.split('@')[0],
       email: data.email || normalizedEmail,
@@ -30,27 +77,7 @@ export async function login(email, password) {
       avatar: (data.name || 'U').substring(0, 2).toUpperCase(),
     };
 
-    // Normalize role to lowercase for frontend routing
-    if (user.role) {
-      user.role = user.role.toLowerCase();
-      if (user.role.startsWith('role_')) {
-        user.role = user.role.replace('role_', '');
-      }
-      if (user.role === 'support' || user.role === 'telesales') {
-        user.role = 'staff';
-      } else if (user.role === 'manager') {
-        user.role = 'admin';
-      }
-    }
-
-    if (!user.avatar && user.name) {
-      user.avatar = user.name
-        .split(' ')
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-    }
+    const user = normalizeUser(rawUser, normalizedEmail);
 
     // Persist session
     localStorage.setItem('tbri_token', token);
@@ -94,12 +121,10 @@ export function restoreSession() {
   const userRaw = localStorage.getItem('tbri_user');
   if (!token || !userRaw) return null;
   try {
-    const user = JSON.parse(userRaw);
-    if (user.role === 'support' || user.role === 'telesales') {
-      user.role = 'staff';
-    } else if (user.role === 'manager') {
-      user.role = 'admin';
-    }
+    const parsed = JSON.parse(userRaw);
+    const user = normalizeUser(parsed);
+    if (!user) return null;
+    localStorage.setItem('tbri_user', JSON.stringify(user));
     return { token, user };
   } catch {
     return null;
