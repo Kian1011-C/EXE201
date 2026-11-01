@@ -24,7 +24,7 @@ export default function PricingPage({ onOpenQuote }) {
         'Calendar, appointments & task reminders',
         'Basic compliant email templates',
         'Individual activity overview',
-        '14-day free trial included',
+        '60-day free trial included (Dùng thử miễn phí 60 ngày)',
         'Standard email support',
       ],
       notIncluded: [
@@ -33,7 +33,7 @@ export default function PricingPage({ onOpenQuote }) {
         'Customizable pipeline stages',
         'Agency-wide commission visibility',
       ],
-      ctaText: 'Start 14-Day Free Trial',
+      ctaText: 'Đăng ký dùng thử miễn phí 60 ngày',
     },
     {
       id: 'professional',
@@ -61,7 +61,7 @@ export default function PricingPage({ onOpenQuote }) {
         'Multi-team lead distribution rules',
         'Agency master commission ledger',
       ],
-      ctaText: 'Start 14-Day Free Trial',
+      ctaText: 'Đăng ký dùng thử miễn phí 60 ngày',
     },
     {
       id: 'agency',
@@ -86,7 +86,7 @@ export default function PricingPage({ onOpenQuote }) {
         'Dedicated onboarding assistance & priority support',
       ],
       notIncluded: [],
-      ctaText: 'Start 14-Day Free Trial',
+      ctaText: 'Đăng ký dùng thử miễn phí 60 ngày',
     },
   ];
 
@@ -126,8 +126,8 @@ export default function PricingPage({ onOpenQuote }) {
       a: 'No, absolutely not. InsurMatch is a pure B2B SaaS software provider. We charge a flat monthly or annual software subscription fee. You keep 100% of your insurance carrier commissions, and all your client records belong strictly to you.',
     },
     {
-      q: 'What happens during the 14-day free trial?',
-      a: 'You receive complete access to all CRM capabilities for 14 days without entering any credit card. You can import contacts, test pipelines, schedule follow-ups, and experience the platform firsthand. At the end of the trial, you can choose Starter, Professional, or Agency.',
+      q: 'What happens during the 60-day free trial?',
+      a: 'You receive complete access to all CRM capabilities for 60 days without entering any credit card. You can import contacts, test pipelines, schedule follow-ups, and experience the platform firsthand. At the end of the trial, you can choose Starter, Professional, or Agency.',
     },
     {
       q: 'Can I add more users if my agency expands beyond 10 agents?',
@@ -281,7 +281,7 @@ export default function PricingPage({ onOpenQuote }) {
                     <ArrowRight className="w-4 h-4 text-champagne" />
                   </button>
                   <p className="text-[10px] text-center text-slate-muted mt-2">
-                    14-day free trial • No credit card required
+                    60-day free trial (Miễn phí 60 ngày) • No credit card required
                   </p>
                 </div>
               </div>
@@ -451,7 +451,7 @@ export default function PricingPage({ onOpenQuote }) {
                 onClick={onOpenQuote}
                 className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-champagne text-navy-deep font-bold text-xs hover:bg-champagne-light transition-colors shadow-xs cursor-pointer"
               >
-                Start 14-Day Free Trial
+                Đăng ký dùng thử miễn phí 60 ngày
               </button>
               <Link
                 to="/login"

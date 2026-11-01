@@ -144,8 +144,8 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
                 onClick={onOpenQuote}
                 className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight shadow-2xs hover:shadow-xs transition-all duration-200 font-bold text-xs tracking-wide group cursor-pointer border border-navy-deep whitespace-nowrap"
               >
-                <span>14-Day Trial</span>
-                <span className="material-symbols-outlined ml-1.5 text-[16px] text-champagne group-hover:translate-x-0.5 transition-transform">
+                <span>Đăng ký dùng thử miễn phí 60 ngày</span>
+                <span className="material-symbols-outlined ml-1.5 text-[16px] text-champagne group-hover:translate-x-1 transition-transform">
                   arrow_forward
                 </span>
               </button>
@@ -220,7 +220,7 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
                   }}
                   className="w-full py-3 rounded-xl bg-navy-deep text-ivory font-bold text-xs tracking-wide text-center flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                 >
-                  <span>Start 14-Day Free Trial</span>
+                  <span>Đăng ký dùng thử miễn phí 60 ngày</span>
                   <span className="material-symbols-outlined text-[16px] text-champagne">arrow_forward</span>
                 </button>
                 <button 

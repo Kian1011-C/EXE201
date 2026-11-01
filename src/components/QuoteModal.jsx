@@ -93,7 +93,7 @@ export default function QuoteModal({ isOpen, onClose, initialMode = 'trial' }) {
                     activeMode === 'trial' ? 'bg-champagne text-navy-deep shadow-xs' : 'text-ivory/80 hover:text-ivory'
                   }`}
                 >
-                  14-Day Free Trial
+                  Dùng thử 60 ngày (0đ)
                 </button>
                 <button
                   type="button"
@@ -108,7 +108,7 @@ export default function QuoteModal({ isOpen, onClose, initialMode = 'trial' }) {
 
               <p className="text-xs text-ivory/70 mt-2.5">
                 {activeMode === 'trial'
-                  ? 'Get instant 14-day access to InsurMatch CRM. No credit card required. Keep 100% of your carrier commissions.'
+                  ? 'Đăng ký dùng thử miễn phí 60 ngày InsurMatch CRM. Không cần thẻ tín dụng. Giữ trọn 100% hoa hồng từ hãng.'
                   : 'Schedule a 20-minute tailored walkthrough of InsurMatch CRM workflows for independent agents and agencies.'}
               </p>
             </div>
@@ -122,7 +122,7 @@ export default function QuoteModal({ isOpen, onClose, initialMode = 'trial' }) {
                   </div>
                   
                   <h4 className="text-2xl font-bold text-navy-deep tracking-tight">
-                    {activeMode === 'trial' ? 'Your 14-Day Workspace is Ready!' : 'Demo Request Received!'}
+                    {activeMode === 'trial' ? 'Tài khoản dùng thử 60 ngày đã sẵn sàng!' : 'Demo Request Received!'}
                   </h4>
                   
                   <p className="text-xs sm:text-sm text-charcoal/75 max-w-md mx-auto leading-relaxed">
@@ -314,7 +314,7 @@ export default function QuoteModal({ isOpen, onClose, initialMode = 'trial' }) {
                       <span>Setting Up Your Workspace...</span>
                     ) : (
                       <>
-                        <span>{activeMode === 'trial' ? 'Start 14-Day Free Trial' : 'Schedule My Free Demo'}</span>
+                        <span>{activeMode === 'trial' ? 'Đăng ký dùng thử miễn phí 60 ngày' : 'Schedule My Free Demo'}</span>
                         <ArrowRight className="w-4 h-4 text-champagne" />
                       </>
                     )}

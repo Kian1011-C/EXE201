@@ -20,7 +20,7 @@ import {
   isOwnerMatch,
 } from '../../../utils/rbac';
 import toast from 'react-hot-toast';
-import { getActiveAgentAccounts } from '../../../utils/constants';
+import { getActiveAgentAccounts, getClientLifecycleInfo } from '../../../utils/constants';
 
 const COMPANY_OVERVIEW = 'All Owners (Company Overview)';
 
@@ -877,6 +877,20 @@ export default function StaffCrmDashboard({
     };
   }, [scopedCommissions]);
 
+  // ── Smart Lifecycle Alerts: Turning 65 (Medicare) & ACA Renewal Queue ─────
+  const { turning65Clients, acaRenewalClients } = useMemo(() => {
+    const t65 = [];
+    const aca = [];
+    (scopedContacts || []).forEach((c) => {
+      const info = getClientLifecycleInfo(c, scopedDeals);
+      if (info.isTurning65) t65.push({ contact: c, info });
+      if (info.isAcaRenewalSoon) aca.push({ contact: c, info });
+    });
+    t65.sort((a, b) => (a.info.daysTo65 ?? 999) - (b.info.daysTo65 ?? 999));
+    aca.sort((a, b) => (a.info.daysToRenewal ?? 999) - (b.info.daysToRenewal ?? 999));
+    return { turning65Clients: t65, acaRenewalClients: aca };
+  }, [scopedContacts, scopedDeals]);
+
   return (
     <div className="flex flex-col h-full bg-[#F4F6F9] overflow-y-auto">
       {/* ── Top Dashboard Header ─────────────────────────────────────────── */}
@@ -1245,6 +1259,209 @@ export default function StaffCrmDashboard({
           </div>
         )}
 
+
+        {/* ── SMART LIFECYCLE ALERTS: TURNING 65 (MEDICARE) & ACA RENEWALS ── */}
+        {(turning65Clients.length > 0 || acaRenewalClients.length > 0) && (
+          <div className="space-y-4">
+            {/* Top 4-Card Executive Snapshot */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div
+                onClick={() => onSelectTab && onSelectTab('contacts')}
+                className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs hover:shadow-md transition cursor-pointer flex items-center justify-between"
+              >
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Hồ sơ khách hàng</span>
+                  <span className="text-2xl font-extrabold text-slate-900 mt-0.5 block">{scopedContacts.length}</span>
+                  <span className="text-[11px] text-emerald-600 font-semibold">Hồ sơ 360° đang quản lý</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[22px]">groups</span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => onSelectTab && onSelectTab('contacts')}
+                className="bg-gradient-to-br from-purple-50 to-white rounded-2xl border border-purple-200 p-4 shadow-2xs hover:shadow-md transition cursor-pointer flex items-center justify-between"
+              >
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 block">Sắp sang tuổi 65</span>
+                  <span className="text-2xl font-extrabold text-purple-950 mt-0.5 block">{turning65Clients.length} khách</span>
+                  <span className="text-[11px] text-purple-700 font-semibold">Cần chuyển qua Medicare</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
+                  <span className="material-symbols-outlined text-[22px]">cake</span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => onSelectTab && onSelectTab('contacts')}
+                className="bg-gradient-to-br from-amber-50 to-white rounded-2xl border border-amber-200 p-4 shadow-2xs hover:shadow-md transition cursor-pointer flex items-center justify-between"
+              >
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 block">Sắp hết hạn ACA</span>
+                  <span className="text-2xl font-extrabold text-amber-950 mt-0.5 block">{acaRenewalClients.length} khách</span>
+                  <span className="text-[11px] text-amber-700 font-semibold">Cần gia hạn & giữ Subsidy</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                  <span className="material-symbols-outlined text-[22px]">event_upcoming</span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => onSelectTab && onSelectTab('tasks')}
+                className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs hover:shadow-md transition cursor-pointer flex items-center justify-between"
+              >
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Nhắc việc ưu tiên</span>
+                  <span className="text-2xl font-extrabold text-slate-900 mt-0.5 block">{scopedTasks.length}</span>
+                  <span className="text-[11px] text-blue-600 font-semibold">Tasks tự động theo hạn</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[22px]">notifications_active</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2 Actionable Priority Queues: Turning 65 Medicare & ACA Renewal */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Column 1: Turning 65 -> Medicare Transition */}
+              <div className="bg-white rounded-2xl border border-purple-200/90 shadow-xs overflow-hidden flex flex-col">
+                <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white px-5 py-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="material-symbols-outlined text-[20px] text-amber-300">cake</span>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-bold tracking-tight">
+                        Khách Sắp Bước Sang Tuổi 65 → Chuyển Qua Medicare
+                      </h3>
+                      <p className="text-[11px] text-purple-200">
+                        Tự động quét ngày sinh phát hiện kỳ IEP (3 tháng trước tuổi 65)
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-white/15 text-amber-200 text-[11px] font-extrabold shrink-0">
+                    {turning65Clients.length} cơ hội
+                  </span>
+                </div>
+
+                <div className="divide-y divide-slate-100 flex-1">
+                  {turning65Clients.length === 0 ? (
+                    <div className="p-6 text-center text-xs text-slate-400">Chưa có khách hàng sắp tròn 65 tuổi</div>
+                  ) : (
+                    turning65Clients.map(({ contact: c, info }) => (
+                      <div
+                        key={c.id || c.code}
+                        onClick={() => onSelectContact && onSelectContact(c)}
+                        className="px-5 py-3.5 hover:bg-purple-50/60 transition cursor-pointer flex items-center justify-between gap-3 group"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-purple-700">
+                              {c.fullName}
+                            </span>
+                            <span className="font-mono text-[10px] text-slate-400">{c.code}</span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                                info.daysTo65 <= 14
+                                  ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                                  : 'bg-purple-100 text-purple-800 border border-purple-200'
+                              }`}
+                            >
+                              Còn {info.daysTo65} ngày tròn 65 tuổi
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-600 mt-1 flex items-center gap-2 flex-wrap">
+                            <span>Sinh nhật 65: <strong>{info.birthday65Str}</strong></span>
+                            <span>•</span>
+                            <span className="text-purple-700 font-semibold">
+                              {info.medicareDeal
+                                ? `${info.medicareDeal.carrier} — ${info.medicareDeal.planName || info.medicareDeal.stage}`
+                                : 'Đề xuất tư vấn Medicare Advantage'}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1.5 rounded-lg bg-purple-50 group-hover:bg-purple-600 text-purple-700 group-hover:text-white text-[11px] font-bold transition shrink-0">
+                          Mở hồ sơ →
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Column 2: ACA Policy Renewal Watchlist */}
+              <div className="bg-white rounded-2xl border border-amber-200/90 shadow-xs overflow-hidden flex flex-col">
+                <div className="bg-gradient-to-r from-[#0F2962] to-[#1E3A8A] text-white px-5 py-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="material-symbols-outlined text-[20px] text-amber-300">event_repeat</span>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-bold tracking-tight">
+                        Khách Sắp Đến Hạn Gia Hạn Bảo Hiểm ACA (Obamacare)
+                      </h3>
+                      <p className="text-[11px] text-blue-200">
+                        Nhắc hạn xác minh thu nhập, Consent Form &amp; giữ trợ cấp Subsidy
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-200 text-[11px] font-extrabold shrink-0">
+                    {acaRenewalClients.length} cần gia hạn
+                  </span>
+                </div>
+
+                <div className="divide-y divide-slate-100 flex-1">
+                  {acaRenewalClients.length === 0 ? (
+                    <div className="p-6 text-center text-xs text-slate-400">Chưa có hợp đồng ACA sắp đến hạn</div>
+                  ) : (
+                    acaRenewalClients.map(({ contact: c, info }) => (
+                      <div
+                        key={c.id || c.code}
+                        onClick={() => onSelectContact && onSelectContact(c)}
+                        className="px-5 py-3.5 hover:bg-amber-50/60 transition cursor-pointer flex items-center justify-between gap-3 group"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-blue-700">
+                              {c.fullName}
+                            </span>
+                            <span className="font-mono text-[10px] text-slate-400">{c.code}</span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                                (info.daysToRenewal ?? 99) <= 7
+                                  ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                                  : 'bg-amber-100 text-amber-800 border border-amber-200'
+                              }`}
+                            >
+                              {info.daysToRenewal !== null
+                                ? `Hạn gia hạn: Còn ${info.daysToRenewal} ngày`
+                                : 'Cần xác minh gia hạn ACA'}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-600 mt-1 flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-slate-800">
+                              {info.acaDeal
+                                ? `${info.acaDeal.carrier} — ${info.acaDeal.planName || 'ACA Plan'}`
+                                : `Hộ gia đình ${c.householdSize || 1} người`}
+                            </span>
+                            {info.acaDeal?.subsidyAmount > 0 && (
+                              <>
+                                <span>•</span>
+                                <span className="text-emerald-700 font-bold">
+                                  Giữ Subsidy ${Number(info.acaDeal.subsidyAmount).toFixed(2)}/tháng
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1.5 rounded-lg bg-amber-50 group-hover:bg-blue-600 text-amber-800 group-hover:text-white text-[11px] font-bold transition shrink-0">
+                          Gia hạn ngay →
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── ROW 1: 2 Main Deal Charts (50% / 50%) ──────────────────────── */}
         {['all', 'obamacare', 'medicare'].includes(categoryFilter) && (

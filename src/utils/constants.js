@@ -588,3 +588,110 @@ export function getActiveAgentAccounts() {
     return DEFAULT_AGENT_ACCOUNTS;
   }
 }
+
+/**
+ * Parse YYYY-MM-DD or MM/DD/YYYY safely in local midnight (avoids UTC off-by-one day shift).
+ */
+export function parseLocalDate(raw) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  const iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+  const us = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (us) return new Date(Number(us[3]), Number(us[1]) - 1, Number(us[2]));
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/**
+ * Computes Turning-65 (Medicare IEP window) and ACA Renewal alerts for a Contact.
+ */
+export function getClientLifecycleInfo(contact, allDeals = []) {
+  if (!contact) return { age: null, isTurning65: false, daysTo65: null, isAcaRenewalSoon: false, daysToRenewal: null, acaDeal: null, medicareDeal: null };
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const MS_PER_DAY = 86400000;
+
+  const dobDate = parseLocalDate(contact.dateOfBirth || contact.dob || contact.primary?.dob);
+  let age = null;
+  let daysTo65 = null;
+  let birthday65Str = '';
+
+  if (dobDate) {
+    age = today.getFullYear() - dobDate.getFullYear();
+    const mDiff = today.getMonth() - dobDate.getMonth();
+    if (mDiff < 0 || (mDiff === 0 && today.getDate() < dobDate.getDate())) {
+      age -= 1;
+    }
+    const y65 = dobDate.getFullYear() + 65;
+    const maxDay = new Date(y65, dobDate.getMonth() + 1, 0).getDate();
+    const bday65 = new Date(y65, dobDate.getMonth(), Math.min(dobDate.getDate(), maxDay));
+    daysTo65 = Math.round((bday65.getTime() - today.getTime()) / MS_PER_DAY);
+    birthday65Str = bday65.toLocaleDateString('vi-VN');
+  }
+
+  const isTurning65 = daysTo65 !== null && daysTo65 >= 0 && daysTo65 <= 120;
+
+  // Match deals belonging to this contact
+  const cId = String(contact.id || '');
+  const cCode = String(contact.code || '');
+  const cName = String(contact.fullName || contact.name || '').trim().toLowerCase();
+  const embeddedDeals = [...(contact.deals || []), ...(contact.associatedDeals || [])];
+  const matchedFromAll = Array.isArray(allDeals)
+    ? allDeals.filter((d) => {
+        const dcId = String(d.contact?.id || d.contactId || '');
+        const dcCode = String(d.contact?.code || '');
+        const dcName = String(d.contactName || d.member || '').trim().toLowerCase();
+        return (cId && dcId === cId) || (cCode && dcCode === cCode) || (cName && dcName === cName);
+      })
+    : [];
+  const clientDeals = [...matchedFromAll, ...embeddedDeals];
+
+  const medicareDeal = clientDeals.find((d) => String(d.pipeline || '').toLowerCase().includes('medicare')) || null;
+  const obDeals = clientDeals.filter((d) => String(d.pipeline || '').toLowerCase().includes('obama') || String(d.pipeline || '').toLowerCase().includes('aca'));
+
+  let isAcaRenewalSoon = false;
+  let daysToRenewal = null;
+  let acaDeal = obDeals[0] || null;
+
+  for (const d of obDeals) {
+    const deadline = parseLocalDate(d.payThroughDate || d.deadlineUpload);
+    if (deadline) {
+      const diff = Math.round((deadline.getTime() - today.getTime()) / MS_PER_DAY);
+      if (diff >= 0 && diff <= 45) {
+        isAcaRenewalSoon = true;
+        if (daysToRenewal === null || diff < daysToRenewal) {
+          daysToRenewal = diff;
+          acaDeal = d;
+        }
+      }
+    }
+    const stg = String(d.stage || d.dealStage || '').toLowerCase();
+    if (!isAcaRenewalSoon && (stg.includes('call to renew') || stg.includes('waiting for document'))) {
+      isAcaRenewalSoon = true;
+      acaDeal = d;
+    }
+  }
+
+  // Fallback when deals list is not yet loaded on Contacts table
+  const acaSt = String(contact.acaAccountStatus || contact.acaStatus || '').toUpperCase();
+  const srcHint = String(contact.sourceDetail || contact.howDoYouKnowUs || '').toLowerCase();
+  if (!isTurning65 && !isAcaRenewalSoon && (age === null || age < 64)) {
+    if (srcHint.includes('aca renewal') || ['PENDING', 'NEED_CALL_TO_VERIFIED'].includes(acaSt)) {
+      isAcaRenewalSoon = true;
+    }
+  }
+
+  return {
+    age,
+    dobFormatted: dobDate ? dobDate.toLocaleDateString('vi-VN') : '',
+    isTurning65,
+    daysTo65,
+    birthday65Str,
+    isAcaRenewalSoon,
+    daysToRenewal,
+    acaDeal,
+    medicareDeal,
+  };
+}

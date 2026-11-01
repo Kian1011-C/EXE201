@@ -65,7 +65,7 @@ export default function Footer() {
                 <li><Link to="/pricing" className="hover:text-ivory transition-colors">Professional ($79 / mo)</Link></li>
                 <li><Link to="/pricing" className="hover:text-ivory transition-colors">Agency ($199 / mo)</Link></li>
                 <li><Link to="/pricing" className="hover:text-ivory transition-colors">Annual Discount (Save 15%)</Link></li>
-                <li><Link to="/pricing" className="hover:text-ivory transition-colors">14-Day Free Trial</Link></li>
+                <li><Link to="/pricing" className="hover:text-ivory transition-colors">Đăng ký dùng thử miễn phí 60 ngày</Link></li>
                 <li><Link to="/login" className="hover:text-champagne transition-colors font-semibold">Agent &amp; Staff Portal</Link></li>
               </ul>
             </div>

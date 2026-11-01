@@ -214,6 +214,7 @@ export function canAgentAccessItem(item, user, entityType = 'contact') {
   if (entityType === 'contact') {
     return (
       isOwnerMatch(item.contactOwner, user) ||
+      isOwnerMatch(item.contactOwnerName, user) ||
       isOwnerMatch(item.sourceOfLead?.contactOwner, user) ||
       isOwnerMatch(item.obShareOwner, user) ||
       isOwnerMatch(item.medicareShareOwner, user) ||
@@ -225,6 +226,7 @@ export function canAgentAccessItem(item, user, entityType = 'contact') {
   if (entityType === 'deal') {
     return (
       isOwnerMatch(item.dealOwner, user) ||
+      isOwnerMatch(item.dealOwnerName, user) ||
       isOwnerMatch(item.leadOwner, user) ||
       isOwnerMatch(item.agentName, user) ||
       isOwnerMatch(item.adminOnly?.dealOwner, user)
@@ -234,10 +236,14 @@ export function canAgentAccessItem(item, user, entityType = 'contact') {
   if (entityType === 'ticket') {
     return (
       isOwnerMatch(item.ticketOwner, user) ||
+      isOwnerMatch(item.ticketOwnerName, user) ||
+      isOwnerMatch(item.serviceAgentName, user) ||
+      isOwnerMatch(item.contactOwnerName, user) ||
       isOwnerMatch(item.owner, user) ||
       isOwnerMatch(item.serviceAgent, user) ||
       isOwnerMatch(item.agentName, user) ||
       isOwnerMatch(item.contactOwner, user) ||
+      isOwnerMatch(item.contactOwnerName, user) ||
       (item.contact && (isOwnerMatch(item.contact.contactOwner, user) || isOwnerMatch(item.contact.owner, user)))
     );
   }
@@ -245,6 +251,7 @@ export function canAgentAccessItem(item, user, entityType = 'contact') {
   if (entityType === 'task') {
     return (
       isOwnerMatch(item.assignee, user) ||
+      isOwnerMatch(item.assignedToName, user) ||
       isOwnerMatch(item.assignedTo, user) ||
       isOwnerMatch(item.owner, user)
     );
@@ -253,6 +260,7 @@ export function canAgentAccessItem(item, user, entityType = 'contact') {
   if (entityType === 'document') {
     return (
       isOwnerMatch(item.contactOwner, user) ||
+      isOwnerMatch(item.contactOwnerName, user) ||
       isOwnerMatch(item.owner, user) ||
       isOwnerMatch(item.uploadedBy, user)
     );

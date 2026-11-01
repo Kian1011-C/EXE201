@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
-import { ACA_ACCOUNT_STATUS_OPTIONS, getActiveAgentAccounts } from '../../../utils/constants';
+import { ACA_ACCOUNT_STATUS_OPTIONS, getActiveAgentAccounts, getClientLifecycleInfo } from '../../../utils/constants';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCurrentActor, recordPropertyUpdate, recordPropertyUpdatesBatch, getPersonName } from '../../../services/propertyHistoryService';
 import {
@@ -1930,6 +1930,45 @@ export default function StaffContactDetail({
           </button>
         </div>
       </div>
+
+      {/* ── Smart Turning-65 / ACA Renewal Alert Banner ───────────────────── */}
+      {(() => {
+        const lc = getClientLifecycleInfo(contact);
+        if (lc.isTurning65) {
+          return (
+            <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0 shadow-xs">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-amber-300">cake</span>
+                <span>
+                  <strong>Cảnh báo Turning 65 → Chuyển qua Medicare:</strong> Khách hàng hiện 64 tuổi, còn{' '}
+                  <strong className="text-amber-300 underline">{lc.daysTo65} ngày</strong> tròn 65 tuổi (Sinh nhật 65: {lc.birthday65Str}). Cần hoàn tất hồ sơ Medicare IEP &amp; hủy gói ACA cũ đúng ngày hiệu lực.
+                </span>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full bg-white/15 text-amber-200 font-bold text-[10px] uppercase tracking-wider">
+                Medicare IEP Window
+              </span>
+            </div>
+          );
+        }
+        if (lc.isAcaRenewalSoon) {
+          return (
+            <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0 shadow-xs">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-amber-100">event_upcoming</span>
+                <span>
+                  <strong>Cảnh báo Sắp đến hạn gia hạn bảo hiểm ACA:</strong>{' '}
+                  {lc.daysToRenewal !== null ? `Còn ${lc.daysToRenewal} ngày đến hạn tái tục.` : 'Hợp đồng ACA sắp đến hạn tái tục.'}{' '}
+                  Cần xác minh thu nhập (Tax 1040) &amp; CMS Consent Form để bảo vệ mức trợ cấp Subsidy cho khách hàng.
+                </span>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white font-bold text-[10px] uppercase tracking-wider">
+                ACA Renewal Priority
+              </span>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       {/* ── 3-Column Content Layout (Image 2) ─────────────────────────────── */}
       <div className="flex-1 min-h-0 flex flex-col xl:flex-row overflow-hidden relative">

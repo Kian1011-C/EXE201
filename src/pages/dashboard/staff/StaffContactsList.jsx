@@ -2,15 +2,17 @@ import React, { useState, useMemo, useEffect } from 'react';
 
 
 import { useAuth } from '../../../auth/AuthContext';
-import { getContacts, getUsers, createContact as apiCreateContact } from '../../../services/api';
+import { getContacts, getDeals, getUsers, createContact as apiCreateContact } from '../../../services/api';
 import { filterContactsForAgent, getAgentIdentity } from '../../../utils/rbac';
 import { getCurrentActor, getPropertyHistory } from '../../../services/propertyHistoryService';
-import { getActiveAgentAccounts } from '../../../utils/constants';
+import { getActiveAgentAccounts, getClientLifecycleInfo } from '../../../utils/constants';
 
 export default function StaffContactsList({ onSelectContact, isAgent = false, agentName = '' }) {
   const { user } = useAuth();
   const currentActor = getCurrentActor(user);
   const [contactsList, setContactsList] = useState([]);
+  const [dealsList, setDealsList] = useState([]);
+  const [lifecycleFilter, setLifecycleFilter] = useState('all'); // 'all' | 'turning65' | 'aca_renewal'
   const [loading, setLoading] = useState(true);
   const [isDbConnected, setIsDbConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +73,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       });
       if (Array.isArray(data)) {
         setContactsList(data);
+        getDeals().then((ds) => Array.isArray(ds) && setDealsList(ds)).catch(() => {});
         setIsDbConnected(true);
       } else {
         setContactsList([]);
@@ -136,9 +139,26 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         ownerFilter === 'all' ||
         ownerName?.toLowerCase().includes(ownerFilter?.toLowerCase());
 
-      return matchesSearch && matchesOwner;
+      const lcInfo = getClientLifecycleInfo(c, dealsList);
+      const matchesLifecycle =
+        lifecycleFilter === 'all' ||
+        (lifecycleFilter === 'turning65' && lcInfo.isTurning65) ||
+        (lifecycleFilter === 'aca_renewal' && lcInfo.isAcaRenewalSoon);
+
+      return matchesSearch && matchesOwner && matchesLifecycle;
     });
-  }, [scopedContacts, searchQuery, ownerFilter]);
+  }, [scopedContacts, searchQuery, ownerFilter, lifecycleFilter, dealsList]);
+
+  const { turning65Count, acaRenewalCount } = useMemo(() => {
+    let t65 = 0;
+    let aca = 0;
+    (scopedContacts || []).forEach((c) => {
+      const info = getClientLifecycleInfo(c, dealsList);
+      if (info.isTurning65) t65 += 1;
+      if (info.isAcaRenewalSoon) aca += 1;
+    });
+    return { turning65Count: t65, acaRenewalCount: aca };
+  }, [scopedContacts, dealsList]);
 
   // Unique owners for filter
   const ownerOptions = useMemo(() => {
@@ -400,6 +420,43 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
       </div>
 
       {/* ── 3. Filters Row ────────────────────────────────────────────────── */}
+      {(turning65Count > 0 || acaRenewalCount > 0) && (
+        <div className="flex items-center gap-2 flex-wrap pt-1">
+          <button
+            type="button"
+            onClick={() => setLifecycleFilter('all')}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer border ${
+              lifecycleFilter === 'all'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Tất cả hồ sơ ({scopedContacts.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setLifecycleFilter(lifecycleFilter === 'turning65' ? 'all' : 'turning65')}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer border flex items-center gap-1.5 ${
+              lifecycleFilter === 'turning65'
+                ? 'bg-purple-700 text-white border-purple-700 shadow-2xs'
+                : 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100'
+            }`}
+          >
+            <span>🎂 Sắp bước sang tuổi 65 → Medicare ({turning65Count})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setLifecycleFilter(lifecycleFilter === 'aca_renewal' ? 'all' : 'aca_renewal')}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer border flex items-center gap-1.5 ${
+              lifecycleFilter === 'aca_renewal'
+                ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+            }`}
+          >
+            <span>⏰ Sắp đến hạn gia hạn ACA ({acaRenewalCount})</span>
+          </button>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-1">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 flex-wrap w-full sm:w-auto">
           {/* Search Box */}
@@ -564,6 +621,24 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
                       {/* Full name (Clickable link to Contact Detail) */}
                       <td className="px-3 py-2.5 font-semibold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
                         <span>{contact.fullName}</span>
+                        {(() => {
+                          const lc = getClientLifecycleInfo(contact, dealsList);
+                          if (lc.isTurning65) {
+                            return (
+                              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 text-[10px] font-bold">
+                                🎂 Sắp 65 tuổi → Medicare ({lc.daysTo65} ngày)
+                              </span>
+                            );
+                          }
+                          if (lc.isAcaRenewalSoon) {
+                            return (
+                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold">
+                                ⏰ Gia hạn ACA{lc.daysToRenewal !== null ? ` (${lc.daysToRenewal} ngày)` : ''}
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
                         
                       </td>
 

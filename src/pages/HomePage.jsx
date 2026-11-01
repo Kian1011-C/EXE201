@@ -114,7 +114,7 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
         'Calendar, tasks & renewal reminders',
         'Basic compliant email templates',
         'Individual activity overview',
-        '14-day free trial included',
+        '60-day free trial included (Dùng thử miễn phí 60 ngày)',
       ],
     },
     {
@@ -200,9 +200,10 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
               <button
                 type="button"
                 onClick={onOpenQuote}
-                className="px-7 py-3.5 rounded-xl bg-navy-deep text-ivory hover:bg-navy-midnight transition-colors duration-200 font-bold text-xs tracking-wider uppercase flex items-center gap-2 cursor-pointer shadow-xs group"
+                className="relative px-8 py-4 rounded-2xl bg-gradient-to-r from-navy-deep via-navy-midnight to-navy-deep text-ivory hover:scale-[1.02] transition-all duration-200 font-extrabold text-sm tracking-wide flex items-center gap-2.5 cursor-pointer shadow-xl ring-2 ring-champagne group"
               >
-                <span>Start 14-Day Free Trial</span>
+                <span className="px-2 py-0.5 rounded-full bg-champagne text-navy-deep text-[10px] font-black uppercase tracking-wider shadow-2xs">60 NGÀY 0Đ</span>
+                <span>Đăng ký dùng thử miễn phí 60 ngày</span>
                 <ArrowRight className="w-4 h-4 text-champagne group-hover:translate-x-1 transition-transform" />
               </button>
 
@@ -231,6 +232,13 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
                 className="text-xs font-bold text-charcoal/70 hover:text-navy-deep underline underline-offset-4"
               >
                 View Plans ($39 – $199/mo)
+              </Link>
+              <span className="mx-3 text-slate-300">•</span>
+              <Link
+                to="/login"
+                className="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 underline underline-offset-4"
+              >
+                Mở Tài Khoản Demo Có Sẵn Data →
               </Link>
             </div>
 
@@ -417,7 +425,7 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
             Predictable Pricing. Zero Commission Cuts.
           </h2>
           <p className="mt-3 text-xs sm:text-sm text-charcoal/70 max-w-2xl mx-auto">
-            All plans include a 14-day free trial with no credit card required. Keep 100% of your carrier commission payouts.
+            All plans include a 60-day free trial (Đăng ký dùng thử miễn phí 60 ngày) with no credit card required. Keep 100% of your carrier commission payouts.
           </p>
 
           {/* Toggle */}
@@ -511,7 +519,8 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
                           : 'bg-sand hover:bg-sand/80 text-navy-deep'
                       }`}
                     >
-                      <span>Start 14-Day Free Trial</span>
+                      <span className="px-2 py-0.5 rounded-full bg-champagne text-navy-deep text-[10px] font-black uppercase tracking-wider shadow-2xs">60 NGÀY 0Đ</span>
+                <span>Đăng ký dùng thử miễn phí 60 ngày</span>
                       <ArrowRight className="w-4 h-4 text-champagne" />
                     </button>
                   </div>
@@ -566,7 +575,7 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
         className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="rounded-3xl bg-sand/60 border border-stroke-subtle p-8 sm:p-12 text-center space-y-4 shadow-sm">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-deep tracking-tight">
-            Start Your 14-Day Free Trial
+            Đăng ký dùng thử miễn phí 60 ngày
           </h2>
           <p className="text-xs sm:text-sm text-charcoal/75 max-w-xl mx-auto">
             Set up your CRM workspace in under 3 minutes. No credit card required. Experience why independent agents choose InsurMatch.
@@ -577,7 +586,7 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
               onClick={onOpenQuote}
               className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-navy-deep text-ivory font-bold text-xs hover:bg-navy-midnight transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2"
             >
-              <span>Get Started Free</span>
+              <span>Đăng ký dùng thử miễn phí 60 ngày</span>
               <ArrowRight className="w-4 h-4 text-champagne" />
             </button>
             <Link

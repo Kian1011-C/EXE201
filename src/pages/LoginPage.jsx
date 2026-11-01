@@ -27,6 +27,25 @@ export default function LoginPage() {
 
   const from = location.state?.from?.pathname || null;
 
+  async function performLogin(targetEmail, targetPassword) {
+    setError('');
+    setLoading(true);
+    setEmail(targetEmail);
+    setPassword(targetPassword);
+    try {
+      const session = await login(targetEmail, targetPassword);
+      loginSuccess(session);
+      const roleBase = ROLE_REDIRECT[session.user.role] || '/';
+      const isAllowedFrom = from && roleBase !== '/' && (from === roleBase || from.startsWith(`${roleBase}/`));
+      const dest = isAllowedFrom ? from : roleBase;
+      navigate(dest, { replace: true });
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials and try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
@@ -204,6 +223,48 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+
+          {/* ── Quick 1-Click Demo Account Access (Ready for Live Presentation) ── */}
+          <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/60 border border-blue-200/80 space-y-3 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-amber-500">bolt</span>
+                Tài Khoản Demo Có Sẵn Data Đẹp (1-Click)
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                8 Hồ Sơ Mẫu
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              Bao gồm sẵn khách hàng <strong>sắp bước sang tuổi 65 (chuyển Medicare)</strong> và khách hàng <strong>sắp đến hạn gia hạn bảo hiểm ACA</strong>.
+            </p>
+            <div className="grid grid-cols-1 gap-2">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => performLogin('agent@insurmatch.us', 'Agent@123')}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-bold transition flex items-center justify-between cursor-pointer shadow-xs"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px]">badge</span>
+                  <span>Vào Demo Agent (Khanh Nguyen • 8 Hồ sơ)</span>
+                </span>
+                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded font-mono">1-Click →</span>
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => performLogin('staff@insurmatch.us', 'Staff@123')}
+                className="w-full px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 text-slate-800 border border-slate-200 text-xs font-semibold transition flex items-center justify-between cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px] text-slate-500">supervisor_account</span>
+                  <span>Vào Demo Quản Lý Agency / Staff</span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono">staff@insurmatch.us</span>
+              </button>
+            </div>
+          </div>
 
 
 
