@@ -23,7 +23,7 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
     <>
       {/* Top Subtle Announcement / Phone Line */}
       <div className="bg-navy-deep text-ivory/85 text-xs py-2 px-4 lg:px-8 border-b border-white/5 hidden md:block">
-        <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+        <div className="max-w-[1380px] mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center space-x-3 lg:space-x-4 min-w-0">
             <button 
               type="button"
@@ -68,7 +68,7 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
             : 'bg-ivory border-b border-stroke-subtle py-4 lg:py-5'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 flex justify-between items-center">
+        <div className="max-w-[1380px] mx-auto px-4 lg:px-6 xl:px-8 flex justify-between items-center gap-6 xl:gap-10">
           
           {/* LEFT: INSURMATCH Brand */}
           <Link className="flex items-center gap-3 group shrink-0" to="/">
@@ -88,7 +88,7 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
           </Link>
 
           {/* CENTER: Clean Editorial Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-7 text-[13px] font-medium tracking-wide text-charcoal/80">
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 text-[13px] font-medium tracking-wide text-charcoal/80">
             <a 
               className="hover:text-navy-deep transition-colors whitespace-nowrap" 
               href="/#features"
@@ -123,10 +123,10 @@ export default function Navbar({ onOpenQuote, onOpenMatch }) {
 
           {/* RIGHT: Actions (Sign In, Primary CTA & Mobile Toggle) */}
           <div className="flex items-center space-x-3 sm:space-x-4 shrink-0">
-            <div className="hidden sm:flex items-center space-x-3 sm:space-x-4">
+            <div className="hidden sm:flex items-center gap-2.5 xl:gap-3.5 lg:pl-5 xl:pl-6 lg:border-l lg:border-stroke-subtle">
               <Link 
                 to="/login"
-                className="text-xs font-semibold text-charcoal/80 hover:text-navy-deep transition-colors px-2 py-1 whitespace-nowrap"
+                className="text-xs font-semibold text-navy-deep hover:bg-sand/70 border border-stroke-subtle/70 hover:border-navy-deep/30 rounded-xl transition-all px-3.5 py-2 whitespace-nowrap"
               >
                 Sign In
               </Link>

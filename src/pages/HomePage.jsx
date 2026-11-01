@@ -233,13 +233,6 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
               >
                 View Plans ($39 – $199/mo)
               </Link>
-              <span className="mx-3 text-slate-300">•</span>
-              <Link
-                to="/login"
-                className="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 underline underline-offset-4"
-              >
-                Mở Tài Khoản Demo Có Sẵn Data →
-              </Link>
             </div>
 
             {/* Fine Signature Subline */}
