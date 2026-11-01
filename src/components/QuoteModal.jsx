@@ -26,14 +26,18 @@ export default function QuoteModal({ isOpen, onClose, initialMode = 'trial' }) {
     setLoading(true);
     setErrorMsg('');
     try {
-      const parts = formData.name.trim().split(' ');
+      const fullName = (formData.name || '').trim();
+      const parts = fullName.split(' ');
       const firstName = parts[0] || '';
       const lastName = parts.slice(1).join(' ') || '';
       await submitQuote({
+        fullName,
+        name: fullName,
         firstName,
         lastName,
         phone: formData.phone,
         email: formData.email,
+        notes: `B2B ${activeMode} - ${formData.agencyName} | Plan: ${formData.selectedPlan} | State: ${formData.state} | Book: ${formData.bookSize}`,
         howDoYouKnowUs: `B2B ${activeMode} - ${formData.agencyName}`,
         state: formData.state,
       });
@@ -134,23 +138,24 @@ export default function QuoteModal({ isOpen, onClose, initialMode = 'trial' }) {
                   <div className="bg-sand/40 border border-stroke-subtle p-4 rounded-2xl text-left text-xs text-charcoal/80 space-y-2">
                     <div className="flex items-center gap-2 font-bold text-navy-deep">
                       <Clock className="w-4 h-4 text-champagne" />
-                      <span>Next Steps for Activation:</span>
+                      <span>Thông tin kích hoạt tài khoản dùng thử 60 ngày:</span>
                     </div>
-                    <ul className="list-disc list-inside space-y-1 text-charcoal/70 pl-1">
-                      <li>Log in to your workspace with your work email: <strong>{formData.email || 'your-email@agency.com'}</strong>.</li>
-                      <li>Add your first 5 client records or import your book of business.</li>
-                      <li>Create your first follow-up task and test the renewal tracking calendar.</li>
-                      <li>Questions? Contact support at <a href="mailto:support@insurmatch.us" className="font-bold text-navy-deep underline">support@insurmatch.us</a>.</li>
+                    <ul className="list-disc list-inside space-y-1.5 text-charcoal/80 pl-1">
+                      <li>Email đăng nhập: <strong className="text-navy-deep">{formData.email || 'your-email@agency.com'}</strong></li>
+                      <li>Mật khẩu khởi tạo: <strong className="text-navy-deep font-mono">Agent@123</strong> (bạn có thể đổi lại bất cứ lúc nào)</li>
+                      <li>Thời hạn: <strong className="text-emerald-700">Miễn phí 60 ngày (0đ)</strong> — Giữ 100% hoa hồng từ hãng.</li>
                     </ul>
                   </div>
 
                   <div className="pt-2 flex flex-col sm:flex-row gap-3">
                     <Link
                       to="/login"
+                      state={{ email: formData.email, password: 'Agent@123' }}
                       onClick={handleReset}
-                      className="flex-1 bg-navy-deep hover:bg-navy-midnight text-ivory font-bold py-3.5 px-6 rounded-xl text-xs uppercase tracking-wider transition-colors text-center cursor-pointer shadow-xs"
+                      className="flex-1 bg-navy-deep hover:bg-navy-midnight text-ivory font-bold py-3.5 px-6 rounded-xl text-xs uppercase tracking-wider transition-colors text-center cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                     >
-                      Log In to CRM Portal
+                      <span>Đăng nhập ngay vào CRM Portal</span>
+                      <ArrowRight className="w-4 h-4 text-champagne" />
                     </Link>
                     <button
                       type="button"

@@ -1458,9 +1458,20 @@ export async function getAdminAuditLogs() {
 }
 
 export async function submitQuote(data) {
+  const fullName =
+    data.fullName ||
+    data.name ||
+    [data.firstName, data.lastName].filter(Boolean).join(' ') ||
+    'Prospective Client';
+  const notes = data.notes || data.howDoYouKnowUs || data.details || '';
+  const payload = {
+    ...data,
+    fullName,
+    notes,
+  };
   return await request('/quotes', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
 }
 
