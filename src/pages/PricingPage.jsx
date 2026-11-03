@@ -6,6 +6,13 @@ import { Check, ArrowRight, HelpCircle, Shield, Sparkles, Building, User, Users,
 
 export default function PricingPage({ onOpenQuote }) {
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annual'
+  const [dbPlans, setDbPlans] = useState([]);
+
+  useEffect(() => {
+    fetchPublicSaasPlans().then((plans) => {
+      if (plans && Array.isArray(plans)) setDbPlans(plans);
+    }).catch(() => {});
+  }, []);
 
   const plans = [
     {
@@ -224,18 +231,40 @@ export default function PricingPage({ onOpenQuote }) {
                     </span>
                   </div>
 
-                  <div className="mt-4 flex items-baseline gap-1.5">
-                    <span className="text-4xl lg:text-5xl font-extrabold text-navy-deep font-mono tracking-tight">
-                      ${price}
-                    </span>
-                    <span className="text-xs font-semibold text-charcoal/60">
-                      / month {billingCycle === 'annual' && '(billed annually)'}
-                    </span>
-                  </div>
+                  {(() => {
+                    const dbMatch = dbPlans.find((p) => (p.planCode || '').toLowerCase() === plan.id.toLowerCase());
+                    const priceVnd = dbMatch
+                      ? (billingCycle === 'annual' ? dbMatch.annualPriceVnd : dbMatch.monthlyPriceVnd)
+                      : (plan.id === 'starter' ? 990000 : plan.id === 'professional' ? 1990000 : 4990000);
+                    const contactsQuota = dbMatch?.maxContacts || (plan.id === 'starter' ? 100 : plan.id === 'professional' ? 200 : 300);
+                    const seatsText = dbMatch ? (dbMatch.maxSeats === 1 ? '1 user included' : `Up to ${dbMatch.maxSeats} users`) : plan.users;
 
-                  <div className="mt-2 text-xs font-semibold text-champagne-light bg-navy-deep/90 inline-block px-2.5 py-1 rounded-md">
-                    {plan.users}
-                  </div>
+                    return (
+                      <>
+                        <div className="mt-4 flex items-baseline gap-1.5">
+                          <span className="text-3xl lg:text-4xl font-extrabold text-navy-deep font-mono tracking-tight">
+                            {Number(priceVnd).toLocaleString('vi-VN')}
+                          </span>
+                          <span className="text-xs font-bold text-charcoal/80">
+                            đ / {billingCycle === 'annual' ? 'năm' : 'tháng'}
+                          </span>
+                        </div>
+
+                        <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                          Quy đổi: ~${price} / tháng {billingCycle === 'annual' && '(thanh toán năm)'}
+                        </div>
+
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                          <span className="text-xs font-semibold text-champagne-light bg-navy-deep/90 inline-block px-2.5 py-1 rounded-md">
+                            {seatsText}
+                          </span>
+                          <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 inline-block px-2.5 py-1 rounded-md">
+                            {contactsQuota} Contacts
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
 
                   <p className="mt-3 text-xs text-charcoal/70 leading-relaxed min-h-[36px]">
                     {plan.description}

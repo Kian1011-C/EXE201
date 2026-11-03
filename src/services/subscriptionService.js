@@ -4,6 +4,28 @@
 // ============================================================
 
 export const SAAS_PLANS = {
+  trial: {
+    id: 'trial',
+    name: 'Trial 60 Ngày',
+    displayName: 'Gói Dùng Thử 60 Ngày',
+    monthlyPrice: 0,
+    monthlyVnd: 0,
+    annualPrice: 0,
+    annualVnd: 0,
+    salesCommissionRate: 0,
+    salesCommissionAmount: 0,
+    maxSeats: 1,
+    maxContacts: 50,
+    features: [
+      '1 Licensed Agent Seat (Single User)',
+      'Lên đến 50 Hồ sơ Khách hàng (50 Contacts)',
+      'Quản lý Leads & Hồ sơ cơ bản',
+      'Nhắc lịch & đặt lịch hẹn tự động',
+      'Trải nghiệm đầy đủ 60 ngày miễn phí 0đ',
+    ],
+    recommended: false,
+    color: 'amber',
+  },
   starter: {
     id: 'starter',
     name: 'Starter',
@@ -347,25 +369,27 @@ export function getAgentSubscription(agentIdentifier) {
 
   if (found) return found;
 
-  // Fallback to default Professional subscription for the agent
+  // Fallback to default Trial 60-Day subscription matching PostgreSQL backend default
   const defaultSub = {
     id: `SUB-${Math.floor(200 + Math.random() * 800)}`,
     agencyName: `${agentIdentifier || 'Agent'} Insurance Agency`,
     agentName: agentIdentifier || 'Khanh Nguyen',
     agentEmail: `${String(agentIdentifier || 'agent').toLowerCase().replace(/\s+/g, '')}@insurmatch.us`,
-    plan: 'Professional',
+    plan: 'Trial 60 Ngày',
+    planTier: 'TRIAL',
     billingCycle: 'Monthly',
-    price: 79,
+    price: 0,
+    priceVnd: 0,
     status: 'Active',
     seatsUsed: 1,
-    maxSeats: 3,
-    contactsCount: 8,
-    maxContacts: 200,
-    salesRep: 'David Pham',
-    commissionPaid: 9.48,
+    maxSeats: 1,
+    contactsCount: 0,
+    maxContacts: 50,
+    salesRep: 'Direct',
+    commissionPaid: 0.00,
     startDate: new Date().toISOString().split('T')[0],
-    nextRenewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    paymentMethod: 'Visa •••• 4242',
+    nextRenewalDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    paymentMethod: 'Dùng thử 60 ngày ($0)',
   };
 
   const updated = [defaultSub, ...subscribers];
