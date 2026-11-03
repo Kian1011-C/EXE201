@@ -9,17 +9,19 @@ export const SAAS_PLANS = {
     name: 'Starter',
     displayName: 'Starter Plan',
     monthlyPrice: 39,
-    annualPrice: 399, // ~33/mo
-    salesCommissionRate: 0.10, // 10%
+    monthlyVnd: 990000,
+    annualPrice: 399,
+    annualVnd: 9900000,
+    salesCommissionRate: 0.10,
     salesCommissionAmount: 3.90,
     maxSeats: 1,
-    maxContacts: 500,
+    maxContacts: 100,
     features: [
       '1 Licensed Agent Seat (Single User)',
-      'Up to 500 Customer Contacts',
-      'Basic Deal & Pipeline Tracking',
-      'Due Date Alerts & Notifications',
-      'Standard Email Support',
+      'Lên đến 100 Hồ sơ Khách hàng (100 Contacts)',
+      'Theo dõi Deal & Quy trình ACA / Medicare cơ bản',
+      'Cảnh báo Turning 65 & Hạn gia hạn hợp đồng',
+      'Hỗ trợ thanh toán VietQR tự động qua PayOS (990.000đ/tháng)',
     ],
     recommended: false,
     color: 'blue',
@@ -29,19 +31,20 @@ export const SAAS_PLANS = {
     name: 'Professional',
     displayName: 'Professional Plan',
     monthlyPrice: 79,
-    annualPrice: 805, // ~67/mo (15% off)
-    salesCommissionRate: 0.12, // 12%
+    monthlyVnd: 1990000,
+    annualPrice: 805,
+    annualVnd: 19900000,
+    salesCommissionRate: 0.12,
     salesCommissionAmount: 9.48,
     maxSeats: 3,
-    maxContacts: 2500,
+    maxContacts: 200,
     features: [
-      'Up to 3 Agent Seats for Team',
-      'Up to 2,500 Customer Contacts',
-      'Automated Tasks & Intelligent Reminders',
-      'Post-sale Service Tickets & 48h SLA Tracking',
-      'SSS Commission Engine & Ledger',
-      'Marketplace Integration & 25GB Document Storage',
-      'Priority Phone & 24/7 Chat Support',
+      'Tối đa 3 Agent Seats cho đội nhóm',
+      'Lên đến 200 Hồ sơ Khách hàng (200 Contacts)',
+      'Tùy chỉnh Pipelines & Tự động nhắc việc SLA 48h',
+      'Trung tâm cảnh báo sớm Turning 65 & Gia hạn ACA',
+      'Bảng đối soát hoa hồng tự động (Nhận 100% từ hãng)',
+      'Thanh toán VietQR tự động qua PayOS (1.990.000đ/tháng)',
     ],
     recommended: true,
     color: 'indigo',
@@ -51,19 +54,20 @@ export const SAAS_PLANS = {
     name: 'Agency',
     displayName: 'Agency Enterprise Plan',
     monthlyPrice: 199,
-    annualPrice: 1999, // ~166/mo (16% off)
-    salesCommissionRate: 0.15, // 15%
+    monthlyVnd: 4990000,
+    annualPrice: 1999,
+    annualVnd: 49900000,
+    salesCommissionRate: 0.15,
     salesCommissionAmount: 29.85,
     maxSeats: 10,
-    maxContacts: 999999,
+    maxContacts: 300,
     features: [
-      'Up to 10 Seats (Flexible seat add-ons)',
-      'Unlimited Customer Contacts',
-      'Master Deals & AOR Oversight',
-      'Automated Lead Queue & Routing',
-      'Full REST API & Webhook Integration',
-      'Executive Analytics & Custom Reporting',
-      'Dedicated Account Manager & 24/7 Support',
+      'Tối đa 10 Seats phân quyền Quản lý / Staff / Agent',
+      'Lên đến 300 Hồ sơ Khách hàng (300 Contacts)',
+      'Định tuyến Lead & Giám sát hoạt động toàn Agency',
+      'Master Commission Ledger đối soát hoa hồng toàn sàn',
+      'Dung lượng tài liệu 100GB & Báo cáo chuyên sâu',
+      'Thanh toán VietQR tự động qua PayOS (4.990.000đ/tháng)',
     ],
     recommended: false,
     color: 'emerald',
@@ -82,8 +86,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 2,
     maxSeats: 3,
-    contactsCount: 840,
-    maxContacts: 2500,
+    contactsCount: 84,
+    maxContacts: 200,
     salesRep: 'David Pham',
     commissionPaid: 9.48,
     startDate: '2026-01-10',
@@ -101,8 +105,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 1,
     maxSeats: 3,
-    contactsCount: 142,
-    maxContacts: 2500,
+    contactsCount: 8,
+    maxContacts: 200,
     salesRep: 'Sarah Tran',
     commissionPaid: 9.48,
     startDate: '2026-02-01',
@@ -120,8 +124,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 2,
     maxSeats: 3,
-    contactsCount: 620,
-    maxContacts: 2500,
+    contactsCount: 62,
+    maxContacts: 200,
     salesRep: 'David Pham',
     commissionPaid: 9.48,
     startDate: '2026-03-01',
@@ -139,8 +143,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 8,
     maxSeats: 10,
-    contactsCount: 3820,
-    maxContacts: 999999,
+    contactsCount: 245,
+    maxContacts: 300,
     salesRep: 'Direct / Founder',
     commissionPaid: 0.00,
     startDate: '2025-08-15',
@@ -158,8 +162,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 1,
     maxSeats: 1,
-    contactsCount: 185,
-    maxContacts: 500,
+    contactsCount: 45,
+    maxContacts: 100,
     salesRep: 'Sarah Tran',
     commissionPaid: 3.90,
     startDate: '2026-04-10',
@@ -177,8 +181,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 1,
     maxSeats: 1,
-    contactsCount: 290,
-    maxContacts: 500,
+    contactsCount: 58,
+    maxContacts: 100,
     salesRep: 'David Pham',
     commissionPaid: 3.90,
     startDate: '2026-05-18',
@@ -196,8 +200,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 3,
     maxSeats: 3,
-    contactsCount: 1190,
-    maxContacts: 2500,
+    contactsCount: 119,
+    maxContacts: 200,
     salesRep: 'David Pham',
     commissionPaid: 9.48,
     startDate: '2026-02-15',
@@ -215,8 +219,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 2,
     maxSeats: 3,
-    contactsCount: 890,
-    maxContacts: 2500,
+    contactsCount: 89,
+    maxContacts: 200,
     salesRep: 'Sarah Tran',
     commissionPaid: 9.48,
     startDate: '2026-03-20',
@@ -235,7 +239,7 @@ export const INITIAL_SUBSCRIBERS = [
     seatsUsed: 5,
     maxSeats: 10,
     contactsCount: 2150,
-    maxContacts: 999999,
+    maxContacts: 300,
     salesRep: 'Sarah Tran',
     commissionPaid: 29.85,
     startDate: '2026-06-01',
@@ -272,8 +276,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 2,
     maxSeats: 3,
-    contactsCount: 430,
-    maxContacts: 2500,
+    contactsCount: 43,
+    maxContacts: 200,
     salesRep: 'David Pham',
     commissionPaid: 9.48,
     startDate: '2026-04-01',
@@ -291,8 +295,8 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 1,
     maxSeats: 1,
-    contactsCount: 95,
-    maxContacts: 500,
+    contactsCount: 35,
+    maxContacts: 100,
     salesRep: 'Inbound Web',
     commissionPaid: 3.90,
     startDate: '2026-08-10',
@@ -355,8 +359,8 @@ export function getAgentSubscription(agentIdentifier) {
     status: 'Active',
     seatsUsed: 1,
     maxSeats: 3,
-    contactsCount: 142,
-    maxContacts: 2500,
+    contactsCount: 8,
+    maxContacts: 200,
     salesRep: 'David Pham',
     commissionPaid: 9.48,
     startDate: new Date().toISOString().split('T')[0],
@@ -551,4 +555,89 @@ export function calculateRealFinancials(subscribersList) {
     fixedInfraCost,
     estimatedNetProfit,
   };
+}
+
+
+// ============================================================
+// PayOS & Real Spring Boot Backend API Integration
+// ============================================================
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
+function getAuthHeader() {
+  const token = localStorage.getItem('tbri_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+/**
+ * 1. Khởi tạo liên kết thanh toán VietQR qua PayOS
+ */
+export async function createPayosPaymentLink({ planTier = 'PROFESSIONAL', billingCycle = 'MONTHLY' }) {
+  const res = await fetch(`${API_BASE}/payments/payos/create-link`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader(),
+    },
+    body: JSON.stringify({
+      planTier: planTier.toUpperCase(),
+      billingCycle: billingCycle.toUpperCase(),
+    }),
+  });
+  const json = await res.json();
+  if (res.ok && (json.success || json.data)) {
+    return json.data || json;
+  }
+  throw new Error(json.message || 'Không thể tạo liên kết thanh toán PayOS');
+}
+
+/**
+ * 2. Kiểm tra trạng thái thanh toán đơn hàng (Polling)
+ */
+export async function checkPayosPaymentStatus(orderCode) {
+  const res = await fetch(`${API_BASE}/payments/payos/check/${orderCode}`, {
+    headers: { ...getAuthHeader() },
+  });
+  const json = await res.json();
+  return json.data || json;
+}
+
+/**
+ * 3. Mô phỏng thanh toán VietQR thành công (Dành riêng cho Demo)
+ */
+export async function simulatePayosPaymentSuccess(orderCode) {
+  const res = await fetch(`${API_BASE}/payments/payos/simulate-success/${orderCode}`, {
+    method: 'POST',
+    headers: { ...getAuthHeader() },
+  });
+  const json = await res.json();
+  return json.data || json;
+}
+
+/**
+ * 4. Lấy thông tin gói dịch vụ & hạn mức thực tế từ Spring Boot Backend
+ */
+export async function fetchMyBackendSubscription() {
+  try {
+    const res = await fetch(`${API_BASE}/subscriptions/my-plan`, {
+      headers: { ...getAuthHeader() },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      return json.data || null;
+    }
+  } catch (err) {
+    console.warn('[Subscription] fetchMyBackendSubscription error:', err.message);
+  }
+  return null;
+}
+
+/**
+ * 5. Báo cáo doanh thu & danh sách gói mua dành riêng cho Admin
+ */
+export async function fetchAdminBackendSubscriptions() {
+  const res = await fetch(`${API_BASE}/admin/subscriptions`, {
+    headers: { ...getAuthHeader() },
+  });
+  const json = await res.json();
+  return json.data || json;
 }

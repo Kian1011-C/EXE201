@@ -94,6 +94,7 @@ export default function PricingPage({ onOpenQuote }) {
     {
       category: 'Core CRM & Leads',
       items: [
+        { name: 'Hạn mức hồ sơ (Contacts Quota)', starter: '100 Contacts', pro: '200 Contacts', agency: '300 Contacts' },
         { name: 'Customer & Contact Management', starter: true, pro: true, agency: true },
         { name: 'Lead Capture & Tracking', starter: 'Basic', pro: 'Advanced', agency: 'Team Routing' },
         { name: 'CRM Pipeline Customization', starter: 'Standard (ACA/Medicare)', pro: 'Custom Stages', agency: 'Multiple Team Pipelines' },
