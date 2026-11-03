@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchMyBackendSubscription, getAgentSubscription } from '../../../services/subscriptionService';
 
 
 import { useAuth } from '../../../auth/AuthContext';
@@ -10,6 +12,18 @@ import { getActiveAgentAccounts, getClientLifecycleInfo } from '../../../utils/c
 export default function StaffContactsList({ onSelectContact, isAgent = false, agentName = '' }) {
   const { user } = useAuth();
   const currentActor = getCurrentActor(user);
+  const navigate = useNavigate();
+  const [quotaLimit, setQuotaLimit] = useState(() => getAgentSubscription(agentName || user?.name)?.maxContacts || 200);
+
+  useEffect(() => {
+    fetchMyBackendSubscription()
+      .then((data) => {
+        if (data && data.quota) {
+          setQuotaLimit(data.quota.maxContacts || 200);
+        }
+      })
+      .catch(() => {});
+  }, [user]);
   const [contactsList, setContactsList] = useState([]);
   const [dealsList, setDealsList] = useState([]);
   const [lifecycleFilter, setLifecycleFilter] = useState('all'); // 'all' | 'turning65' | 'aca_renewal'
