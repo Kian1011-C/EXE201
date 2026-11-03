@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchPublicSaasPlans } from '../services/subscriptionService';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Check, ArrowRight, HelpCircle, Shield, Sparkles, Building, User, Users, Zap } from 'lucide-react';

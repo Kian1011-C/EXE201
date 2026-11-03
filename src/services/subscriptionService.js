@@ -641,3 +641,21 @@ export async function fetchAdminBackendSubscriptions() {
   const json = await res.json();
   return json.data || json;
 }
+
+/**
+ * 6. Lấy danh sách toàn bộ các gói SaaS trực tiếp từ Database PostgreSQL (Bảng saas_plans)
+ */
+export async function fetchPublicSaasPlans() {
+  try {
+    const res = await fetch(`${API_BASE}/saas-plans`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        return json.data;
+      }
+    }
+  } catch (err) {
+    console.warn('[Subscription] fetchPublicSaasPlans error, falling back to local defaults:', err.message);
+  }
+  return null;
+}

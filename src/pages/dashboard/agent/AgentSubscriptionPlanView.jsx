@@ -7,6 +7,7 @@ import {
   createPayosPaymentLink,
   checkPayosPaymentStatus,
   fetchMyBackendSubscription,
+  fetchPublicSaasPlans,
 } from '../../../services/subscriptionService';
 import toast from 'react-hot-toast';
 
@@ -18,6 +19,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState('payos'); // 'payos' | 'card' | 'stripe'
   const [isProcessing, setIsProcessing] = useState(false);
+  const [dbPlans, setDbPlans] = useState([]);
 
   // PayOS QR & Polling state
   const [payosData, setPayosData] = useState(null);
@@ -40,6 +42,10 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
     const sub = getAgentSubscription(agentName || agentEmail);
     setSubscription(sub);
     setInvoices(getInvoicesForAgent(agentName || agentEmail));
+
+    fetchPublicSaasPlans().then((plans) => {
+      if (plans && Array.isArray(plans)) setDbPlans(plans);
+    }).catch(() => {});
 
     fetchMyBackendSubscription()
       .then((data) => {
@@ -406,8 +412,18 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
           {Object.entries(SAAS_PLANS).map(([key, plan]) => {
             const isCurrent = currentPlanKey === key;
-            const displayPriceUsd = billingCycle === 'Annual' ? Math.round(plan.annualPrice / 12) : plan.monthlyPrice;
-            const displayPriceVnd = billingCycle === 'Annual' ? plan.annualVnd : plan.monthlyVnd;
+            const dbMatch = dbPlans.find((p) => (p.planCode || '').toLowerCase() === key.toLowerCase());
+
+            const displayPriceVnd = dbMatch
+              ? (billingCycle === 'Annual' ? dbMatch.annualPriceVnd : dbMatch.monthlyPriceVnd)
+              : (billingCycle === 'Annual' ? plan.annualVnd : plan.monthlyVnd);
+
+            const displayPriceUsd = dbMatch
+              ? (billingCycle === 'Annual' ? dbMatch.annualPriceUsd : dbMatch.monthlyPriceUsd)
+              : (billingCycle === 'Annual' ? Math.round(plan.annualPrice / 12) : plan.monthlyPrice);
+
+            const planMaxContacts = dbMatch?.maxContacts || plan.maxContacts;
+            const planMaxSeats = dbMatch?.maxSeats || plan.maxSeats;
 
             return (
               <div
@@ -436,24 +452,28 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-black text-slate-900">{plan.name}</h3>
                     <span className="text-[11px] font-bold text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded-md">
-                      {plan.maxSeats} {plan.maxSeats === 1 ? 'Seat' : 'Seats'}
+                      {planMaxSeats} {planMaxSeats === 1 ? 'Seat' : 'Seats'}
                     </span>
                   </div>
 
                   <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-4xl font-black text-slate-900">${displayPriceUsd}</span>
-                    <span className="text-xs text-slate-500 font-medium">/tháng</span>
+                    <span className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
+                      {Number(displayPriceVnd).toLocaleString('vi-VN')}
+                    </span>
+                    <span className="text-xs font-bold text-slate-600">
+                      đ / {billingCycle === 'Annual' ? 'năm' : 'tháng'}
+                    </span>
                   </div>
 
-                  <div className="mt-1 text-xs font-bold text-emerald-700">
-                    ≈ {Number(displayPriceVnd).toLocaleString('vi-VN')} VNĐ {billingCycle === 'Annual' ? '/năm' : '/tháng'} (PayOS)
+                  <div className="mt-0.5 text-[11px] font-semibold text-slate-400">
+                    Quy đổi: ~${displayPriceUsd} / tháng {billingCycle === 'Annual' && '(thanh toán năm)'}
                   </div>
 
                   {/* Quota Highlight Box */}
                   <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0">contact_page</span>
                     <span className="text-xs font-bold text-slate-800">
-                      Hạn mức: {plan.maxContacts} Hồ sơ Khách hàng
+                      Hạn mức: {planMaxContacts} Hồ sơ Khách hàng
                     </span>
                   </div>
 
