@@ -6,7 +6,6 @@ import {
   getInvoicesForAgent,
   createPayosPaymentLink,
   checkPayosPaymentStatus,
-  simulatePayosPaymentSuccess,
   fetchMyBackendSubscription,
 } from '../../../services/subscriptionService';
 import toast from 'react-hot-toast';
@@ -26,7 +25,6 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
   const [payosError, setPayosError] = useState(null);
   const [countdownSeconds, setCountdownSeconds] = useState(900); // 15 mins
   const [isPaidSuccess, setIsPaidSuccess] = useState(false);
-  const [isSimulating, setIsSimulating] = useState(false);
 
   const pollingRef = useRef(null);
   const timerRef = useRef(null);
@@ -200,20 +198,6 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
       setCheckoutModalOpen(false);
       setIsPaidSuccess(false);
     }, 2800);
-  }
-
-  // Simulate payment success (1-Click Test for Demo)
-  async function handleSimulateSuccess() {
-    if (!payosData?.orderCode) return;
-    setIsSimulating(true);
-    try {
-      await simulatePayosPaymentSuccess(payosData.orderCode);
-      handlePaymentSuccess(selectedPlanForCheckout, billingCycle, payosData.orderCode);
-    } catch (err) {
-      toast.error('Lỗi khi mô phỏng thanh toán: ' + err.message);
-    } finally {
-      setIsSimulating(false);
-    }
   }
 
   // Handle standard credit card form submission
@@ -826,29 +810,29 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                         </div>
                       </div>
 
-                      {/* ⚡ 1-CLICK DEMO TEST SIMULATION BUTTON */}
-                      <div className="pt-2 border-t border-slate-200">
-                        <button
-                          type="button"
-                          onClick={handleSimulateSuccess}
-                          disabled={isSimulating}
-                          className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md transition cursor-pointer flex items-center justify-center gap-2"
-                        >
-                          {isSimulating ? (
-                            <>
-                              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              <span>Đang giả lập thanh toán webhook PayOS...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="material-symbols-outlined text-[18px]">bolt</span>
-                              <span>⚡ Giả lập Quét QR Thành công (Test Demo 1-Click)</span>
-                            </>
-                          )}
-                        </button>
-                        <p className="text-[10px] text-slate-400 text-center mt-1.5">
-                          * Nút bấm hỗ trợ chấm điểm và demo: Tự động kích hoạt Webhook thanh toán thành công và mở rộng hạn mức ngay lập tức.
-                        </p>
+                      {/* Real PayOS Payment Actions & Webhook Status */}
+                      <div className="pt-3 border-t border-slate-200 space-y-2.5">
+                        {payosData?.checkoutUrl && payosData.checkoutUrl.startsWith('http') && (
+                          <a
+                            href={payosData.checkoutUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md transition flex items-center justify-center gap-2 text-center"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                            <span>Mở Trang Thanh Toán PayOS (Cổng Thanh Toán Trực Tuyến)</span>
+                          </a>
+                        )}
+
+                        <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl text-center space-y-1">
+                          <div className="flex items-center justify-center gap-1.5 text-emerald-900 font-bold text-xs">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Cổng thanh toán tự động VietQR Napas 24/7 (Tiền Thật)</span>
+                          </div>
+                          <p className="text-[11px] text-emerald-800 leading-snug">
+                            Vui lòng mở ứng dụng ngân hàng và quét mã QR ở trên để hoàn tất chuyển khoản. Ngay khi tiền vào tài khoản, hệ thống sẽ tự động xác nhận qua PayOS Webhook và nâng cấp hạn mức gói tức thì (1–3 giây).
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
