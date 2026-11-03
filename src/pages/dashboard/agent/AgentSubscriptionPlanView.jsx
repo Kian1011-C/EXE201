@@ -467,18 +467,28 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
           {['starter', 'professional', 'agency'].map((key) => {
             const plan = SAAS_PLANS[key] || SAAS_PLANS.professional;
             const isCurrent = currentPlanKey === key;
-            const dbMatch = dbPlans.find((p) => (p.planCode || '').toLowerCase() === key.toLowerCase());
+            const dbMatch = dbPlans.find((p) => {
+              const code = (p.planCode || p.plan_code || p.name || '').toLowerCase();
+              if (key === 'starter') return code.includes('starter') || code.includes('khởi đầu') || p.id === 2;
+              if (key === 'professional') return code.includes('professional') || code.includes('chuyên nghiệp') || p.id === 3;
+              if (key === 'agency') return code.includes('agency') || code.includes('hãng') || p.id === 4;
+              return false;
+            });
 
             const displayPriceVnd = dbMatch
-              ? (billingCycle === 'Annual' ? dbMatch.annualPriceVnd : dbMatch.monthlyPriceVnd)
+              ? (billingCycle === 'Annual'
+                  ? (dbMatch.annualPriceVnd ?? dbMatch.annual_price_vnd ?? plan.annualVnd)
+                  : (dbMatch.monthlyPriceVnd ?? dbMatch.monthly_price_vnd ?? plan.monthlyVnd))
               : (billingCycle === 'Annual' ? plan.annualVnd : plan.monthlyVnd);
 
             const displayPriceUsd = dbMatch
-              ? (billingCycle === 'Annual' ? dbMatch.annualPriceUsd : dbMatch.monthlyPriceUsd)
+              ? (billingCycle === 'Annual'
+                  ? (dbMatch.annualPriceUsd ?? dbMatch.annual_price_usd ?? Math.round(plan.annualPrice / 12))
+                  : (dbMatch.monthlyPriceUsd ?? dbMatch.monthly_price_usd ?? plan.monthlyPrice))
               : (billingCycle === 'Annual' ? Math.round(plan.annualPrice / 12) : plan.monthlyPrice);
 
-            const planMaxContacts = dbMatch?.maxContacts || plan.maxContacts;
-            const planMaxSeats = dbMatch?.maxSeats || plan.maxSeats;
+            const planMaxContacts = dbMatch?.maxContacts ?? dbMatch?.max_contacts ?? plan.maxContacts;
+            const planMaxSeats = dbMatch?.maxSeats ?? dbMatch?.max_seats ?? plan.maxSeats;
             const planBadge = dbMatch?.badge || (key === 'professional' ? 'PHỔ BIẾN NHẤT' : key === 'agency' ? 'DOANH NGHIỆP' : null);
 
             return (

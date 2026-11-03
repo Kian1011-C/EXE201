@@ -232,12 +232,21 @@ export default function PricingPage({ onOpenQuote }) {
                   </div>
 
                   {(() => {
-                    const dbMatch = dbPlans.find((p) => (p.planCode || '').toLowerCase() === plan.id.toLowerCase());
+                    const dbMatch = dbPlans.find((p) => {
+                      const code = (p.planCode || p.plan_code || p.name || '').toLowerCase();
+                      if (plan.id === 'starter') return code.includes('starter') || code.includes('khởi đầu') || p.id === 2;
+                      if (plan.id === 'professional') return code.includes('professional') || code.includes('chuyên nghiệp') || p.id === 3;
+                      if (plan.id === 'agency') return code.includes('agency') || code.includes('hãng') || p.id === 4;
+                      return false;
+                    });
                     const priceVnd = dbMatch
-                      ? (billingCycle === 'annual' ? dbMatch.annualPriceVnd : dbMatch.monthlyPriceVnd)
+                      ? (billingCycle === 'annual'
+                          ? (dbMatch.annualPriceVnd ?? dbMatch.annual_price_vnd ?? (plan.id === 'starter' ? 9900000 : plan.id === 'professional' ? 19900000 : 49900000))
+                          : (dbMatch.monthlyPriceVnd ?? dbMatch.monthly_price_vnd ?? (plan.id === 'starter' ? 990000 : plan.id === 'professional' ? 1990000 : 4990000)))
                       : (plan.id === 'starter' ? 990000 : plan.id === 'professional' ? 1990000 : 4990000);
-                    const contactsQuota = dbMatch?.maxContacts || (plan.id === 'starter' ? 100 : plan.id === 'professional' ? 200 : 300);
-                    const seatsText = dbMatch ? (dbMatch.maxSeats === 1 ? '1 user included' : `Up to ${dbMatch.maxSeats} users`) : plan.users;
+                    const contactsQuota = dbMatch?.maxContacts ?? dbMatch?.max_contacts ?? (plan.id === 'starter' ? 100 : plan.id === 'professional' ? 200 : 300);
+                    const maxSeatsVal = dbMatch?.maxSeats ?? dbMatch?.max_seats ?? (plan.id === 'starter' ? 1 : plan.id === 'professional' ? 3 : 10);
+                    const seatsText = maxSeatsVal === 1 ? '1 user included' : `Up to ${maxSeatsVal} users`;
 
                     return (
                       <>
