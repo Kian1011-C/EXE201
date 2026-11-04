@@ -12,7 +12,11 @@ import {
 } from '../../../services/subscriptionService';
 import toast from 'react-hot-toast';
 
-export default function AgentSubscriptionPlanView({ agentName = '', agentEmail = 'khanh@insurmatch.us' }) {
+export default function AgentSubscriptionPlanView({
+  agentName = '',
+  agentEmail = 'khanh@insurmatch.us',
+  onOpenFullCheckout,
+}) {
   const [subscription, setSubscription] = useState(() => getAgentSubscription(agentName || agentEmail));
   const [invoices, setInvoices] = useState(() => getInvoicesForAgent(agentName || agentEmail));
   const [billingCycle, setBillingCycle] = useState('Monthly'); // 'Monthly' | 'Annual'
@@ -312,6 +316,16 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
         </div>
 
         <div className="flex items-center gap-2">
+          {onOpenFullCheckout && (
+            <button
+              type="button"
+              onClick={() => onOpenFullCheckout('professional', billingCycle.toLowerCase())}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">shopping_cart_checkout</span>
+              <span>Trang Checkout Độc Lập</span>
+            </button>
+          )}
           <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${
             currentPlanKey === 'trial'
               ? 'bg-amber-50 text-amber-800 border-amber-300'

@@ -13,6 +13,7 @@ import StaffTicketDetail from './staff/StaffTicketDetail';
 import StaffTasksList from './staff/StaffTasksList';
 import StaffTaskDetail from './staff/StaffTaskDetail';
 import AgentSubscriptionPlanView from './agent/AgentSubscriptionPlanView';
+import AgentCheckoutPage from './agent/AgentCheckoutPage';
 import AgentCommissionLedger from './agent/AgentCommissionLedger';
 import { useAuth } from '../../auth/AuthContext';
 import {
@@ -57,6 +58,8 @@ export default function AgentDashboard() {
   const [selectedDocument, setSelectedDocument] = useState(({ filesByCategory: {} }));
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [checkoutTargetPlan, setCheckoutTargetPlan] = useState('professional');
+  const [checkoutTargetCycle, setCheckoutTargetCycle] = useState('annual');
 
   // Navigation history stack for seamless cross-entity return
   const [navHistory, setNavHistory] = useState(() => {
@@ -312,6 +315,9 @@ export default function AgentDashboard() {
     } else if (path.includes('/dashboard/agent/documents')) {
       setCurrentTab('documents');
       setCurrentView('customer-documents-list');
+    } else if (path.includes('/dashboard/agent/checkout')) {
+      setCurrentTab('subscription');
+      setCurrentView('checkout');
     } else if (path.includes('/dashboard/agent/subscription')) {
       setCurrentTab('subscription');
       setCurrentView('subscription');
@@ -932,6 +938,26 @@ export default function AgentDashboard() {
         <AgentSubscriptionPlanView
           agentName={currentAgent.name}
           agentEmail={user?.email || 'khanh@insurmatch.us'}
+          onOpenFullCheckout={(plan, cycle) => {
+            if (plan) setCheckoutTargetPlan(plan);
+            if (cycle) setCheckoutTargetCycle(cycle);
+            setCurrentView('checkout');
+            navigate('/dashboard/agent/checkout', { replace: false });
+          }}
+        />
+      )}
+
+      {/* ── 7c. DEDICATED CHECKOUT VIEW ───────────────────────────────── */}
+      {currentView === 'checkout' && (
+        <AgentCheckoutPage
+          agentName={currentAgent.name}
+          agentEmail={user?.email || 'khanh@insurmatch.us'}
+          initialPlan={checkoutTargetPlan || 'professional'}
+          initialCycle={checkoutTargetCycle || 'annual'}
+          onBack={() => {
+            setCurrentView('subscription');
+            navigate('/dashboard/agent/subscription', { replace: false });
+          }}
         />
       )}
 

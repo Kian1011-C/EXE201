@@ -1,0 +1,18 @@
+{
+  "type": "design",
+  "designSystems": [],
+  "primaryDesignSystem": null,
+  "assets": {
+    "Checkout Page Design Canvas": {
+      "versions": [
+        {
+          "path": "index.html",
+          "createdAt": "2026-11-04T23:51:10.397Z",
+          "status": "needs-review"
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-11-04T23:51:10.398Z",
+  "updatedAt": "2026-11-04T23:51:10.398Z"
+}
