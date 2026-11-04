@@ -8,6 +8,7 @@ import {
   checkPayosPaymentStatus,
   fetchMyBackendSubscription,
   fetchPublicSaasPlans,
+  simulatePayosPaymentSuccess,
 } from '../../../services/subscriptionService';
 import toast from 'react-hot-toast';
 
@@ -27,6 +28,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
   const [payosError, setPayosError] = useState(null);
   const [countdownSeconds, setCountdownSeconds] = useState(900); // 15 mins
   const [isPaidSuccess, setIsPaidSuccess] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
 
   const pollingRef = useRef(null);
   const timerRef = useRef(null);
@@ -61,13 +63,16 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
             plan: planMeta.name,
             planTier: tier,
             billingCycle: beSub.billingCycle === 'ANNUAL' ? 'Annual' : 'Monthly',
-            price: planMeta.monthlyPrice,
-            priceVnd: planMeta.monthlyVnd,
-            maxSeats: beSub.seatsLimit != null ? beSub.seatsLimit : planMeta.maxSeats,
-            maxContacts: beSub.contactsLimit != null ? beSub.contactsLimit : planMeta.maxContacts,
+            price: beSub.billingCycle === 'ANNUAL' ? Math.round(planMeta.annualPrice / 12) : planMeta.monthlyPrice,
+            priceVnd: beSub.billingCycle === 'ANNUAL' ? planMeta.annualVnd : planMeta.monthlyVnd,
+            maxSeats: beSub.seatsLimit != null ? beSub.seatsLimit : (quota.maxSeats != null ? quota.maxSeats : planMeta.maxSeats),
+            maxContacts: beSub.contactsLimit != null ? beSub.contactsLimit : (quota.maxContacts != null ? quota.maxContacts : planMeta.maxContacts),
+            storageLimitGb: beSub.storageLimitGb != null ? beSub.storageLimitGb : (quota.storageLimitGb != null ? quota.storageLimitGb : (planMeta.storageLimitGb || 2)),
             contactsCount: quota.usedContacts != null ? quota.usedContacts : (prev.contactsCount || 0),
             seatsUsed: quota.usedSeats != null ? quota.usedSeats : (prev.seatsUsed || 1),
-            nextRenewalDate: beSub.endDate ? beSub.endDate.split('T')[0] : prev.nextRenewalDate,
+            daysRemaining: quota.daysRemaining != null ? quota.daysRemaining : 60,
+            canAddMore: quota.canAddMore != null ? quota.canAddMore : true,
+            nextRenewalDate: quota.nextRenewalDate || (beSub.endDate ? beSub.endDate.split('T')[0] : prev.nextRenewalDate),
             paymentMethod: beSub.lastPaymentMethod || prev.paymentMethod,
           }));
         }
@@ -200,7 +205,7 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
     setSubscription(updated);
     setInvoices(getInvoicesForAgent(agentName || agentEmail));
 
-    // Re-fetch backend subscription to refresh quota
+    // Re-fetch backend subscription to refresh quota & database updates
     fetchMyBackendSubscription().then((data) => {
       if (data && data.subscription) {
         const beSub = data.subscription;
@@ -209,10 +214,15 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
         setSubscription((prev) => ({
           ...prev,
           plan: planMeta.name,
-          maxSeats: beSub.seatsLimit || planMeta.maxSeats,
-          maxContacts: beSub.contactsLimit || planMeta.maxContacts,
+          planTier: (beSub.planTier || planKey).toUpperCase(),
+          billingCycle: beSub.billingCycle === 'ANNUAL' ? 'Annual' : 'Monthly',
+          maxSeats: beSub.seatsLimit || quota.maxSeats || planMeta.maxSeats,
+          maxContacts: beSub.contactsLimit || quota.maxContacts || planMeta.maxContacts,
+          storageLimitGb: beSub.storageLimitGb || quota.storageLimitGb || planMeta.storageLimitGb,
           contactsCount: quota.usedContacts != null ? quota.usedContacts : prev.contactsCount,
-          nextRenewalDate: beSub.endDate ? beSub.endDate.split('T')[0] : prev.nextRenewalDate,
+          seatsUsed: quota.usedSeats != null ? quota.usedSeats : prev.seatsUsed,
+          daysRemaining: quota.daysRemaining != null ? quota.daysRemaining : 30,
+          nextRenewalDate: quota.nextRenewalDate || (beSub.endDate ? beSub.endDate.split('T')[0] : prev.nextRenewalDate),
         }));
       }
     });
@@ -227,6 +237,21 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
       setCheckoutModalOpen(false);
       setIsPaidSuccess(false);
     }, 2800);
+  }
+
+  // Simulate payment success (Demo / Testing Mode without banking app)
+  async function handleSimulateSuccess() {
+    if (!payosData?.orderCode) return;
+    setIsSimulating(true);
+    try {
+      const res = await simulatePayosPaymentSuccess(payosData.orderCode);
+      toast.success(res?.message || 'Mô phỏng thanh toán thành công! Đang kích hoạt gói...');
+      handlePaymentSuccess(selectedPlanForCheckout, billingCycle, payosData.orderCode);
+    } catch (err) {
+      toast.error(err.message || 'Lỗi khi mô phỏng thanh toán');
+    } finally {
+      setIsSimulating(false);
+    }
   }
 
   // Handle standard credit card form submission
@@ -333,41 +358,51 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
               </p>
             </div>
 
-            {/* Quick Metrics Bar with Quotas */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+            {/* Quick Metrics Bar with Quotas & Storage */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
               <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
                 <span className="text-[11px] text-slate-400 block font-medium">Account Seats (Chỗ ngồi)</span>
-                <span className="text-lg font-bold text-white mt-0.5 block">
-                  {subscription?.seatsUsed || 1} / {subscription?.maxSeats || (currentPlanKey === 'trial' ? 1 : 3)} <span className="text-xs font-normal text-slate-400">seats</span>
+                <span className="text-lg font-bold text-white mt-0.5 block tabular-nums">
+                  {subscription?.seatsUsed || 1} / {subscription?.maxSeats || (currentPlanKey === 'trial' ? 1 : currentPlanKey === 'starter' ? 1 : currentPlanKey === 'agency' ? 10 : 3)} <span className="text-xs font-normal text-slate-400">seats</span>
                 </span>
                 <div className="w-full bg-white/10 h-1.5 rounded-full mt-2 overflow-hidden">
                   <div
                     className="bg-blue-400 h-full rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min(100, (((subscription?.seatsUsed || 1) / (subscription?.maxSeats || (currentPlanKey === 'trial' ? 1 : 3))) * 100))}%` }}
+                    style={{ width: `${Math.min(100, (((subscription?.seatsUsed || 1) / (subscription?.maxSeats || (currentPlanKey === 'trial' ? 1 : currentPlanKey === 'starter' ? 1 : currentPlanKey === 'agency' ? 10 : 3))) * 100))}%` }}
                   />
                 </div>
               </div>
 
               <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
                 <span className="text-[11px] text-slate-400 block font-medium">Customer Contacts Quota</span>
-                <span className="text-lg font-bold text-white mt-0.5 block">
-                  {subscription?.contactsCount != null ? subscription?.contactsCount : 0} / {subscription?.maxContacts || (currentPlanKey === 'trial' ? 50 : 200)} <span className="text-xs font-normal text-slate-400">hồ sơ</span>
+                <span className="text-lg font-bold text-white mt-0.5 block tabular-nums">
+                  {subscription?.contactsCount != null ? subscription?.contactsCount : 0} / {subscription?.maxContacts || (currentPlanKey === 'trial' ? 50 : currentPlanKey === 'starter' ? 100 : currentPlanKey === 'agency' ? 300 : 200)} <span className="text-xs font-normal text-slate-400">hồ sơ</span>
                 </span>
                 <div className="w-full bg-white/10 h-1.5 rounded-full mt-2 overflow-hidden">
                   <div
                     className="bg-emerald-400 h-full rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min(100, (((subscription?.contactsCount != null ? subscription?.contactsCount : 0) / (subscription?.maxContacts || (currentPlanKey === 'trial' ? 50 : 200))) * 100))}%` }}
+                    style={{ width: `${Math.min(100, (((subscription?.contactsCount != null ? subscription?.contactsCount : 0) / (subscription?.maxContacts || (currentPlanKey === 'trial' ? 50 : currentPlanKey === 'starter' ? 100 : currentPlanKey === 'agency' ? 300 : 200))) * 100))}%` }}
                   />
                 </div>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs col-span-2 sm:col-span-1">
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
+                <span className="text-[11px] text-slate-400 block font-medium">Cloud Storage (Lưu trữ)</span>
+                <span className="text-lg font-bold text-white mt-0.5 block tabular-nums">
+                  {subscription?.storageLimitGb || (currentPlanKey === 'trial' ? 1 : currentPlanKey === 'starter' ? 2 : currentPlanKey === 'agency' ? 100 : 25)} <span className="text-xs font-normal text-slate-400">GB SSD</span>
+                </span>
+                <div className="w-full bg-white/10 h-1.5 rounded-full mt-2 overflow-hidden">
+                  <div className="bg-indigo-400 h-full rounded-full transition-all duration-300" style={{ width: '20%' }} />
+                </div>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
                 <span className="text-[11px] text-slate-400 block font-medium">Next Renewal (Gia hạn)</span>
                 <span className="text-sm font-bold text-white mt-1 block font-mono">
                   {subscription?.nextRenewalDate || '2027-01-02'}
                 </span>
                 <span className="text-[10px] text-emerald-400 block mt-1 truncate font-medium">
-                  {subscription?.paymentMethod || (currentPlanKey === 'trial' ? 'Dùng thử 60 ngày 0đ' : 'VietQR PayOS')}
+                  {subscription?.daysRemaining != null ? `Còn ${subscription.daysRemaining} ngày` : (subscription?.paymentMethod || (currentPlanKey === 'trial' ? 'Dùng thử 60 ngày 0đ' : 'VietQR PayOS'))}
                 </span>
               </div>
             </div>
@@ -376,47 +411,66 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
           {/* Pricing & Upgrade CTA */}
           <div className="lg:border-l lg:border-white/10 lg:pl-8 flex flex-col justify-center items-start lg:items-end text-left lg:text-right shrink-0">
             <span className="text-xs text-slate-400 font-medium">Subscription Fee (Phí duy trì)</span>
-            <div className="text-3xl sm:text-4xl font-black text-white mt-1">
+            <div className="text-3xl sm:text-4xl font-black text-white mt-1 tabular-nums">
               {currentPlanKey === 'trial' ? (
                 <>0 đ <span className="text-sm font-normal text-slate-400">/ 60 ngày</span></>
               ) : currentPlanKey === 'starter' ? (
-                <>990.000 đ <span className="text-sm font-normal text-slate-400">/ tháng</span></>
+                subscription?.billingCycle === 'Annual' ? (
+                  <>9.900.000 đ <span className="text-sm font-normal text-slate-400">/ năm</span></>
+                ) : (
+                  <>990.000 đ <span className="text-sm font-normal text-slate-400">/ tháng</span></>
+                )
               ) : currentPlanKey === 'agency' ? (
-                <>4.990.000 đ <span className="text-sm font-normal text-slate-400">/ tháng</span></>
+                subscription?.billingCycle === 'Annual' ? (
+                  <>49.900.000 đ <span className="text-sm font-normal text-slate-400">/ năm</span></>
+                ) : (
+                  <>4.990.000 đ <span className="text-sm font-normal text-slate-400">/ tháng</span></>
+                )
               ) : (
-                <>1.990.000 đ <span className="text-sm font-normal text-slate-400">/ tháng</span></>
+                subscription?.billingCycle === 'Annual' ? (
+                  <>19.900.000 đ <span className="text-sm font-normal text-slate-400">/ năm</span></>
+                ) : (
+                  <>1.990.000 đ <span className="text-sm font-normal text-slate-400">/ tháng</span></>
+                )
               )}
             </div>
             <p className="text-[11px] text-emerald-400 font-semibold mt-0.5">
               {currentPlanKey === 'trial'
                 ? 'Miễn phí 100% không cần thẻ tín dụng'
+                : subscription?.billingCycle === 'Annual'
+                ? `Quy đổi: ~${currentPlanKey === 'starter' ? 32 : currentPlanKey === 'agency' ? 165 : 65} USD / tháng (Tiết kiệm 2 tháng)`
                 : `Quy đổi: ~${currentPlanKey === 'starter' ? 39 : currentPlanKey === 'agency' ? 199 : 79} USD / tháng`}
             </p>
             <p className="text-[11px] text-slate-400 mt-1 max-w-[220px]">
               Tự động kích hoạt qua cổng PayOS VietQR Napas 24/7.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  const target = currentPlanKey === 'trial'
-                    ? 'professional'
-                    : currentPlanKey === 'starter'
-                    ? 'professional'
-                    : 'agency';
-                  handleOpenCheckout(target);
-                }}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md transition cursor-pointer flex items-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-[16px]">qr_code_2</span>
-                <span>
-                  {currentPlanKey === 'trial'
-                    ? 'Nâng Cấp Lên Pro (200 Hồ sơ)'
-                    : currentPlanKey === 'agency'
-                    ? 'Gói Cao Nhất (300 Hồ sơ)'
-                    : 'Nâng Cấp Lên Agency (300 Hồ sơ)'}
-                </span>
-              </button>
+              {currentPlanKey === 'agency' ? (
+                <div className="px-4 py-2.5 rounded-xl text-xs font-bold bg-white/10 text-emerald-400 border border-emerald-400/30 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px]">verified</span>
+                  <span>Đang Dùng Gói Cao Nhất (300 Hồ sơ)</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = currentPlanKey === 'trial' || currentPlanKey === 'starter'
+                      ? 'professional'
+                      : 'agency';
+                    handleOpenCheckout(target);
+                  }}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">qr_code_2</span>
+                  <span>
+                    {currentPlanKey === 'trial'
+                      ? 'Nâng Cấp Lên Pro (200 Hồ sơ)'
+                      : currentPlanKey === 'starter'
+                      ? 'Nâng Cấp Lên Pro (200 Hồ sơ)'
+                      : 'Nâng Cấp Lên Agency (300 Hồ sơ)'}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -468,11 +522,8 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
             const plan = SAAS_PLANS[key] || SAAS_PLANS.professional;
             const isCurrent = currentPlanKey === key;
             const dbMatch = dbPlans.find((p) => {
-              const code = (p.planCode || p.plan_code || p.name || '').toLowerCase();
-              if (key === 'starter') return code.includes('starter') || code.includes('khởi đầu') || p.id === 2;
-              if (key === 'professional') return code.includes('professional') || code.includes('chuyên nghiệp') || p.id === 3;
-              if (key === 'agency') return code.includes('agency') || code.includes('hãng') || p.id === 4;
-              return false;
+              const code = (p.planCode || p.plan_code || p.name || '').toUpperCase();
+              return code.includes(key.toUpperCase());
             });
 
             const displayPriceVnd = dbMatch
@@ -489,7 +540,23 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
 
             const planMaxContacts = dbMatch?.maxContacts ?? dbMatch?.max_contacts ?? plan.maxContacts;
             const planMaxSeats = dbMatch?.maxSeats ?? dbMatch?.max_seats ?? plan.maxSeats;
+            const planStorage = dbMatch?.storageLimitGb ?? dbMatch?.storage_limit_gb ?? plan.storageLimitGb ?? (key === 'starter' ? 2 : key === 'professional' ? 25 : 100);
             const planBadge = dbMatch?.badge || (key === 'professional' ? 'PHỔ BIẾN NHẤT' : key === 'agency' ? 'DOANH NGHIỆP' : null);
+
+            // Parse featuresJson from Backend Postgres DB or fallback to plan.features
+            let parsedFeatures = plan.features;
+            if (dbMatch?.featuresJson) {
+              try {
+                const parsed = JSON.parse(dbMatch.featuresJson);
+                if (Array.isArray(parsed) && parsed.length > 0) parsedFeatures = parsed;
+              } catch {
+                if (typeof dbMatch.featuresJson === 'string') {
+                  parsedFeatures = dbMatch.featuresJson.split(',').map((s) => s.trim());
+                }
+              }
+            } else if (dbMatch?.features) {
+              parsedFeatures = Array.isArray(dbMatch.features) ? dbMatch.features : String(dbMatch.features).split(',').map((s) => s.trim());
+            }
 
             return (
               <div
@@ -516,14 +583,19 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
 
                 <div>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-black text-slate-900">{dbMatch?.name || plan.name}</h3>
-                    <span className="text-[11px] font-bold text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded-md">
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900">{dbMatch?.name || plan.name}</h3>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        {dbMatch?.targetAudience || (key === 'starter' ? 'Cá nhân đại lý (Solopreneur)' : key === 'professional' ? 'Đội nhóm nhỏ (Small Team)' : 'Văn phòng tổng đại lý')}
+                      </p>
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded-md self-start">
                       {planMaxSeats} {planMaxSeats === 1 ? 'Seat' : 'Seats'}
                     </span>
                   </div>
 
                   <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
+                    <span className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight tabular-nums">
                       {Number(displayPriceVnd).toLocaleString('vi-VN')}
                     </span>
                     <span className="text-xs font-bold text-slate-600">
@@ -535,22 +607,32 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                     Quy đổi: ~${displayPriceUsd} / tháng {billingCycle === 'Annual' && '(thanh toán năm)'}
                   </div>
 
-                  {/* Quota Highlight Box */}
-                  <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0">contact_page</span>
-                    <span className="text-xs font-bold text-slate-800">
-                      Hạn mức: {planMaxContacts} Hồ sơ Khách hàng
-                    </span>
+                  {billingCycle === 'Annual' && (
+                    <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md">
+                      <span className="material-symbols-outlined text-[13px] text-amber-600">savings</span>
+                      <span>Tiết kiệm 2 tháng: {Number((key === 'starter' ? 990000 : key === 'professional' ? 1990000 : 4990000) * 2).toLocaleString('vi-VN')} đ</span>
+                    </div>
+                  )}
+
+                  {/* Quota Highlight Box with Contacts & Storage */}
+                  <div className="mt-3.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0">contact_page</span>
+                      <span className="text-xs font-bold text-slate-800">
+                        Hạn mức: {planMaxContacts} Hồ sơ
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold">
+                      <span className="material-symbols-outlined text-[16px] text-indigo-500 shrink-0">cloud</span>
+                      <span>{planStorage} GB SSD</span>
+                    </div>
                   </div>
 
                   <div className="border-t border-slate-100 my-4" />
 
                   {/* Feature Checklist */}
                   <ul className="space-y-2.5 text-xs text-slate-700">
-                    {(dbMatch?.features
-                      ? (typeof dbMatch.features === 'string' ? dbMatch.features.split(',').map(s => s.trim()) : dbMatch.features)
-                      : plan.features
-                    )?.map((feat, idx) => (
+                    {parsedFeatures.map((feat, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <span className="material-symbols-outlined text-[16px] text-emerald-600 shrink-0 mt-0.5">
                           check_circle
@@ -705,15 +787,15 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                     {SAAS_PLANS[selectedPlanForCheckout]?.displayName}
                   </span>
                   <span className="text-xs text-blue-700 font-medium">
-                    Hạn mức: <strong>{SAAS_PLANS[selectedPlanForCheckout]?.maxContacts} Hồ sơ</strong> • Chu kỳ: {billingCycle === 'Annual' ? 'Thanh toán Năm (Tiết kiệm 2 tháng)' : 'Hàng tháng'}
+                    Hạn mức: <strong>{SAAS_PLANS[selectedPlanForCheckout]?.maxContacts} Hồ sơ</strong> • <strong>{SAAS_PLANS[selectedPlanForCheckout]?.storageLimitGb || 2} GB SSD</strong> • Chu kỳ: {billingCycle === 'Annual' ? 'Thanh toán Năm (Tiết kiệm 2 tháng)' : 'Hàng tháng'}
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-black text-blue-950 block">
+                  <span className="text-2xl font-black text-blue-950 block tabular-nums">
                     ${billingCycle === 'Annual' ? SAAS_PLANS[selectedPlanForCheckout]?.annualPrice : SAAS_PLANS[selectedPlanForCheckout]?.monthlyPrice}
                   </span>
-                  <span className="text-xs font-bold text-emerald-700 block">
-                    ≈ {Number(billingCycle === 'Annual' ? SAAS_PLANS[selectedPlanForCheckout]?.annualVnd : SAAS_PLANS[selectedPlanForCheckout]?.monthlyVnd).toLocaleString('vi-VN')} VNĐ
+                  <span className="text-xs font-bold text-emerald-700 block tabular-nums">
+                    ≈ {Number(payosData?.amount || (billingCycle === 'Annual' ? SAAS_PLANS[selectedPlanForCheckout]?.annualVnd : SAAS_PLANS[selectedPlanForCheckout]?.monthlyVnd)).toLocaleString('vi-VN')} VNĐ
                   </span>
                 </div>
               </div>
@@ -912,6 +994,26 @@ export default function AgentSubscriptionPlanView({ agentName = '', agentEmail =
                             <span>Mở Trang Thanh Toán PayOS (Cổng Thanh Toán Trực Tuyến)</span>
                           </a>
                         )}
+
+                        {/* Demo Simulation Button */}
+                        <button
+                          type="button"
+                          onClick={handleSimulateSuccess}
+                          disabled={isSimulating}
+                          className="w-full py-2 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
+                        >
+                          {isSimulating ? (
+                            <>
+                              <span className="w-3.5 h-3.5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
+                              <span>Đang mô phỏng giao dịch ngân hàng...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined text-[16px]">bolt</span>
+                              <span>⚡ Mô Phỏng Thanh Toán Thành Công (Demo Test Không Cần App)</span>
+                            </>
+                          )}
+                        </button>
 
                         <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl text-center space-y-1">
                           <div className="flex items-center justify-center gap-1.5 text-emerald-900 font-bold text-xs">

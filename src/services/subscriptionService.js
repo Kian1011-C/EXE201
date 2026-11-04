@@ -16,6 +16,7 @@ export const SAAS_PLANS = {
     salesCommissionAmount: 0,
     maxSeats: 1,
     maxContacts: 50,
+    storageLimitGb: 1,
     features: [
       '1 Licensed Agent Seat (Single User)',
       'Lên đến 50 Hồ sơ Khách hàng (50 Contacts)',
@@ -38,6 +39,7 @@ export const SAAS_PLANS = {
     salesCommissionAmount: 3.90,
     maxSeats: 1,
     maxContacts: 100,
+    storageLimitGb: 2,
     features: [
       '1 Licensed Agent Seat (Single User)',
       'Lên đến 100 Hồ sơ Khách hàng (100 Contacts)',
@@ -60,6 +62,7 @@ export const SAAS_PLANS = {
     salesCommissionAmount: 9.48,
     maxSeats: 3,
     maxContacts: 200,
+    storageLimitGb: 25,
     features: [
       'Tối đa 3 Agent Seats cho đội nhóm',
       'Lên đến 200 Hồ sơ Khách hàng (200 Contacts)',
@@ -83,6 +86,7 @@ export const SAAS_PLANS = {
     salesCommissionAmount: 29.85,
     maxSeats: 10,
     maxContacts: 300,
+    storageLimitGb: 100,
     features: [
       'Tối đa 10 Seats phân quyền Quản lý / Staff / Agent',
       'Lên đến 300 Hồ sơ Khách hàng (300 Contacts)',
@@ -260,7 +264,7 @@ export const INITIAL_SUBSCRIBERS = [
     status: 'Active',
     seatsUsed: 5,
     maxSeats: 10,
-    contactsCount: 2150,
+    contactsCount: 215,
     maxContacts: 300,
     salesRep: 'Sarah Tran',
     commissionPaid: 29.85,
@@ -280,7 +284,7 @@ export const INITIAL_SUBSCRIBERS = [
     seatsUsed: 1,
     maxSeats: 1,
     contactsCount: 110,
-    maxContacts: 500,
+    maxContacts: 100,
     salesRep: 'Inbound Web',
     commissionPaid: 0.00,
     startDate: '2026-09-01',
@@ -385,6 +389,7 @@ export function getAgentSubscription(agentIdentifier) {
     maxSeats: 1,
     contactsCount: 0,
     maxContacts: 50,
+    storageLimitGb: 1,
     salesRep: 'Direct',
     commissionPaid: 0.00,
     startDate: new Date().toISOString().split('T')[0],
