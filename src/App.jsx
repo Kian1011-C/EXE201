@@ -26,6 +26,7 @@ import CareersPage from './pages/CareersPage';
 import ContactPage from './pages/ContactPage';
 import QuotePage from './pages/QuotePage';
 import PricingPage from './pages/PricingPage';
+import AgentCheckoutPage from './pages/dashboard/agent/AgentCheckoutPage';
 
 // Auth Pages
 import LoginPage from './pages/LoginPage';
@@ -85,6 +86,8 @@ function PublicRoutes() {
           <Route path="/contact" element={<ContactPage onOpenQuote={handleOpenQuote} />} />
           <Route path="/secure-contact-form" element={<ContactPage onOpenQuote={handleOpenQuote} />} />
           <Route path="/pricing" element={<PricingPage onOpenQuote={handleOpenQuote} />} />
+          <Route path="/checkout" element={<AgentCheckoutPage agentName="Nguyen Phuong Khai" agentEmail="khanh@insurmatch.us" onBack={() => window.history.back()} />} />
+          <Route path="/checkout-preview" element={<AgentCheckoutPage agentName="Nguyen Phuong Khai" agentEmail="khanh@insurmatch.us" onBack={() => window.history.back()} />} />
           <Route path="/quote" element={<QuotePage onOpenQuote={handleOpenQuote} />} />
           <Route path="/get-quote" element={<QuotePage onOpenQuote={handleOpenQuote} />} />
           <Route path="/matchmaking" element={<QuotePage onOpenQuote={handleOpenQuote} />} />

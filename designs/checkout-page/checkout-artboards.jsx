@@ -1,5 +1,6 @@
 // designs/checkout-page/checkout-artboards.jsx
 // Three high-fidelity checkout variations for InsurMatch B2B SaaS CRM
+// Fully responsive on Mobile, Tablet & Desktop
 // Exports to window: SwissCleanCheckout, DarkFintechCheckout, WizardCheckout
 
 const { useState, useEffect, useRef } = React;
@@ -63,7 +64,7 @@ const BANK_INFO = {
 function SwissCleanCheckout() {
   const [selectedPlan, setSelectedPlan] = useState('professional');
   const [cycle, setCycle] = useState('annual'); // 'monthly' | 'annual'
-  const [paymentMethod, setPaymentMethod] = useState('payos'); // 'payos' | 'card' | 'vat'
+  const [paymentMethod, setPaymentMethod] = useState('payos'); // 'payos' | 'card'
   const [copiedField, setCopiedField] = useState(null);
   const [countdown, setCountdown] = useState(895);
   const [isPaid, setIsPaid] = useState(false);
@@ -90,11 +91,11 @@ function SwissCleanCheckout() {
   };
 
   return (
-    <div className="w-[1020px] bg-[#FAF9F5] text-slate-800 font-sans p-7 select-none">
+    <div className="w-full max-w-[1020px] mx-auto bg-[#FAF9F5] text-slate-800 font-sans p-4 sm:p-7 select-none rounded-2xl sm:rounded-3xl border border-stone-200">
       {/* Top Breadcrumb & Brand */}
-      <div className="flex items-center justify-between pb-5 border-b border-stone-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-stone-200">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-sm shadow-sm">
+          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-sm shadow-sm shrink-0">
             IM
           </div>
           <div>
@@ -102,24 +103,24 @@ function SwissCleanCheckout() {
               InsurMatch B2B SaaS Checkout
             </h1>
             <p className="text-xs text-slate-500">
-              Trang thanh toán chính thức • Hóa đơn &amp; Cổng VietQR Napas 24/7 PayOS
+              Trang thanh toán chính thức • Cổng VietQR Napas 24/7 PayOS
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <span className="flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full font-bold">
+          <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full font-bold">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             Bảo Mật SSL 256-bit • Napas 24/7
           </span>
         </div>
       </div>
 
-      {/* Main 2-Column Grid */}
-      <div className="grid grid-cols-12 gap-7 mt-6 items-start">
+      {/* Main Responsive Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-start">
         {/* Left: Order Summary & Plan Config */}
-        <div className="col-span-5 space-y-5">
+        <div className="col-span-1 lg:col-span-5 space-y-5">
           {/* Plan Selector */}
-          <div className="bg-white rounded-2xl p-5 border border-stone-200/90 shadow-xs space-y-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 1. Gói Dịch Vụ SaaS
@@ -161,7 +162,7 @@ function SwissCleanCheckout() {
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${active ? 'border-blue-600' : 'border-stone-300'}`}>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${active ? 'border-blue-600' : 'border-stone-300'}`}>
                         {active && <div className="w-2 h-2 rounded-full bg-blue-600"></div>}
                       </div>
                       <div>
@@ -178,8 +179,8 @@ function SwissCleanCheckout() {
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xs font-black text-slate-900">
+                    <div className="text-right shrink-0">
+                      <div className="text-xs font-black text-slate-900 tabular-nums">
                         {Number(price).toLocaleString('vi-VN')} đ
                       </div>
                       <span className="text-[10px] text-slate-400">/{cycle === 'annual' ? 'năm' : 'tháng'}</span>
@@ -191,22 +192,22 @@ function SwissCleanCheckout() {
           </div>
 
           {/* Quota & Feature Breakdown */}
-          <div className="bg-white rounded-2xl p-5 border border-stone-200/90 shadow-xs space-y-3.5">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200/90 shadow-xs space-y-3.5">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
               2. Quyền Lợi &amp; Hạn Mức Gói
             </span>
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/60 text-center">
+              <div className="bg-stone-50 p-2 sm:p-2.5 rounded-xl border border-stone-200/60 text-center">
                 <span className="text-[10px] text-slate-400 font-semibold block">HỒ SƠ KHÁCH</span>
-                <span className="text-sm font-black text-slate-900">{plan.contacts} Contacts</span>
+                <span className="text-xs sm:text-sm font-black text-slate-900">{plan.contacts} Contacts</span>
               </div>
-              <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/60 text-center">
+              <div className="bg-stone-50 p-2 sm:p-2.5 rounded-xl border border-stone-200/60 text-center">
                 <span className="text-[10px] text-slate-400 font-semibold block">CHỖ NGỒI (SEATS)</span>
-                <span className="text-sm font-black text-slate-900">{plan.seats} Seat</span>
+                <span className="text-xs sm:text-sm font-black text-slate-900">{plan.seats} Seat</span>
               </div>
-              <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/60 text-center">
+              <div className="bg-stone-50 p-2 sm:p-2.5 rounded-xl border border-stone-200/60 text-center">
                 <span className="text-[10px] text-slate-400 font-semibold block">DUNG LƯỢNG SSD</span>
-                <span className="text-sm font-black text-slate-900">{plan.storage}</span>
+                <span className="text-xs sm:text-sm font-black text-slate-900">{plan.storage}</span>
               </div>
             </div>
 
@@ -227,12 +228,12 @@ function SwissCleanCheckout() {
             <div className="pt-3 border-t border-stone-200 space-y-1.5 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Đơn giá gói ({cycle === 'annual' ? 'Năm' : 'Tháng'}):</span>
-                <span>{Number(amountVnd).toLocaleString('vi-VN')} đ</span>
+                <span className="tabular-nums">{Number(amountVnd).toLocaleString('vi-VN')} đ</span>
               </div>
               {cycle === 'annual' && (
-                <div className="flex justify-between text-amber-700 font-medium">
-                  <span>Khuyến mãi trả theo năm (Tiết kiệm 2 tháng):</span>
-                  <span>-{Number((selectedPlan === 'starter' ? 990000 : selectedPlan === 'professional' ? 1990000 : 4990000) * 2).toLocaleString('vi-VN')} đ</span>
+                <div className="flex justify-between text-amber-700 font-medium bg-amber-50 px-2 py-1 rounded">
+                  <span>Khuyến mãi (Tiết kiệm 2 tháng):</span>
+                  <span className="tabular-nums">-{Number((selectedPlan === 'starter' ? 990000 : selectedPlan === 'professional' ? 1990000 : 4990000) * 2).toLocaleString('vi-VN')} đ</span>
                 </div>
               )}
               <div className="flex justify-between text-slate-600">
@@ -241,21 +242,21 @@ function SwissCleanCheckout() {
               </div>
               <div className="flex justify-between text-sm font-black text-slate-950 pt-2 border-t border-stone-200">
                 <span>TỔNG THANH TOÁN:</span>
-                <span className="text-blue-600 text-base">{Number(amountVnd).toLocaleString('vi-VN')} đ</span>
+                <span className="text-blue-600 text-base tabular-nums">{Number(amountVnd).toLocaleString('vi-VN')} đ</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right: Payment Method & QR Display */}
-        <div className="col-span-7 space-y-5">
-          <div className="bg-white rounded-2xl p-6 border border-stone-200/90 shadow-sm space-y-5">
+        <div className="col-span-1 lg:col-span-7 space-y-5">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 border border-stone-200/90 shadow-sm space-y-5">
             {/* Payment Method Switcher */}
             <div>
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2.5">
                 3. Phương Thức Thanh Toán
               </span>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('payos')}
@@ -266,15 +267,15 @@ function SwissCleanCheckout() {
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0">
                       QR
                     </div>
                     <div>
                       <strong className="text-xs text-slate-900 block">VietQR Napas 24/7</strong>
-                      <span className="text-[10px] text-slate-500">Qua cổng PayOS tự động 1–3s</span>
+                      <span className="text-[10px] text-slate-500">Tự động 1–3s qua PayOS</span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                  <span className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full shrink-0">
                     Khuyên dùng
                   </span>
                 </button>
@@ -289,12 +290,12 @@ function SwissCleanCheckout() {
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-black text-xs flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
                       VISA
                     </div>
                     <div>
                       <strong className="text-xs text-slate-900 block">Thẻ Quốc Tế</strong>
-                      <span className="text-[10px] text-slate-500">Visa, MasterCard, JCB, Amex</span>
+                      <span className="text-[10px] text-slate-500">Visa, MasterCard, JCB</span>
                     </div>
                   </div>
                 </button>
@@ -303,7 +304,7 @@ function SwissCleanCheckout() {
 
             {/* PayOS VietQR Details View */}
             {paymentMethod === 'payos' && (
-              <div className="bg-stone-50/80 rounded-2xl p-5 border border-stone-200 space-y-4">
+              <div className="bg-stone-50/80 rounded-2xl p-4 sm:p-5 border border-stone-200 space-y-4">
                 {isPaid ? (
                   <div className="p-6 bg-emerald-50 border border-emerald-300 rounded-xl text-center space-y-2">
                     <div className="w-12 h-12 rounded-full bg-emerald-600 text-white text-2xl flex items-center justify-center mx-auto shadow-sm">
@@ -311,7 +312,7 @@ function SwissCleanCheckout() {
                     </div>
                     <h3 className="text-base font-black text-emerald-950">Thanh Toán Hoàn Tất!</h3>
                     <p className="text-xs text-emerald-800">
-                      Gói <strong>{plan.name}</strong> đã được kích hoạt thành công trên tài khoản InsurMatch của bạn.
+                      Gói <strong>{plan.name}</strong> đã được kích hoạt thành công trên tài khoản InsurMatch.
                     </p>
                   </div>
                 ) : (
@@ -319,32 +320,32 @@ function SwissCleanCheckout() {
                     <div className="flex items-center justify-between text-xs pb-2 border-b border-stone-200">
                       <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Quét mã VietQR bằng App Ngân Hàng để kích hoạt ngay</span>
+                        <span>Quét mã VietQR bằng App Ngân Hàng để kích hoạt</span>
                       </div>
-                      <span className="font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-stone-200 font-bold">
+                      <span className="font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-stone-200 font-bold shrink-0">
                         ⏱ {formatTime(countdown)}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-12 gap-5 items-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center">
                       {/* Dynamic QR */}
-                      <div className="col-span-5 flex flex-col items-center">
+                      <div className="col-span-1 sm:col-span-5 flex flex-col items-center">
                         <div className="w-44 h-44 bg-white p-2 rounded-2xl border border-stone-200 shadow-xs flex items-center justify-center">
                           <img src={qrUrl} alt="VietQR" className="w-full h-full object-contain" />
                         </div>
                         <span className="text-[10px] text-slate-500 text-center mt-2">
-                          Mở App ngân hàng (MB, VCB, Techcombank, VPBank,...) quét mã
+                          Mở App ngân hàng quét mã thanh toán tức thì
                         </span>
                       </div>
 
                       {/* Bank Fields */}
-                      <div className="col-span-7 space-y-2 text-xs">
+                      <div className="col-span-1 sm:col-span-7 space-y-2 text-xs">
                         <div className="bg-white p-2.5 rounded-xl border border-stone-200 flex items-center justify-between">
                           <div>
                             <span className="text-[10px] text-slate-400 font-bold block">NGÂN HÀNG THỤ HƯỞNG</span>
                             <span className="font-bold text-slate-900">{BANK_INFO.bankName}</span>
                           </div>
-                          <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-1.5 py-0.5 rounded">Napas 247</span>
+                          <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-1.5 py-0.5 rounded shrink-0">Napas 247</span>
                         </div>
 
                         <div className="bg-white p-2.5 rounded-xl border border-stone-200 flex items-center justify-between">
@@ -355,7 +356,7 @@ function SwissCleanCheckout() {
                           <button
                             type="button"
                             onClick={() => copy(BANK_INFO.accountNumber, 'stk')}
-                            className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-stone-100 hover:bg-stone-200 text-slate-700"
+                            className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-stone-100 hover:bg-stone-200 text-slate-700 shrink-0"
                           >
                             {copiedField === 'stk' ? '✓ Đã chép' : 'Copy STK'}
                           </button>
@@ -364,14 +365,14 @@ function SwissCleanCheckout() {
                         <div className="bg-white p-2.5 rounded-xl border border-stone-200 flex items-center justify-between">
                           <div>
                             <span className="text-[10px] text-slate-400 font-bold block">SỐ TIỀN CẦN CHUYỂN</span>
-                            <span className="font-mono text-sm font-black text-emerald-700">
+                            <span className="font-mono text-sm font-black text-emerald-700 tabular-nums">
                               {Number(amountVnd).toLocaleString('vi-VN')} VNĐ
                             </span>
                           </div>
                           <button
                             type="button"
                             onClick={() => copy(amountVnd, 'amount')}
-                            className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-stone-100 hover:bg-stone-200 text-slate-700"
+                            className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-stone-100 hover:bg-stone-200 text-slate-700 shrink-0"
                           >
                             {copiedField === 'amount' ? '✓ Đã chép' : 'Copy Tiền'}
                           </button>
@@ -387,7 +388,7 @@ function SwissCleanCheckout() {
                           <button
                             type="button"
                             onClick={() => copy(`IM ${selectedPlan.toUpperCase()} ${orderCode}`, 'desc')}
-                            className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-stone-100 hover:bg-stone-200 text-slate-700"
+                            className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-stone-100 hover:bg-stone-200 text-slate-700 shrink-0"
                           >
                             {copiedField === 'desc' ? '✓ Đã chép' : 'Copy ND'}
                           </button>
@@ -400,7 +401,7 @@ function SwissCleanCheckout() {
                       <button
                         type="button"
                         onClick={() => setIsPaid(true)}
-                        className="w-full py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
+                        className="w-full py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition cursor-pointer"
                       >
                         <span>⚡ Mô Phỏng Thanh Toán Thành Công (Demo Test Không Cần Quét)</span>
                       </button>
@@ -412,7 +413,7 @@ function SwissCleanCheckout() {
 
             {/* International Card Option */}
             {paymentMethod === 'card' && (
-              <div className="bg-stone-50 rounded-2xl p-5 border border-stone-200 space-y-3 text-xs">
+              <div className="bg-stone-50 rounded-2xl p-4 sm:p-5 border border-stone-200 space-y-3 text-xs">
                 <div>
                   <label className="text-[11px] font-bold text-slate-600 block mb-1">Số thẻ tín dụng / ghi nợ</label>
                   <input
@@ -454,11 +455,11 @@ function SwissCleanCheckout() {
               </label>
 
               {vatRequested && (
-                <div className="grid grid-cols-2 gap-2.5 mt-3 pt-3 border-t border-stone-200 text-xs">
-                  <input type="text" placeholder="Tên công ty / Doanh nghiệp" className="col-span-2 px-3 py-1.5 rounded-lg border border-stone-200 bg-white" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3 pt-3 border-t border-stone-200 text-xs">
+                  <input type="text" placeholder="Tên công ty / Doanh nghiệp" className="col-span-1 sm:col-span-2 px-3 py-1.5 rounded-lg border border-stone-200 bg-white" />
                   <input type="text" placeholder="Mã số thuế (MST)" className="px-3 py-1.5 rounded-lg border border-stone-200 bg-white" />
                   <input type="email" placeholder="Email nhận hóa đơn điện tử" className="px-3 py-1.5 rounded-lg border border-stone-200 bg-white" />
-                  <input type="text" placeholder="Địa chỉ đăng ký kinh doanh" className="col-span-2 px-3 py-1.5 rounded-lg border border-stone-200 bg-white" />
+                  <input type="text" placeholder="Địa chỉ đăng ký kinh doanh" className="col-span-1 sm:col-span-2 px-3 py-1.5 rounded-lg border border-stone-200 bg-white" />
                 </div>
               )}
             </div>
@@ -481,20 +482,20 @@ function DarkFintechCheckout() {
   const qrUrl = `https://img.vietqr.io/image/${BANK_INFO.bin}-${BANK_INFO.accountNumber}-compact2.png?amount=${amountVnd}&addInfo=IM%20${selectedPlan.toUpperCase()}%208829&accountName=${encodeURIComponent(BANK_INFO.accountName)}`;
 
   return (
-    <div className="w-[1020px] bg-[#0A111E] text-slate-100 font-sans p-7 select-none border border-slate-800 rounded-3xl relative overflow-hidden">
+    <div className="w-full max-w-[1020px] mx-auto bg-[#0A111E] text-slate-100 font-sans p-4 sm:p-7 select-none border border-slate-800 rounded-2xl sm:rounded-3xl relative overflow-hidden">
       {/* Background glow effects */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between pb-5 border-b border-slate-800">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center font-black text-white text-base shadow-lg shadow-blue-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center font-black text-white text-base shadow-lg shadow-blue-500/20 shrink-0">
             ⚡
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-black tracking-tight text-white">InsurMatch PayOS Terminal</h2>
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-white">InsurMatch PayOS Terminal</h2>
               <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                 Webhook Active
               </span>
@@ -504,7 +505,7 @@ function DarkFintechCheckout() {
         </div>
 
         {/* Plan Switch Buttons */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold self-start sm:self-auto">
           {['starter', 'professional', 'agency'].map((k) => (
             <button
               key={k}
@@ -519,14 +520,14 @@ function DarkFintechCheckout() {
       </div>
 
       {/* 2-Column Dark Grid */}
-      <div className="relative z-10 grid grid-cols-12 gap-7 mt-6 items-start">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-start">
         {/* Left: Glass Card Details */}
-        <div className="col-span-5 space-y-4">
-          <div className="bg-slate-900/80 backdrop-blur-md rounded-2xl p-5 border border-slate-800 space-y-4">
+        <div className="col-span-1 lg:col-span-5 space-y-4">
+          <div className="bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-800 space-y-4">
             <div className="flex items-baseline justify-between">
               <div>
                 <span className="text-[10px] font-extrabold uppercase text-blue-400 tracking-wider block">Gói được chọn</span>
-                <h3 className="text-xl font-black text-white mt-0.5">{plan.name}</h3>
+                <h3 className="text-lg sm:text-xl font-black text-white mt-0.5">{plan.name}</h3>
               </div>
               <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-300 border border-blue-400/20">
                 {plan.seats} Seats
@@ -551,12 +552,12 @@ function DarkFintechCheckout() {
             <div className="p-4 rounded-xl bg-gradient-to-br from-blue-900/40 to-slate-900 border border-blue-500/30 flex items-center justify-between">
               <div>
                 <span className="text-[10px] text-slate-300 block font-semibold">Số tiền thanh toán:</span>
-                <span className="text-2xl font-black text-white tracking-tight">
+                <span className="text-xl sm:text-2xl font-black text-white tracking-tight tabular-nums">
                   {Number(amountVnd).toLocaleString('vi-VN')} đ
                 </span>
               </div>
               <span className="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20">
-                0% Phí giao dịch
+                0% Phí Napas
               </span>
             </div>
           </div>
@@ -571,14 +572,14 @@ function DarkFintechCheckout() {
               <span className="text-[10px] font-mono text-slate-500">ID: #990142</span>
             </div>
             <div className="bg-black/50 p-2.5 rounded-xl font-mono text-[11px] text-slate-400 space-y-1">
-              <div>[2026-11-05 06:46] Listening on /payments/payos/webhook...</div>
-              <div className="text-emerald-400">[READY] Waiting for MB Bank Napas transfer...</div>
+              <div>[2026-11-05] Listening on /payments/payos/webhook...</div>
+              <div className="text-emerald-400">[READY] Waiting for MB Bank transfer...</div>
             </div>
           </div>
         </div>
 
         {/* Right: Glowing VietQR */}
-        <div className="col-span-7 bg-slate-900/90 backdrop-blur-md rounded-2xl p-6 border border-slate-800 space-y-5 shadow-2xl">
+        <div className="col-span-1 lg:col-span-7 bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-slate-800 space-y-5 shadow-2xl">
           {simulated ? (
             <div className="p-8 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-center space-y-3">
               <div className="w-14 h-14 rounded-full bg-emerald-500 text-slate-950 font-black text-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30">
@@ -590,11 +591,11 @@ function DarkFintechCheckout() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-12 gap-5 items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center">
               {/* QR Container with Glow */}
-              <div className="col-span-6 flex flex-col items-center">
+              <div className="col-span-1 sm:col-span-6 flex flex-col items-center">
                 <div className="p-2.5 rounded-2xl bg-white shadow-xl shadow-blue-500/10 relative group">
-                  <div className="w-48 h-48 flex items-center justify-center">
+                  <div className="w-44 h-44 sm:w-48 sm:h-48 flex items-center justify-center">
                     <img src={qrUrl} alt="VietQR Dark" className="w-full h-full object-contain" />
                   </div>
                 </div>
@@ -604,7 +605,7 @@ function DarkFintechCheckout() {
               </div>
 
               {/* Transfer Details */}
-              <div className="col-span-6 space-y-2.5 text-xs">
+              <div className="col-span-1 sm:col-span-6 space-y-2.5 text-xs">
                 <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80">
                   <span className="text-[10px] text-slate-400 block font-semibold">TÀI KHOẢN NHẬN TIỀN</span>
                   <span className="font-mono text-sm font-black text-emerald-400 block mt-0.5">{BANK_INFO.accountNumber}</span>
@@ -613,13 +614,13 @@ function DarkFintechCheckout() {
 
                 <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80">
                   <span className="text-[10px] text-slate-400 block font-semibold">SỐ TIỀN CHÍNH XÁC</span>
-                  <span className="font-mono text-base font-black text-white block mt-0.5">
+                  <span className="font-mono text-base font-black text-white block mt-0.5 tabular-nums">
                     {Number(amountVnd).toLocaleString('vi-VN')} VNĐ
                   </span>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80">
-                  <span className="text-[10px] text-slate-400 block font-semibold">NỘI DUNG CHUYỂN KHOẢN (BẮT BUỘC)</span>
+                  <span className="text-[10px] text-slate-400 block font-semibold">NỘI DUNG CHUYỂN KHOẢN</span>
                   <span className="font-mono text-xs font-bold text-blue-300 block mt-0.5">
                     IM {selectedPlan.toUpperCase()} 8829
                   </span>
@@ -655,22 +656,22 @@ function WizardCheckout() {
   const qrUrl = `https://img.vietqr.io/image/${BANK_INFO.bin}-${BANK_INFO.accountNumber}-compact2.png?amount=${amountVnd}&addInfo=IM%20WIZARD%20${planKey.toUpperCase()}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`;
 
   return (
-    <div className="w-[1020px] bg-white text-slate-900 font-sans p-7 select-none border border-slate-200 rounded-3xl shadow-lg">
+    <div className="w-full max-w-[1020px] mx-auto bg-white text-slate-900 font-sans p-4 sm:p-7 select-none border border-slate-200 rounded-2xl sm:rounded-3xl shadow-lg">
       {/* Wizard Step Bar */}
-      <div className="flex items-center justify-between pb-6 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
         <div>
-          <h2 className="text-lg font-black text-slate-900">Nâng Cấp Gói InsurMatch B2B SaaS</h2>
+          <h2 className="text-base sm:text-lg font-black text-slate-900">Nâng Cấp Gói InsurMatch B2B SaaS</h2>
           <p className="text-xs text-slate-500">Quy trình 3 bước xác nhận và kích hoạt hạ tầng CRM</p>
         </div>
 
         {/* Stepper indicators */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0">
           {[
             { num: 1, label: 'Chọn Gói' },
-            { num: 2, label: 'Thông Tin Đại Lý & VAT' },
-            { num: 3, label: 'Quét Mã Thanh Toán' }
+            { num: 2, label: 'Đại Lý & VAT' },
+            { num: 3, label: 'Quét Mã PayOS' }
           ].map((st) => (
-            <div key={st.num} className="flex items-center gap-1.5">
+            <div key={st.num} className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
                 step === st.num
                   ? 'bg-blue-600 text-white'
@@ -683,7 +684,7 @@ function WizardCheckout() {
               <span className={`text-xs font-semibold ${step === st.num ? 'text-slate-900' : 'text-slate-400'}`}>
                 {st.label}
               </span>
-              {st.num < 3 && <span className="text-slate-300 mx-1">›</span>}
+              {st.num < 3 && <span className="text-slate-300 mx-0.5">›</span>}
             </div>
           ))}
         </div>
@@ -695,28 +696,28 @@ function WizardCheckout() {
         {step === 1 && (
           <div className="space-y-6">
             <div className="text-center max-w-md mx-auto space-y-2">
-              <h3 className="text-base font-bold text-slate-900">Bước 1: Chọn gói cước phù hợp với quy mô đại lý</h3>
+              <h3 className="text-sm sm:text-base font-bold text-slate-900">Bước 1: Chọn gói cước phù hợp với quy mô đại lý</h3>
               {/* Cycle Toggle */}
               <div className="inline-flex p-1 bg-slate-100 rounded-xl text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => setCycle('monthly')}
-                  className={`px-4 py-1.5 rounded-lg ${cycle === 'monthly' ? 'bg-white shadow-xs text-slate-900' : 'text-slate-500'}`}
+                  className={`px-3 sm:px-4 py-1.5 rounded-lg ${cycle === 'monthly' ? 'bg-white shadow-xs text-slate-900' : 'text-slate-500'}`}
                 >
-                  Thanh Toán Hàng Tháng
+                  Hàng Tháng
                 </button>
                 <button
                   type="button"
                   onClick={() => setCycle('annual')}
-                  className={`px-4 py-1.5 rounded-lg flex items-center gap-1.5 ${cycle === 'annual' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500'}`}
+                  className={`px-3 sm:px-4 py-1.5 rounded-lg flex items-center gap-1.5 ${cycle === 'annual' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500'}`}
                 >
-                  <span>Thanh Toán Năm</span>
+                  <span>Theo Năm</span>
                   <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded">Tiết kiệm 2 tháng</span>
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {Object.keys(CHECKOUT_PLANS).map((k) => {
                 const item = CHECKOUT_PLANS[k];
                 const active = planKey === k;
@@ -725,7 +726,7 @@ function WizardCheckout() {
                   <div
                     key={k}
                     onClick={() => setPlanKey(k)}
-                    className={`p-5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${
+                    className={`p-4 sm:p-5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${
                       active
                         ? 'border-blue-600 bg-blue-50/30 shadow-md ring-2 ring-blue-500/20'
                         : 'border-slate-200 hover:border-slate-300'
@@ -741,7 +742,7 @@ function WizardCheckout() {
                       <p className="text-[11px] text-slate-500 mt-1">{item.audience}</p>
 
                       <div className="mt-4 flex items-baseline gap-1">
-                        <span className="text-2xl font-black text-slate-900">
+                        <span className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums">
                           {Number(price).toLocaleString('vi-VN')}
                         </span>
                         <span className="text-xs text-slate-500 font-bold">đ / {cycle === 'annual' ? 'năm' : 'tháng'}</span>
@@ -754,7 +755,7 @@ function WizardCheckout() {
 
                     <button
                       type="button"
-                      className={`w-full mt-5 py-2 rounded-xl text-xs font-bold ${
+                      className={`w-full mt-4 py-2 rounded-xl text-xs font-bold ${
                         active ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
                       }`}
                     >
@@ -769,7 +770,7 @@ function WizardCheckout() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5"
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5 cursor-pointer"
               >
                 <span>Tiếp tục: Thông tin đại lý &amp; VAT</span>
                 <span>›</span>
@@ -782,12 +783,12 @@ function WizardCheckout() {
         {step === 2 && (
           <div className="max-w-xl mx-auto space-y-5">
             <h3 className="text-sm font-bold text-slate-900">Bước 2: Thông tin đại lý &amp; Xuất hóa đơn VAT điện tử</h3>
-            <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-200 text-xs">
+            <div className="space-y-3 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 text-xs">
               <div>
                 <label className="block text-slate-600 font-bold mb-1">Tên Agency / Đại Lý</label>
                 <input type="text" defaultValue="Nguyen Phuong Khai Insurance Agency" className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-600 font-bold mb-1">Licensed Agent</label>
                   <input type="text" defaultValue="Nguyen Phuong Khai" className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white" />
@@ -799,7 +800,7 @@ function WizardCheckout() {
               </div>
               <div>
                 <label className="block text-slate-600 font-bold mb-1">Mã số thuế doanh nghiệp (Nếu cần xuất hóa đơn VAT)</label>
-                <input type="text" placeholder="0312345678" className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white" />
+                <input type="text" placeholder="0312345678" className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white font-mono" />
               </div>
             </div>
 
@@ -807,14 +808,14 @@ function WizardCheckout() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs"
+                className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer"
               >
                 ‹ Quay lại
               </button>
               <button
                 type="button"
                 onClick={() => setStep(3)}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5"
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5 cursor-pointer"
               >
                 <span>Tiếp tục: Cổng thanh toán VietQR</span>
                 <span>›</span>
@@ -838,30 +839,30 @@ function WizardCheckout() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs mt-3"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs mt-3 cursor-pointer"
                 >
-                  Quay Lại Quản Lý
+                  Quay Lại Chọn Gói
                 </button>
               </div>
             ) : (
-              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 text-xs">
+              <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200 space-y-4 text-xs">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                   <div>
                     <h4 className="font-black text-slate-900 text-sm">Gói: {plan.name} ({cycle === 'annual' ? 'Năm' : 'Tháng'})</h4>
-                    <span className="text-emerald-700 font-bold">Số tiền: {Number(amountVnd).toLocaleString('vi-VN')} VNĐ</span>
+                    <span className="text-emerald-700 font-bold tabular-nums">Số tiền: {Number(amountVnd).toLocaleString('vi-VN')} VNĐ</span>
                   </div>
-                  <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200 font-bold">⏱ 14:59</span>
+                  <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200 font-bold shrink-0">⏱ 14:59</span>
                 </div>
 
-                <div className="grid grid-cols-12 gap-5 items-center">
-                  <div className="col-span-5 flex flex-col items-center">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center">
+                  <div className="col-span-1 sm:col-span-5 flex flex-col items-center">
                     <div className="w-44 h-44 bg-white p-2 rounded-xl border border-slate-200 shadow-xs">
                       <img src={qrUrl} alt="VietQR" className="w-full h-full object-contain" />
                     </div>
                     <span className="text-[10px] text-slate-500 mt-2 text-center">Quét bằng App Ngân Hàng Napas</span>
                   </div>
 
-                  <div className="col-span-7 space-y-2">
+                  <div className="col-span-1 sm:col-span-7 space-y-2">
                     <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                       <span className="text-[10px] text-slate-400 block font-bold">SỐ TÀI KHOẢN (MB BANK)</span>
                       <strong className="font-mono text-sm text-slate-900">0838780005</strong>
@@ -873,7 +874,7 @@ function WizardCheckout() {
                     <button
                       type="button"
                       onClick={() => setPaid(true)}
-                      className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs"
+                      className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs cursor-pointer"
                     >
                       ⚡ Mô Phỏng Thanh Toán Thành Công (Demo Test)
                     </button>
@@ -884,7 +885,7 @@ function WizardCheckout() {
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="px-4 py-1.5 rounded-xl text-slate-600 font-bold"
+                    className="px-4 py-1.5 rounded-xl text-slate-600 font-bold cursor-pointer"
                   >
                     ‹ Sửa Thông Tin
                   </button>
@@ -898,7 +899,7 @@ function WizardCheckout() {
   );
 }
 
-// Expose components to window for DesignCanvas
+// Expose components to window
 Object.assign(window, {
   SwissCleanCheckout,
   DarkFintechCheckout,
