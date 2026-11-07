@@ -4,9 +4,9 @@
 // ============================================================
 
 
-import { DEFAULT_AGENT_ACCOUNTS } from '../utils/constants';
+import { DEFAULT_AGENT_ACCOUNTS } from '../utils/constants.js';
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = import.meta.env?.VITE_API_URL || '/api';
 
 /**
  * Helper to handle fetch responses with proper JSON parsing and error messages.
@@ -110,27 +110,232 @@ export function normalizeNote(n) {
   };
 }
 
-function normalizeContact(c) {
-  if (!c) return c;
-  const fullName = c.fullName || [c.firstName, c.middleName, c.lastName].filter(Boolean).join(' ') || 'Unknown Contact';
-  const rawOwner = formatUserName(c.contactOwner);
+const STATE_CODE_TO_LABEL = {
+  NC: 'North Carolina (NC)',
+  TX: 'Texas (TX)',
+  CA: 'California (CA)',
+  FL: 'Florida (FL)',
+  GA: 'Georgia (GA)',
+  VA: 'Virginia (VA)',
+  NY: 'New York (NY)',
+  PA: 'Pennsylvania (PA)',
+  IL: 'Illinois (IL)',
+  OH: 'Ohio (OH)',
+};
+
+const STATE_LABEL_TO_CODE = Object.fromEntries(
+  Object.entries(STATE_CODE_TO_LABEL).map(([code, label]) => [label.toLowerCase(), code])
+);
+
+export function toStateCodeForApi(val) {
+  if (!val || typeof val !== 'string') return '';
+  const trimmed = val.trim();
+  if (!trimmed || trimmed === '--' || trimmed === '—' || trimmed === '---') return '';
+  if (trimmed.length === 2) return trimmed.toUpperCase();
+  const parenMatch = trimmed.match(/\(([A-Za-z]{2})\)$/);
+  if (parenMatch) return parenMatch[1].toUpperCase();
+  return STATE_LABEL_TO_CODE[trimmed.toLowerCase()] || trimmed.slice(0, 2).toUpperCase();
+}
+
+export function toStateLabelForUi(val) {
+  if (!val || typeof val !== 'string') return '';
+  const trimmed = val.trim();
+  if (!trimmed || trimmed === '--' || trimmed === '—' || trimmed === '---') return '';
+  if (STATE_CODE_TO_LABEL[trimmed.toUpperCase()]) {
+    return STATE_CODE_TO_LABEL[trimmed.toUpperCase()];
+  }
+  return trimmed;
+}
+
+export function toHouseholdSizeForApi(val) {
+  if (val === null || val === undefined || val === '') return null;
+  if (typeof val === 'number' && Number.isFinite(val)) return val;
+  const s = String(val).trim();
+  if (!s || s === '--' || s === '—' || s === '---') return null;
+  if (s === 'Alone') return 1;
+  if (s === 'With Spouse') return 2;
+  if (s === 'With Family') return 3;
+  const n = parseInt(s, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function toHouseholdLabelForUi(val, size) {
+  if (typeof val === 'string') {
+    const s = val.trim();
+    if (s === 'Alone' || s === 'With Spouse' || s === 'With Family') return s;
+    if (s === '1') return 'Alone';
+    if (s === '2') return 'With Spouse';
+    if (s === '3') return 'With Family';
+  }
+  const num = typeof val === 'number' ? val : size;
+  if (num === 1) return 'Alone';
+  if (num === 2) return 'With Spouse';
+  if (num === 3) return 'With Family';
+  return '';
+}
+
+function cleanDash(val) {
+  if (val === null || val === undefined) return '';
+  const s = String(val).trim();
+  return s === '—' || s === '---' || s === '--' ? '' : s;
+}
+
+const CONTACT_OVERRIDES_KEY = 'insurmatch_contact_overrides';
+
+function getContactOverridesMap() {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(CONTACT_OVERRIDES_KEY);
+    return raw ? JSON.parse(raw) || {} : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveContactOverride(idOrCode, data, serverUpdatedAt) {
+  if (typeof window === 'undefined' || !idOrCode || !data) return;
+  try {
+    const map = getContactOverridesMap();
+    const key = String(idOrCode).trim();
+    const prev = map[key] || {};
+    const next = { ...prev };
+    Object.entries(data).forEach(([k, v]) => {
+      if (v !== undefined) next[k] = v;
+    });
+    next._updatedAt = serverUpdatedAt || new Date().toISOString();
+    map[key] = next;
+    if (data.code && String(data.code).trim() !== key) {
+      map[String(data.code).trim()] = next;
+    }
+    localStorage.setItem(CONTACT_OVERRIDES_KEY, JSON.stringify(map));
+  } catch (e) {
+    console.warn('[CRM API] Failed to save contact override:', e);
+  }
+}
+
+function sanitizeContactPayloadForApi(data) {
+  if (!data || typeof data !== 'object') return {};
+  const payload = { ...data };
+  if ('enrolledAddress' in payload && payload.address === undefined) {
+    payload.address = payload.enrolledAddress;
+  }
+  if ('postalCode' in payload && payload.zipCode === undefined) {
+    payload.zipCode = payload.postalCode;
+  }
+  if ('familyRelationship' in payload && payload.relationship === undefined) {
+    payload.relationship = payload.familyRelationship;
+  }
+  if ('howDoYouKnowUs' in payload && payload.sourceChannel === undefined) {
+    payload.sourceChannel = payload.howDoYouKnowUs;
+  }
+  if (payload.acaUsername === undefined) {
+    if (typeof payload.acaAccount === 'string') {
+      payload.acaUsername = payload.acaAccount;
+    } else if (payload.acaAccount && typeof payload.acaAccount === 'object' && payload.acaAccount.acaAccount !== undefined) {
+      payload.acaUsername = payload.acaAccount.acaAccount;
+    }
+  }
+  if (payload.acaPassword === undefined) {
+    if (typeof payload.acaPass === 'string') {
+      payload.acaPassword = payload.acaPass;
+    } else if (payload.acaAccount && typeof payload.acaAccount === 'object' && payload.acaAccount.acaPass !== undefined) {
+      payload.acaPassword = payload.acaAccount.acaPass;
+    }
+  }
+  if (payload.acaStatus === undefined && payload.acaAccountStatus !== undefined) {
+    payload.acaStatus = payload.acaAccountStatus;
+  }
+  if ('phone' in payload) payload.phone = cleanDash(payload.phone).slice(0, 20);
+  if ('email' in payload) payload.email = cleanDash(payload.email);
+  if ('sourceChannel' in payload) payload.sourceChannel = cleanDash(payload.sourceChannel);
+  if ('howDoYouKnowUs' in payload) payload.howDoYouKnowUs = cleanDash(payload.howDoYouKnowUs);
+  if ('state' in payload) payload.state = toStateCodeForApi(payload.state);
+  if (typeof payload.zipCode === 'string') payload.zipCode = payload.zipCode.trim().slice(0, 10);
+  if (typeof payload.ssn === 'string') payload.ssn = payload.ssn.trim().slice(0, 11);
+  if (typeof payload.relationship === 'string') payload.relationship = payload.relationship.trim().slice(0, 20);
+  if (typeof payload.alienNumber === 'string') payload.alienNumber = payload.alienNumber.trim().slice(0, 20);
+  if (typeof payload.certificateNumber === 'string') payload.certificateNumber = payload.certificateNumber.trim().slice(0, 30);
+  if (typeof payload.acaStatus === 'string') payload.acaStatus = payload.acaStatus.trim().slice(0, 30);
+
+  const hhSize = toHouseholdSizeForApi(payload.household ?? payload.householdSize);
+  if (hhSize !== null) {
+    payload.householdSize = hhSize;
+  }
+  delete payload.household;
+  delete payload.acaAccount;
+  delete payload.acaPass;
+  delete payload.contactFields;
+  delete payload.primary;
+  return payload;
+}
+
+function normalizeContact(rawContact) {
+  if (!rawContact) return rawContact;
+  const overridesMap = getContactOverridesMap();
+  const cIdKey = rawContact.id != null ? String(rawContact.id).trim() : '';
+  const cCodeKey = rawContact.code ? String(rawContact.code).trim() : '';
+  const savedOverride = (cIdKey && overridesMap[cIdKey]) || (cCodeKey && overridesMap[cCodeKey]) || {};
+  const serverTime = rawContact.updatedAt ? new Date(rawContact.updatedAt).getTime() : 0;
+  const localTime = savedOverride._updatedAt ? new Date(savedOverride._updatedAt).getTime() : 0;
+  const serverIsNewer = serverTime > 0 && localTime > 0 && serverTime > localTime + 2000;
+  const c = serverIsNewer ? { ...savedOverride, ...rawContact } : { ...rawContact, ...savedOverride };
+
+  const firstName = c.firstName ?? c.primary?.firstName ?? '';
+  const middleName = c.middleName ?? c.primary?.middleName ?? '';
+  const lastName = c.lastName ?? c.primary?.lastName ?? '';
+  const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ') || c.fullName || 'Unknown Contact';
+  const rawOwner = formatUserName(
+    (!serverIsNewer && savedOverride.contactOwnerName) || c.contactOwner || c.contactOwnerName
+  );
   const ownerName = (rawOwner && rawOwner !== 'The Best Rate Insurance' && rawOwner !== 'Platform Staff') ? rawOwner : '';
   const modifiedByName = formatUserName(c.lastModifiedBy) || ownerName || 'Staff';
+
+  const cleanedPhone = cleanDash(c.rawPhone || c.phone || c.contactFields?.phone || '');
+  const cleanedEmail = cleanDash(c.rawEmail || c.email || '');
+  const cleanedHow = cleanDash(c.howDoYouKnowUs || c.sourceChannel || '');
+  const cleanedWhoRefer = cleanDash(c.whoReferClient || c.sourceDetail || '');
+  const uiState = toStateLabelForUi(c.contactFields?.state || c.state || '');
+  const uiHousehold = toHouseholdLabelForUi(
+    (!serverIsNewer ? savedOverride.household : undefined) ?? c.primary?.household ?? c.household,
+    c.householdSize
+  );
+  const rawAcaObj = (c.acaAccount && typeof c.acaAccount === 'object') ? c.acaAccount : {};
+  const rawAcaStr = typeof c.acaAccount === 'string' ? c.acaAccount : '';
+  const rawAcaStatus = (!serverIsNewer && savedOverride.acaStatus) || c.acaAccountStatus || rawAcaObj.acaAccountStatus || c.acaStatus || '';
+  const resolvedAcaStatus = rawAcaStatus === 'Uploaded - Waiting for Verific'
+    ? 'Uploaded - Waiting for Verification'
+    : rawAcaStatus;
 
   return {
     ...c,
     id: c.id,
     no: c.no || c.id,
     code: c.code || `CT2600${String(c.id || 1).padStart(4, '0')}`,
+    firstName,
+    middleName,
+    lastName,
     fullName,
     name: fullName,
     contactOwnerName: ownerName,
-    phone: c.phone || '—',
-    email: c.email || '—',
-    language: c.language || '',
+    rawPhone: cleanedPhone,
+    rawEmail: cleanedEmail,
+    phone: cleanedPhone || '—',
+    email: cleanedEmail || '—',
+    language: c.language || c.contactFields?.language || '',
+    career: c.career || c.contactFields?.career || '',
+    state: uiState,
+    city: c.city || c.contactFields?.city || '',
+    zipCode: c.zipCode || c.postalCode || c.contactFields?.postalCode || '',
+    postalCode: c.postalCode || c.zipCode || c.contactFields?.postalCode || '',
+    county: c.county || c.contactFields?.county || '',
+    enrolledAddress: c.enrolledAddress || c.contactFields?.enrolledAddress || c.address || '',
+    address: c.enrolledAddress || c.address || c.contactFields?.enrolledAddress || '',
+    mailingAddress: c.mailingAddress ?? c.contactFields?.mailingAddress ?? '',
+    streetAddress: c.streetAddress ?? c.contactFields?.streetAddress ?? '',
     status: c.status || 'Active',
-    howDoYouKnowUs: c.howDoYouKnowUs || c.sourceDetail || c.sourceChannel || '—',
-    acaAccountStatus: c.acaAccountStatus || c.acaStatus || null,
+    howDoYouKnowUs: cleanedHow,
+    whoReferClient: cleanedWhoRefer,
+    acaAccountStatus: resolvedAcaStatus || null,
     contactOwner: {
       name: ownerName,
       avatar: c.contactOwner?.avatar || getUserAvatar(ownerName),
@@ -142,40 +347,44 @@ function normalizeContact(c) {
       bg: c.lastModifiedBy?.bg || 'bg-slate-100 text-slate-800',
     },
     lastModifiedTime: c.lastModifiedTime || (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : 'Just now'),
-    primary: c.primary || {
-      firstName: c.firstName || '',
-      middleName: c.middleName || '',
-      lastName: c.lastName || '',
-      dob: c.dateOfBirth || c.dob || '',
-      ssn: c.ssn || '',
-      familyRelationship: c.relationship || '',
-      gender: c.gender || '',
-      immigrationStatus: c.immigrationStatus || '',
-      alienNumber: c.alienNumber || '',
-      certificateNumber: c.certificateNumber || '',
-      dateExpired: c.dateExpired || '',
-      household: c.householdSize || 1,
+    primary: {
+      ...(typeof c.primary === 'object' && c.primary ? c.primary : {}),
+      firstName,
+      middleName,
+      lastName,
+      dob: c.dateOfBirth || c.dob || c.primary?.dob || '',
+      ssn: c.ssn || c.primary?.ssn || '',
+      familyRelationship: c.familyRelationship || c.relationship || c.primary?.familyRelationship || 'Self',
+      gender: c.gender || c.primary?.gender || '',
+      immigrationStatus: c.immigrationStatus || c.primary?.immigrationStatus || '',
+      alienNumber: c.alienNumber || c.primary?.alienNumber || '',
+      certificateNumber: c.certificateNumber || c.primary?.certificateNumber || '',
+      dateExpired: c.dateExpired || c.primary?.dateExpired || '',
+      household: uiHousehold,
     },
-    contactFields: c.contactFields || {
-      phone: c.phone || '',
-      state: c.state || '',
-      city: c.city || '',
-      postalCode: c.zipCode || c.postalCode || '',
-      streetAddress: c.streetAddress || c.address || '',
-      enrolledAddress: c.address || '',
-      mailingAddress: c.mailingAddress || c.address || '',
-      county: c.county || '',
-      language: c.language || '',
+    contactFields: {
+      ...(typeof c.contactFields === 'object' && c.contactFields ? c.contactFields : {}),
+      phone: cleanedPhone,
+      state: uiState,
+      city: c.city || c.contactFields?.city || '',
+      postalCode: c.zipCode || c.postalCode || c.contactFields?.postalCode || '',
+      streetAddress: c.streetAddress ?? c.contactFields?.streetAddress ?? '',
+      enrolledAddress: c.enrolledAddress || c.contactFields?.enrolledAddress || c.address || '',
+      mailingAddress: c.mailingAddress ?? c.contactFields?.mailingAddress ?? '',
+      county: c.county || c.contactFields?.county || '',
+      language: c.language || c.contactFields?.language || '',
+      career: c.career || c.contactFields?.career || '',
     },
-    acaAccount: c.acaAccount || {
-      theBestRateEmail: '',
-      acaAccountStatus: c.acaAccountStatus || '',
-      acaAccount: '',
-      acaPass: '',
-      acaStatusSpecial: '',
-      acaAccountSpecial: '',
-      acaPassSpecial: '',
-      enrollCallRep: '',
+    acaAccount: {
+      ...rawAcaObj,
+      theBestRateEmail: c.theBestRateEmail ?? rawAcaObj.theBestRateEmail ?? '',
+      acaAccountStatus: resolvedAcaStatus,
+      acaAccount: rawAcaStr || rawAcaObj.acaAccount || c.acaUsername || '',
+      acaPass: c.acaPass || rawAcaObj.acaPass || c.acaPassword || '',
+      acaStatusSpecial: c.acaStatusSpecial ?? rawAcaObj.acaStatusSpecial ?? '',
+      acaAccountSpecial: c.acaAccountSpecial ?? rawAcaObj.acaAccountSpecial ?? '',
+      acaPassSpecial: c.acaPassSpecial ?? rawAcaObj.acaPassSpecial ?? '',
+      enrollCallRep: c.enrollCallRep ?? rawAcaObj.enrollCallRep ?? '',
     },
     deals: Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : (Array.isArray(c.associatedDeals) ? c.associatedDeals.map(normalizeDeal) : []),
     associatedDeals: Array.isArray(c.associatedDeals) ? c.associatedDeals.map(normalizeDeal) : (Array.isArray(c.deals) ? c.deals.map(normalizeDeal) : []),
@@ -423,6 +632,7 @@ export async function getUsers() {
     if (Array.isArray(data) && data.length > 0) {
       if (typeof window !== 'undefined') {
         localStorage.setItem('insurmatch_admin_accounts', JSON.stringify(data));
+        window.dispatchEvent(new CustomEvent('insurmatch_accounts_updated'));
       }
       return data;
     }
@@ -541,19 +751,30 @@ export async function getContact(id) {
 }
 
 export async function createContact(data) {
+  const apiPayload = sanitizeContactPayloadForApi(data);
   const res = await request('/contacts', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify(apiPayload),
   });
+  if (res && (res.id || res.code)) {
+    saveContactOverride(res.id || res.code, { ...data, code: res.code }, res.updatedAt);
+  }
   return res ? normalizeContact(res) : res;
 }
 
 export async function updateContact(id, data) {
+  if (id) {
+    saveContactOverride(id, data);
+  }
+  const apiPayload = sanitizeContactPayloadForApi(data);
   const res = await request(`/contacts/${encodeURIComponent(id)}`, {
     method: 'PUT',
-    body: JSON.stringify(data),
+    body: JSON.stringify(apiPayload),
   });
-  return res ? normalizeContact(res) : res;
+  if (res && (res.id || res.code)) {
+    saveContactOverride(res.id || res.code, { ...data, code: res.code }, res.updatedAt);
+  }
+  return res ? normalizeContact(res) : normalizeContact({ id, ...data });
 }
 
 // ── Deals ────────────────────────────────────────────────────────────────────

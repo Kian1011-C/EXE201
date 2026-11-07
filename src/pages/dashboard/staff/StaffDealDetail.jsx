@@ -872,6 +872,7 @@ export default function StaffDealDetail({
     }
 
     autoSaveDealTimerRef.current = setTimeout(() => {
+      autoSaveDealTimerRef.current = null;
       handleSaveDealChanges({ isAutoSave: true });
       lastSavedDealJsonRef.current = currentDealSnapshot;
       setDealSaveStatus('saved');
@@ -883,6 +884,7 @@ export default function StaffDealDetail({
     return () => {
       if (autoSaveDealTimerRef.current) {
         clearTimeout(autoSaveDealTimerRef.current);
+        autoSaveDealTimerRef.current = null;
       }
     };
   }, [currentDealSnapshot]);
@@ -892,6 +894,7 @@ export default function StaffDealDetail({
     return () => {
       if (autoSaveDealTimerRef.current) {
         clearTimeout(autoSaveDealTimerRef.current);
+        autoSaveDealTimerRef.current = null;
         if (handleSaveDealChangesRef.current) {
           handleSaveDealChangesRef.current({ isAutoSave: true });
         }
@@ -902,6 +905,7 @@ export default function StaffDealDetail({
   function handleBack() {
     if (autoSaveDealTimerRef.current) {
       clearTimeout(autoSaveDealTimerRef.current);
+      autoSaveDealTimerRef.current = null;
       if (handleSaveDealChangesRef.current) {
         handleSaveDealChangesRef.current({ isAutoSave: true });
       }

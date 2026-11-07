@@ -786,83 +786,176 @@ export default function StaffContactDetail({
   function handleCancelEditName() {
     setIsEditingName(false);
   }
-  const [primaryDob, setPrimaryDob] = useState(initialPrimary.dob || '');
-  const [primarySsn, setPrimarySsn] = useState(initialPrimary.ssn || '');
-  const [primaryRelation, setPrimaryRelation] = useState(initialPrimary.familyRelationship || 'Self');
-  const [primaryGender, setPrimaryGender] = useState(initialPrimary.gender || '');
-  const [primaryImmigration, setPrimaryImmigration] = useState(initialPrimary.immigrationStatus || '');
-  const [primaryAlienNumber, setPrimaryAlienNumber] = useState(initialPrimary.alienNumber || '');
-  const [primaryCertificateNumber, setPrimaryCertificateNumber] = useState(initialPrimary.certificateNumber || '');
-  const [primaryDateExpired, setPrimaryDateExpired] = useState(initialPrimary.dateExpired || '');
-  const [primaryHousehold, setPrimaryHousehold] = useState(initialPrimary.household || '');
+  const cleanDashVal = (v) => {
+    if (v === null || v === undefined) return '';
+    const s = String(v).trim();
+    return s === '—' || s === '---' || s === '--' ? '' : s;
+  };
+
+  const [primaryDob, setPrimaryDob] = useState(initialPrimary.dob || contact?.dateOfBirth || contact?.dob || '');
+  const [primarySsn, setPrimarySsn] = useState(initialPrimary.ssn || contact?.ssn || '');
+  const [primaryRelation, setPrimaryRelation] = useState(initialPrimary.familyRelationship || contact?.familyRelationship || contact?.relationship || 'Self');
+  const [primaryGender, setPrimaryGender] = useState(initialPrimary.gender || contact?.gender || '');
+  const [primaryImmigration, setPrimaryImmigration] = useState(initialPrimary.immigrationStatus || contact?.immigrationStatus || '');
+  const [primaryAlienNumber, setPrimaryAlienNumber] = useState(initialPrimary.alienNumber || contact?.alienNumber || '');
+  const [primaryCertificateNumber, setPrimaryCertificateNumber] = useState(initialPrimary.certificateNumber || contact?.certificateNumber || '');
+  const [primaryDateExpired, setPrimaryDateExpired] = useState(initialPrimary.dateExpired || contact?.dateExpired || '');
+  const [primaryHousehold, setPrimaryHousehold] = useState(initialPrimary.household || contact?.household || '');
 
   // Contact fields
   const [contactPhone, setContactPhone] = useState(
-    contact?.rawPhone || contact?.phone || ''
+    cleanDashVal(contact?.rawPhone || contact?.contactFields?.phone || contact?.phone || '')
   );
-  const [contactLanguage, setContactLanguage] = useState(contact?.language || '');
-  const [contactCareer, setContactCareer] = useState(contact?.career || '');
-  const [contactEmail, setContactEmail] = useState(contact?.email || '');
+  const [contactLanguage, setContactLanguage] = useState(contact?.language || contact?.contactFields?.language || '');
+  const [contactCareer, setContactCareer] = useState(contact?.career || contact?.contactFields?.career || '');
+  const [contactEmail, setContactEmail] = useState(cleanDashVal(contact?.rawEmail || contact?.email || ''));
 
   // Source of Lead fields
-  const [leadHowDoYouKnowUs, setLeadHowDoYouKnowUs] = useState(contact?.howDoYouKnowUs || '');
-  const [leadWhoRefer, setLeadWhoRefer] = useState(contact?.whoReferClient || '');
+  const [leadHowDoYouKnowUs, setLeadHowDoYouKnowUs] = useState(cleanDashVal(contact?.howDoYouKnowUs || contact?.sourceChannel || ''));
+  const [leadWhoRefer, setLeadWhoRefer] = useState(cleanDashVal(contact?.whoReferClient || contact?.sourceDetail || ''));
   const [leadContactOwner, setLeadContactOwner] = useState(() => {
     const raw = getPersonName(contact?.contactOwner, '');
     return (raw === 'The Best Rate Insurance' || raw === 'Platform Staff') ? '' : raw;
   });
 
+  const syncedContactKeyRef = useRef('');
+  const isSavingSelfRef = useRef(false);
+
   // Sync state whenever selected contact changes
   useEffect(() => {
     if (contact) {
-      const p = contact.primary || {};
-      const fName = contact.firstName !== undefined ? contact.firstName : (p.firstName || '');
-      const mName = contact.middleName !== undefined ? contact.middleName : (p.middleName || '');
-      const lName = contact.lastName !== undefined ? contact.lastName : (p.lastName || '');
+      if (isSavingSelfRef.current) {
+        isSavingSelfRef.current = false;
+        return;
+      }
+      const contactKey = `${contact.id || contact.code || ''}_${Boolean(contact.primary || contact.contactFields)}`;
+      const isSameContactKey = syncedContactKeyRef.current === contactKey;
+      syncedContactKeyRef.current = contactKey;
 
-      setPrimaryFirstName(fName || (contact.fullName ? contact.fullName?.split(' ')[0] : ''));
-      setPrimaryMiddleName(mName || '');
-      setPrimaryLastName(lName || (contact.fullName ? contact.fullName?.split(' ').slice(-1)[0] : ''));
-      setPrimaryDob(p.dob || '');
-      setPrimarySsn(p.ssn || '');
-      setPrimaryRelation(p.familyRelationship || 'Self');
-      setPrimaryGender(p.gender || '');
-      setPrimaryImmigration(p.immigrationStatus || '');
-      setPrimaryAlienNumber(p.alienNumber || '');
-      setPrimaryCertificateNumber(p.certificateNumber || '');
-      setPrimaryDateExpired(p.dateExpired || '');
-      setPrimaryHousehold(p.household || '');
+      if (!isSameContactKey) {
+        const p = contact.primary || {};
+        const fName = contact.firstName !== undefined ? contact.firstName : (p.firstName || '');
+        const mName = contact.middleName !== undefined ? contact.middleName : (p.middleName || '');
+        const lName = contact.lastName !== undefined ? contact.lastName : (p.lastName || '');
 
-      setContactPhone(contact.rawPhone || contact.phone || '');
-      setContactLanguage(contact.language || '');
-      setContactCareer(contact.career || '');
-      setContactEmail(contact.email || '');
+        const nextFirstName = fName || (contact.fullName ? contact.fullName?.split(' ')[0] : '');
+        const nextMiddleName = mName || '';
+        const nextLastName = lName || (contact.fullName ? contact.fullName?.split(' ').slice(-1)[0] : '');
+        const nextDob = p.dob || contact.dateOfBirth || contact.dob || '';
+        const nextSsn = p.ssn || contact.ssn || '';
+        const nextRelation = p.familyRelationship || contact.familyRelationship || contact.relationship || 'Self';
+        const nextGender = p.gender || contact.gender || '';
+        const nextImmigration = p.immigrationStatus || contact.immigrationStatus || '';
+        const nextAlienNumber = p.alienNumber || contact.alienNumber || '';
+        const nextCertificateNumber = p.certificateNumber || contact.certificateNumber || '';
+        const nextDateExpired = p.dateExpired || contact.dateExpired || '';
+        const nextHousehold = p.household || contact.household || '';
 
-      const cf = contact.contactFields || {};
-      setEnrolledAddress(contact.address || cf.enrolledAddress || '');
-      setMailingAddress(contact.mailingAddress || cf.mailingAddress || '');
-      setStreetAddress(contact.streetAddress || cf.streetAddress || '');
-      setCity(contact.city || cf.city || '');
-      setContactState(contact.state || cf.state || '');
-      setPostalCode(contact.zipCode || cf.postalCode || '');
-      setCounty(contact.county || cf.county || '');
+        const cf = contact.contactFields || {};
+        const nextPhone = cleanDashVal(contact.rawPhone || cf.phone || contact.phone || '');
+        const nextLanguage = contact.language || cf.language || '';
+        const nextCareer = contact.career || cf.career || '';
+        const nextEmail = cleanDashVal(contact.rawEmail || contact.email || '');
 
-      setLeadHowDoYouKnowUs(contact.howDoYouKnowUs || '');
-      const rawOwner = getPersonName(contact.contactOwner, '');
-      setLeadContactOwner(
-        (rawOwner === 'The Best Rate Insurance' || rawOwner === 'Platform Staff') ? '' : rawOwner
-      );
+        const nextEnrolledAddress = contact.enrolledAddress || cf.enrolledAddress || contact.address || '';
+        const nextMailingAddress = contact.mailingAddress ?? cf.mailingAddress ?? '';
+        const nextStreetAddress = contact.streetAddress ?? cf.streetAddress ?? '';
+        const nextCity = contact.city || cf.city || '';
+        const nextState = contact.state || cf.state || '';
+        const nextPostalCode = contact.zipCode || contact.postalCode || cf.postalCode || '';
+        const nextCounty = contact.county || cf.county || '';
 
-      const aca = contact.acaAccount || {};
-      const s = contact.acaAccountStatus || aca.acaAccountStatus || aca.status || '';
-      setAcaAccountStatus(s);
-      setAcaAccount(aca.acaAccount || '');
-      setAcaPass(aca.acaPass || '');
-      setTheBestRateEmail(aca.theBestRateEmail || '');
-      setAcaStatusSpecial(aca.acaStatusSpecial || '');
-      setAcaAccountSpecial(aca.acaAccountSpecial || '');
-      setAcaPassSpecial(aca.acaPassSpecial || '');
-      setEnrollCallRep(aca.enrollCallRep || '');
+        const nextHowDoYouKnowUs = cleanDashVal(contact.howDoYouKnowUs || contact.sourceChannel || '');
+        const nextWhoRefer = cleanDashVal(contact.whoReferClient || contact.sourceDetail || '');
+        const rawOwner = getPersonName(contact.contactOwner, '');
+        const nextContactOwner = (rawOwner === 'The Best Rate Insurance' || rawOwner === 'Platform Staff') ? '' : rawOwner;
+
+        const aca = (contact.acaAccount && typeof contact.acaAccount === 'object') ? contact.acaAccount : {};
+        const nextAcaStatus = contact.acaAccountStatus || aca.acaAccountStatus || aca.status || contact.acaStatus || '';
+        const nextAcaAccount = (typeof contact.acaAccount === 'string' ? contact.acaAccount : aca.acaAccount) || contact.acaUsername || '';
+        const nextAcaPass = aca.acaPass || contact.acaPass || contact.acaPassword || '';
+        const nextBestRateEmail = aca.theBestRateEmail || contact.theBestRateEmail || '';
+        const nextAcaStatusSpecial = aca.acaStatusSpecial || contact.acaStatusSpecial || '';
+        const nextAcaAccountSpecial = aca.acaAccountSpecial || contact.acaAccountSpecial || '';
+        const nextAcaPassSpecial = aca.acaPassSpecial || contact.acaPassSpecial || '';
+        const nextEnrollCallRep = aca.enrollCallRep || contact.enrollCallRep || '';
+
+        setPrimaryFirstName(nextFirstName);
+        setPrimaryMiddleName(nextMiddleName);
+        setPrimaryLastName(nextLastName);
+        setPrimaryDob(nextDob);
+        setPrimarySsn(nextSsn);
+        setPrimaryRelation(nextRelation);
+        setPrimaryGender(nextGender);
+        setPrimaryImmigration(nextImmigration);
+        setPrimaryAlienNumber(nextAlienNumber);
+        setPrimaryCertificateNumber(nextCertificateNumber);
+        setPrimaryDateExpired(nextDateExpired);
+        setPrimaryHousehold(nextHousehold);
+
+        setContactPhone(nextPhone);
+        setContactLanguage(nextLanguage);
+        setContactCareer(nextCareer);
+        setContactEmail(nextEmail);
+
+        setEnrolledAddress(nextEnrolledAddress);
+        setMailingAddress(nextMailingAddress);
+        setStreetAddress(nextStreetAddress);
+        setCity(nextCity);
+        setContactState(nextState);
+        setPostalCode(nextPostalCode);
+        setCounty(nextCounty);
+
+        setLeadHowDoYouKnowUs(nextHowDoYouKnowUs);
+        setLeadWhoRefer(nextWhoRefer);
+        setLeadContactOwner(nextContactOwner);
+
+        setAcaAccountStatus(nextAcaStatus);
+        setAcaAccount(nextAcaAccount);
+        setAcaPass(nextAcaPass);
+        setTheBestRateEmail(nextBestRateEmail);
+        setAcaStatusSpecial(nextAcaStatusSpecial);
+        setAcaAccountSpecial(nextAcaAccountSpecial);
+        setAcaPassSpecial(nextAcaPassSpecial);
+        setEnrollCallRep(nextEnrollCallRep);
+
+        lastSavedJsonRef.current = JSON.stringify({
+          primaryFirstName: String(nextFirstName || '').trim(),
+          primaryMiddleName: String(nextMiddleName || '').trim(),
+          primaryLastName: String(nextLastName || '').trim(),
+          primaryDob: String(nextDob || '').trim(),
+          primarySsn: String(nextSsn || '').trim(),
+          primaryRelation: String(nextRelation || '').trim(),
+          primaryGender: String(nextGender || '').trim(),
+          primaryImmigration: String(nextImmigration || '').trim(),
+          primaryAlienNumber: String(nextAlienNumber || '').trim(),
+          primaryCertificateNumber: String(nextCertificateNumber || '').trim(),
+          primaryDateExpired: String(nextDateExpired || '').trim(),
+          primaryHousehold: String(nextHousehold || '').trim(),
+          contactPhone: String(nextPhone || '').trim(),
+          contactLanguage: String(nextLanguage || '').trim(),
+          contactCareer: String(nextCareer || '').trim(),
+          contactEmail: String(nextEmail || '').trim(),
+          enrolledAddress: String(nextEnrolledAddress || '').trim(),
+          mailingAddress: String(nextMailingAddress || '').trim(),
+          streetAddress: String(nextStreetAddress || '').trim(),
+          city: String(nextCity || '').trim(),
+          contactState: String(nextState || '').trim(),
+          postalCode: String(nextPostalCode || '').trim(),
+          county: String(nextCounty || '').trim(),
+          leadHowDoYouKnowUs: String(nextHowDoYouKnowUs || '').trim(),
+          leadWhoRefer: String(nextWhoRefer || '').trim(),
+          leadContactOwner: String(nextContactOwner || '').trim(),
+          acaAccountStatus: String(nextAcaStatus || '').trim(),
+          acaAccount: String(nextAcaAccount || '').trim(),
+          acaPass: String(nextAcaPass || '').trim(),
+          theBestRateEmail: String(nextBestRateEmail || '').trim(),
+          acaStatusSpecial: String(nextAcaStatusSpecial || '').trim(),
+          acaAccountSpecial: String(nextAcaAccountSpecial || '').trim(),
+          acaPassSpecial: String(nextAcaPassSpecial || '').trim(),
+          enrollCallRep: String(nextEnrollCallRep || '').trim(),
+        });
+      }
 
       setActivitiesList(contact.activities || []);
       setNotesList((contact.notes || []).map((n) => ({ ...n, attachments: getSafeAttachments(n) })));
@@ -1579,9 +1672,13 @@ export default function StaffContactDetail({
   const autoSaveTimerRef = useRef(null);
   const isInitialMountRef = useRef(true);
   const lastSavedJsonRef = useRef('');
+  const handleSaveContactChangesRef = useRef(null);
 
   function handleSaveContactChanges(options = {}) {
     const { isAutoSave = false } = options;
+    const cleanedPhone = cleanDashVal(contactPhone);
+    const cleanedEmail = cleanDashVal(contactEmail);
+    const cleanedHow = cleanDashVal(leadHowDoYouKnowUs);
     const updatedContact = {
       ...(contact || {}),
       firstName: primaryFirstName,
@@ -1589,13 +1686,15 @@ export default function StaffContactDetail({
       lastName: primaryLastName,
       fullName: currentFullName,
       name: currentFullName,
-      phone: contactPhone,
-      email: contactEmail,
+      rawPhone: cleanedPhone,
+      rawEmail: cleanedEmail,
+      phone: cleanedPhone || '—',
+      email: cleanedEmail || '—',
       language: contactLanguage,
       career: contactCareer,
       contactOwner: leadContactOwner,
       leadOwner: leadContactOwner,
-      howDoYouKnowUs: leadHowDoYouKnowUs,
+      howDoYouKnowUs: cleanedHow,
       whoReferClient: leadWhoRefer,
       address: enrolledAddress,
       enrolledAddress: enrolledAddress,
@@ -1604,9 +1703,22 @@ export default function StaffContactDetail({
       city: city,
       state: contactState,
       zipCode: postalCode,
+      postalCode: postalCode,
       county: county,
+      dateOfBirth: primaryDob,
+      ssn: primarySsn,
+      familyRelationship: primaryRelation,
+      relationship: primaryRelation,
+      gender: primaryGender,
+      immigrationStatus: primaryImmigration,
+      alienNumber: primaryAlienNumber,
+      certificateNumber: primaryCertificateNumber,
+      dateExpired: primaryDateExpired,
+      household: primaryHousehold,
+      acaAccountStatus,
       contactFields: {
         ...(contact?.contactFields || {}),
+        phone: cleanedPhone,
         enrolledAddress,
         mailingAddress,
         streetAddress,
@@ -1614,6 +1726,8 @@ export default function StaffContactDetail({
         state: contactState,
         postalCode,
         county,
+        language: contactLanguage,
+        career: contactCareer,
       },
       primary: {
         ...(contact?.primary || {}),
@@ -1622,6 +1736,7 @@ export default function StaffContactDetail({
         lastName: primaryLastName,
         dob: primaryDob,
         ssn: primarySsn,
+        familyRelationship: primaryRelation,
         gender: primaryGender,
         immigrationStatus: primaryImmigration,
         alienNumber: primaryAlienNumber,
@@ -1630,8 +1745,9 @@ export default function StaffContactDetail({
         household: primaryHousehold,
       },
       acaAccount: {
-        ...(contact?.acaAccount || {}),
+        ...(typeof contact?.acaAccount === 'object' && contact?.acaAccount ? contact.acaAccount : {}),
         theBestRateEmail,
+        acaAccountStatus,
         acaAccount,
         acaPass,
         acaStatusSpecial,
@@ -1641,18 +1757,16 @@ export default function StaffContactDetail({
       },
     };
 
-    null;
-
     // Record property history updates in batch with dynamic current actor
     const contactId = contact?.id || contact?.code || '';
     const oldCF = contact?.contactFields || {};
     const oldPrimary = contact?.primary || {};
-    const oldAca = contact?.acaAccount || {};
+    const oldAca = (typeof contact?.acaAccount === 'object' && contact?.acaAccount) ? contact.acaAccount : {};
 
     const updates = [
       { fieldName: 'Enrolled Address', oldValue: oldCF.enrolledAddress || contact?.address || '', newValue: enrolledAddress },
-      { fieldName: 'Phone', oldValue: contact?.phone || oldCF.phone || '', newValue: contactPhone },
-      { fieldName: 'Email', oldValue: contact?.email || oldCF.email || '', newValue: contactEmail },
+      { fieldName: 'Phone', oldValue: cleanDashVal(contact?.rawPhone || contact?.phone || oldCF.phone || ''), newValue: cleanedPhone },
+      { fieldName: 'Email', oldValue: cleanDashVal(contact?.rawEmail || contact?.email || oldCF.email || ''), newValue: cleanedEmail },
       { fieldName: 'Mailing Address', oldValue: oldCF.mailingAddress || '', newValue: mailingAddress },
       { fieldName: 'Street Address', oldValue: oldCF.streetAddress || '', newValue: streetAddress },
       { fieldName: 'State', oldValue: oldCF.state || contact?.state || '', newValue: contactState },
@@ -1660,16 +1774,18 @@ export default function StaffContactDetail({
       { fieldName: 'Postal Code', oldValue: oldCF.postalCode || contact?.zipCode || '', newValue: postalCode },
       { fieldName: 'County', oldValue: oldCF.county || '', newValue: county },
       { fieldName: 'Language', oldValue: contact?.language || '', newValue: contactLanguage },
+      { fieldName: 'Career', oldValue: contact?.career || oldCF.career || '', newValue: contactCareer },
       { fieldName: 'First Name', oldValue: contact?.firstName || oldPrimary.firstName || '', newValue: primaryFirstName },
       { fieldName: 'Middle Name', oldValue: contact?.middleName || oldPrimary.middleName || '', newValue: primaryMiddleName },
       { fieldName: 'Last Name', oldValue: contact?.lastName || oldPrimary.lastName || '', newValue: primaryLastName },
       { fieldName: 'Date Of Birth', oldValue: contact?.dateOfBirth || oldPrimary.dob || '', newValue: primaryDob },
       { fieldName: 'SSN', oldValue: contact?.ssn || oldPrimary.ssn || '', newValue: primarySsn },
+      { fieldName: 'Family Relationship', oldValue: oldPrimary.familyRelationship || contact?.relationship || 'Self', newValue: primaryRelation },
       { fieldName: 'Gender', oldValue: contact?.gender || oldPrimary.gender || '', newValue: primaryGender },
       { fieldName: 'Immigration Status', oldValue: contact?.immigrationStatus || oldPrimary.immigrationStatus || '', newValue: primaryImmigration },
       { fieldName: 'ACA Account Status', oldValue: contact?.acaAccountStatus || oldAca.acaAccountStatus || oldAca.status || '', newValue: acaAccountStatus },
       { fieldName: 'Contact Owner', oldValue: getPersonName(contact?.contactOwner, ''), newValue: leadContactOwner },
-      { fieldName: 'How do you know us', oldValue: contact?.howDoYouKnowUs || '', newValue: leadHowDoYouKnowUs },
+      { fieldName: 'How do you know us', oldValue: cleanDashVal(contact?.howDoYouKnowUs || ''), newValue: cleanedHow },
       { fieldName: 'Who refer client', oldValue: contact?.whoReferClient || '', newValue: leadWhoRefer },
       { fieldName: 'Aca Account', oldValue: oldAca.acaAccount || '', newValue: acaAccount },
       { fieldName: 'Aca Pass', oldValue: oldAca.acaPass || '', newValue: acaPass },
@@ -1684,21 +1800,29 @@ export default function StaffContactDetail({
 
     if (contact?.id) {
       const matchingUser = dbUsers.find(u => (u.fullName || u.name) === leadContactOwner);
+      const existingOwnerName = getPersonName(contact?.contactOwner, '');
+      const fallbackOwnerId = (leadContactOwner && leadContactOwner === existingOwnerName)
+        ? (contact?.contactOwnerId || contact?.contactOwner?.id || null)
+        : null;
       updateContact(contact.id, {
         firstName: primaryFirstName,
         middleName: primaryMiddleName,
         lastName: primaryLastName,
-        phone: contactPhone,
-        email: contactEmail,
+        phone: cleanedPhone,
+        email: cleanedEmail,
         address: enrolledAddress,
+        enrolledAddress: enrolledAddress,
         mailingAddress: mailingAddress,
         streetAddress: streetAddress,
         city: city,
         state: contactState,
         zipCode: postalCode,
+        postalCode: postalCode,
         county: county,
         dateOfBirth: primaryDob,
         ssn: primarySsn,
+        relationship: primaryRelation,
+        familyRelationship: primaryRelation,
         gender: primaryGender,
         immigrationStatus: primaryImmigration,
         alienNumber: primaryAlienNumber,
@@ -1708,23 +1832,27 @@ export default function StaffContactDetail({
         language: contactLanguage,
         career: contactCareer,
         theBestRateEmail: theBestRateEmail,
-        acaAccount: acaAccount,
-        acaPass: acaPass,
-        acaUsername: acaAccountSpecial || acaAccount,
-        acaPassword: acaPassSpecial || acaPass,
+        acaUsername: acaAccount,
+        acaPassword: acaPass,
         acaStatus: acaAccountStatus,
+        acaAccountStatus: acaAccountStatus,
         acaStatusSpecial: acaStatusSpecial,
         acaAccountSpecial: acaAccountSpecial,
         acaPassSpecial: acaPassSpecial,
         enrollCallRep: enrollCallRep,
-        sourceChannel: leadHowDoYouKnowUs,
+        sourceChannel: cleanedHow,
+        howDoYouKnowUs: cleanedHow,
         sourceDetail: leadWhoRefer,
         whoReferClient: leadWhoRefer,
-        contactOwnerId: matchingUser ? matchingUser.id : null,
+        contactOwnerId: matchingUser ? matchingUser.id : fallbackOwnerId,
         contactOwnerName: matchingUser ? (matchingUser.fullName || matchingUser.name) : leadContactOwner,
+        contactFields: updatedContact.contactFields,
+        primary: updatedContact.primary,
+        acaAccount: updatedContact.acaAccount,
       }).catch(() => null);
     }
     if (onUpdateContact) {
+      isSavingSelfRef.current = true;
       onUpdateContact(updatedContact);
     }
 
@@ -1735,6 +1863,7 @@ export default function StaffContactDetail({
       setTimeout(() => setSaveSuccess(false), 2500);
     }
   }
+  handleSaveContactChangesRef.current = handleSaveContactChanges;
 
   // Serialize current field state to compare and trigger debounced auto-save
   const currentSnapshot = useMemo(() => {
@@ -1830,6 +1959,7 @@ export default function StaffContactDetail({
     }
 
     autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveTimerRef.current = null;
       handleSaveContactChanges({ isAutoSave: true });
       lastSavedJsonRef.current = currentSnapshot;
       setSaveStatus('saved');
@@ -1841,6 +1971,7 @@ export default function StaffContactDetail({
     return () => {
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
       }
     };
   }, [currentSnapshot]);
@@ -1850,7 +1981,10 @@ export default function StaffContactDetail({
     return () => {
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
-        handleSaveContactChanges({ isAutoSave: true });
+        autoSaveTimerRef.current = null;
+        if (handleSaveContactChangesRef.current) {
+          handleSaveContactChangesRef.current({ isAutoSave: true });
+        }
       }
     };
   }, []);
@@ -1858,7 +1992,10 @@ export default function StaffContactDetail({
   function handleBack() {
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
-      handleSaveContactChanges({ isAutoSave: true });
+      autoSaveTimerRef.current = null;
+      if (handleSaveContactChangesRef.current) {
+        handleSaveContactChangesRef.current({ isAutoSave: true });
+      }
     }
     if (onBack) onBack();
   }
@@ -2163,6 +2300,9 @@ export default function StaffContactDetail({
                             className="flex-grow text-xs text-slate-800 font-medium bg-transparent border-none outline-none cursor-pointer pr-12"
                           >
                             <option value="">-- Select Agent --</option>
+                            {leadContactOwner && !agentAccounts?.some((a) => a.name === leadContactOwner) && (
+                              <option value={leadContactOwner}>{leadContactOwner}</option>
+                            )}
                             {agentAccounts?.map((a) => (
                               <option key={`agent-${a.id || a.name}`} value={a.name}>
                                 {a.name} {a.npn ? `(#${a.npn})` : ''}
@@ -2233,12 +2373,42 @@ export default function StaffContactDetail({
                           >
                             <option value="">---</option>
                             <option value="Facebook">Facebook</option>
-                            <option value="Refer">Referral</option>
+                            <option value="Referral">Referral</option>
+                            <option value="Refer">Refer</option>
+                            <option value="Refer by other client">Refer by other client</option>
+                            <option value="Existing Network">Existing Network</option>
+                            <option value="Existing ACA Book">Existing ACA Book</option>
+                            <option value="TeleSales">TeleSales</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Community Event">Community Event</option>
+                            <option value="Online Ad">Online Ad</option>
                             <option value="Google">Google Search</option>
                             <option value="TikTok">TikTok</option>
                             <option value="Walk-in">Walk-in</option>
                             <option value="Cold Call">Cold Call</option>
                             <option value="Website">Website</option>
+                            {leadHowDoYouKnowUs &&
+                              ![
+                                '',
+                                '---',
+                                'Facebook',
+                                'Referral',
+                                'Refer',
+                                'Refer by other client',
+                                'Existing Network',
+                                'Existing ACA Book',
+                                'TeleSales',
+                                'Marketing',
+                                'Community Event',
+                                'Online Ad',
+                                'Google',
+                                'TikTok',
+                                'Walk-in',
+                                'Cold Call',
+                                'Website',
+                              ].includes(leadHowDoYouKnowUs) && (
+                                <option value={leadHowDoYouKnowUs}>{leadHowDoYouKnowUs}</option>
+                              )}
                           </select>
                           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
                             {leadHowDoYouKnowUs && leadHowDoYouKnowUs !== '---' && (
@@ -2408,6 +2578,11 @@ export default function StaffContactDetail({
                             <option value="California (CA)">California (CA)</option>
                             <option value="Florida (FL)">Florida (FL)</option>
                             <option value="Georgia (GA)">Georgia (GA)</option>
+                            <option value="Virginia (VA)">Virginia (VA)</option>
+                            <option value="New York (NY)">New York (NY)</option>
+                            <option value="Pennsylvania (PA)">Pennsylvania (PA)</option>
+                            <option value="Illinois (IL)">Illinois (IL)</option>
+                            <option value="Ohio (OH)">Ohio (OH)</option>
                           </select>
                           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
                             {contactState && (
@@ -2554,6 +2729,7 @@ export default function StaffContactDetail({
                             <option value="Vietnamese">Vietnamese</option>
                             <option value="English">English</option>
                             <option value="Bilingual">Bilingual</option>
+                            <option value="Bilingual (Vietnamese / English)">Bilingual (Vietnamese / English)</option>
                           </select>
                           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
                             {contactLanguage && (

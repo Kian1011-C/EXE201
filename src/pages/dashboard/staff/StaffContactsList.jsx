@@ -56,28 +56,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     try {
       const usersData = await getUsers();
       setDbUsers(usersData);
-      if (Array.isArray(usersData) && usersData.length > 0) {
-        const backendAgents = usersData?.filter((u) => {
-          const role = String(u.role || '')?.toLowerCase();
-          const status = String(u.status || '')?.toLowerCase();
-          return (role === 'agent' || role === 'broker') && status !== 'suspended';
-        });
-        if (backendAgents.length > 0) {
-          setAgentAccounts(
-            backendAgents?.map((b) => ({
-              id: String(b.id),
-              name: b.name || `${b.firstName || ''} ${b.lastName || ''}`?.trim(),
-              role: 'agent',
-              avatar: b.avatar,
-              bg: b.bg,
-              email: b.email,
-              phone: b.phone,
-            }))
-          );
-        } else {
-          setAgentAccounts(getActiveAgentAccounts());
-        }
-      }
+      setAgentAccounts(getActiveAgentAccounts());
 
       const activeSearch = filters.search !== undefined ? filters.search : searchQuery;
       const activeOwner = filters.owner !== undefined ? filters.owner : ownerFilter;
@@ -189,11 +168,12 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
     const fullName = fullNameParts.length > 0 ? fullNameParts.join(' ') : (fName || 'New Contact');
 
     const newCode = `CT2600${Math.floor(10000 + Math.random() * 90000)}`;
-    const formattedPhone = phone?.trim()
+    const cleanedPhoneInput = phone?.trim()
       ? phone?.trim().startsWith('+1')
         ? phone?.trim()
         : `+1 ${phone?.trim()}`
-      : '—';
+      : '';
+    const formattedPhone = cleanedPhoneInput || '—';
 
     const defaultAgentName = agentAccounts[0]?.name || 'Khanh Nguyen';
     const ownerNameResolved = contactOwner || (activeIsAgent ? effectiveAgent.name : defaultAgentName);
@@ -248,7 +228,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         household: '',
       },
       contactFields: {
-        phone: formattedPhone,
+        phone: cleanedPhoneInput,
         enrolledAddress: '',
         mailingAddress: '',
         state: '',
@@ -304,7 +284,7 @@ export default function StaffContactsList({ onSelectContact, isAgent = false, ag
         middleName: mName,
         lastName: lName,
         fullName: fullName,
-        phone: formattedPhone,
+        phone: cleanedPhoneInput,
         email: email?.trim(),
         language: language || 'Vietnamese',
         howDoYouKnowUs: howDoYouKnowUs,
