@@ -841,7 +841,11 @@ export default function AgentDashboard() {
 
       {/* ── 3. CONTACT DETAIL VIEW ──────────────────────────────────────── */}
       {currentView === 'contact-detail' && (
-        !canAgentAccessItem(selectedContact, user || { role: 'agent', name: currentAgent.name }, 'contact') ? (
+        !selectedContact ? (
+          <div className="flex items-center justify-center min-h-[300px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
+          </div>
+        ) : !canAgentAccessItem(selectedContact, user || { role: 'agent', name: currentAgent.name }, 'contact') ? (
           <AccessRestrictedCard
             title="Customer Record Access Restricted"
             message="Under system policy, you may only access customer profiles assigned to you as the primary Owner."

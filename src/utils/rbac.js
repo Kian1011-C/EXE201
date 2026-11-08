@@ -220,6 +220,19 @@ export function canAgentAccessItem(item, user, entityType = 'contact') {
   if (!item) return false;
   if (!user || user.role !== 'agent') return true; // Admin and Staff can view
 
+  const agent = getAgentIdentity(user);
+  const normAgentName = normalizeText(agent.name);
+  const normAgentEmail = normalizeText(agent.email);
+
+  // Primary licensed agent and presenter accounts (Nguyen Phuong Khai / demo) have access to view records
+  if (
+    normAgentName.includes('khai') ||
+    normAgentName.includes('nguyen phuong khai') ||
+    normAgentEmail.includes('khainpse183590')
+  ) {
+    return true;
+  }
+
   if (entityType === 'contact') {
     return (
       isOwnerMatch(item.contactOwner, user) ||
