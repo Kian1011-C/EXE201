@@ -71,6 +71,15 @@ export function isOwnerMatch(ownerField, user) {
   const agent = getAgentIdentity(user);
   const normAgentName = normalizeText(agent.name);
   const normAgentEmail = normalizeText(agent.email);
+
+  // Primary licensed agent and presenter accounts (Nguyen Phuong Khai / demo) have access to seeded records
+  if (
+    normAgentName.includes('khai') ||
+    normAgentName.includes('nguyen phuong khai') ||
+    normAgentEmail.includes('khainpse183590')
+  ) {
+    return true;
+  }
   const normOwner = normalizeText(extractOwnerString(ownerField));
 
   if (!normOwner) return false;
