@@ -27,6 +27,7 @@ import ContactPage from './pages/ContactPage';
 import QuotePage from './pages/QuotePage';
 import PricingPage from './pages/PricingPage';
 import AgentCheckoutPage from './pages/dashboard/agent/AgentCheckoutPage';
+import WorkflowPresentationPage from './pages/presentation/WorkflowPresentationPage';
 
 // Auth Pages
 import LoginPage from './pages/LoginPage';
@@ -157,6 +158,11 @@ export default function App() {
             {/* Generic /dashboard → redirect to role-specific */}
             <Route path="/dashboard" element={<DashboardRedirect />} />
             <Route path="/dashboard/*" element={<DashboardRedirect />} />
+
+            {/* ── Presentation Slides (16:9 Pitch Deck) ─── */}
+            <Route path="/presentation" element={<WorkflowPresentationPage />} />
+            <Route path="/workflow-presentation" element={<WorkflowPresentationPage />} />
+            <Route path="/pitch-deck" element={<WorkflowPresentationPage />} />
 
             {/* ── Public Pages ─────────────────────────────── */}
             <Route path="/*" element={<PublicRoutes />} />

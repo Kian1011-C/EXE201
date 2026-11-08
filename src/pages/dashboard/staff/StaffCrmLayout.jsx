@@ -605,6 +605,18 @@ export default function StaffCrmLayout({
 
 
 
+          {/* Workflow Presentation Deck Link */}
+          <Link
+            to="/presentation"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100 transition shadow-2xs"
+            title="Open 16:9 Business Workflow Presentation Slide Deck"
+          >
+            <span className="material-symbols-outlined text-[16px] text-teal-600">slideshow</span>
+            <span>Presentation Deck</span>
+          </Link>
+
           {/* Agent Regulatory Badge */}
           {isAgent && (
             <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
