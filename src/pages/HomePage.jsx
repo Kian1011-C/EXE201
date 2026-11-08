@@ -8,12 +8,10 @@ import {
   Sparkles,
   Users,
   Calendar,
-  Clock,
   TrendingUp,
   Building2,
   DollarSign,
   ChevronDown,
-  Activity,
   FileCheck,
 } from 'lucide-react';
 import CarrierLogosStrip from '../components/CarrierLogos';
@@ -321,122 +319,7 @@ export default function HomePage({ onOpenQuote, onOpenMatch }) {
             </motion.div>
           </div>
 
-          {/* ── Realistic Desktop Browser CRM Showcase ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-14 max-w-5xl mx-auto rounded-3xl bg-white border border-stroke-subtle shadow-[0_20px_50px_rgba(11,23,42,0.08)] overflow-hidden"
-          >
-            {/* macOS Style Window Header */}
-            <div className="px-5 py-3.5 bg-[#f4f2eb] border-b border-stroke-subtle flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-rose-400" />
-                <span className="w-3 h-3 rounded-full bg-amber-400" />
-                <span className="w-3 h-3 rounded-full bg-emerald-400" />
-                <span className="ml-3 px-3 py-1 rounded-md bg-white border border-stroke-subtle/80 font-mono text-[11px] text-slate-muted">
-                  app.insurmatch.io/agency/book-of-business
-                </span>
-              </div>
-              <div className="hidden sm:flex items-center gap-3 text-xs font-semibold text-navy-deep">
-                <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
-                  <Activity className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
-                  NPN Verified • 50 States
-                </span>
-              </div>
-            </div>
-
-            {/* CRM Interface Body Preview */}
-            <div className="p-6 sm:p-8 bg-white grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Column: KPI Highlights */}
-              <div className="lg:col-span-4 space-y-4">
-                <div className="p-4 rounded-2xl bg-[#faf9f5] border border-stroke-subtle space-y-1">
-                  <p className="text-xs uppercase tracking-wider font-bold text-slate-muted">
-                    Total Active Book
-                  </p>
-                  <p className="text-2xl font-extrabold text-navy-deep font-mono tabular-nums">
-                    1,420 <span className="text-xs font-normal text-slate-muted font-sans">Policies</span>
-                  </p>
-                  <p className="text-xs text-emerald-700 font-semibold">+38 enrolled during recent OEP</p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-[#faf9f5] border border-stroke-subtle space-y-1">
-                  <p className="text-xs uppercase tracking-wider font-bold text-slate-muted">
-                    Annual Retention Rate
-                  </p>
-                  <p className="text-2xl font-extrabold text-emerald-700 font-mono tabular-nums">
-                    98.4%
-                  </p>
-                  <p className="text-xs text-charcoal/70">Protected via 30/60/90d Radar</p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-[#faf9f5] border border-stroke-subtle space-y-1">
-                  <p className="text-xs uppercase tracking-wider font-bold text-slate-muted">
-                    Monthly Carrier Renewals
-                  </p>
-                  <p className="text-2xl font-extrabold text-navy-deep font-mono tabular-nums">
-                    $35,895<span className="text-xs font-normal text-slate-muted font-sans">.00</span>
-                  </p>
-                  <p className="text-xs text-navy-deep font-semibold">100% Direct Payout ($0 Fee)</p>
-                </div>
-              </div>
-
-              {/* Right Column: Realistic Client Profile Record */}
-              <div className="lg:col-span-8 p-5 rounded-2xl bg-[#faf9f5] border border-stroke-subtle space-y-4 text-left">
-                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-stroke-subtle">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-extrabold text-navy-deep">Robert &amp; Sarah Jenkins</h3>
-                      <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800">
-                        Medicare + Supp
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-muted">Household NPN Sync: #2099412 • Travis County, TX</p>
                   </div>
-                  <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                    AEP Renewal: Safe
-                  </span>
-                </div>
-
-                {/* Sub-cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 rounded-xl bg-white border border-stroke-subtle space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-muted">Primary Coverage</span>
-                    <p className="font-bold text-navy-deep">UnitedHealthcare Dual Complete</p>
-                    <p className="text-charcoal/70">Plan ID: UHC-TX-882910 • $0/mo</p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-white border border-stroke-subtle space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-muted">Supplemental Line</span>
-                    <p className="font-bold text-navy-deep">Ameritas Dental &amp; Vision</p>
-                    <p className="text-charcoal/70">Plan ID: AME-99412 • $42.50/mo</p>
-                  </div>
-                </div>
-
-                {/* Compliance checklist inside profile */}
-                <div className="p-3.5 rounded-xl bg-white border border-stroke-subtle space-y-2">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-muted block">
-                    CMS &amp; Scope of Appointment (SOA) Audit Trail
-                  </span>
-                  <div className="flex flex-wrap gap-2 text-[11px]">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">
-                      <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
-                      Digital SOA Signed (48h Logged)
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">
-                      <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
-                      MBI Beneficiary ID Verified
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-800 font-semibold border border-blue-200">
-                      <Clock className="w-3 h-3 text-blue-600" />
-                      30-Day AEP Outreach Sent
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
