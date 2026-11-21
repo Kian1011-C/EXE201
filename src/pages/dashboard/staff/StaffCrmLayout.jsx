@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthContext';
 import { checkBackendHealth } from '../../../services/api';
+import { fetchMyBackendSubscription, getAgentSubscription } from '../../../services/subscriptionService';
 import CommandPaletteModal from '../../../components/common/CommandPaletteModal';
 
 export default function StaffCrmLayout({
@@ -26,8 +27,44 @@ export default function StaffCrmLayout({
   const [unreadNotifications, setUnreadNotifications] = useState(3);
   const [customerNotifications, setCustomerNotifications] = useState([]);
   const [dbStatus, setDbStatus] = useState('checking'); // 'connected' | 'offline' | 'checking'
+  const [activePlanBadge, setActivePlanBadge] = useState(() => {
+    const sub = getAgentSubscription(agentName || user?.name || user?.email);
+    return {
+      tier: (sub?.planTier || 'TRIAL').toUpperCase(),
+      name: sub?.plan || 'Trial 60 Ngày',
+      maxContacts: sub?.maxContacts || 50,
+    };
+  });
   const userMenuRef = useRef(null);
   const notificationsRef = useRef(null);
+
+  useEffect(() => {
+    if (!isAgent) return;
+    function syncActivePlan() {
+      fetchMyBackendSubscription()
+        .then((data) => {
+          if (data && data.subscription) {
+            const tier = (data.subscription.planTier || 'TRIAL').toUpperCase();
+            const quota = data.quota || {};
+            const labelMap = {
+              TRIAL: 'Trial 60 Ngày',
+              STARTER: 'Starter',
+              PROFESSIONAL: 'Professional',
+              AGENCY: 'Agency',
+            };
+            setActivePlanBadge({
+              tier,
+              name: labelMap[tier] || tier,
+              maxContacts: data.subscription.contactsLimit || quota.maxContacts || (tier === 'TRIAL' ? 50 : tier === 'STARTER' ? 100 : tier === 'AGENCY' ? 300 : 200),
+            });
+          }
+        })
+        .catch(() => {});
+    }
+    syncActivePlan();
+    window.addEventListener('insurmatch_subscriptions_updated', syncActivePlan);
+    return () => window.removeEventListener('insurmatch_subscriptions_updated', syncActivePlan);
+  }, [isAgent, user?.email, agentName]);
 
   // Sync customer matchmaking notifications for the current agent
   useEffect(() => {
@@ -606,12 +643,27 @@ export default function StaffCrmLayout({
 
 
 
-          {/* Agent Regulatory Badge */}
+          {/* Agent Active SaaS Plan Badge + Regulatory Badge */}
           {isAgent && (
-            <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>NPN {agentNpn}</span>
-            </div>
+            <>
+              <button
+                type="button"
+                onClick={() => onSelectTab && onSelectTab('subscription')}
+                title="Xem gói CRM hiện tại & Nâng cấp hạn mức"
+                className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border shadow-2xs transition cursor-pointer ${
+                  activePlanBadge.tier === 'TRIAL'
+                    ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                    : 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">workspace_premium</span>
+                <span>Gói: {activePlanBadge.name} ({activePlanBadge.maxContacts} Hồ sơ)</span>
+              </button>
+              <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>NPN {agentNpn}</span>
+              </div>
+            </>
           )}
 
           {/* User Profile */}

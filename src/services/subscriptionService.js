@@ -600,7 +600,9 @@ function getAuthHeader() {
 /**
  * 1. Khởi tạo liên kết thanh toán VietQR qua PayOS
  */
-export async function createPayosPaymentLink({ planTier = 'PROFESSIONAL', billingCycle = 'MONTHLY' }) {
+export async function createPayosPaymentLink({ planTier, planKey, billingCycle = 'MONTHLY' }) {
+  const resolvedTier = String(planTier || planKey || 'PROFESSIONAL').trim().toUpperCase();
+  const resolvedCycle = String(billingCycle || 'MONTHLY').trim().toUpperCase();
   const res = await fetch(`${API_BASE}/payments/payos/create-link`, {
     method: 'POST',
     headers: {
@@ -608,8 +610,8 @@ export async function createPayosPaymentLink({ planTier = 'PROFESSIONAL', billin
       ...getAuthHeader(),
     },
     body: JSON.stringify({
-      planTier: planTier.toUpperCase(),
-      billingCycle: billingCycle.toUpperCase(),
+      planTier: resolvedTier,
+      billingCycle: resolvedCycle,
     }),
   });
   const json = await res.json();

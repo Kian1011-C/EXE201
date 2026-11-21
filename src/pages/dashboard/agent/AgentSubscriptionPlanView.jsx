@@ -17,6 +17,26 @@ import toast from 'react-hot-toast';
 gsap.registerPlugin(useGSAP);
 
 const CANONICAL_PLAN_SPECS = {
+  trial: {
+    name: 'Trial 60 Ngày',
+    tagline: 'Gói dùng thử miễn phí 60 ngày cho Đại lý mới đăng ký',
+    badge: 'DÙNG THỬ 60 NGÀY',
+    monthlyVnd: 0,
+    annualVnd: 0,
+    monthlyUsd: 0,
+    annualUsdPerMonth: 0,
+    maxSeats: 1,
+    maxContacts: 50,
+    storageGb: 1,
+    accent: 'amber',
+    icon: 'verified',
+    highlights: [
+      '1 Licensed Agent Seat (Single User)',
+      'Quản lý tối đa 50 Hồ sơ khách hàng (50 Contacts)',
+      '1 GB SSD Cloud lưu trữ tài liệu bảo mật HIPAA',
+      'Trải nghiệm đầy đủ Pipeline ACA & Medicare 60 ngày miễn phí',
+    ],
+  },
   starter: {
     name: 'Starter',
     tagline: 'Cá nhân đại lý bảo hiểm độc lập',
@@ -145,20 +165,21 @@ export default function AgentSubscriptionPlanView({
           const tier = (beSub.planTier || 'TRIAL').toUpperCase();
           const planKey = tier.toLowerCase();
           const planMeta = SAAS_PLANS[planKey] || SAAS_PLANS.trial;
+          const canonical = CANONICAL_PLAN_SPECS[planKey] || CANONICAL_PLAN_SPECS.trial;
 
           setSubscription((prev) => ({
             ...prev,
-            plan: planMeta.name,
+            plan: canonical.name || planMeta.name,
             planTier: tier,
             billingCycle: beSub.billingCycle === 'ANNUAL' ? 'Annual' : 'Monthly',
             price: beSub.billingCycle === 'ANNUAL' ? Math.round(planMeta.annualPrice / 12) : planMeta.monthlyPrice,
-            priceVnd: beSub.billingCycle === 'ANNUAL' ? planMeta.annualVnd : planMeta.monthlyVnd,
-            maxSeats: beSub.seatsLimit != null ? beSub.seatsLimit : (quota.maxSeats != null ? quota.maxSeats : planMeta.maxSeats),
-            maxContacts: beSub.contactsLimit != null ? beSub.contactsLimit : (quota.maxContacts != null ? quota.maxContacts : planMeta.maxContacts),
-            storageLimitGb: beSub.storageLimitGb != null ? beSub.storageLimitGb : (quota.storageLimitGb != null ? quota.storageLimitGb : (planMeta.storageLimitGb || 5)),
-            contactsCount: quota.usedContacts != null ? quota.usedContacts : (prev.contactsCount || 1),
+            priceVnd: beSub.billingCycle === 'ANNUAL' ? canonical.annualVnd : canonical.monthlyVnd,
+            maxSeats: beSub.seatsLimit != null ? beSub.seatsLimit : (quota.maxSeats != null ? quota.maxSeats : canonical.maxSeats),
+            maxContacts: beSub.contactsLimit != null ? beSub.contactsLimit : (quota.maxContacts != null ? quota.maxContacts : canonical.maxContacts),
+            storageLimitGb: beSub.storageLimitGb != null ? beSub.storageLimitGb : (quota.storageLimitGb != null ? quota.storageLimitGb : canonical.storageGb),
+            contactsCount: quota.usedContacts != null ? quota.usedContacts : (prev.contactsCount || 0),
             seatsUsed: quota.usedSeats != null ? quota.usedSeats : (prev.seatsUsed || 1),
-            daysRemaining: quota.daysRemaining != null ? quota.daysRemaining : 86,
+            daysRemaining: quota.daysRemaining != null ? quota.daysRemaining : 60,
             canAddMore: quota.canAddMore != null ? quota.canAddMore : true,
             nextRenewalDate: quota.nextRenewalDate || (beSub.endDate ? beSub.endDate.split('T')[0] : prev.nextRenewalDate),
             paymentMethod: beSub.lastPaymentMethod || prev.paymentMethod,
@@ -167,6 +188,57 @@ export default function AgentSubscriptionPlanView({
       })
       .catch((err) => console.warn('[Subscription] BE sync info:', err.message));
   }, [agentName, agentEmail]);
+
+  // Helper: Merge DB plan row (from Neon PostgreSQL saas_plans) with canonical UI specs
+  const getResolvedSpec = (key) => {
+    const cleanKey = (key || 'trial').toLowerCase();
+    const base = CANONICAL_PLAN_SPECS[cleanKey] || CANONICAL_PLAN_SPECS.trial;
+    const dbMatch = dbPlans.find((p) => {
+      const code = String(p.planCode || p.plan_code || p.name || '').toUpperCase();
+      if (code.includes(cleanKey.toUpperCase())) return true;
+      if (cleanKey === 'trial' && (p.id === 1 || code.includes('THỬ NGHIỆM'))) return true;
+      if (cleanKey === 'starter' && (p.id === 2 || code.includes('KHỞI ĐẦU'))) return true;
+      if (cleanKey === 'professional' && (p.id === 3 || code.includes('CHUYÊN NGHIỆP'))) return true;
+      if (cleanKey === 'agency' && (p.id === 4 || code.includes('HÃNG'))) return true;
+      return false;
+    });
+
+    if (!dbMatch) return base;
+
+    const monthlyVnd = Number(dbMatch.monthlyPriceVnd ?? dbMatch.monthly_price_vnd ?? base.monthlyVnd);
+    const annualVnd = Number(dbMatch.annualPriceVnd ?? dbMatch.annual_price_vnd ?? base.annualVnd);
+    const monthlyUsd = Number(dbMatch.monthlyPriceUsd ?? dbMatch.monthly_price_usd ?? base.monthlyUsd);
+    const annualUsdPerMonth = Number(dbMatch.annualPriceUsd ?? dbMatch.annual_price_usd ?? base.annualUsdPerMonth);
+    const maxSeats = Number(dbMatch.maxSeats ?? dbMatch.max_seats ?? base.maxSeats);
+    const maxContacts = Number(dbMatch.maxContacts ?? dbMatch.max_contacts ?? base.maxContacts);
+    const storageGb = Number(dbMatch.storageLimitGb ?? dbMatch.storage_limit_gb ?? base.storageGb);
+
+    let highlights = base.highlights;
+    if (dbMatch.featuresJson) {
+      try {
+        const parsed = JSON.parse(dbMatch.featuresJson);
+        if (Array.isArray(parsed) && parsed.length > 0) highlights = parsed;
+      } catch {
+        if (typeof dbMatch.featuresJson === 'string' && dbMatch.featuresJson.trim()) {
+          highlights = dbMatch.featuresJson.split(',').map((s) => s.trim());
+        }
+      }
+    }
+
+    return {
+      ...base,
+      name: dbMatch.name || base.name,
+      tagline: dbMatch.targetAudience || dbMatch.description || base.tagline,
+      monthlyVnd,
+      annualVnd,
+      monthlyUsd,
+      annualUsdPerMonth,
+      maxSeats,
+      maxContacts,
+      storageGb,
+      highlights,
+    };
+  };
 
   // Listen for storage updates across tabs
   useEffect(() => {
@@ -187,29 +259,22 @@ export default function AgentSubscriptionPlanView({
     };
   }, []);
 
-  const currentPlanKey = (
-    subscription?.planTier ||
-    subscription?.plan ||
-    'starter'
-  ).toLowerCase().includes('trial')
-    ? 'trial'
-    : (subscription?.planTier || subscription?.plan || '')
-        .toLowerCase()
-        .includes('agency')
+  const rawTierStr = String(subscription?.planTier || subscription?.plan || 'trial').toLowerCase();
+  const currentPlanKey = rawTierStr.includes('agency')
     ? 'agency'
-    : (subscription?.planTier || subscription?.plan || '')
-        .toLowerCase()
-        .includes('professional')
+    : rawTierStr.includes('professional') || rawTierStr === 'pro'
     ? 'professional'
-    : 'starter';
+    : rawTierStr.includes('starter')
+    ? 'starter'
+    : 'trial';
 
-  const currentSpec = CANONICAL_PLAN_SPECS[currentPlanKey] || CANONICAL_PLAN_SPECS.starter;
+  const currentSpec = getResolvedSpec(currentPlanKey);
   const maxSeats = subscription?.maxSeats || currentSpec.maxSeats;
   const usedSeats = subscription?.seatsUsed || 1;
   const maxContacts = subscription?.maxContacts || currentSpec.maxContacts;
-  const usedContacts = subscription?.contactsCount != null ? subscription.contactsCount : 1;
+  const usedContacts = subscription?.contactsCount != null ? subscription.contactsCount : 0;
   const storageGb = subscription?.storageLimitGb || currentSpec.storageGb;
-  const daysLeft = subscription?.daysRemaining != null ? subscription.daysRemaining : 86;
+  const daysLeft = subscription?.daysRemaining != null ? subscription.daysRemaining : 60;
 
   const seatsPct = gsap.utils.clamp(8, 100, Math.round((usedSeats / maxSeats) * 100));
   const contactsPct = gsap.utils.clamp(6, 100, Math.round((usedContacts / maxContacts) * 100));
@@ -349,7 +414,7 @@ export default function AgentSubscriptionPlanView({
       ['starter', 'professional', 'agency'].forEach((key, idx) => {
         const el = priceRefs.current[key];
         if (!el) return;
-        const spec = CANONICAL_PLAN_SPECS[key];
+        const spec = getResolvedSpec(key);
         const targetVal = billingCycle === 'Annual' ? spec.annualVnd : spec.monthlyVnd;
         const prevVal = Number(el.getAttribute('data-val') || targetVal);
 
@@ -375,7 +440,7 @@ export default function AgentSubscriptionPlanView({
         );
       });
     },
-    { scope: containerRef, dependencies: [billingCycle] }
+    { scope: containerRef, dependencies: [billingCycle, dbPlans] }
   );
 
   // ── 3. Interactive 3D Card Tilt & Spotlight via contextSafe + quickTo ──────
@@ -474,6 +539,7 @@ export default function AgentSubscriptionPlanView({
       const data = await createPayosPaymentLink({
         agentName: agentName || subscription?.agentName || 'Agent',
         agentEmail: agentEmail || subscription?.agentEmail || 'khanh@insurmatch.us',
+        planTier: (planKey || 'professional').toUpperCase(),
         planKey: planKey || 'professional',
         billingCycle: cycle || 'Monthly',
       });
@@ -974,12 +1040,14 @@ export default function AgentSubscriptionPlanView({
                     đ
                   </span>
                   <span className="text-xs font-semibold text-slate-400">
-                    / {subscription?.billingCycle === 'Annual' ? 'năm' : 'tháng'}
+                    / {currentPlanKey === 'trial' ? '60 ngày' : (subscription?.billingCycle === 'Annual' ? 'năm' : 'tháng')}
                   </span>
                 </div>
 
                 <div className="text-xs font-bold text-cyan-300">
-                  Quy đổi: ~${subscription?.billingCycle === 'Annual' ? currentSpec.annualUsdPerMonth : currentSpec.monthlyUsd} USD / tháng
+                  {currentPlanKey === 'trial'
+                    ? 'Miễn phí 100% — Gói Dùng Thử 60 Ngày (50 Hồ sơ)'
+                    : `Quy đổi: ~$${subscription?.billingCycle === 'Annual' ? currentSpec.annualUsdPerMonth : currentSpec.monthlyUsd} USD / tháng`}
                 </div>
 
                 <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
@@ -1089,7 +1157,7 @@ export default function AgentSubscriptionPlanView({
           {/* 3 High-Contrast Pricing Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-7 items-stretch pt-2">
             {['starter', 'professional', 'agency'].map((key) => {
-              const spec = CANONICAL_PLAN_SPECS[key];
+              const spec = getResolvedSpec(key);
               const isCurrent = currentPlanKey === key;
               const isPro = key === 'professional';
               const isAgency = key === 'agency';
@@ -1468,16 +1536,16 @@ export default function AgentSubscriptionPlanView({
                     Gói dịch vụ đã chọn
                   </span>
                   <span className="text-lg font-black text-blue-950 mt-0.5 block">
-                    {CANONICAL_PLAN_SPECS[selectedPlanForCheckout]?.name || SAAS_PLANS[selectedPlanForCheckout]?.displayName} Tier
+                    {getResolvedSpec(selectedPlanForCheckout)?.name || SAAS_PLANS[selectedPlanForCheckout]?.displayName} Tier
                   </span>
                   <span className="text-xs text-blue-700 font-medium">
                     Hạn mức:{' '}
                     <strong>
-                      {CANONICAL_PLAN_SPECS[selectedPlanForCheckout]?.maxContacts || 200} Hồ sơ
+                      {getResolvedSpec(selectedPlanForCheckout)?.maxContacts || 200} Hồ sơ
                     </strong>{' '}
                     •{' '}
                     <strong>
-                      {CANONICAL_PLAN_SPECS[selectedPlanForCheckout]?.storageGb || 15} GB SSD
+                      {getResolvedSpec(selectedPlanForCheckout)?.storageGb || 15} GB SSD
                     </strong>{' '}
                     • Chu kỳ: {billingCycle === 'Annual' ? 'Thanh toán Năm (-2 tháng)' : 'Hàng tháng'}
                   </span>
@@ -1486,16 +1554,16 @@ export default function AgentSubscriptionPlanView({
                   <span className="text-2xl font-black text-blue-950 block tabular-nums">
                     $
                     {billingCycle === 'Annual'
-                      ? (CANONICAL_PLAN_SPECS[selectedPlanForCheckout]?.annualUsdPerMonth || 65) * 12
-                      : CANONICAL_PLAN_SPECS[selectedPlanForCheckout]?.monthlyUsd || 79}
+                      ? (getResolvedSpec(selectedPlanForCheckout)?.annualUsdPerMonth || 65) * 12
+                      : getResolvedSpec(selectedPlanForCheckout)?.monthlyUsd || 79}
                   </span>
                   <span className="text-xs font-bold text-emerald-700 block tabular-nums">
                     ≈{' '}
                     {Number(
                       payosData?.amount ||
                         (billingCycle === 'Annual'
-                          ? CANONICAL_PLAN_SPECS[selectedPlanForCheckout]?.annualVnd
-                          : CANONICAL_PLAN_SPECS[selectedPlanForCheckout]?.monthlyVnd)
+                          ? getResolvedSpec(selectedPlanForCheckout)?.annualVnd
+                          : getResolvedSpec(selectedPlanForCheckout)?.monthlyVnd)
                     ).toLocaleString('vi-VN')}{' '}
                     VNĐ
                   </span>
