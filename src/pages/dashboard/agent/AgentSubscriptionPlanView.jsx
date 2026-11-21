@@ -1732,25 +1732,6 @@ export default function AgentSubscriptionPlanView({
                             <span>Mở Trang Thanh Toán PayOS (Cổng Thanh Toán Trực Tuyến)</span>
                           </a>
                         )}
-
-                        <button
-                          type="button"
-                          onClick={handleSimulateSuccess}
-                          disabled={isSimulating}
-                          className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-500 text-slate-950 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
-                        >
-                          {isSimulating ? (
-                            <>
-                              <span className="w-3.5 h-3.5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
-                              <span>Đang mô phỏng giao dịch ngân hàng...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="material-symbols-outlined text-[16px]">bolt</span>
-                              <span>⚡ Mô Phỏng Thanh Toán Thành Công (Demo Test Không Cần App)</span>
-                            </>
-                          )}
-                        </button>
                       </div>
                     </div>
                   )}

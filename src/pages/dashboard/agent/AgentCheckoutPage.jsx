@@ -609,7 +609,7 @@ export default function AgentCheckoutPage({
                       </div>
                     </div>
 
-                    {/* PayOS Hosted Link & Demo Simulation Button */}
+                    {/* PayOS Hosted Link */}
                     <div className="pt-3 border-t border-slate-200 space-y-2.5">
                       {payosData?.checkoutUrl && payosData.checkoutUrl.startsWith('http') && (
                         <a
@@ -622,26 +622,6 @@ export default function AgentCheckoutPage({
                           <span>Mở Trang Thanh Toán PayOS (Cổng Thanh Toán Trực Tuyến)</span>
                         </a>
                       )}
-
-                      {/* Demo Simulation Button */}
-                      <button
-                        type="button"
-                        onClick={handleSimulateSuccess}
-                        disabled={isSimulating}
-                        className="w-full py-2 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
-                      >
-                        {isSimulating ? (
-                          <>
-                            <span className="w-3.5 h-3.5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
-                            <span>Đang mô phỏng giao dịch ngân hàng...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="material-symbols-outlined text-[16px]">bolt</span>
-                            <span>⚡ Mô Phỏng Thanh Toán Thành Công (Demo Test Không Cần App)</span>
-                          </>
-                        )}
-                      </button>
 
                       <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl text-center space-y-1">
                         <div className="flex items-center justify-center gap-1.5 text-emerald-900 font-bold text-xs">
